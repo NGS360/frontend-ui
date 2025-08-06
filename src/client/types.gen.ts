@@ -91,6 +91,84 @@ export type ProjectsPublic = {
 }
 
 /**
+ * SampleCreate
+ */
+export type SampleCreate = {
+  /**
+   * Sample Id
+   */
+  sample_id: string
+  /**
+   * Project Id
+   */
+  project_id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Attributes
+   */
+  attributes?: Array<Attribute> | null
+}
+
+/**
+ * SamplePublic
+ */
+export type SamplePublic = {
+  /**
+   * Sample Id
+   */
+  sample_id: string
+  /**
+   * Project Id
+   */
+  project_id: string
+  /**
+   * Name
+   */
+  name: string | null
+  /**
+   * Attributes
+   */
+  attributes: Array<Attribute> | null
+}
+
+/**
+ * SamplesPublic
+ */
+export type SamplesPublic = {
+  /**
+   * Data
+   */
+  data: Array<SamplePublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -122,33 +200,7 @@ export type RootResponses = {
   200: unknown
 }
 
-export type CreateProjectData = {
-  body: ProjectCreate
-  path?: never
-  query?: never
-  url: '/project/create_project'
-}
-
-export type CreateProjectErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type CreateProjectError = CreateProjectErrors[keyof CreateProjectErrors]
-
-export type CreateProjectResponses = {
-  /**
-   * Successful Response
-   */
-  200: ProjectPublic
-}
-
-export type CreateProjectResponse =
-  CreateProjectResponses[keyof CreateProjectResponses]
-
-export type ReadProjectsData = {
+export type GetProjectsData = {
   body?: never
   path?: never
   query?: {
@@ -173,27 +225,53 @@ export type ReadProjectsData = {
      */
     sort_order?: 'asc' | 'desc'
   }
-  url: '/project/read_projects'
+  url: '/api/v1/projects'
 }
 
-export type ReadProjectsErrors = {
+export type GetProjectsErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type ReadProjectsError = ReadProjectsErrors[keyof ReadProjectsErrors]
+export type GetProjectsError = GetProjectsErrors[keyof GetProjectsErrors]
 
-export type ReadProjectsResponses = {
+export type GetProjectsResponses = {
   /**
    * Successful Response
    */
   200: ProjectsPublic
 }
 
-export type ReadProjectsResponse =
-  ReadProjectsResponses[keyof ReadProjectsResponses]
+export type GetProjectsResponse =
+  GetProjectsResponses[keyof GetProjectsResponses]
+
+export type CreateProjectData = {
+  body: ProjectCreate
+  path?: never
+  query?: never
+  url: '/api/v1/projects'
+}
+
+export type CreateProjectErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateProjectError = CreateProjectErrors[keyof CreateProjectErrors]
+
+export type CreateProjectResponses = {
+  /**
+   * Successful Response
+   */
+  201: ProjectPublic
+}
+
+export type CreateProjectResponse =
+  CreateProjectResponses[keyof CreateProjectResponses]
 
 export type GetProjectByProjectIdData = {
   body?: never
@@ -204,7 +282,7 @@ export type GetProjectByProjectIdData = {
     project_id: string
   }
   query?: never
-  url: '/project/{project_id}'
+  url: '/api/v1/projects/{project_id}'
 }
 
 export type GetProjectByProjectIdErrors = {
@@ -227,6 +305,110 @@ export type GetProjectByProjectIdResponses = {
 export type GetProjectByProjectIdResponse =
   GetProjectByProjectIdResponses[keyof GetProjectByProjectIdResponses]
 
+export type GetSamplesData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: string
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: 'asc' | 'desc'
+  }
+  url: '/api/v1/samples'
+}
+
+export type GetSamplesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetSamplesError = GetSamplesErrors[keyof GetSamplesErrors]
+
+export type GetSamplesResponses = {
+  /**
+   * Successful Response
+   */
+  200: SamplesPublic
+}
+
+export type GetSamplesResponse = GetSamplesResponses[keyof GetSamplesResponses]
+
+export type CreateSampleData = {
+  body: SampleCreate
+  path?: never
+  query?: never
+  url: '/api/v1/samples'
+}
+
+export type CreateSampleErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateSampleError = CreateSampleErrors[keyof CreateSampleErrors]
+
+export type CreateSampleResponses = {
+  /**
+   * Successful Response
+   */
+  201: SamplePublic
+}
+
+export type CreateSampleResponse =
+  CreateSampleResponses[keyof CreateSampleResponses]
+
+export type GetSampleBySampleIdData = {
+  body?: never
+  path: {
+    /**
+     * Sample Id
+     */
+    sample_id: string
+  }
+  query?: never
+  url: '/api/v1/samples/{sample_id}'
+}
+
+export type GetSampleBySampleIdErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetSampleBySampleIdError =
+  GetSampleBySampleIdErrors[keyof GetSampleBySampleIdErrors]
+
+export type GetSampleBySampleIdResponses = {
+  /**
+   * Successful Response
+   */
+  200: SamplePublic
+}
+
+export type GetSampleBySampleIdResponse =
+  GetSampleBySampleIdResponses[keyof GetSampleBySampleIdResponses]
+
 export type ClientOptions = {
-  baseURL: 'http://apiserver:5000' | (string & {})
+  baseURL: 'http://apiserver:3000' | (string & {})
 }

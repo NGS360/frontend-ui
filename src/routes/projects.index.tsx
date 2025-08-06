@@ -3,9 +3,10 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { Attribute, ProjectPublic } from '@/client'
 import type { ColumnDef } from '@tanstack/react-table'
-import { readProjectsOptions } from '@/client/@tanstack/react-query.gen'
+import { getProjectsOptions } from '@/client/@tanstack/react-query.gen'
 import { DataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
+import { CopyableText } from '@/components/copyable-text'
 
 export const Route = createFileRoute('/projects/')({
   component: RouteComponent,
@@ -16,8 +17,8 @@ function RouteComponent() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
   // Query projects
-  const { data, isPending, error } = useQuery({
-    ...readProjectsOptions({
+  const { data, isFetching, error } = useQuery({
+    ...getProjectsOptions({
       query: {
         page: pagination.pageIndex + 1, // API is 1-based
         per_page: pagination.pageSize,
@@ -27,8 +28,9 @@ function RouteComponent() {
     }),
   })
 
-  if (isPending) return 'Loading...'
+  if (isFetching) return 'Loading...'
   if (error) return 'An error has occurred: ' + error.message
+  if (!data) return 'No data was returned.';
 
   // Define columns
   const columns: Array<ColumnDef<ProjectPublic>> = [
@@ -38,13 +40,19 @@ function RouteComponent() {
       cell: ({ cell }) => {
         const project_id = cell.getValue() as string
         return (
-          <Link
-            to='/projects/$project_id'
-            params={{ project_id: project_id }}
-            className='text-primary hover:underline'
-          >
-            {project_id}
-          </Link >
+          <CopyableText 
+            text={project_id}
+            variant='hoverLink'
+            asChild={true}
+            children={(
+              <Link
+                to='/projects/$project_id'
+                params={{ project_id: project_id }}
+              >
+                {project_id}
+              </Link>
+            )}
+          />
         )
       }
     },

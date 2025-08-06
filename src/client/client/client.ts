@@ -58,7 +58,7 @@ export const createClient = (config: Config = {}): Client => {
 
     try {
       // assign Axios here for consistency with fetch
-      const _axios = opts.axios!
+      const _axios = opts.axios
        
       const { auth, ...optsWithoutAuth } = opts
       const response = await _axios({

@@ -6,12 +6,21 @@ import type {
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
+  CreateSampleData,
+  CreateSampleErrors,
+  CreateSampleResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
-  ReadProjectsData,
-  ReadProjectsErrors,
-  ReadProjectsResponses,
+  GetProjectsData,
+  GetProjectsErrors,
+  GetProjectsResponses,
+  GetSampleBySampleIdData,
+  GetSampleBySampleIdErrors,
+  GetSampleBySampleIdResponses,
+  GetSamplesData,
+  GetSamplesErrors,
+  GetSamplesResponses,
   RootData,
   RootResponses,
 } from './types.gen'
@@ -51,6 +60,24 @@ export const root = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Get Projects
+ * Returns a paginated list of projects.
+ */
+export const getProjects = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProjectsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProjectsResponses,
+    GetProjectsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects',
+    ...options,
+  })
+}
+
+/**
  * Create Project
  * Create a new project with optional attributes.
  */
@@ -63,30 +90,12 @@ export const createProject = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/project/create_project',
+    url: '/api/v1/projects',
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  })
-}
-
-/**
- * Read Projects
- * Returns a paginated list of projects.
- */
-export const readProjects = <ThrowOnError extends boolean = false>(
-  options?: Options<ReadProjectsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ReadProjectsResponses,
-    ReadProjectsErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/project/read_projects',
-    ...options,
   })
 }
 
@@ -104,7 +113,66 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/project/{project_id}',
+    url: '/api/v1/projects/{project_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Samples
+ * Returns a paginated list of samples.
+ */
+export const getSamples = <ThrowOnError extends boolean = false>(
+  options?: Options<GetSamplesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetSamplesResponses,
+    GetSamplesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/samples',
+    ...options,
+  })
+}
+
+/**
+ * Create Sample
+ * Create a new sample with optional attributes.
+ */
+export const createSample = <ThrowOnError extends boolean = false>(
+  options: Options<CreateSampleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateSampleResponses,
+    CreateSampleErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/samples',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Sample By Sample Id
+ * Returns a single sample by its sample_id.
+ * Note: This is different from its internal "id".
+ */
+export const getSampleBySampleId = <ThrowOnError extends boolean = false>(
+  options: Options<GetSampleBySampleIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetSampleBySampleIdResponses,
+    GetSampleBySampleIdErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/samples/{sample_id}',
     ...options,
   })
 }

@@ -35,6 +35,7 @@ interface CopyableTextProps
   timeout?: number;
   className?: string;
   children?: React.ReactNode;
+  asChild?: boolean;
 }
 
 export const CopyableText: React.FC<CopyableTextProps> = ({
@@ -43,7 +44,8 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
   timeout = 3000,
   className,
   variant,
-  size
+  size,
+  asChild = false
 }) => {
 
   const [copied, setCopied] = useState<boolean>(false);
@@ -53,7 +55,7 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
 
     const timer = setTimeout(() => {
       setCopied(false)
-    }, 3000)
+    }, timeout)
 
     return () => clearTimeout(timer)
   }, [copied, timeout])
@@ -70,7 +72,9 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
   return (
     <>
       <div className={clsx(copyableStyles({ variant, size }), className)}>
-        {variant === 'hoverLink' ? (
+        {asChild ? (
+          children
+        ) : variant === 'hoverLink' ? (
           <a href={text} target="_blank">{children ?? text}</a>
         ) : (
           <span>

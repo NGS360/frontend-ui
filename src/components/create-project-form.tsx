@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { createProjectMutation, readProjectsQueryKey } from "@/client/@tanstack/react-query.gen";
+import { createProjectMutation, getProjectsQueryKey } from "@/client/@tanstack/react-query.gen";
 
 // Define Schema w/Validation
 const AttributeSchema = z.object({
@@ -100,7 +100,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger })
     },
     onSuccess: (data: ProjectPublic) => {
       reset();
-      queryClient.invalidateQueries({ queryKey: readProjectsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getProjectsQueryKey() });
       toast.success(`Successfully created project ${data.project_id}`);
       setIsOpen(false);
       navigate({
