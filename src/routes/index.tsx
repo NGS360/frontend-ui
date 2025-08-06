@@ -18,7 +18,6 @@ function App() {
           <SearchBar />
         </div>
       </div>
-      <div></div>
     </div>
   )
 }

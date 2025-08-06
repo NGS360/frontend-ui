@@ -45,7 +45,8 @@ type FormFields = z.infer<typeof CreateProjectSchema>
 
 // Component props
 interface CreateProjectFormProps {
-  trigger: JSX.Element // Trigger for Dialog component
+  /** Trigger for the Dialog component */
+  trigger: JSX.Element
 }
 
 export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger }) => {

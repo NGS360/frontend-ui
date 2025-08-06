@@ -22,7 +22,7 @@ function RouteComponent() {
         page: pagination.pageIndex + 1, // API is 1-based
         per_page: pagination.pageSize,
         sort_by: 'project_id',
-        sort_order: 'asc'
+        sort_order: 'desc'
       },
     }),
   })

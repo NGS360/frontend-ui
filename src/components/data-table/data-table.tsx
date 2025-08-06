@@ -1,7 +1,7 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 import React from "react"
 import { DataTableColumnToggle } from "./column-toggle";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, JSX, SetStateAction } from "react";
 import type { ColumnDef, ColumnResizeDirection, ColumnResizeMode, PaginationState, Row } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 interface DataTableProps<TData, TValue> {
   data: Array<TData>,
   columns: Array<ColumnDef<TData, TValue>>,
+  notFoundComponent?: JSX.Element,
   pagination: PaginationState,
   pageCount: number,
   onPaginationChange: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number; }>>,
@@ -26,6 +27,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   data,
   columns,
+  notFoundComponent = <span>No results.</span>,
   pagination,
   pageCount,
   onPaginationChange: onPaginationChangeCallback,
@@ -131,9 +133,13 @@ export function DataTable<TData, TValue>({
                     </React.Fragment>
                   ))
                 ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className='h-24 text-center'>
-                      No results.
+                  <TableRow className="h-24">
+                    <TableCell
+                      colSpan={columns.length}
+                    >
+                      <div className="flex items-center justify-center h-full">
+                        {notFoundComponent}
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}

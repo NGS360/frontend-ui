@@ -49,7 +49,7 @@ export default function Header() {
         <img src={circosLogo} style={{ maxWidth: '35px' }} alt="NGS360 logo" />
         <div className="p-2 flex">
           {logoMap.map(([char, color]) => (
-            <span key={char} className="font-bold text-2xl" style={{ color }}>
+            <span key={char} className="font-bold text-xl" style={{ color }}>
               {char}
             </span>
           ))}
@@ -75,9 +75,9 @@ export default function Header() {
             </DropdownMenuTrigger>
 
             {/* Mobile menu (using DropdownMenu) */}
-            <DropdownMenuContent align="end" sideOffset={4} className="w-48">
+            <DropdownMenuContent align="end" sideOffset={4} className="w-screen flex flex-col gap-2">
               {navItems.map(({ to, label }) => (
-                <DropdownMenuItem asChild key={to}>
+                <DropdownMenuItem asChild key={to} className='w-full justify-center'>
                   <Link to={to} onClick={() => setMenuOpen(false)}>
                     {label}
                   </Link>
@@ -86,7 +86,7 @@ export default function Header() {
               <DropdownMenuItem asChild>
                 <CreateProjectForm
                   trigger={(
-                    <Button>Create ProjectID</Button>
+                    <Button className='w-full'>Create ProjectID</Button>
                   )}
                 />
               </DropdownMenuItem>
