@@ -23,6 +23,9 @@ import type {
   GetSamplesResponses,
   RootData,
   RootResponses,
+  SearchData,
+  SearchErrors,
+  SearchResponses,
 } from './types.gen'
 
 export type Options<
@@ -173,6 +176,24 @@ export const getSampleBySampleId = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/samples/{sample_id}',
+    ...options,
+  })
+}
+
+/**
+ * Search
+ * Perform a search with pagination and sorting.
+ */
+export const search = <ThrowOnError extends boolean = false>(
+  options: Options<SearchData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    SearchResponses,
+    SearchErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/search',
     ...options,
   })
 }

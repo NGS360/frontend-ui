@@ -56,7 +56,8 @@ code {
 
   /* Custom colors */
   --semi-transparent: #ffffffcc;
-  --bms-primary-1: #be2bbb;
+  --bms-primary-1: #298fff;
+  --bms-primary-2: #45b14e;
   --bms-secondary-1: #595454;
 }
 
@@ -140,6 +141,7 @@ code {
   /* Custom colors */
   --color-semi-transparent: var(--semi-transparent);
   --bms-primary-1: var(--bms-primary-1);
+  --bms-primary-2: var(--bms-primary-2);
 }
 
 @layer base {

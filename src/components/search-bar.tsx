@@ -1,23 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DeleteIcon, ExternalLink, Search } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { Popover, PopoverAnchor, PopoverContent } from './ui/popover'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
 import type { FC, ReactNode } from 'react'
+import type { SearchObject } from '@/client'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
-
-// Debounce hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay)
-    return () => clearTimeout(timer)
-  }, [value, delay])
-
-  return debounced
-}
+import { searchOptions } from '@/client/@tanstack/react-query.gen'
+import { useDebounce } from '@/hooks/use-debounce'
 
 // Search item component
 interface SearchItemProps {
@@ -27,7 +19,7 @@ interface SearchItemProps {
 const SearchItem: FC<SearchItemProps> = ({ children, onClick }) => (
   <div
     onClick={onClick}
-    className="hover:bg-muted px-2 py-2 rounded-md truncate block text-sm cursor-pointer"
+    className="hover:bg-muted px-2 py-2 rounded-md text-sm cursor-pointer"
   >
     {children}
   </div>
@@ -50,49 +42,50 @@ const SearchGroup: FC<SearchGroupProps> = ({ children, heading }) => (
 )
 
 // Define search types (these will later come from OpenAPI)
-interface Project {
-  id: number
-  projectid: string
-  projectname: string
-}
-interface Run {
-  id: number
-  barcode: string
-  experiment_name: string
-  s3_run_folder_path: string
-}
-interface ESResponse {
-  projects: Array<Project>
-  runs: Array<Run>
-}
+// interface Project {
+//   id: number
+//   projectid: string
+//   projectname: string
+// }
+// interface Run {
+//   id: number
+//   barcode: string
+//   experiment_name: string
+//   s3_run_folder_path: string
+// }
+// interface ESResponse {
+//   projects: Array<Project>
+//   runs: Array<Run>
+// }
 
 // Main SearchBar component
 export const SearchBar: FC = () => {
-  const [input, setInput] = useState('')
-  const debouncedInput = useDebounce(input, 300)
+  const navigate = useNavigate();
 
-  const [searchData, setSearchData] = useState<ESResponse>()
-  const [openResults, setOpenResults] = useState(false)
+  // State to control popover
+  const [openResults, setOpenResults] = useState(false);
 
-  // Fetch example data
-  const fetchES = useCallback(async (query: string) => {
-    console.log(`Searching ES for "${query}"`)
-    const res = await fetch('data/example_search_data.json')
-    if (!res.ok) throw new Error('Fetch failed')
-    const data: ESResponse = await res.json()
-    setSearchData(data)
-  }, [])
+  // Use react-hook-form to watch for search input changes
+  const { register, watch, setValue } = useForm<{ search: string }>();
+  const watchedInput = watch('search', '');
+  const debouncedInput = useDebounce(watchedInput, 300);
 
-  // effect: trigger fetch when debouncedInput changes
+  // Query using debounced input
+  const { data: searchResults } = useQuery({
+    ...searchOptions({
+      query: {
+        query: debouncedInput,
+        page: 1,
+        per_page: 20
+      }
+    }),
+    enabled: !!debouncedInput,
+  })
+
+  // Trigger popover when debouncedInput changes
   useEffect(() => {
-    if (!debouncedInput) {
-      setOpenResults(false)
-      setSearchData(undefined)
-      return
-    }
-    setOpenResults(true)
-    fetchES(debouncedInput)
-  }, [debouncedInput, fetchES])
+    setOpenResults(!!debouncedInput);
+  }, [debouncedInput]);
 
   return (
     <>
@@ -103,13 +96,12 @@ export const SearchBar: FC = () => {
           id="es-input"
           className="w-full text-sm focus:outline-none"
           placeholder="Type a command or search..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          {...register('search')}
         />
         <Button
           variant="link"
           className="text-muted-foreground hover:text-foreground"
-          onClick={() => setInput('')}
+          onClick={() => setValue('search', '')}
           title="Reset search"
         >
           <DeleteIcon />
@@ -123,47 +115,68 @@ export const SearchBar: FC = () => {
           onOpenAutoFocus={(e) => e.preventDefault()}
           className="w-[var(--radix-popper-anchor-width)] p-1"
         >
-          <ScrollArea className="h-75 min-w-0">
+          <ScrollArea className='h-75'>
             <ScrollBar orientation="vertical" />
+                <SearchGroup heading="Projects">
+                  {searchResults?.items?.map((p: SearchObject) => (
+                    <SearchItem
+                      key={p.id}
+                      onClick={() => navigate({
+                        to: '/projects/$project_id',
+                        params: { project_id: p.id }
+                      })}
+                    >
+                      <div className='flex flex-col gap-1'>
+                        <span className='text-sm'>
+                          {p.id}
+                        </span>
+                        <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
+                          {p.name}
+                        </span>
+                        <div className='flex flex-wrap gap-0.5'>
+                          {p.attributes?.map((a) => (
+                            <div
+                              key={a.key}
+                              className='text-muted-foreground border-1 rounded-full px-2 text-xs'
+                            >
+                              <span>
+                                {a.key}: {a.value && a.value.length > 50 ? a.value.slice(0, 50) + "..." : a.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </SearchItem>
+                  ))}
+                  <SearchItem>
+                    <Link to="/projects" className="flex items-center gap-2">
+                      <ExternalLink size={14} className="text-muted-foreground" />
+                      <span>View all projects</span>
+                    </Link>
+                  </SearchItem>
+                </SearchGroup>
 
-            <SearchGroup heading="Projects">
-              {searchData?.projects.slice(0, 5).map((p) => (
-                <SearchItem key={p.id}>
-                  <div className="truncate">{p.projectid}</div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {p.projectname}
-                  </div>
+              {/* <Separator className="my-0.5" /> */}
+
+              {/* <SearchGroup heading="Runs">
+                {searchData?.runs.slice(0, 5).map((r) => (
+                  <SearchItem key={r.id}>
+                    <div className="truncate">{r.barcode}</div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {r.s3_run_folder_path}
+                    </div>
+                  </SearchItem>
+                ))}
+                <SearchItem>
+                  <Link
+                    to="/"
+                    className="flex items-center gap-2"
+                  >
+                    <ExternalLink size={14} className="text-muted-foreground" />
+                    <span>View all runs</span>
+                  </Link>
                 </SearchItem>
-              ))}
-              <SearchItem>
-                <Link to="/projects" className="flex items-center gap-2">
-                  <ExternalLink size={14} className="text-muted-foreground" />
-                  <span>View all projects</span>
-                </Link>
-              </SearchItem>
-            </SearchGroup>
-
-            <Separator className="my-0.5" />
-
-            <SearchGroup heading="Runs">
-              {searchData?.runs.slice(0, 5).map((r) => (
-                <SearchItem key={r.id}>
-                  <div className="truncate">{r.barcode}</div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {r.s3_run_folder_path}
-                  </div>
-                </SearchItem>
-              ))}
-              <SearchItem>
-                <Link
-                  to="/"
-                  className="flex items-center gap-2"
-                >
-                  <ExternalLink size={14} className="text-muted-foreground" />
-                  <span>View all runs</span>
-                </Link>
-              </SearchItem>
-            </SearchGroup>
+              </SearchGroup> */}
           </ScrollArea>
         </PopoverContent>
       </Popover>

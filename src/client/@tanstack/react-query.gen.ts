@@ -14,7 +14,8 @@ import {
   getProjects,
   getSampleBySampleId,
   getSamples,
-  root
+  root,
+  search
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
 import type {InfiniteData, UseMutationOptions} from '@tanstack/react-query';
@@ -35,6 +36,9 @@ import type {
   GetSamplesError,
   GetSamplesResponse,
   RootData,
+  SearchData,
+  SearchError,
+  SearchResponse,
 } from '../types.gen'
 import type { AxiosError } from 'axios'
 
@@ -427,4 +431,75 @@ export const getSampleBySampleIdOptions = (
     },
     queryKey: getSampleBySampleIdQueryKey(options),
   })
+}
+
+export const searchQueryKey = (options: Options<SearchData>) =>
+  createQueryKey('search', options)
+
+/**
+ * Search
+ * Perform a search with pagination and sorting.
+ */
+export const searchOptions = (options: Options<SearchData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await search({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchQueryKey(options),
+  })
+}
+
+export const searchInfiniteQueryKey = (
+  options: Options<SearchData>,
+): QueryKey<Options<SearchData>> => createQueryKey('search', options, true)
+
+/**
+ * Search
+ * Perform a search with pagination and sorting.
+ */
+export const searchInfiniteOptions = (options: Options<SearchData>) => {
+  return infiniteQueryOptions<
+    SearchResponse,
+    AxiosError<SearchError>,
+    InfiniteData<SearchResponse>,
+    QueryKey<Options<SearchData>>,
+    | number
+    | Pick<
+        QueryKey<Options<SearchData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<SearchData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await search({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: searchInfiniteQueryKey(options),
+    },
+  )
 }

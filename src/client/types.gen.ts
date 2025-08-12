@@ -169,6 +169,64 @@ export type SamplesPublic = {
 }
 
 /**
+ * SearchAttribute
+ */
+export type SearchAttribute = {
+  /**
+   * Key
+   */
+  key: string | null
+  /**
+   * Value
+   */
+  value: string | null
+}
+
+/**
+ * SearchObject
+ */
+export type SearchObject = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Attributes
+   */
+  attributes?: Array<SearchAttribute> | null
+  /**
+   * Display Name
+   */
+  readonly display_name: string
+}
+
+/**
+ * SearchPublic
+ */
+export type SearchPublic = {
+  /**
+   * Items
+   */
+  items?: Array<SearchObject> | null
+  /**
+   * Total
+   */
+  total: number
+  /**
+   * Page
+   */
+  page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+}
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -408,6 +466,47 @@ export type GetSampleBySampleIdResponses = {
 
 export type GetSampleBySampleIdResponse =
   GetSampleBySampleIdResponses[keyof GetSampleBySampleIdResponses]
+
+export type SearchData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Query
+     * Search query string
+     */
+    query: string
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+  }
+  url: '/api/v1/search'
+}
+
+export type SearchErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchError = SearchErrors[keyof SearchErrors]
+
+export type SearchResponses = {
+  /**
+   * Successful Response
+   */
+  200: SearchPublic
+}
+
+export type SearchResponse = SearchResponses[keyof SearchResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})
