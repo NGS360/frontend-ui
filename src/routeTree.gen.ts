@@ -14,7 +14,12 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as ProjectsRouteImport } from './routes/projects.route'
 import { Route as IndexImport } from './routes/index'
 import { Route as ProjectsIndexImport } from './routes/projects.index'
-import { Route as ProjectsProjectidImport } from './routes/projects.$project_id'
+import { Route as ProjectsProjectidRouteImport } from './routes/projects.$project_id.route'
+import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
+import { Route as ProjectsProjectidOverviewRouteImport } from './routes/projects.$project_id.overview.route'
+import { Route as ProjectsProjectidFilesRouteImport } from './routes/projects.$project_id.files.route'
+import { Route as ProjectsProjectidOverviewIndexImport } from './routes/projects.$project_id.overview.index'
+import { Route as ProjectsProjectidFilesIndexImport } from './routes/projects.$project_id.files.index'
 
 // Create/Update Routes
 
@@ -36,11 +41,45 @@ const ProjectsIndexRoute = ProjectsIndexImport.update({
   getParentRoute: () => ProjectsRouteRoute,
 } as any)
 
-const ProjectsProjectidRoute = ProjectsProjectidImport.update({
+const ProjectsProjectidRouteRoute = ProjectsProjectidRouteImport.update({
   id: '/$project_id',
   path: '/$project_id',
   getParentRoute: () => ProjectsRouteRoute,
 } as any)
+
+const ProjectsProjectidIndexRoute = ProjectsProjectidIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProjectsProjectidRouteRoute,
+} as any)
+
+const ProjectsProjectidOverviewRouteRoute =
+  ProjectsProjectidOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => ProjectsProjectidRouteRoute,
+  } as any)
+
+const ProjectsProjectidFilesRouteRoute =
+  ProjectsProjectidFilesRouteImport.update({
+    id: '/files',
+    path: '/files',
+    getParentRoute: () => ProjectsProjectidRouteRoute,
+  } as any)
+
+const ProjectsProjectidOverviewIndexRoute =
+  ProjectsProjectidOverviewIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProjectsProjectidOverviewRouteRoute,
+  } as any)
+
+const ProjectsProjectidFilesIndexRoute =
+  ProjectsProjectidFilesIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProjectsProjectidFilesRouteRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -64,7 +103,7 @@ declare module '@tanstack/react-router' {
       id: '/projects/$project_id'
       path: '/$project_id'
       fullPath: '/projects/$project_id'
-      preLoaderRoute: typeof ProjectsProjectidImport
+      preLoaderRoute: typeof ProjectsProjectidRouteImport
       parentRoute: typeof ProjectsRouteImport
     }
     '/projects/': {
@@ -74,18 +113,101 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsIndexImport
       parentRoute: typeof ProjectsRouteImport
     }
+    '/projects/$project_id/files': {
+      id: '/projects/$project_id/files'
+      path: '/files'
+      fullPath: '/projects/$project_id/files'
+      preLoaderRoute: typeof ProjectsProjectidFilesRouteImport
+      parentRoute: typeof ProjectsProjectidRouteImport
+    }
+    '/projects/$project_id/overview': {
+      id: '/projects/$project_id/overview'
+      path: '/overview'
+      fullPath: '/projects/$project_id/overview'
+      preLoaderRoute: typeof ProjectsProjectidOverviewRouteImport
+      parentRoute: typeof ProjectsProjectidRouteImport
+    }
+    '/projects/$project_id/': {
+      id: '/projects/$project_id/'
+      path: '/'
+      fullPath: '/projects/$project_id/'
+      preLoaderRoute: typeof ProjectsProjectidIndexImport
+      parentRoute: typeof ProjectsProjectidRouteImport
+    }
+    '/projects/$project_id/files/': {
+      id: '/projects/$project_id/files/'
+      path: '/'
+      fullPath: '/projects/$project_id/files/'
+      preLoaderRoute: typeof ProjectsProjectidFilesIndexImport
+      parentRoute: typeof ProjectsProjectidFilesRouteImport
+    }
+    '/projects/$project_id/overview/': {
+      id: '/projects/$project_id/overview/'
+      path: '/'
+      fullPath: '/projects/$project_id/overview/'
+      preLoaderRoute: typeof ProjectsProjectidOverviewIndexImport
+      parentRoute: typeof ProjectsProjectidOverviewRouteImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface ProjectsProjectidFilesRouteRouteChildren {
+  ProjectsProjectidFilesIndexRoute: typeof ProjectsProjectidFilesIndexRoute
+}
+
+const ProjectsProjectidFilesRouteRouteChildren: ProjectsProjectidFilesRouteRouteChildren =
+  {
+    ProjectsProjectidFilesIndexRoute: ProjectsProjectidFilesIndexRoute,
+  }
+
+const ProjectsProjectidFilesRouteRouteWithChildren =
+  ProjectsProjectidFilesRouteRoute._addFileChildren(
+    ProjectsProjectidFilesRouteRouteChildren,
+  )
+
+interface ProjectsProjectidOverviewRouteRouteChildren {
+  ProjectsProjectidOverviewIndexRoute: typeof ProjectsProjectidOverviewIndexRoute
+}
+
+const ProjectsProjectidOverviewRouteRouteChildren: ProjectsProjectidOverviewRouteRouteChildren =
+  {
+    ProjectsProjectidOverviewIndexRoute: ProjectsProjectidOverviewIndexRoute,
+  }
+
+const ProjectsProjectidOverviewRouteRouteWithChildren =
+  ProjectsProjectidOverviewRouteRoute._addFileChildren(
+    ProjectsProjectidOverviewRouteRouteChildren,
+  )
+
+interface ProjectsProjectidRouteRouteChildren {
+  ProjectsProjectidFilesRouteRoute: typeof ProjectsProjectidFilesRouteRouteWithChildren
+  ProjectsProjectidOverviewRouteRoute: typeof ProjectsProjectidOverviewRouteRouteWithChildren
+  ProjectsProjectidIndexRoute: typeof ProjectsProjectidIndexRoute
+}
+
+const ProjectsProjectidRouteRouteChildren: ProjectsProjectidRouteRouteChildren =
+  {
+    ProjectsProjectidFilesRouteRoute:
+      ProjectsProjectidFilesRouteRouteWithChildren,
+    ProjectsProjectidOverviewRouteRoute:
+      ProjectsProjectidOverviewRouteRouteWithChildren,
+    ProjectsProjectidIndexRoute: ProjectsProjectidIndexRoute,
+  }
+
+const ProjectsProjectidRouteRouteWithChildren =
+  ProjectsProjectidRouteRoute._addFileChildren(
+    ProjectsProjectidRouteRouteChildren,
+  )
+
 interface ProjectsRouteRouteChildren {
-  ProjectsProjectidRoute: typeof ProjectsProjectidRoute
+  ProjectsProjectidRouteRoute: typeof ProjectsProjectidRouteRouteWithChildren
   ProjectsIndexRoute: typeof ProjectsIndexRoute
 }
 
 const ProjectsRouteRouteChildren: ProjectsRouteRouteChildren = {
-  ProjectsProjectidRoute: ProjectsProjectidRoute,
+  ProjectsProjectidRouteRoute: ProjectsProjectidRouteRouteWithChildren,
   ProjectsIndexRoute: ProjectsIndexRoute,
 }
 
@@ -96,30 +218,66 @@ const ProjectsRouteRouteWithChildren = ProjectsRouteRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/projects': typeof ProjectsRouteRouteWithChildren
-  '/projects/$project_id': typeof ProjectsProjectidRoute
+  '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
   '/projects/': typeof ProjectsIndexRoute
+  '/projects/$project_id/files': typeof ProjectsProjectidFilesRouteRouteWithChildren
+  '/projects/$project_id/overview': typeof ProjectsProjectidOverviewRouteRouteWithChildren
+  '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
+  '/projects/$project_id/files/': typeof ProjectsProjectidFilesIndexRoute
+  '/projects/$project_id/overview/': typeof ProjectsProjectidOverviewIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/projects/$project_id': typeof ProjectsProjectidRoute
   '/projects': typeof ProjectsIndexRoute
+  '/projects/$project_id': typeof ProjectsProjectidIndexRoute
+  '/projects/$project_id/files': typeof ProjectsProjectidFilesIndexRoute
+  '/projects/$project_id/overview': typeof ProjectsProjectidOverviewIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/projects': typeof ProjectsRouteRouteWithChildren
-  '/projects/$project_id': typeof ProjectsProjectidRoute
+  '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
   '/projects/': typeof ProjectsIndexRoute
+  '/projects/$project_id/files': typeof ProjectsProjectidFilesRouteRouteWithChildren
+  '/projects/$project_id/overview': typeof ProjectsProjectidOverviewRouteRouteWithChildren
+  '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
+  '/projects/$project_id/files/': typeof ProjectsProjectidFilesIndexRoute
+  '/projects/$project_id/overview/': typeof ProjectsProjectidOverviewIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/projects' | '/projects/$project_id' | '/projects/'
+  fullPaths:
+    | '/'
+    | '/projects'
+    | '/projects/$project_id'
+    | '/projects/'
+    | '/projects/$project_id/files'
+    | '/projects/$project_id/overview'
+    | '/projects/$project_id/'
+    | '/projects/$project_id/files/'
+    | '/projects/$project_id/overview/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/projects/$project_id' | '/projects'
-  id: '__root__' | '/' | '/projects' | '/projects/$project_id' | '/projects/'
+  to:
+    | '/'
+    | '/projects'
+    | '/projects/$project_id'
+    | '/projects/$project_id/files'
+    | '/projects/$project_id/overview'
+  id:
+    | '__root__'
+    | '/'
+    | '/projects'
+    | '/projects/$project_id'
+    | '/projects/'
+    | '/projects/$project_id/files'
+    | '/projects/$project_id/overview'
+    | '/projects/$project_id/'
+    | '/projects/$project_id/files/'
+    | '/projects/$project_id/overview/'
   fileRoutesById: FileRoutesById
 }
 
@@ -158,12 +316,43 @@ export const routeTree = rootRoute
       ]
     },
     "/projects/$project_id": {
-      "filePath": "projects.$project_id.tsx",
-      "parent": "/projects"
+      "filePath": "projects.$project_id.route.tsx",
+      "parent": "/projects",
+      "children": [
+        "/projects/$project_id/files",
+        "/projects/$project_id/overview",
+        "/projects/$project_id/"
+      ]
     },
     "/projects/": {
       "filePath": "projects.index.tsx",
       "parent": "/projects"
+    },
+    "/projects/$project_id/files": {
+      "filePath": "projects.$project_id.files.route.tsx",
+      "parent": "/projects/$project_id",
+      "children": [
+        "/projects/$project_id/files/"
+      ]
+    },
+    "/projects/$project_id/overview": {
+      "filePath": "projects.$project_id.overview.route.tsx",
+      "parent": "/projects/$project_id",
+      "children": [
+        "/projects/$project_id/overview/"
+      ]
+    },
+    "/projects/$project_id/": {
+      "filePath": "projects.$project_id.index.tsx",
+      "parent": "/projects/$project_id"
+    },
+    "/projects/$project_id/files/": {
+      "filePath": "projects.$project_id.files.index.tsx",
+      "parent": "/projects/$project_id/files"
+    },
+    "/projects/$project_id/overview/": {
+      "filePath": "projects.$project_id.overview.index.tsx",
+      "parent": "/projects/$project_id/overview"
     }
   }
 }
