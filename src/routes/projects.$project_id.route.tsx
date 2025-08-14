@@ -1,13 +1,11 @@
 import { AxiosError } from 'axios'
-import { Outlet, createFileRoute, getRouteApi, redirect, useNavigate } from '@tanstack/react-router'
+import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
 import { FolderOpen, HardDriveDownload, LayoutDashboard, Zap } from 'lucide-react'
 import { getProjectByProjectId } from '@/client'
 import { CopyableText } from '@/components/copyable-text'
 import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { IngestVendorForm } from '@/components/ingest-vendor-form'
-
+import { TabLink, TabNav } from '@/components/tab-nav'
 
 export const Route = createFileRoute('/projects/$project_id')({
   component: RouteComponent,
@@ -37,13 +35,10 @@ function RouteComponent() {
   // Use mobile hook
   const isMobile = useIsMobile();
 
-  const navigate = useNavigate();
-
   return (
     <>
       <div className='flex flex-col gap-4'>
-
-        {/* Header and action bar */}
+        {/* Header and tab navigation */}
         <h1 className='text-3xl font-extralight'>{project.name}</h1>
         <div className='flex gap-2 flex-col md:flex-row md:h-9 md:items-center'>
           <CopyableText
@@ -52,55 +47,36 @@ function RouteComponent() {
             className='font-semibold [&>span]:truncate'
           />
           {!isMobile && <Separator orientation='vertical' className='mr-2' />}
-          <Button
-            variant='outline'
-            size='default'
-            className='w-full md:w-auto'
-            onClick={() => {
-              navigate({
-                to: '/projects/$project_id/overview',
-                params: { project_id: project.project_id }
-              })
-            }}
-          >
-            <LayoutDashboard /><span>Overview</span>
-          </Button>
-          <Button
-            variant='outline'
-            size='default'
-            className='w-full md:w-auto'
-            onClick={() => {
-              navigate({
-                to: '/projects/$project_id/files',
-                params: { project_id: project.project_id }
-              })
-            }}
-          >
-            <FolderOpen /> <span>Files</span>
-          </Button>
-          <IngestVendorForm
-            trigger={(
-              <Button
-                variant='outline'
-                size='default'
-                className='w-full md:w-auto'
-              >
-                <HardDriveDownload /> <span>Ingest Vendor Data</span>
-              </Button>
-            )}
-          />
-          <Button
-            variant='outline'
-            size='default'
-            className='w-full md:w-auto'
-          >
-            <Zap /> <span>Project Actions</span>
-          </Button>
+          <TabNav>
+            <TabLink
+              to='/projects/$project_id/overview'
+              params={{ project_id: project.project_id }}
+            >
+              <LayoutDashboard /><span>Overview</span>
+            </TabLink>
+            <TabLink
+              to='/projects/$project_id/files'
+              params={{ project_id: project.project_id }}
+            >
+              <FolderOpen /><span>Files</span>
+            </TabLink>
+            <TabLink
+              to='/projects/$project_id/ingest'
+              params={{ project_id: project.project_id }}
+            >
+              <HardDriveDownload /> <span>Ingest Vendor Data</span>
+            </TabLink>
+            <TabLink
+              to='/projects/$project_id/actions'
+              params={{ project_id: project.project_id }}
+            >
+              <Zap /> <span>Project Actions</span>
+            </TabLink>            
+          </TabNav>
+          
         </div>
-
-        {/* Project tab navigation */}
+        {/* Tab nav outlet */}
         <Outlet />
-
       </div>
     </>
   )
