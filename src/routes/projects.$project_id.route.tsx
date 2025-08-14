@@ -2,8 +2,6 @@ import { AxiosError } from 'axios'
 import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
 import { FolderOpen, HardDriveDownload, LayoutDashboard, Zap } from 'lucide-react'
 import { getProjectByProjectId } from '@/client'
-import { CopyableText } from '@/components/copyable-text'
-import { Separator } from '@/components/ui/separator'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { TabLink, TabNav } from '@/components/tab-nav'
 
@@ -41,12 +39,6 @@ function RouteComponent() {
         {/* Header and tab navigation */}
         <h1 className='text-3xl font-extralight'>{project.name}</h1>
         <div className='flex gap-2 flex-col md:flex-row md:h-9 md:items-center'>
-          <CopyableText
-            text={project.project_id}
-            variant='default'
-            className='font-semibold [&>span]:truncate'
-          />
-          {!isMobile && <Separator orientation='vertical' className='mr-2' />}
           <TabNav>
             <TabLink
               to='/projects/$project_id/overview'

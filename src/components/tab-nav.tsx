@@ -7,7 +7,7 @@ type TabNavProps = {
 };
 
 export const TabNav: React.FC<TabNavProps> = ({ children }) => (
-  <nav className="flex flex-col gap-2 md:flex-row md:gap-0 md:border-b-2 md:border-muted">
+  <nav className="w-full flex flex-col gap-2 md:flex-row md:gap-0 md:border-b-2 md:border-muted">
     {children}
   </nav>
 );

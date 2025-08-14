@@ -111,6 +111,24 @@ function RouteComponent() {
             className='flex flex-col gap-4'
           >
             <div className='grid grid-flow-row gap-2 md:grid-cols-3 lg:grid-cols-6'>
+              <Card
+                key={project.project_id}
+                className='border-0 shadow-none py-2 px-0 bg-transparent'
+              >
+                <CardContent className='px-0'>
+                  <CardTitle className='uppercase text-sm font-light text-muted-foreground'>
+                    Project ID
+                  </CardTitle>
+                  <CardDescription className='font-semibold '>
+                    <CopyableText
+                      text={project.project_id || ""}
+                      variant={isValidHttpURL(project.project_id) ? 'hoverLink' : 'hover'}
+                      size='sm'
+                      className='[&>span]:truncate'
+                    />
+                  </CardDescription>
+                </CardContent>
+              </Card>
               {project.attributes?.map((d) => (
                 <Card
                   key={d.key}
