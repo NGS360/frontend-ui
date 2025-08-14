@@ -39,6 +39,7 @@ export const TabLink: React.FC<TabLinkProps> = ({
         border-2
         rounded-md
         data-[active=true]:border-primary
+        data-[active=true]:text-primary
 
         md:pb-1
         md:px-2
