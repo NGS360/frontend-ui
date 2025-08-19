@@ -2,7 +2,7 @@ import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel
 import React from "react"
 import { DataTableColumnToggle } from "./column-toggle";
 import type { Dispatch, JSX, SetStateAction } from "react";
-import type { ColumnDef, ColumnResizeDirection, ColumnResizeMode, PaginationState, Row } from "@tanstack/react-table";
+import type { ColumnDef, PaginationState, Row } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
@@ -18,10 +18,7 @@ interface DataTableProps<TData, TValue> {
   onPaginationChange: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number; }>>,
   totalItems: number,
   rowClickCallback?: (row: Row<TData>) => void,
-  enableColumnResizing?: boolean,
   showPaginationControls?: boolean,
-  columnResizeMode?: ColumnResizeMode,
-  columnResizeDirection?: ColumnResizeDirection,
 }
 
 export function DataTable<TData, TValue>({
@@ -33,9 +30,6 @@ export function DataTable<TData, TValue>({
   onPaginationChange: onPaginationChangeCallback,
   totalItems,
   rowClickCallback,
-  enableColumnResizing = true,
-  columnResizeMode = 'onChange',
-  columnResizeDirection = 'ltr',
 }: DataTableProps<TData, TValue>) {
 
   const table = useReactTable({
@@ -54,9 +48,6 @@ export function DataTable<TData, TValue>({
         return newState
       })
     },
-    columnResizeMode,
-    columnResizeDirection,
-    enableColumnResizing,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: 'includesString',
@@ -64,7 +55,57 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
   })
 
-
+  // Extract table markup to a variable
+  const tableMarkup = (
+    <Table className="w-full">
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <TableHead key={header.id}>
+                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+              </TableHead>
+            ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.length ? (
+          table.getRowModel().rows.map((row) => (
+            <React.Fragment key={row.id}>
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+                onClick={() => {
+                  if (rowClickCallback) {
+                    rowClickCallback(row)
+                  }
+                }}
+                className={`${rowClickCallback ? 'cursor-pointer' : ''}`}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className="align-top"
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </React.Fragment>
+          ))
+        ) : (
+          <TableRow className="h-24">
+            <TableCell colSpan={columns.length}>
+              <div className="flex items-center justify-center h-full">
+                {notFoundComponent}
+              </div>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
 
   return (
     <div>
@@ -78,80 +119,12 @@ export function DataTable<TData, TValue>({
           <DataTableColumnToggle table={table} />
         </div>
         <div className="flex">
-          <ScrollArea type='hover' className="flex-1 w-full rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead
-                          key={header.id}
-                          className='hover:bg-accent relative'
-                          style={{ width: header.getSize() }}
-                        >
-                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                          {/* Resizer */}
-                          {/* {header.column.getCanResize() && (
-                            <div
-                              onMouseDown={header.getResizeHandler()}
-                              onTouchStart={header.getResizeHandler()}
-                              onDoubleClick={() => header.column.resetSize()}
-                              className={`absolute right-0 top-0 h-full w-1 cursor-col-resize select-none bg-transparent z-10 ${header.column.getIsResizing() ? 'bg-blue-400' : ''}`}
-                              style={{
-                                userSelect: 'none',
-                                touchAction: 'none',
-                              }}
-                            />
-                          )} */}
-                        </TableHead>
-                      )
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <React.Fragment key={row.id}>
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                        onClick={() => {
-                          if (rowClickCallback) {
-                            rowClickCallback(row)
-                          }
-                        }}
-                        className={`${rowClickCallback ? 'cursor-pointer' : ''}`}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} className="align-top">
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </React.Fragment>
-                  ))
-                ) : (
-                  <TableRow className="h-24">
-                    <TableCell
-                      colSpan={columns.length}
-                    >
-                      <div className="flex items-center justify-center h-full">
-                        {notFoundComponent}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            <ScrollBar orientation="horizontal" className="w-full" />
+          <ScrollArea className="flex-1 w-full rounded-md border">
+            {tableMarkup}
+            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
-        <DataTablePagination
-          table={table}
-          totalItems={totalItems}
-        />
+        <DataTablePagination table={table} totalItems={totalItems} />
       </div>
     </div>
   )

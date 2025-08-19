@@ -58,25 +58,30 @@ function RouteComponent() {
     },
     {
       accessorKey: 'name',
-      header: ({ column }) => <SortableHeader column={column} name="Project Name" />
-    },
-    {
-      accessorKey: 'attributes',
-      header: 'Attributes',
-      size: 300,
-      cell: ({ cell }) => {
-        const attributes = cell.getValue() as Array<Attribute>
+      header: ({ column }) => <SortableHeader column={column} name="Project Name" />,
+      cell: ({ row }) => {
+        const name: string = row.getValue('name')
+        const attributes: Array<Attribute> = row.original.attributes ?? []
         return (
-          <div className='flex flex-wrap gap-2'>
-            {attributes.map((d) => (
-              <span
-                key={d.key}
-                className='bg-accent rounded-full px-2 py-0.5'
-              >
-                {d.key}: {d.value}
+          <>
+            <div className='flex flex-col gap-2 break-words whitespace-normal'>
+              <span className='text-sm'> {/* Use line-clamp-1 here to truncate */}
+                {name}
               </span>
-            ))}
-          </div>
+              <div className='flex flex-wrap gap-0.5'>
+                {attributes.map((a) => (
+                  <div
+                    key={a.key}
+                    className='text-muted-foreground border-1 rounded-full px-2 text-xs'
+                  >
+                    <span>
+                      {a.key}: {a.value && a.value.length > 50 ? a.value.slice(0, 50) + "..." : a.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         )
       }
     }
