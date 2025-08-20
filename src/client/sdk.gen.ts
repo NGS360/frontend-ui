@@ -3,21 +3,27 @@
 import { client as _heyApiClient } from './client.gen'
 import type { Client, Options as ClientOptions, TDataShape } from './client'
 import type {
+  AddRunData,
+  AddRunErrors,
+  AddRunResponses,
+  AddSampleToProjectData,
+  AddSampleToProjectErrors,
+  AddSampleToProjectResponses,
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
-  CreateSampleData,
-  CreateSampleErrors,
-  CreateSampleResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
   GetProjectsData,
   GetProjectsErrors,
   GetProjectsResponses,
-  GetSampleBySampleIdData,
-  GetSampleBySampleIdErrors,
-  GetSampleBySampleIdResponses,
+  GetRunData,
+  GetRunErrors,
+  GetRunResponses,
+  GetRunsData,
+  GetRunsErrors,
+  GetRunsResponses,
   GetSamplesData,
   GetSamplesErrors,
   GetSamplesResponses,
@@ -126,33 +132,33 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
  * Returns a paginated list of samples.
  */
 export const getSamples = <ThrowOnError extends boolean = false>(
-  options?: Options<GetSamplesData, ThrowOnError>,
+  options: Options<GetSamplesData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).get<
+  return (options.client ?? _heyApiClient).get<
     GetSamplesResponses,
     GetSamplesErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/samples',
+    url: '/api/v1/projects/{project_id}/samples',
     ...options,
   })
 }
 
 /**
- * Create Sample
+ * Add Sample To Project
  * Create a new sample with optional attributes.
  */
-export const createSample = <ThrowOnError extends boolean = false>(
-  options: Options<CreateSampleData, ThrowOnError>,
+export const addSampleToProject = <ThrowOnError extends boolean = false>(
+  options: Options<AddSampleToProjectData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).post<
-    CreateSampleResponses,
-    CreateSampleErrors,
+    AddSampleToProjectResponses,
+    AddSampleToProjectErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/samples',
+    url: '/api/v1/projects/{project_id}/samples',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -162,20 +168,59 @@ export const createSample = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Sample By Sample Id
- * Returns a single sample by its sample_id.
- * Note: This is different from its internal "id".
+ * Get Runs
+ * Retrieve a list of all sequencing runs.
  */
-export const getSampleBySampleId = <ThrowOnError extends boolean = false>(
-  options: Options<GetSampleBySampleIdData, ThrowOnError>,
+export const getRuns = <ThrowOnError extends boolean = false>(
+  options?: Options<GetRunsData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<
-    GetSampleBySampleIdResponses,
-    GetSampleBySampleIdErrors,
+  return (options?.client ?? _heyApiClient).get<
+    GetRunsResponses,
+    GetRunsErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/samples/{sample_id}',
+    url: '/api/v1/runs',
+    ...options,
+  })
+}
+
+/**
+ * Add Run
+ * Create a new project with optional attributes.
+ */
+export const addRun = <ThrowOnError extends boolean = false>(
+  options: Options<AddRunData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    AddRunResponses,
+    AddRunErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Run
+ * Retrieve a sequencing run.
+ */
+export const getRun = <ThrowOnError extends boolean = false>(
+  options: Options<GetRunData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetRunResponses,
+    GetRunErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs/{run_barcode}',
     ...options,
   })
 }

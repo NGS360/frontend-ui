@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { DeleteIcon, ExternalLink, Search } from 'lucide-react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import type { FC, ReactNode } from 'react'
 import type { SearchObject } from '@/client'
@@ -10,6 +10,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { searchOptions } from '@/client/@tanstack/react-query.gen'
 import { useDebounce } from '@/hooks/use-debounce'
+import { Separator } from '@/components/ui/separator'
 
 // Search item component
 interface SearchItemProps {
@@ -71,15 +72,21 @@ export const SearchBar: FC = () => {
   const debouncedInput = useDebounce(watchedInput, 300);
 
   // Query using debounced input
-  const { data: searchResults } = useQuery({
-    ...searchOptions({
-      query: {
-        query: debouncedInput,
-        page: 1,
-        per_page: 20
-      }
-    }),
-    enabled: !!debouncedInput,
+  const indices = ['projects', 'illumina_runs']
+  const [{data: projects}, {data: runs}] = useQueries({
+    queries: indices.map((index) => ({
+      ...searchOptions({
+        query: {
+          index: index,
+          query: debouncedInput,
+          page: 1,
+          per_page: 5,
+          sort_by: 'name',
+          sort_order: 'asc'
+        }
+      }),
+      enabled: !!debouncedInput
+    }))
   })
 
   // Trigger popover when debouncedInput changes
@@ -118,23 +125,72 @@ export const SearchBar: FC = () => {
           <ScrollArea className='h-75'>
             <ScrollBar orientation="vertical" />
                 <SearchGroup heading="Projects">
-                  {searchResults?.items?.map((p: SearchObject) => (
+                  {projects?.items?.length
+                    ? projects.items.map((p: SearchObject) => (
+                        <SearchItem
+                          key={p.id}
+                          onClick={() => navigate({
+                            to: '/projects/$project_id',
+                            params: { project_id: p.id }
+                          })}
+                        >
+                          <div className='flex flex-col gap-1'>
+                            <span className='text-sm'>
+                              {p.id}
+                            </span>
+                            <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
+                              {p.name}
+                            </span>
+                            <div className='flex flex-wrap gap-0.5'>
+                              {p.attributes?.map((a) => (
+                                <div
+                                  key={a.key}
+                                  className='text-muted-foreground border-1 rounded-full px-2 text-xs'
+                                >
+                                  <span>
+                                    {a.key}: {a.value && a.value.length > 50 ? a.value.slice(0, 50) + "..." : a.value}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </SearchItem>
+                      )) 
+                    : 
+                    <SearchItem>
+                      <span className='flex justify-center'>No results.</span>
+                    </SearchItem>
+                  }
+                  <SearchItem>
+                    <Link to="/projects" className="flex items-center gap-2">
+                      <ExternalLink size={14} className="text-muted-foreground" />
+                      <span>View all projects</span>
+                    </Link>
+                  </SearchItem>
+                </SearchGroup>
+
+              <Separator className="my-0.5" />
+
+            <SearchGroup heading="Runs">
+              {runs?.items?.length
+                ? runs.items.map((r: SearchObject) => (
                     <SearchItem
-                      key={p.id}
+                      key={r.id}
                       onClick={() => navigate({
+                        // TODO: Update to run details page
                         to: '/projects/$project_id',
-                        params: { project_id: p.id }
+                        params: { project_id: r.id }
                       })}
                     >
                       <div className='flex flex-col gap-1'>
                         <span className='text-sm'>
-                          {p.id}
+                          {r.id}
                         </span>
                         <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
-                          {p.name}
+                          {r.name}
                         </span>
                         <div className='flex flex-wrap gap-0.5'>
-                          {p.attributes?.map((a) => (
+                          {r.attributes?.map((a) => (
                             <div
                               key={a.key}
                               className='text-muted-foreground border-1 rounded-full px-2 text-xs'
@@ -147,36 +203,20 @@ export const SearchBar: FC = () => {
                         </div>
                       </div>
                     </SearchItem>
-                  ))}
-                  <SearchItem>
-                    <Link to="/projects" className="flex items-center gap-2">
-                      <ExternalLink size={14} className="text-muted-foreground" />
-                      <span>View all projects</span>
-                    </Link>
-                  </SearchItem>
-                </SearchGroup>
-
-              {/* <Separator className="my-0.5" /> */}
-
-              {/* <SearchGroup heading="Runs">
-                {searchData?.runs.slice(0, 5).map((r) => (
-                  <SearchItem key={r.id}>
-                    <div className="truncate">{r.barcode}</div>
-                    <div className="truncate text-xs text-muted-foreground">
-                      {r.s3_run_folder_path}
-                    </div>
-                  </SearchItem>
-                ))}
+                  ))
+                : 
                 <SearchItem>
-                  <Link
-                    to="/"
-                    className="flex items-center gap-2"
-                  >
-                    <ExternalLink size={14} className="text-muted-foreground" />
-                    <span>View all runs</span>
-                  </Link>
+                  <span className='flex justify-center'>No results.</span>
                 </SearchItem>
-              </SearchGroup> */}
+              }
+              <SearchItem>
+                {/* TODO: update to runs page */}
+                <Link to="/projects" className="flex items-center gap-2"> 
+                  <ExternalLink size={14} className="text-muted-foreground" />
+                  <span>View all runs</span>
+                </Link>
+              </SearchItem>
+            </SearchGroup>
           </ScrollArea>
         </PopoverContent>
       </Popover>

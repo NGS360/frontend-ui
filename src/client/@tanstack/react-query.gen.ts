@@ -8,11 +8,13 @@ import {
 } from '@tanstack/react-query'
 import {
   
+  addRun,
+  addSampleToProject,
   createProject,
-  createSample,
   getProjectByProjectId,
   getProjects,
-  getSampleBySampleId,
+  getRun,
+  getRuns,
   getSamples,
   root,
   search
@@ -21,17 +23,23 @@ import { client as _heyApiClient } from '../client.gen'
 import type {InfiniteData, UseMutationOptions} from '@tanstack/react-query';
 import type {Options} from '../sdk.gen';
 import type {
+  AddRunData,
+  AddRunError,
+  AddRunResponse,
+  AddSampleToProjectData,
+  AddSampleToProjectError,
+  AddSampleToProjectResponse,
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
-  CreateSampleData,
-  CreateSampleError,
-  CreateSampleResponse,
   GetProjectByProjectIdData,
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
-  GetSampleBySampleIdData,
+  GetRunData,
+  GetRunsData,
+  GetRunsError,
+  GetRunsResponse,
   GetSamplesData,
   GetSamplesError,
   GetSamplesResponse,
@@ -283,14 +291,14 @@ export const getProjectByProjectIdOptions = (
   })
 }
 
-export const getSamplesQueryKey = (options?: Options<GetSamplesData>) =>
+export const getSamplesQueryKey = (options: Options<GetSamplesData>) =>
   createQueryKey('getSamples', options)
 
 /**
  * Get Samples
  * Returns a paginated list of samples.
  */
-export const getSamplesOptions = (options?: Options<GetSamplesData>) => {
+export const getSamplesOptions = (options: Options<GetSamplesData>) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getSamples({
@@ -306,7 +314,7 @@ export const getSamplesOptions = (options?: Options<GetSamplesData>) => {
 }
 
 export const getSamplesInfiniteQueryKey = (
-  options?: Options<GetSamplesData>,
+  options: Options<GetSamplesData>,
 ): QueryKey<Options<GetSamplesData>> =>
   createQueryKey('getSamples', options, true)
 
@@ -314,9 +322,7 @@ export const getSamplesInfiniteQueryKey = (
  * Get Samples
  * Returns a paginated list of samples.
  */
-export const getSamplesInfiniteOptions = (
-  options?: Options<GetSamplesData>,
-) => {
+export const getSamplesInfiniteOptions = (options: Options<GetSamplesData>) => {
   return infiniteQueryOptions<
     GetSamplesResponse,
     AxiosError<GetSamplesError>,
@@ -357,17 +363,20 @@ export const getSamplesInfiniteOptions = (
   )
 }
 
-export const createSampleQueryKey = (options: Options<CreateSampleData>) =>
-  createQueryKey('createSample', options)
+export const addSampleToProjectQueryKey = (
+  options: Options<AddSampleToProjectData>,
+) => createQueryKey('addSampleToProject', options)
 
 /**
- * Create Sample
+ * Add Sample To Project
  * Create a new sample with optional attributes.
  */
-export const createSampleOptions = (options: Options<CreateSampleData>) => {
+export const addSampleToProjectOptions = (
+  options: Options<AddSampleToProjectData>,
+) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await createSample({
+      const { data } = await addSampleToProject({
         ...options,
         ...queryKey[0],
         signal,
@@ -375,28 +384,28 @@ export const createSampleOptions = (options: Options<CreateSampleData>) => {
       })
       return data
     },
-    queryKey: createSampleQueryKey(options),
+    queryKey: addSampleToProjectQueryKey(options),
   })
 }
 
 /**
- * Create Sample
+ * Add Sample To Project
  * Create a new sample with optional attributes.
  */
-export const createSampleMutation = (
-  options?: Partial<Options<CreateSampleData>>,
+export const addSampleToProjectMutation = (
+  options?: Partial<Options<AddSampleToProjectData>>,
 ): UseMutationOptions<
-  CreateSampleResponse,
-  AxiosError<CreateSampleError>,
-  Options<CreateSampleData>
+  AddSampleToProjectResponse,
+  AxiosError<AddSampleToProjectError>,
+  Options<AddSampleToProjectData>
 > => {
   const mutationOptions: UseMutationOptions<
-    CreateSampleResponse,
-    AxiosError<CreateSampleError>,
-    Options<CreateSampleData>
+    AddSampleToProjectResponse,
+    AxiosError<AddSampleToProjectError>,
+    Options<AddSampleToProjectData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await createSample({
+      const { data } = await addSampleToProject({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -407,21 +416,17 @@ export const createSampleMutation = (
   return mutationOptions
 }
 
-export const getSampleBySampleIdQueryKey = (
-  options: Options<GetSampleBySampleIdData>,
-) => createQueryKey('getSampleBySampleId', options)
+export const getRunsQueryKey = (options?: Options<GetRunsData>) =>
+  createQueryKey('getRuns', options)
 
 /**
- * Get Sample By Sample Id
- * Returns a single sample by its sample_id.
- * Note: This is different from its internal "id".
+ * Get Runs
+ * Retrieve a list of all sequencing runs.
  */
-export const getSampleBySampleIdOptions = (
-  options: Options<GetSampleBySampleIdData>,
-) => {
+export const getRunsOptions = (options?: Options<GetRunsData>) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getSampleBySampleId({
+      const { data } = await getRuns({
         ...options,
         ...queryKey[0],
         signal,
@@ -429,7 +434,128 @@ export const getSampleBySampleIdOptions = (
       })
       return data
     },
-    queryKey: getSampleBySampleIdQueryKey(options),
+    queryKey: getRunsQueryKey(options),
+  })
+}
+
+export const getRunsInfiniteQueryKey = (
+  options?: Options<GetRunsData>,
+): QueryKey<Options<GetRunsData>> => createQueryKey('getRuns', options, true)
+
+/**
+ * Get Runs
+ * Retrieve a list of all sequencing runs.
+ */
+export const getRunsInfiniteOptions = (options?: Options<GetRunsData>) => {
+  return infiniteQueryOptions<
+    GetRunsResponse,
+    AxiosError<GetRunsError>,
+    InfiniteData<GetRunsResponse>,
+    QueryKey<Options<GetRunsData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetRunsData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetRunsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await getRuns({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: getRunsInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const addRunQueryKey = (options: Options<AddRunData>) =>
+  createQueryKey('addRun', options)
+
+/**
+ * Add Run
+ * Create a new project with optional attributes.
+ */
+export const addRunOptions = (options: Options<AddRunData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await addRun({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: addRunQueryKey(options),
+  })
+}
+
+/**
+ * Add Run
+ * Create a new project with optional attributes.
+ */
+export const addRunMutation = (
+  options?: Partial<Options<AddRunData>>,
+): UseMutationOptions<
+  AddRunResponse,
+  AxiosError<AddRunError>,
+  Options<AddRunData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    AddRunResponse,
+    AxiosError<AddRunError>,
+    Options<AddRunData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await addRun({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getRunQueryKey = (options: Options<GetRunData>) =>
+  createQueryKey('getRun', options)
+
+/**
+ * Get Run
+ * Retrieve a sequencing run.
+ */
+export const getRunOptions = (options: Options<GetRunData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getRun({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getRunQueryKey(options),
   })
 }
 

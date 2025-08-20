@@ -99,14 +99,6 @@ export type SampleCreate = {
    */
   sample_id: string
   /**
-   * Project Id
-   */
-  project_id: string
-  /**
-   * Name
-   */
-  name: string
-  /**
    * Attributes
    */
   attributes?: Array<Attribute> | null
@@ -124,10 +116,6 @@ export type SamplePublic = {
    * Project Id
    */
   project_id: string
-  /**
-   * Name
-   */
-  name: string | null
   /**
    * Attributes
    */
@@ -224,6 +212,120 @@ export type SearchPublic = {
    * Per Page
    */
   per_page: number
+}
+
+/**
+ * SequencingRunCreate
+ */
+export type SequencingRunCreate = {
+  /**
+   * Run Date
+   */
+  run_date: string
+  /**
+   * Machine Id
+   */
+  machine_id: string
+  /**
+   * Run Number
+   */
+  run_number: number
+  /**
+   * Flowcell Id
+   */
+  flowcell_id: string
+  /**
+   * Experiment Name
+   */
+  experiment_name?: string | null
+  /**
+   * S3 Run Folder Path
+   */
+  s3_run_folder_path?: string | null
+  /**
+   * Status
+   */
+  status?: string | null
+  /**
+   * Run Time
+   */
+  run_time?: string | null
+}
+
+/**
+ * SequencingRunPublic
+ */
+export type SequencingRunPublic = {
+  /**
+   * Run Date
+   */
+  run_date: string
+  /**
+   * Machine Id
+   */
+  machine_id: string
+  /**
+   * Run Number
+   */
+  run_number: number
+  /**
+   * Flowcell Id
+   */
+  flowcell_id: string
+  /**
+   * Experiment Name
+   */
+  experiment_name: string | null
+  /**
+   * S3 Run Folder Path
+   */
+  s3_run_folder_path: string | null
+  /**
+   * Status
+   */
+  status: string | null
+  /**
+   * Run Time
+   */
+  run_time: string | null
+  /**
+   * Barcode
+   */
+  barcode: string | null
+}
+
+/**
+ * SequencingRunsPublic
+ */
+export type SequencingRunsPublic = {
+  /**
+   * Data
+   */
+  data: Array<SequencingRunPublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
 }
 
 /**
@@ -365,6 +467,89 @@ export type GetProjectByProjectIdResponse =
 
 export type GetSamplesData = {
   body?: never
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: string
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: 'asc' | 'desc'
+  }
+  url: '/api/v1/projects/{project_id}/samples'
+}
+
+export type GetSamplesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetSamplesError = GetSamplesErrors[keyof GetSamplesErrors]
+
+export type GetSamplesResponses = {
+  /**
+   * Successful Response
+   */
+  200: SamplesPublic
+}
+
+export type GetSamplesResponse = GetSamplesResponses[keyof GetSamplesResponses]
+
+export type AddSampleToProjectData = {
+  body: SampleCreate
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/samples'
+}
+
+export type AddSampleToProjectErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type AddSampleToProjectError =
+  AddSampleToProjectErrors[keyof AddSampleToProjectErrors]
+
+export type AddSampleToProjectResponses = {
+  /**
+   * Successful Response
+   */
+  201: SamplePublic
+}
+
+export type AddSampleToProjectResponse =
+  AddSampleToProjectResponses[keyof AddSampleToProjectResponses]
+
+export type GetRunsData = {
+  body?: never
   path?: never
   query?: {
     /**
@@ -388,89 +573,91 @@ export type GetSamplesData = {
      */
     sort_order?: 'asc' | 'desc'
   }
-  url: '/api/v1/samples'
+  url: '/api/v1/runs'
 }
 
-export type GetSamplesErrors = {
+export type GetRunsErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetSamplesError = GetSamplesErrors[keyof GetSamplesErrors]
+export type GetRunsError = GetRunsErrors[keyof GetRunsErrors]
 
-export type GetSamplesResponses = {
+export type GetRunsResponses = {
   /**
    * Successful Response
    */
-  200: SamplesPublic
+  200: SequencingRunsPublic
 }
 
-export type GetSamplesResponse = GetSamplesResponses[keyof GetSamplesResponses]
+export type GetRunsResponse = GetRunsResponses[keyof GetRunsResponses]
 
-export type CreateSampleData = {
-  body: SampleCreate
+export type AddRunData = {
+  body: SequencingRunCreate
   path?: never
   query?: never
-  url: '/api/v1/samples'
+  url: '/api/v1/runs'
 }
 
-export type CreateSampleErrors = {
+export type AddRunErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type CreateSampleError = CreateSampleErrors[keyof CreateSampleErrors]
+export type AddRunError = AddRunErrors[keyof AddRunErrors]
 
-export type CreateSampleResponses = {
+export type AddRunResponses = {
   /**
    * Successful Response
    */
-  201: SamplePublic
+  201: SequencingRunPublic
 }
 
-export type CreateSampleResponse =
-  CreateSampleResponses[keyof CreateSampleResponses]
+export type AddRunResponse = AddRunResponses[keyof AddRunResponses]
 
-export type GetSampleBySampleIdData = {
+export type GetRunData = {
   body?: never
   path: {
     /**
-     * Sample Id
+     * Run Barcode
      */
-    sample_id: string
+    run_barcode: string
   }
   query?: never
-  url: '/api/v1/samples/{sample_id}'
+  url: '/api/v1/runs/{run_barcode}'
 }
 
-export type GetSampleBySampleIdErrors = {
+export type GetRunErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetSampleBySampleIdError =
-  GetSampleBySampleIdErrors[keyof GetSampleBySampleIdErrors]
+export type GetRunError = GetRunErrors[keyof GetRunErrors]
 
-export type GetSampleBySampleIdResponses = {
+export type GetRunResponses = {
   /**
    * Successful Response
    */
-  200: SamplePublic
+  200: SequencingRunPublic
 }
 
-export type GetSampleBySampleIdResponse =
-  GetSampleBySampleIdResponses[keyof GetSampleBySampleIdResponses]
+export type GetRunResponse = GetRunResponses[keyof GetRunResponses]
 
 export type SearchData = {
   body?: never
   path?: never
   query: {
+    /**
+     * Index
+     * Index to search
+     */
+    index: string
     /**
      * Query
      * Search query string
@@ -486,6 +673,16 @@ export type SearchData = {
      * Number of items per page
      */
     per_page?: number
+    /**
+     * Sort By
+     * Field to sort by (id, name)
+     */
+    sort_by?: string | null
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: ('asc' | 'desc') | null
   }
   url: '/api/v1/search'
 }
