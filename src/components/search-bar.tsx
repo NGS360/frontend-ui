@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { DeleteIcon, ExternalLink, Search } from 'lucide-react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useQueries } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import type { FC, ReactNode } from 'react'
-import type { SearchObject } from '@/client'
+import type { ProjectPublic, SequencingRunPublic } from '@/client'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,7 @@ interface SearchItemProps {
 const SearchItem: FC<SearchItemProps> = ({ children, onClick }) => (
   <div
     onClick={onClick}
-    className="hover:bg-muted px-2 py-2 rounded-md text-sm cursor-pointer"
+    className="hover:bg-muted px-2 py-0.5 rounded-md text-sm cursor-pointer"
   >
     {children}
   </div>
@@ -42,23 +42,6 @@ const SearchGroup: FC<SearchGroupProps> = ({ children, heading }) => (
   </>
 )
 
-// Define search types (these will later come from OpenAPI)
-// interface Project {
-//   id: number
-//   projectid: string
-//   projectname: string
-// }
-// interface Run {
-//   id: number
-//   barcode: string
-//   experiment_name: string
-//   s3_run_folder_path: string
-// }
-// interface ESResponse {
-//   projects: Array<Project>
-//   runs: Array<Run>
-// }
-
 // Main SearchBar component
 export const SearchBar: FC = () => {
   const navigate = useNavigate();
@@ -72,21 +55,20 @@ export const SearchBar: FC = () => {
   const debouncedInput = useDebounce(watchedInput, 300);
 
   // Query using debounced input
-  const indices = ['projects', 'illumina_runs']
-  const [{data: projects}, {data: runs}] = useQueries({
-    queries: indices.map((index) => ({
-      ...searchOptions({
-        query: {
-          index: index,
-          query: debouncedInput,
-          page: 1,
-          per_page: 5,
-          sort_by: 'name',
-          sort_order: 'asc'
-        }
-      }),
-      enabled: !!debouncedInput
-    }))
+  const { 
+    data: { projects, runs } = { projects: [], runs: [] }
+  } = useQuery({
+    ...searchOptions({
+      query: {
+        query: debouncedInput,
+        n_results: 5
+      }
+    }),
+    select: (res) => ({
+      projects: res.projects.data,
+      runs: res.runs.data
+    }),
+    enabled: !!debouncedInput
   })
 
   // Trigger popover when debouncedInput changes
@@ -122,101 +104,75 @@ export const SearchBar: FC = () => {
           onOpenAutoFocus={(e) => e.preventDefault()}
           className="w-[var(--radix-popper-anchor-width)] p-1"
         >
-          <ScrollArea className='h-75'>
-            <ScrollBar orientation="vertical" />
-                <SearchGroup heading="Projects">
-                  {projects?.items?.length
-                    ? projects.items.map((p: SearchObject) => (
-                        <SearchItem
-                          key={p.id}
-                          onClick={() => navigate({
-                            to: '/projects/$project_id',
-                            params: { project_id: p.id }
-                          })}
-                        >
-                          <div className='flex flex-col gap-1'>
-                            <span className='text-sm'>
-                              {p.id}
-                            </span>
-                            <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
-                              {p.name}
-                            </span>
-                            <div className='flex flex-wrap gap-0.5'>
-                              {p.attributes?.map((a) => (
-                                <div
-                                  key={a.key}
-                                  className='text-muted-foreground border-1 rounded-full px-2 text-xs'
-                                >
-                                  <span>
-                                    {a.key}: {a.value && a.value.length > 50 ? a.value.slice(0, 50) + "..." : a.value}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </SearchItem>
-                      )) 
-                    : 
-                    <SearchItem>
-                      <span className='flex justify-center'>No results.</span>
+          <ScrollArea>
+            <div className='max-h-125'>
+              <ScrollBar orientation="vertical" />
+              <SearchGroup heading="Projects">
+                {projects.length
+                  ? projects.map((p: ProjectPublic) => (
+                    <SearchItem
+                      key={p.project_id}
+                      onClick={() => navigate({
+                        to: '/projects/$project_id',
+                        params: { project_id: p.project_id }
+                      })}
+                    >
+                      <span className='text-sm'>
+                        {p.project_id}
+                      </span>
+                      <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
+                        {p.name}
+                      </span>
                     </SearchItem>
-                  }
+                  ))
+                  :
                   <SearchItem>
-                    <Link to="/projects" className="flex items-center gap-2">
-                      <ExternalLink size={14} className="text-muted-foreground" />
-                      <span>View all projects</span>
-                    </Link>
+                    <span className='flex justify-center'>No results.</span>
                   </SearchItem>
-                </SearchGroup>
+                }
+                <SearchItem>
+                  <Link to="/projects" className="flex items-center gap-2">
+                    <ExternalLink size={14} className="text-muted-foreground" />
+                    <span>View all projects</span>
+                  </Link>
+                </SearchItem>
+              </SearchGroup>
 
               <Separator className="my-0.5" />
 
-            <SearchGroup heading="Runs">
-              {runs?.items?.length
-                ? runs.items.map((r: SearchObject) => (
+              <SearchGroup heading="Runs">
+                {runs.length
+                  ? runs.map((r: SequencingRunPublic) => (
                     <SearchItem
-                      key={r.id}
+                      key={r.barcode}
                       onClick={() => navigate({
                         // TODO: Update to run details page
                         to: '/projects/$project_id',
-                        params: { project_id: r.id }
+                        params: { project_id: "" }
                       })}
                     >
-                      <div className='flex flex-col gap-1'>
-                        <span className='text-sm'>
-                          {r.id}
-                        </span>
-                        <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
-                          {r.name}
-                        </span>
-                        <div className='flex flex-wrap gap-0.5'>
-                          {r.attributes?.map((a) => (
-                            <div
-                              key={a.key}
-                              className='text-muted-foreground border-1 rounded-full px-2 text-xs'
-                            >
-                              <span>
-                                {a.key}: {a.value && a.value.length > 50 ? a.value.slice(0, 50) + "..." : a.value}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      <span className='text-sm'>
+                        {r.barcode}
+                      </span>
+                      <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
+                        {r.experiment_name}
+                      </span>
                     </SearchItem>
                   ))
-                : 
+                  :
+                  <SearchItem>
+                    <span className='flex justify-center'>No results.</span>
+                  </SearchItem>
+                }
                 <SearchItem>
-                  <span className='flex justify-center'>No results.</span>
+                  {/* TODO: update to runs page */}
+                  <Link to="/projects" className="flex items-center gap-2">
+                    <ExternalLink size={14} className="text-muted-foreground" />
+                    <span>View all runs</span>
+                  </Link>
                 </SearchItem>
-              }
-              <SearchItem>
-                {/* TODO: update to runs page */}
-                <Link to="/projects" className="flex items-center gap-2"> 
-                  <ExternalLink size={14} className="text-muted-foreground" />
-                  <span>View all runs</span>
-                </Link>
-              </SearchItem>
-            </SearchGroup>
+              </SearchGroup>
+            </div>
           </ScrollArea>
         </PopoverContent>
       </Popover>

@@ -31,7 +31,16 @@ import type {
   RootResponses,
   SearchData,
   SearchErrors,
+  SearchOriginalData,
+  SearchOriginalErrors,
+  SearchOriginalResponses,
+  SearchProjectsData,
+  SearchProjectsErrors,
+  SearchProjectsResponses,
   SearchResponses,
+  SearchRunsData,
+  SearchRunsErrors,
+  SearchRunsResponses,
 } from './types.gen'
 
 export type Options<
@@ -105,6 +114,23 @@ export const createProject = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Search Projects
+ */
+export const searchProjects = <ThrowOnError extends boolean = false>(
+  options: Options<SearchProjectsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    SearchProjectsResponses,
+    SearchProjectsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/search',
+    ...options,
   })
 }
 
@@ -208,6 +234,23 @@ export const addRun = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Search Runs
+ */
+export const searchRuns = <ThrowOnError extends boolean = false>(
+  options: Options<SearchRunsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    SearchRunsResponses,
+    SearchRunsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs/search',
+    ...options,
+  })
+}
+
+/**
  * Get Run
  * Retrieve a sequencing run.
  */
@@ -226,8 +269,25 @@ export const getRun = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Search
+ * Search Original
  * Perform a search with pagination and sorting.
+ */
+export const searchOriginal = <ThrowOnError extends boolean = false>(
+  options: Options<SearchOriginalData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    SearchOriginalResponses,
+    SearchOriginalErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/search_original',
+    ...options,
+  })
+}
+
+/**
+ * Search
  */
 export const search = <ThrowOnError extends boolean = false>(
   options: Options<SearchData, ThrowOnError>,

@@ -15,6 +15,41 @@ export type Attribute = {
 }
 
 /**
+ * GenericSearchResponse
+ * Fallback response model for other search types
+ */
+export type GenericSearchResponse = {
+  /**
+   * Total Items
+   */
+  total_items?: number
+  /**
+   * Total Pages
+   */
+  total_pages?: number
+  /**
+   * Current Page
+   */
+  current_page?: number
+  /**
+   * Per Page
+   */
+  per_page?: number
+  /**
+   * Has Next
+   */
+  has_next?: boolean
+  /**
+   * Has Prev
+   */
+  has_prev?: boolean
+  /**
+   * Data
+   */
+  data?: Array<SearchDocument>
+}
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -57,6 +92,41 @@ export type ProjectPublic = {
 }
 
 /**
+ * ProjectSearchResponse
+ * Response model for project searches
+ */
+export type ProjectSearchResponse = {
+  /**
+   * Total Items
+   */
+  total_items?: number
+  /**
+   * Total Pages
+   */
+  total_pages?: number
+  /**
+   * Current Page
+   */
+  current_page?: number
+  /**
+   * Per Page
+   */
+  per_page?: number
+  /**
+   * Has Next
+   */
+  has_next?: boolean
+  /**
+   * Has Prev
+   */
+  has_prev?: boolean
+  /**
+   * Projects
+   */
+  projects?: Array<ProjectPublic>
+}
+
+/**
  * ProjectsPublic
  */
 export type ProjectsPublic = {
@@ -88,6 +158,41 @@ export type ProjectsPublic = {
    * Has Prev
    */
   has_prev: boolean
+}
+
+/**
+ * RunSearchResponse
+ * Response model for sequencing run searches
+ */
+export type RunSearchResponse = {
+  /**
+   * Total Items
+   */
+  total_items?: number
+  /**
+   * Total Pages
+   */
+  total_pages?: number
+  /**
+   * Current Page
+   */
+  current_page?: number
+  /**
+   * Per Page
+   */
+  per_page?: number
+  /**
+   * Has Next
+   */
+  has_next?: boolean
+  /**
+   * Has Prev
+   */
+  has_prev?: boolean
+  /**
+   * Illumina Runs
+   */
+  illumina_runs?: Array<SequencingRunPublic>
 }
 
 /**
@@ -157,61 +262,25 @@ export type SamplesPublic = {
 }
 
 /**
- * SearchAttribute
+ * SearchDocument
  */
-export type SearchAttribute = {
-  /**
-   * Key
-   */
-  key: string | null
-  /**
-   * Value
-   */
-  value: string | null
-}
-
-/**
- * SearchObject
- */
-export type SearchObject = {
+export type SearchDocument = {
   /**
    * Id
    */
   id: string
   /**
-   * Name
+   * Body
    */
-  name: string
-  /**
-   * Attributes
-   */
-  attributes?: Array<SearchAttribute> | null
-  /**
-   * Display Name
-   */
-  readonly display_name: string
+  body: unknown
 }
 
 /**
- * SearchPublic
+ * SearchResponse
  */
-export type SearchPublic = {
-  /**
-   * Items
-   */
-  items?: Array<SearchObject> | null
-  /**
-   * Total
-   */
-  total: number
-  /**
-   * Page
-   */
-  page: number
-  /**
-   * Per Page
-   */
-  per_page: number
+export type SearchResponse = {
+  projects: ProjectsPublic
+  runs: SequencingRunsPublic
 }
 
 /**
@@ -433,6 +502,59 @@ export type CreateProjectResponses = {
 export type CreateProjectResponse =
   CreateProjectResponses[keyof CreateProjectResponses]
 
+export type SearchProjectsData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Query
+     * Search query string
+     */
+    query: string | null
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: ('project_id' | 'name') | null
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: ('asc' | 'desc') | null
+  }
+  url: '/api/v1/projects/search'
+}
+
+export type SearchProjectsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchProjectsError =
+  SearchProjectsErrors[keyof SearchProjectsErrors]
+
+export type SearchProjectsResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProjectsPublic
+}
+
+export type SearchProjectsResponse =
+  SearchProjectsResponses[keyof SearchProjectsResponses]
+
 export type GetProjectByProjectIdData = {
   body?: never
   path: {
@@ -619,6 +741,57 @@ export type AddRunResponses = {
 
 export type AddRunResponse = AddRunResponses[keyof AddRunResponses]
 
+export type SearchRunsData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Query
+     * Search query string
+     */
+    query: string | null
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: ('barcode' | 'experiment_name') | null
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: ('asc' | 'desc') | null
+  }
+  url: '/api/v1/runs/search'
+}
+
+export type SearchRunsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchRunsError = SearchRunsErrors[keyof SearchRunsErrors]
+
+export type SearchRunsResponses = {
+  /**
+   * Successful Response
+   */
+  200: SequencingRunsPublic
+}
+
+export type SearchRunsResponse = SearchRunsResponses[keyof SearchRunsResponses]
+
 export type GetRunData = {
   body?: never
   path: {
@@ -649,7 +822,7 @@ export type GetRunResponses = {
 
 export type GetRunResponse = GetRunResponses[keyof GetRunResponses]
 
-export type SearchData = {
+export type SearchOriginalData = {
   body?: never
   path?: never
   query: {
@@ -684,6 +857,45 @@ export type SearchData = {
      */
     sort_order?: ('asc' | 'desc') | null
   }
+  url: '/api/v1/search_original'
+}
+
+export type SearchOriginalErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchOriginalError =
+  SearchOriginalErrors[keyof SearchOriginalErrors]
+
+export type SearchOriginalResponses = {
+  /**
+   * Response Search Original
+   * Successful Response
+   */
+  200: ProjectSearchResponse | RunSearchResponse | GenericSearchResponse
+}
+
+export type SearchOriginalResponse =
+  SearchOriginalResponses[keyof SearchOriginalResponses]
+
+export type SearchData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Query
+     * Search query string
+     */
+    query: string
+    /**
+     * N Results
+     * Number of results to return per index
+     */
+    n_results?: number
+  }
   url: '/api/v1/search'
 }
 
@@ -700,10 +912,10 @@ export type SearchResponses = {
   /**
    * Successful Response
    */
-  200: SearchPublic
+  200: SearchResponse
 }
 
-export type SearchResponse = SearchResponses[keyof SearchResponses]
+export type SearchResponse2 = SearchResponses[keyof SearchResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})
