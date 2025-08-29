@@ -2,7 +2,7 @@ import { flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } fro
 import React from "react"
 import { DataTableColumnToggle } from "./column-toggle";
 import type { Dispatch, JSX, SetStateAction } from "react";
-import type { ColumnDef, PaginationState, SortingState, Updater } from "@tanstack/react-table";
+import type { ColumnDef, PaginationState, SortingState } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
