@@ -1,58 +1,82 @@
-import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } from "@tanstack/react-table"
 import React from "react"
 import { DataTableColumnToggle } from "./column-toggle";
 import type { Dispatch, JSX, SetStateAction } from "react";
-import type { ColumnDef, PaginationState, Row } from "@tanstack/react-table";
+import type { ColumnDef, PaginationState, SortingState, Updater } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
 import { Input } from "@/components/ui/input";
 
-// Define the data table component
+// Define data table props
 interface DataTableProps<TData, TValue> {
   data: Array<TData>,
   columns: Array<ColumnDef<TData, TValue>>,
   notFoundComponent?: JSX.Element,
+
+  // Search/filter
+  globalFilter: string,
+  setGlobalFilter: Dispatch<SetStateAction<string>>,
+  
+  // Pagination
   pagination: PaginationState,
   pageCount: number,
-  onPaginationChange: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number; }>>,
+  setPagination: Dispatch<SetStateAction<PaginationState>>,
   totalItems: number,
-  rowClickCallback?: (row: Row<TData>) => void,
   showPaginationControls?: boolean,
+
+  // Sorting
+  sorting: SortingState,
+  setSorting: Dispatch<SetStateAction<SortingState>>
 }
 
+// Define the data table component
 export function DataTable<TData, TValue>({
   data,
   columns,
   notFoundComponent = <span>No results.</span>,
+
+  // Search/filter
+  globalFilter,
+  setGlobalFilter,
+
+  // Pagination
   pagination,
   pageCount,
-  onPaginationChange: onPaginationChangeCallback,
   totalItems,
-  rowClickCallback,
+  setPagination,
+
+  // Sorting
+  sorting,
+  setSorting
+
 }: DataTableProps<TData, TValue>) {
 
   const table = useReactTable({
     data,
     columns,
-    state: { pagination: pagination },
-    manualPagination: true,
-    pageCount: pageCount,
-    onPaginationChange: updater => {
-      // Handle pagination changes (like resetting index on pageSize change)
-      onPaginationChangeCallback(old => {
-        const newState = typeof updater === 'function' ? updater(old) : updater;
-        if (newState.pageSize !== old.pageSize) {
-          return { pageIndex: 0, pageSize: newState.pageSize }
-        }
-        return newState
-      })
-    },
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    globalFilterFn: 'includesString',
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+
+    // Search/filter
+    manualFiltering: true,
+    onGlobalFilterChange: setGlobalFilter,
+
+    // Pagination
+    manualPagination: true,
+    onPaginationChange: setPagination,
+    pageCount: pageCount,
+
+    // Sorting
+    manualSorting: true,
+    onSortingChange: setSorting,
+
+    // Table state
+    state: { 
+      globalFilter: globalFilter,
+      pagination: pagination,
+      sorting: sorting
+    },
+    getPaginationRowModel: getPaginationRowModel()
   })
 
   // Extract table markup to a variable
@@ -76,12 +100,6 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                onClick={() => {
-                  if (rowClickCallback) {
-                    rowClickCallback(row)
-                  }
-                }}
-                className={`${rowClickCallback ? 'cursor-pointer' : ''}`}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
@@ -112,7 +130,12 @@ export function DataTable<TData, TValue>({
       <div className="flex flex-col gap-4 mb-10">
         <div className="flex items-center justify-end gap-2">
           <Input
-            onChange={e => table.setGlobalFilter(String(e.target.value))}
+            autoFocus
+            value={table.getState().globalFilter ?? ""}
+            onChange={ e => {
+              setGlobalFilter(String(e.target.value))
+              table.setPageIndex(0)
+            }}
             placeholder="Type to filter..."
             className="w-full md:w-1/3"
           />

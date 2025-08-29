@@ -24,6 +24,7 @@ export function DataTablePagination<TData>({
   table,
   totalItems
 }: DataTablePaginationProps<TData>) {
+  if (totalItems == 0) return;
   return (
     <div className="flex items-center justify-between">
       {totalItems && (
@@ -39,6 +40,7 @@ export function DataTablePagination<TData>({
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
               table.setPageSize(Number(value))
+              table.setPageIndex(0)
             }}
           >
             <SelectTrigger className="h-8 w-[70px]">
