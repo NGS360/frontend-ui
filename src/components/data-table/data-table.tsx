@@ -1,8 +1,8 @@
 import { flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } from "@tanstack/react-table"
 import React from "react"
 import { DataTableColumnToggle } from "./column-toggle";
-import type { Dispatch, JSX, SetStateAction } from "react";
-import type { ColumnDef, PaginationState, SortingState } from "@tanstack/react-table";
+import type { JSX } from "react";
+import type { ColumnDef, OnChangeFn, PaginationState, SortingState } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
@@ -13,21 +13,22 @@ interface DataTableProps<TData, TValue> {
   data: Array<TData>,
   columns: Array<ColumnDef<TData, TValue>>,
   notFoundComponent?: JSX.Element,
+  columnVisibility?: Record<string, boolean>,
 
   // Search/filter
   globalFilter: string,
-  setGlobalFilter: Dispatch<SetStateAction<string>>,
+  setGlobalFilter: OnChangeFn<string>,
   
   // Pagination
   pagination: PaginationState,
   pageCount: number,
-  setPagination: Dispatch<SetStateAction<PaginationState>>,
+  setPagination: OnChangeFn<PaginationState>,
   totalItems: number,
   showPaginationControls?: boolean,
 
   // Sorting
   sorting: SortingState,
-  setSorting: Dispatch<SetStateAction<SortingState>>
+  setSorting: OnChangeFn<SortingState>
 }
 
 // Define the data table component
@@ -35,6 +36,7 @@ export function DataTable<TData, TValue>({
   data,
   columns,
   notFoundComponent = <span>No results.</span>,
+  columnVisibility = {},
 
   // Search/filter
   globalFilter,
@@ -75,6 +77,9 @@ export function DataTable<TData, TValue>({
       globalFilter: globalFilter,
       pagination: pagination,
       sorting: sorting
+    },
+    initialState: {
+      columnVisibility
     },
     getPaginationRowModel: getPaginationRowModel()
   })

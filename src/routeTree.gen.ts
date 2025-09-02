@@ -11,8 +11,10 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as RunsRouteImport } from './routes/runs.route'
 import { Route as ProjectsRouteImport } from './routes/projects.route'
 import { Route as IndexImport } from './routes/index'
+import { Route as RunsIndexImport } from './routes/runs.index'
 import { Route as ProjectsIndexImport } from './routes/projects.index'
 import { Route as ProjectsProjectidRouteImport } from './routes/projects.$project_id.route'
 import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
@@ -27,6 +29,12 @@ import { Route as ProjectsProjectidActionsIndexImport } from './routes/projects.
 
 // Create/Update Routes
 
+const RunsRouteRoute = RunsRouteImport.update({
+  id: '/runs',
+  path: '/runs',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ProjectsRouteRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
@@ -37,6 +45,12 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const RunsIndexRoute = RunsIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RunsRouteRoute,
 } as any)
 
 const ProjectsIndexRoute = ProjectsIndexImport.update({
@@ -131,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRoute
     }
+    '/runs': {
+      id: '/runs'
+      path: '/runs'
+      fullPath: '/runs'
+      preLoaderRoute: typeof RunsRouteImport
+      parentRoute: typeof rootRoute
+    }
     '/projects/$project_id': {
       id: '/projects/$project_id'
       path: '/$project_id'
@@ -144,6 +165,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/'
       preLoaderRoute: typeof ProjectsIndexImport
       parentRoute: typeof ProjectsRouteImport
+    }
+    '/runs/': {
+      id: '/runs/'
+      path: '/'
+      fullPath: '/runs/'
+      preLoaderRoute: typeof RunsIndexImport
+      parentRoute: typeof RunsRouteImport
     }
     '/projects/$project_id/actions': {
       id: '/projects/$project_id/actions'
@@ -309,11 +337,25 @@ const ProjectsRouteRouteWithChildren = ProjectsRouteRoute._addFileChildren(
   ProjectsRouteRouteChildren,
 )
 
+interface RunsRouteRouteChildren {
+  RunsIndexRoute: typeof RunsIndexRoute
+}
+
+const RunsRouteRouteChildren: RunsRouteRouteChildren = {
+  RunsIndexRoute: RunsIndexRoute,
+}
+
+const RunsRouteRouteWithChildren = RunsRouteRoute._addFileChildren(
+  RunsRouteRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/projects': typeof ProjectsRouteRouteWithChildren
+  '/runs': typeof RunsRouteRouteWithChildren
   '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
   '/projects/': typeof ProjectsIndexRoute
+  '/runs/': typeof RunsIndexRoute
   '/projects/$project_id/actions': typeof ProjectsProjectidActionsRouteRouteWithChildren
   '/projects/$project_id/files': typeof ProjectsProjectidFilesRouteRouteWithChildren
   '/projects/$project_id/ingest': typeof ProjectsProjectidIngestRouteRouteWithChildren
@@ -328,6 +370,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/projects': typeof ProjectsIndexRoute
+  '/runs': typeof RunsIndexRoute
   '/projects/$project_id': typeof ProjectsProjectidIndexRoute
   '/projects/$project_id/actions': typeof ProjectsProjectidActionsIndexRoute
   '/projects/$project_id/files': typeof ProjectsProjectidFilesIndexRoute
@@ -339,8 +382,10 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/projects': typeof ProjectsRouteRouteWithChildren
+  '/runs': typeof RunsRouteRouteWithChildren
   '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
   '/projects/': typeof ProjectsIndexRoute
+  '/runs/': typeof RunsIndexRoute
   '/projects/$project_id/actions': typeof ProjectsProjectidActionsRouteRouteWithChildren
   '/projects/$project_id/files': typeof ProjectsProjectidFilesRouteRouteWithChildren
   '/projects/$project_id/ingest': typeof ProjectsProjectidIngestRouteRouteWithChildren
@@ -357,8 +402,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/projects'
+    | '/runs'
     | '/projects/$project_id'
     | '/projects/'
+    | '/runs/'
     | '/projects/$project_id/actions'
     | '/projects/$project_id/files'
     | '/projects/$project_id/ingest'
@@ -372,6 +419,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/projects'
+    | '/runs'
     | '/projects/$project_id'
     | '/projects/$project_id/actions'
     | '/projects/$project_id/files'
@@ -381,8 +429,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/projects'
+    | '/runs'
     | '/projects/$project_id'
     | '/projects/'
+    | '/runs/'
     | '/projects/$project_id/actions'
     | '/projects/$project_id/files'
     | '/projects/$project_id/ingest'
@@ -398,11 +448,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProjectsRouteRoute: typeof ProjectsRouteRouteWithChildren
+  RunsRouteRoute: typeof RunsRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProjectsRouteRoute: ProjectsRouteRouteWithChildren,
+  RunsRouteRoute: RunsRouteRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -416,7 +468,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/projects"
+        "/projects",
+        "/runs"
       ]
     },
     "/": {
@@ -427,6 +480,12 @@ export const routeTree = rootRoute
       "children": [
         "/projects/$project_id",
         "/projects/"
+      ]
+    },
+    "/runs": {
+      "filePath": "runs.route.tsx",
+      "children": [
+        "/runs/"
       ]
     },
     "/projects/$project_id": {
@@ -443,6 +502,10 @@ export const routeTree = rootRoute
     "/projects/": {
       "filePath": "projects.index.tsx",
       "parent": "/projects"
+    },
+    "/runs/": {
+      "filePath": "runs.index.tsx",
+      "parent": "/runs"
     },
     "/projects/$project_id/actions": {
       "filePath": "projects.$project_id.actions.route.tsx",

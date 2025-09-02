@@ -21,6 +21,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 type NavItemType = {
   to: string
   label: string
+  search?: {}
 }
 
 export default function Header() {
@@ -37,7 +38,10 @@ export default function Header() {
     ['0', '#2196F3'],
   ]
 
-  const navItems: Array<NavItemType> = [{ to: '/projects', label: 'Projects' }]
+  const navItems: Array<NavItemType> = [
+    { to: '/runs', label: 'Illumina Runs' },
+    { to: '/projects', label: 'Projects', search: {sort_by: undefined, sort_order: undefined}}
+  ]
 
   return (
     <header className="sticky top-0 left-0 w-full flex justify-between items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
@@ -76,9 +80,9 @@ export default function Header() {
 
             {/* Mobile menu (using DropdownMenu) */}
             <DropdownMenuContent align="end" sideOffset={4} className="w-screen flex flex-col gap-2">
-              {navItems.map(({ to, label }) => (
+              {navItems.map(({ to, label, search }) => (
                 <DropdownMenuItem asChild key={to} className='w-full justify-center'>
-                  <Link to={to} onClick={() => setMenuOpen(false)}>
+                  <Link to={to} search={search} onClick={() => setMenuOpen(false)}>
                     {label}
                   </Link>
                 </DropdownMenuItem>
@@ -96,10 +100,10 @@ export default function Header() {
           /* Desktop menu (using NavigationMenu) */
           <NavigationMenu>
             <NavigationMenuList className="gap-4">
-              {navItems.map(({ to, label }) => (
+              {navItems.map(({ to, label, search }) => (
                 <NavigationMenuItem key={to}>
                   <NavigationMenuLink asChild>
-                    <Link to={to}>{label}</Link>
+                    <Link to={to} search={search}>{label}</Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}

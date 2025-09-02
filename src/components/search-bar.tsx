@@ -134,7 +134,11 @@ export const SearchBar: FC = () => {
                   <Link 
                     className="flex items-center gap-2"
                     to="/projects"
-                    search={{ query: debouncedInput }}
+                    search={{ 
+                      query: debouncedInput,
+                      sort_by: 'name',
+                      sort_order: 'asc'
+                    }}
                   >
                     <ExternalLink size={14} className="text-muted-foreground" />
                     <span>View all projects</span>
@@ -170,7 +174,11 @@ export const SearchBar: FC = () => {
                 }
                 <SearchItem>
                   {/* TODO: update to runs page */}
-                  <Link to="/projects" className="flex items-center gap-2">
+                  <Link
+                    className="flex items-center gap-2"
+                    to="/runs"
+                    search={{ query: debouncedInput }}
+                  >
                     <ExternalLink size={14} className="text-muted-foreground" />
                     <span>View all runs</span>
                   </Link>
