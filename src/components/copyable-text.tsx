@@ -14,6 +14,7 @@ const copyableStyles = cva(
         default: "",
         primary: "text-primary group-hover:text-primary hover:text-primary",
         hover: "[&>button]:invisible hover:[&>button]:visible",
+        hoverLight: "[&>button]:invisible hover:[&>button]:visible text-muted-foreground",
         hoverLink: "[&>button]:invisible hover:[&>button]:visible hover:underline text-primary group-hover:text-primary hover:text-primary"
       },
       size: {

@@ -105,23 +105,29 @@ function RouteComponent() {
       accessorKey: 'barcode',
       meta: { alias: "Experiment" },
       header: ({ column }) => <SortableHeader column={column} name="Experiment" />,
-      cell: ({ cell }) => {
+      cell: ({ cell, row }) => {
         const barcode = cell.getValue() as string
-        return (
-          <CopyableText
-            text={barcode}
-            variant='hoverLink'
-            asChild={true}
-            children={(
-              <Link
-                to='/runs'
-                params={{ barcode: barcode }}
-              >
-                {barcode}
-              </Link>
-            )}
-          />
-        )
+        const status = row.getValue('status')
+        return status === "Ready" ? (
+            <CopyableText
+              text={barcode}
+              variant='hoverLink'
+              asChild={true}
+              children={(
+                <Link
+                  to='/runs'
+                  params={{ barcode: barcode }}
+                >
+                  {barcode}
+                </Link>
+              )}
+            />
+          ) : (
+            <CopyableText
+              text={barcode}
+              variant='hoverLight'
+            />
+          )
       }
     },
     {
