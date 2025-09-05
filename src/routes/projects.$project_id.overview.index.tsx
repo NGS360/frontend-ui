@@ -5,7 +5,7 @@ import { Link, createFileRoute, getRouteApi } from '@tanstack/react-router'
 import type { Attribute, SamplePublic } from '@/client/types.gen'
 import type { ColumnDef } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
-import { ServerDataTable } from '@/components/data-table/data-table'
+import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { FileUpload } from '@/components/file-upload'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -185,16 +185,9 @@ function RouteComponent() {
           </AccordionTrigger>
           <AccordionContent className='pt-2'>
             {data ? (
-              // <DataTable<EmptyRow, any>
-              <ServerDataTable
-                // data={emptyData}
-                // columns={emptyColumns}
+              <ClientDataTable
                 data={data.data}
                 columns={columns}
-                pagination={pagination}
-                onPaginationChange={setPagination}
-                pageCount={0}
-                totalItems={0}
               />
             ) : (
               <FileUpload subject='samplesheet.tsv' />

@@ -16,13 +16,18 @@ import { Route as ProjectsRouteImport } from './routes/projects.route'
 import { Route as IndexImport } from './routes/index'
 import { Route as RunsIndexImport } from './routes/runs.index'
 import { Route as ProjectsIndexImport } from './routes/projects.index'
+import { Route as RunsRunbarcodeRouteImport } from './routes/runs.$run_barcode.route'
 import { Route as ProjectsProjectidRouteImport } from './routes/projects.$project_id.route'
 import { Route as RunsRunbarcodeIndexImport } from './routes/runs.$run_barcode.index'
 import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
+import { Route as RunsRunbarcodeSamplesheetRouteImport } from './routes/runs.$run_barcode.samplesheet.route'
+import { Route as RunsRunbarcodeIndexqcRouteImport } from './routes/runs.$run_barcode.indexqc.route'
 import { Route as ProjectsProjectidOverviewRouteImport } from './routes/projects.$project_id.overview.route'
 import { Route as ProjectsProjectidIngestRouteImport } from './routes/projects.$project_id.ingest.route'
 import { Route as ProjectsProjectidFilesRouteImport } from './routes/projects.$project_id.files.route'
 import { Route as ProjectsProjectidActionsRouteImport } from './routes/projects.$project_id.actions.route'
+import { Route as RunsRunbarcodeSamplesheetIndexImport } from './routes/runs.$run_barcode.samplesheet.index'
+import { Route as RunsRunbarcodeIndexqcIndexImport } from './routes/runs.$run_barcode.indexqc.index'
 import { Route as ProjectsProjectidOverviewIndexImport } from './routes/projects.$project_id.overview.index'
 import { Route as ProjectsProjectidIngestIndexImport } from './routes/projects.$project_id.ingest.index'
 import { Route as ProjectsProjectidFilesIndexImport } from './routes/projects.$project_id.files.index'
@@ -60,6 +65,12 @@ const ProjectsIndexRoute = ProjectsIndexImport.update({
   getParentRoute: () => ProjectsRouteRoute,
 } as any)
 
+const RunsRunbarcodeRouteRoute = RunsRunbarcodeRouteImport.update({
+  id: '/$run_barcode',
+  path: '/$run_barcode',
+  getParentRoute: () => RunsRouteRoute,
+} as any)
+
 const ProjectsProjectidRouteRoute = ProjectsProjectidRouteImport.update({
   id: '/$project_id',
   path: '/$project_id',
@@ -67,9 +78,9 @@ const ProjectsProjectidRouteRoute = ProjectsProjectidRouteImport.update({
 } as any)
 
 const RunsRunbarcodeIndexRoute = RunsRunbarcodeIndexImport.update({
-  id: '/$run_barcode/',
-  path: '/$run_barcode/',
-  getParentRoute: () => RunsRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => RunsRunbarcodeRouteRoute,
 } as any)
 
 const ProjectsProjectidIndexRoute = ProjectsProjectidIndexImport.update({
@@ -77,6 +88,21 @@ const ProjectsProjectidIndexRoute = ProjectsProjectidIndexImport.update({
   path: '/',
   getParentRoute: () => ProjectsProjectidRouteRoute,
 } as any)
+
+const RunsRunbarcodeSamplesheetRouteRoute =
+  RunsRunbarcodeSamplesheetRouteImport.update({
+    id: '/samplesheet',
+    path: '/samplesheet',
+    getParentRoute: () => RunsRunbarcodeRouteRoute,
+  } as any)
+
+const RunsRunbarcodeIndexqcRouteRoute = RunsRunbarcodeIndexqcRouteImport.update(
+  {
+    id: '/indexqc',
+    path: '/indexqc',
+    getParentRoute: () => RunsRunbarcodeRouteRoute,
+  } as any,
+)
 
 const ProjectsProjectidOverviewRouteRoute =
   ProjectsProjectidOverviewRouteImport.update({
@@ -105,6 +131,21 @@ const ProjectsProjectidActionsRouteRoute =
     path: '/actions',
     getParentRoute: () => ProjectsProjectidRouteRoute,
   } as any)
+
+const RunsRunbarcodeSamplesheetIndexRoute =
+  RunsRunbarcodeSamplesheetIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => RunsRunbarcodeSamplesheetRouteRoute,
+  } as any)
+
+const RunsRunbarcodeIndexqcIndexRoute = RunsRunbarcodeIndexqcIndexImport.update(
+  {
+    id: '/',
+    path: '/',
+    getParentRoute: () => RunsRunbarcodeIndexqcRouteRoute,
+  } as any,
+)
 
 const ProjectsProjectidOverviewIndexRoute =
   ProjectsProjectidOverviewIndexImport.update({
@@ -166,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectidRouteImport
       parentRoute: typeof ProjectsRouteImport
     }
+    '/runs/$run_barcode': {
+      id: '/runs/$run_barcode'
+      path: '/$run_barcode'
+      fullPath: '/runs/$run_barcode'
+      preLoaderRoute: typeof RunsRunbarcodeRouteImport
+      parentRoute: typeof RunsRouteImport
+    }
     '/projects/': {
       id: '/projects/'
       path: '/'
@@ -208,6 +256,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectidOverviewRouteImport
       parentRoute: typeof ProjectsProjectidRouteImport
     }
+    '/runs/$run_barcode/indexqc': {
+      id: '/runs/$run_barcode/indexqc'
+      path: '/indexqc'
+      fullPath: '/runs/$run_barcode/indexqc'
+      preLoaderRoute: typeof RunsRunbarcodeIndexqcRouteImport
+      parentRoute: typeof RunsRunbarcodeRouteImport
+    }
+    '/runs/$run_barcode/samplesheet': {
+      id: '/runs/$run_barcode/samplesheet'
+      path: '/samplesheet'
+      fullPath: '/runs/$run_barcode/samplesheet'
+      preLoaderRoute: typeof RunsRunbarcodeSamplesheetRouteImport
+      parentRoute: typeof RunsRunbarcodeRouteImport
+    }
     '/projects/$project_id/': {
       id: '/projects/$project_id/'
       path: '/'
@@ -217,10 +279,10 @@ declare module '@tanstack/react-router' {
     }
     '/runs/$run_barcode/': {
       id: '/runs/$run_barcode/'
-      path: '/$run_barcode'
-      fullPath: '/runs/$run_barcode'
+      path: '/'
+      fullPath: '/runs/$run_barcode/'
       preLoaderRoute: typeof RunsRunbarcodeIndexImport
-      parentRoute: typeof RunsRouteImport
+      parentRoute: typeof RunsRunbarcodeRouteImport
     }
     '/projects/$project_id/actions/': {
       id: '/projects/$project_id/actions/'
@@ -249,6 +311,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/$project_id/overview/'
       preLoaderRoute: typeof ProjectsProjectidOverviewIndexImport
       parentRoute: typeof ProjectsProjectidOverviewRouteImport
+    }
+    '/runs/$run_barcode/indexqc/': {
+      id: '/runs/$run_barcode/indexqc/'
+      path: '/'
+      fullPath: '/runs/$run_barcode/indexqc/'
+      preLoaderRoute: typeof RunsRunbarcodeIndexqcIndexImport
+      parentRoute: typeof RunsRunbarcodeIndexqcRouteImport
+    }
+    '/runs/$run_barcode/samplesheet/': {
+      id: '/runs/$run_barcode/samplesheet/'
+      path: '/'
+      fullPath: '/runs/$run_barcode/samplesheet/'
+      preLoaderRoute: typeof RunsRunbarcodeSamplesheetIndexImport
+      parentRoute: typeof RunsRunbarcodeSamplesheetRouteImport
     }
   }
 }
@@ -351,14 +427,58 @@ const ProjectsRouteRouteWithChildren = ProjectsRouteRoute._addFileChildren(
   ProjectsRouteRouteChildren,
 )
 
-interface RunsRouteRouteChildren {
-  RunsIndexRoute: typeof RunsIndexRoute
+interface RunsRunbarcodeIndexqcRouteRouteChildren {
+  RunsRunbarcodeIndexqcIndexRoute: typeof RunsRunbarcodeIndexqcIndexRoute
+}
+
+const RunsRunbarcodeIndexqcRouteRouteChildren: RunsRunbarcodeIndexqcRouteRouteChildren =
+  {
+    RunsRunbarcodeIndexqcIndexRoute: RunsRunbarcodeIndexqcIndexRoute,
+  }
+
+const RunsRunbarcodeIndexqcRouteRouteWithChildren =
+  RunsRunbarcodeIndexqcRouteRoute._addFileChildren(
+    RunsRunbarcodeIndexqcRouteRouteChildren,
+  )
+
+interface RunsRunbarcodeSamplesheetRouteRouteChildren {
+  RunsRunbarcodeSamplesheetIndexRoute: typeof RunsRunbarcodeSamplesheetIndexRoute
+}
+
+const RunsRunbarcodeSamplesheetRouteRouteChildren: RunsRunbarcodeSamplesheetRouteRouteChildren =
+  {
+    RunsRunbarcodeSamplesheetIndexRoute: RunsRunbarcodeSamplesheetIndexRoute,
+  }
+
+const RunsRunbarcodeSamplesheetRouteRouteWithChildren =
+  RunsRunbarcodeSamplesheetRouteRoute._addFileChildren(
+    RunsRunbarcodeSamplesheetRouteRouteChildren,
+  )
+
+interface RunsRunbarcodeRouteRouteChildren {
+  RunsRunbarcodeIndexqcRouteRoute: typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
+  RunsRunbarcodeSamplesheetRouteRoute: typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
   RunsRunbarcodeIndexRoute: typeof RunsRunbarcodeIndexRoute
 }
 
-const RunsRouteRouteChildren: RunsRouteRouteChildren = {
-  RunsIndexRoute: RunsIndexRoute,
+const RunsRunbarcodeRouteRouteChildren: RunsRunbarcodeRouteRouteChildren = {
+  RunsRunbarcodeIndexqcRouteRoute: RunsRunbarcodeIndexqcRouteRouteWithChildren,
+  RunsRunbarcodeSamplesheetRouteRoute:
+    RunsRunbarcodeSamplesheetRouteRouteWithChildren,
   RunsRunbarcodeIndexRoute: RunsRunbarcodeIndexRoute,
+}
+
+const RunsRunbarcodeRouteRouteWithChildren =
+  RunsRunbarcodeRouteRoute._addFileChildren(RunsRunbarcodeRouteRouteChildren)
+
+interface RunsRouteRouteChildren {
+  RunsRunbarcodeRouteRoute: typeof RunsRunbarcodeRouteRouteWithChildren
+  RunsIndexRoute: typeof RunsIndexRoute
+}
+
+const RunsRouteRouteChildren: RunsRouteRouteChildren = {
+  RunsRunbarcodeRouteRoute: RunsRunbarcodeRouteRouteWithChildren,
+  RunsIndexRoute: RunsIndexRoute,
 }
 
 const RunsRouteRouteWithChildren = RunsRouteRoute._addFileChildren(
@@ -370,18 +490,23 @@ export interface FileRoutesByFullPath {
   '/projects': typeof ProjectsRouteRouteWithChildren
   '/runs': typeof RunsRouteRouteWithChildren
   '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
+  '/runs/$run_barcode': typeof RunsRunbarcodeRouteRouteWithChildren
   '/projects/': typeof ProjectsIndexRoute
   '/runs/': typeof RunsIndexRoute
   '/projects/$project_id/actions': typeof ProjectsProjectidActionsRouteRouteWithChildren
   '/projects/$project_id/files': typeof ProjectsProjectidFilesRouteRouteWithChildren
   '/projects/$project_id/ingest': typeof ProjectsProjectidIngestRouteRouteWithChildren
   '/projects/$project_id/overview': typeof ProjectsProjectidOverviewRouteRouteWithChildren
+  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
+  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
   '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
-  '/runs/$run_barcode': typeof RunsRunbarcodeIndexRoute
+  '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
   '/projects/$project_id/actions/': typeof ProjectsProjectidActionsIndexRoute
   '/projects/$project_id/files/': typeof ProjectsProjectidFilesIndexRoute
   '/projects/$project_id/ingest/': typeof ProjectsProjectidIngestIndexRoute
   '/projects/$project_id/overview/': typeof ProjectsProjectidOverviewIndexRoute
+  '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
+  '/runs/$run_barcode/samplesheet/': typeof RunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -394,6 +519,8 @@ export interface FileRoutesByTo {
   '/projects/$project_id/files': typeof ProjectsProjectidFilesIndexRoute
   '/projects/$project_id/ingest': typeof ProjectsProjectidIngestIndexRoute
   '/projects/$project_id/overview': typeof ProjectsProjectidOverviewIndexRoute
+  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcIndexRoute
+  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRoutesById {
@@ -402,18 +529,23 @@ export interface FileRoutesById {
   '/projects': typeof ProjectsRouteRouteWithChildren
   '/runs': typeof RunsRouteRouteWithChildren
   '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
+  '/runs/$run_barcode': typeof RunsRunbarcodeRouteRouteWithChildren
   '/projects/': typeof ProjectsIndexRoute
   '/runs/': typeof RunsIndexRoute
   '/projects/$project_id/actions': typeof ProjectsProjectidActionsRouteRouteWithChildren
   '/projects/$project_id/files': typeof ProjectsProjectidFilesRouteRouteWithChildren
   '/projects/$project_id/ingest': typeof ProjectsProjectidIngestRouteRouteWithChildren
   '/projects/$project_id/overview': typeof ProjectsProjectidOverviewRouteRouteWithChildren
+  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
+  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
   '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
   '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
   '/projects/$project_id/actions/': typeof ProjectsProjectidActionsIndexRoute
   '/projects/$project_id/files/': typeof ProjectsProjectidFilesIndexRoute
   '/projects/$project_id/ingest/': typeof ProjectsProjectidIngestIndexRoute
   '/projects/$project_id/overview/': typeof ProjectsProjectidOverviewIndexRoute
+  '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
+  '/runs/$run_barcode/samplesheet/': typeof RunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -423,18 +555,23 @@ export interface FileRouteTypes {
     | '/projects'
     | '/runs'
     | '/projects/$project_id'
+    | '/runs/$run_barcode'
     | '/projects/'
     | '/runs/'
     | '/projects/$project_id/actions'
     | '/projects/$project_id/files'
     | '/projects/$project_id/ingest'
     | '/projects/$project_id/overview'
+    | '/runs/$run_barcode/indexqc'
+    | '/runs/$run_barcode/samplesheet'
     | '/projects/$project_id/'
-    | '/runs/$run_barcode'
+    | '/runs/$run_barcode/'
     | '/projects/$project_id/actions/'
     | '/projects/$project_id/files/'
     | '/projects/$project_id/ingest/'
     | '/projects/$project_id/overview/'
+    | '/runs/$run_barcode/indexqc/'
+    | '/runs/$run_barcode/samplesheet/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -446,24 +583,31 @@ export interface FileRouteTypes {
     | '/projects/$project_id/files'
     | '/projects/$project_id/ingest'
     | '/projects/$project_id/overview'
+    | '/runs/$run_barcode/indexqc'
+    | '/runs/$run_barcode/samplesheet'
   id:
     | '__root__'
     | '/'
     | '/projects'
     | '/runs'
     | '/projects/$project_id'
+    | '/runs/$run_barcode'
     | '/projects/'
     | '/runs/'
     | '/projects/$project_id/actions'
     | '/projects/$project_id/files'
     | '/projects/$project_id/ingest'
     | '/projects/$project_id/overview'
+    | '/runs/$run_barcode/indexqc'
+    | '/runs/$run_barcode/samplesheet'
     | '/projects/$project_id/'
     | '/runs/$run_barcode/'
     | '/projects/$project_id/actions/'
     | '/projects/$project_id/files/'
     | '/projects/$project_id/ingest/'
     | '/projects/$project_id/overview/'
+    | '/runs/$run_barcode/indexqc/'
+    | '/runs/$run_barcode/samplesheet/'
   fileRoutesById: FileRoutesById
 }
 
@@ -507,8 +651,8 @@ export const routeTree = rootRoute
     "/runs": {
       "filePath": "runs.route.tsx",
       "children": [
-        "/runs/",
-        "/runs/$run_barcode/"
+        "/runs/$run_barcode",
+        "/runs/"
       ]
     },
     "/projects/$project_id": {
@@ -520,6 +664,15 @@ export const routeTree = rootRoute
         "/projects/$project_id/ingest",
         "/projects/$project_id/overview",
         "/projects/$project_id/"
+      ]
+    },
+    "/runs/$run_barcode": {
+      "filePath": "runs.$run_barcode.route.tsx",
+      "parent": "/runs",
+      "children": [
+        "/runs/$run_barcode/indexqc",
+        "/runs/$run_barcode/samplesheet",
+        "/runs/$run_barcode/"
       ]
     },
     "/projects/": {
@@ -558,13 +711,27 @@ export const routeTree = rootRoute
         "/projects/$project_id/overview/"
       ]
     },
+    "/runs/$run_barcode/indexqc": {
+      "filePath": "runs.$run_barcode.indexqc.route.tsx",
+      "parent": "/runs/$run_barcode",
+      "children": [
+        "/runs/$run_barcode/indexqc/"
+      ]
+    },
+    "/runs/$run_barcode/samplesheet": {
+      "filePath": "runs.$run_barcode.samplesheet.route.tsx",
+      "parent": "/runs/$run_barcode",
+      "children": [
+        "/runs/$run_barcode/samplesheet/"
+      ]
+    },
     "/projects/$project_id/": {
       "filePath": "projects.$project_id.index.tsx",
       "parent": "/projects/$project_id"
     },
     "/runs/$run_barcode/": {
       "filePath": "runs.$run_barcode.index.tsx",
-      "parent": "/runs"
+      "parent": "/runs/$run_barcode"
     },
     "/projects/$project_id/actions/": {
       "filePath": "projects.$project_id.actions.index.tsx",
@@ -581,6 +748,14 @@ export const routeTree = rootRoute
     "/projects/$project_id/overview/": {
       "filePath": "projects.$project_id.overview.index.tsx",
       "parent": "/projects/$project_id/overview"
+    },
+    "/runs/$run_barcode/indexqc/": {
+      "filePath": "runs.$run_barcode.indexqc.index.tsx",
+      "parent": "/runs/$run_barcode/indexqc"
+    },
+    "/runs/$run_barcode/samplesheet/": {
+      "filePath": "runs.$run_barcode.samplesheet.index.tsx",
+      "parent": "/runs/$run_barcode/samplesheet"
     }
   }
 }
