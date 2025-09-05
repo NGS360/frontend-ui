@@ -3,19 +3,18 @@ import { Check, Copy } from "lucide-react";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import type { VariantProps } from "class-variance-authority";
-import { Button } from "@/components/ui/button";
 
 
 const copyableStyles = cva(
-  "flex items-center gap-2 group",
+  "flex items-center gap-2 [&>button]:rounded-sm [&>button]:p-[0.5em]",
   {
     variants: {
       variant: {
-        default: "",
-        primary: "text-primary group-hover:text-primary hover:text-primary",
-        hover: "[&>button]:invisible hover:[&>button]:visible",
-        hoverLight: "[&>button]:invisible hover:[&>button]:visible text-muted-foreground",
-        hoverLink: "[&>button]:invisible hover:[&>button]:visible hover:underline text-primary group-hover:text-primary hover:text-primary"
+        default: "[&>button]:hover:bg-accent [&>button]:dark:hover:bg-accent/50",
+        primary: "text-primary text-primary [&>button]:hover:bg-primary/5 [&>button]:dark:hover:bg-accent/50",
+        hover: "[&>button]:hover:bg-accent [&>button]:dark:hover:bg-accent/50 [&>button]:invisible hover:[&>button]:visible",
+        hoverLight: "[&>button]:hover:bg-accent [&>button]:dark:hover:bg-accent/50 [&>button]:invisible hover:[&>button]:visible text-muted-foreground",
+        hoverLink: "[&>button]:hover:bg-primary/5 [&>button]:dark:hover:bg-accent/50 [&>button]:invisible hover:[&>button]:visible hover:underline text-primary group-hover:text-primary hover:text-primary"
       },
       size: {
         sm: "text-sm gap-1",
@@ -42,7 +41,7 @@ interface CopyableTextProps
 export const CopyableText: React.FC<CopyableTextProps> = ({
   text,
   children,
-  timeout = 3000,
+  timeout = 1500,
   className,
   variant,
   size,
@@ -82,13 +81,14 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
             {children ?? text}
           </span>
         )}
-        <Button
-          variant='ghost_no_accent'
-          size='icon'
+        <button 
+          className={clsx(copied && "!visible bg-transparent")}
           onClick={onClick}
         >
-          {copied ? <Check /> : <Copy />}
-        </Button>
+          {copied
+            ? <Check className="size-[1em]" /> 
+            : <Copy className="size-[1em]" />}
+        </button>
       </div >
     </>
   )
