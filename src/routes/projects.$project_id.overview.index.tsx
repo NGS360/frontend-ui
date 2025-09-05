@@ -3,9 +3,9 @@ import { useState } from 'react'
 import { Pencil, PillBottle, Plus, Tag } from 'lucide-react'
 import { Link, createFileRoute, getRouteApi } from '@tanstack/react-router'
 import type { Attribute, SamplePublic } from '@/client/types.gen'
-import type { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef, SortingState, Updater } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
-import { ClientDataTable } from '@/components/data-table/data-table'
+import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { FileUpload } from '@/components/file-upload'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -185,9 +185,24 @@ function RouteComponent() {
           </AccordionTrigger>
           <AccordionContent className='pt-2'>
             {data ? (
-              <ClientDataTable
+              // <DataTable<EmptyRow, any>
+              <ServerDataTable
+                // data={emptyData}
+                // columns={emptyColumns}
                 data={data.data}
                 columns={columns}
+                pagination={pagination}
+                onPaginationChange={setPagination}
+                pageCount={0}
+                totalItems={0} 
+                globalFilter={''} 
+                onFilterChange={function (updaterOrValue: Updater<string>): void {
+                  throw new Error('Function not implemented.')
+                }} 
+                sorting={[]} 
+                onSortingChange={function (updaterOrValue: Updater<SortingState>): void {
+                  throw new Error('Function not implemented.')
+                }}
               />
             ) : (
               <FileUpload subject='samplesheet.tsv' />

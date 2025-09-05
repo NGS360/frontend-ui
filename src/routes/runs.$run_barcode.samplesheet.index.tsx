@@ -150,18 +150,27 @@ function RouteComponent() {
   return (
     <>
     <div className='flex flex-col gap-4'>
-      
+
         <div className='flex flex-col gap-4 md:grid md:grid-cols-2 '>
 
           {/* Samplesheet Header */}
           <div className='flex flex-col gap-2 md:row-span-2'>
-            <h2 className='text-xl uppercase font-light text-primary'>Header</h2>
+            <h2 className='text-lg uppercase font-light text-primary'>Header</h2>
             <table>
               <tbody>
                 {header.map(([k, v]) => (
                   <tr key={k} className='border-t'>
                     <td className='p-2 align-top'>{k}</td>
-                    <td className='p-2 align-top'>{v}</td>
+                    <td className='p-2'>
+                      {/* Reduce button padding to align items top */}
+                      {v && (
+                        <CopyableText
+                          text={v}
+                          variant='hoverLight'
+                          className='items-start [&>button]:p-[0.25em]'
+                        />
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -170,7 +179,7 @@ function RouteComponent() {
 
           {/* Reads */}
           <div className='flex flex-col gap-2'>
-            <h2 className='text-xl uppercase font-light text-primary'>Reads</h2>
+            <h2 className='text-lg uppercase font-light text-primary'>Reads</h2>
             <table>
               <tbody>
                 {reads.map(([k, v]) => (
@@ -184,7 +193,7 @@ function RouteComponent() {
 
           {/* Settings */}
           <div className='flex flex-col gap-2'>
-            <h2 className='text-xl uppercase font-light text-primary'>Settings</h2>
+            <h2 className='text-lg uppercase font-light text-primary'>Settings</h2>
             <table>
               <tbody>
                 {settings.map(([k, v]) => (
@@ -199,7 +208,7 @@ function RouteComponent() {
         
         {/* Data table */}
         <div className='flex flex-col gap-2'>
-          <h2 className='text-xl uppercase font-light text-primary'>Data</h2>
+          <h2 className='text-lg uppercase font-light text-primary'>Data</h2>
           <ClientDataTable
             data={runInfo.Data}
             columns={columns}

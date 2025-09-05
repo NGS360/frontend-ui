@@ -1,13 +1,20 @@
 import * as React from 'react';
 import { useMatchRoute, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 type TabNavProps = {
-  children: React.ReactNode;
+  children: React.ReactNode,
+  className?: string
 };
 
-export const TabNav: React.FC<TabNavProps> = ({ children }) => (
-  <nav className="w-full flex flex-col gap-2 md:flex-row md:gap-0 md:border-b-2 md:border-muted">
+export const TabNav: React.FC<TabNavProps> = ({ children, className }) => (
+  <nav 
+    className={cn(
+      "w-full flex flex-col gap-2 md:flex-row md:gap-0 md:border-b-2 md:border-muted",
+      className
+      )}
+  >
     {children}
   </nav>
 );
