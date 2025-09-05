@@ -27,11 +27,18 @@ export function DataTablePagination<TData>({
 }: DataTablePaginationProps<TData>) {
   const isMobile = useIsMobile();
   if (totalItems == 0) return;
+
+  // Compute the number of rows displayed
+  const rowsOnPage = table.getPaginationRowModel().rows.length;
+  const rowsFiltered = table.getFilteredRowModel().rows.length;
+  const rowsDisplayed = rowsOnPage < rowsFiltered ? rowsOnPage : rowsFiltered
+
   return (
     <div className="flex items-center justify-end md:justify-between">
       {!isMobile && (
         <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredRowModel().rows.length} out of {" "}
+          Showing {" "}
+          {rowsDisplayed} out of {" "}
           {totalItems} row(s)
         </div>
       )}

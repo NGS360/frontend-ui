@@ -5,7 +5,7 @@ import z from 'zod';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import type { SequencingRunPublic } from '@/client';
 import { searchRunsOptions } from '@/client/@tanstack/react-query.gen'
-import { DataTable } from '@/components/data-table/data-table'
+import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { useDebounce } from '@/hooks/use-debounce';
@@ -115,8 +115,8 @@ function RouteComponent() {
               asChild={true}
               children={(
                 <Link
-                  to='/runs'
-                  params={{ barcode: barcode }}
+                  to='/runs/$run_barcode'
+                  params={{ run_barcode: barcode }}
                 >
                   {barcode}
                 </Link>
@@ -161,18 +161,18 @@ function RouteComponent() {
     <>
       <h1 className="text-2xl">Illumina Runs</h1>
       <p className="text-muted-foreground mb-6">View all illumina runs in NGS360</p>
-      <DataTable
+      <ServerDataTable
         data={data.data}
         columns={columns}
         columnVisibility={{s3_run_folder_path: false}}
         globalFilter={globalFilter}
-        setGlobalFilter={setGlobalFilter}
+        onFilterChange={setGlobalFilter}
         pagination={pagination}
-        setPagination={setPagination}
+        onPaginationChange={setPagination}
         pageCount={data.total_pages}
         totalItems={data.total_items}
         sorting={sorting}
-        setSorting={setSorting}
+        onSortingChange={setSorting}
       />
     </>
   )

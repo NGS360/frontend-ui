@@ -5,7 +5,7 @@ import z from 'zod';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import type { Attribute, ProjectPublic } from '@/client';
 import { searchProjectsOptions } from '@/client/@tanstack/react-query.gen'
-import { DataTable } from '@/components/data-table/data-table'
+import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { useDebounce } from '@/hooks/use-debounce';
@@ -125,6 +125,7 @@ function RouteComponent() {
     },
     {
       accessorKey: 'name',
+      meta: { alias: 'Project Name' },
       header: ({ column }) => <SortableHeader column={column} name="Project Name" />,
       cell: ({ row }) => {
         const name: string = row.getValue('name')
@@ -158,17 +159,17 @@ function RouteComponent() {
     <>
       <h1 className="text-2xl">Projects</h1>
       <p className="text-muted-foreground mb-6">View all projects in NGS360</p>
-      <DataTable
+      <ServerDataTable
         data={data.data}
         columns={columns}
         globalFilter={globalFilter}
-        setGlobalFilter={setGlobalFilter}
+        onFilterChange={setGlobalFilter}
         pagination={pagination}
-        setPagination={setPagination}
+        onPaginationChange={setPagination}
         pageCount={data.total_pages}
         totalItems={data.total_items}
         sorting={sorting}
-        setSorting={setSorting}
+        onSortingChange={setSorting}
       />
     </>
   )

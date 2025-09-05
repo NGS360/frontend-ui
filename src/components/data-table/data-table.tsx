@@ -1,88 +1,34 @@
-import { flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 import React from "react"
 import { DataTableColumnToggle } from "./column-toggle";
 import type { JSX } from "react";
-import type { ColumnDef, OnChangeFn, PaginationState, SortingState } from "@tanstack/react-table";
+import type { ColumnDef, OnChangeFn, PaginationState, Table as ReactTable, SortingState  } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
 import { Input } from "@/components/ui/input";
 
-// Define data table props
-interface DataTableProps<TData, TValue> {
-  data: Array<TData>,
+// Common props
+interface BaseDataTableProps<TData, TValue> {
+  data: Array<TData>
   columns: Array<ColumnDef<TData, TValue>>,
+  totalItems?: number,
   notFoundComponent?: JSX.Element,
   columnVisibility?: Record<string, boolean>,
-
-  // Search/filter
-  globalFilter: string,
-  setGlobalFilter: OnChangeFn<string>,
-  
-  // Pagination
-  pagination: PaginationState,
-  pageCount: number,
-  setPagination: OnChangeFn<PaginationState>,
-  totalItems: number,
-  showPaginationControls?: boolean,
-
-  // Sorting
-  sorting: SortingState,
-  setSorting: OnChangeFn<SortingState>
 }
 
-// Define the data table component
-export function DataTable<TData, TValue>({
-  data,
-  columns,
+// Data table component
+interface DataTableProps<TData> {
+  table: ReactTable<TData>,
+  notFoundComponent?: JSX.Element,
+  totalItems: number
+}
+
+export function DataTable<TData>({
+  table,
   notFoundComponent = <span>No results.</span>,
-  columnVisibility = {},
-
-  // Search/filter
-  globalFilter,
-  setGlobalFilter,
-
-  // Pagination
-  pagination,
-  pageCount,
-  totalItems,
-  setPagination,
-
-  // Sorting
-  sorting,
-  setSorting
-
-}: DataTableProps<TData, TValue>) {
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-
-    // Search/filter
-    manualFiltering: true,
-    onGlobalFilterChange: setGlobalFilter,
-
-    // Pagination
-    manualPagination: true,
-    onPaginationChange: setPagination,
-    pageCount: pageCount,
-
-    // Sorting
-    manualSorting: true,
-    onSortingChange: setSorting,
-
-    // Table state
-    state: { 
-      globalFilter: globalFilter,
-      pagination: pagination,
-      sorting: sorting
-    },
-    initialState: {
-      columnVisibility
-    },
-    getPaginationRowModel: getPaginationRowModel()
-  })
+  totalItems
+}: DataTableProps<TData>) {
 
   // Extract table markup to a variable
   const tableMarkup = (
@@ -119,7 +65,7 @@ export function DataTable<TData, TValue>({
           ))
         ) : (
           <TableRow className="h-24">
-            <TableCell colSpan={columns.length}>
+            <TableCell colSpan={table.getAllColumns().length}>
               <div className="flex items-center justify-center h-full">
                 {notFoundComponent}
               </div>
@@ -137,8 +83,8 @@ export function DataTable<TData, TValue>({
           <Input
             autoFocus
             value={table.getState().globalFilter ?? ""}
-            onChange={ e => {
-              setGlobalFilter(String(e.target.value))
+            onChange={e => {
+              table.setGlobalFilter(String(e.target.value))
               table.setPageIndex(0)
             }}
             placeholder="Type to filter..."
@@ -156,4 +102,116 @@ export function DataTable<TData, TValue>({
       </div>
     </div>
   )
-};
+}
+
+// Server-side controller
+interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, TValue> {
+
+  // Search/filter
+  globalFilter: string,
+  onFilterChange: OnChangeFn<string>,
+
+  // Pagination
+  pagination: PaginationState,
+  pageCount: number,
+  onPaginationChange: OnChangeFn<PaginationState>,
+  totalItems: number,
+  showPaginationControls?: boolean,
+
+  // Sorting
+  sorting: SortingState,
+  onSortingChange: OnChangeFn<SortingState>
+}
+
+export function ServerDataTable<TData, TValue>({
+  data,
+  columns,
+  notFoundComponent,
+  columnVisibility = {},
+
+  // Search/filter
+  globalFilter,
+  onFilterChange: setGlobalFilter,
+
+  // Pagination
+  pagination,
+  pageCount,
+  totalItems,
+  onPaginationChange: setPagination,
+
+  // Sorting
+  sorting,
+  onSortingChange: setSorting
+
+}: ServerDataTableProps<TData, TValue>) {
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+
+    // Search/filter
+    manualFiltering: true,
+    onGlobalFilterChange: setGlobalFilter,
+
+    // Pagination
+    manualPagination: true,
+    onPaginationChange: setPagination,
+    pageCount: pageCount,
+
+    // Sorting
+    manualSorting: true,
+    onSortingChange: setSorting,
+
+    // Table state
+    state: {
+      globalFilter: globalFilter,
+      pagination: pagination,
+      sorting: sorting
+    },
+    initialState: {
+      columnVisibility
+    },
+    getPaginationRowModel: getPaginationRowModel()
+  })
+
+  return(
+    <DataTable 
+      table={table} 
+      totalItems={totalItems}
+      notFoundComponent={notFoundComponent}
+    />
+  )
+}
+
+// Client-side controller
+interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, TValue> {
+  pageSize?: number
+}
+
+export function ClientDataTable<TData, TValue>({
+  data,
+  columns,
+  pageSize = 20,
+  notFoundComponent,
+  columnVisibility
+}: ClientDataTableProps<TData, TValue>) {
+
+  const table = useReactTable({
+    data,
+    columns,
+    initialState: { pagination: { pageSize }, columnVisibility},
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel()
+  })
+
+  return(
+    <DataTable
+      table={table}
+      totalItems={data.length}
+      notFoundComponent={notFoundComponent}
+    />
+  )
+}

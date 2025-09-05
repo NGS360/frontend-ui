@@ -5,7 +5,7 @@ import { Link, createFileRoute, getRouteApi } from '@tanstack/react-router'
 import type { Attribute, SamplePublic } from '@/client/types.gen'
 import type { ColumnDef } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
-import { DataTable } from '@/components/data-table/data-table'
+import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { FileUpload } from '@/components/file-upload'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -35,6 +35,9 @@ function RouteComponent() {
         sort_by: 'id',
         sort_order: 'desc'
       },
+      path: {
+        project_id: project.project_id
+      }
     }),
   })
 
@@ -183,7 +186,7 @@ function RouteComponent() {
           <AccordionContent className='pt-2'>
             {data ? (
               // <DataTable<EmptyRow, any>
-              <DataTable
+              <ServerDataTable
                 // data={emptyData}
                 // columns={emptyColumns}
                 data={data.data}

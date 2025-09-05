@@ -5,4 +5,4 @@
 
 .env*
 
-example_search_data.json
+public/data/*
