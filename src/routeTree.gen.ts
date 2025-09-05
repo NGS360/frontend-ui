@@ -17,6 +17,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as RunsIndexImport } from './routes/runs.index'
 import { Route as ProjectsIndexImport } from './routes/projects.index'
 import { Route as ProjectsProjectidRouteImport } from './routes/projects.$project_id.route'
+import { Route as RunsRunbarcodeIndexImport } from './routes/runs.$run_barcode.index'
 import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
 import { Route as ProjectsProjectidOverviewRouteImport } from './routes/projects.$project_id.overview.route'
 import { Route as ProjectsProjectidIngestRouteImport } from './routes/projects.$project_id.ingest.route'
@@ -63,6 +64,12 @@ const ProjectsProjectidRouteRoute = ProjectsProjectidRouteImport.update({
   id: '/$project_id',
   path: '/$project_id',
   getParentRoute: () => ProjectsRouteRoute,
+} as any)
+
+const RunsRunbarcodeIndexRoute = RunsRunbarcodeIndexImport.update({
+  id: '/$run_barcode/',
+  path: '/$run_barcode/',
+  getParentRoute: () => RunsRouteRoute,
 } as any)
 
 const ProjectsProjectidIndexRoute = ProjectsProjectidIndexImport.update({
@@ -208,6 +215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectidIndexImport
       parentRoute: typeof ProjectsProjectidRouteImport
     }
+    '/runs/$run_barcode/': {
+      id: '/runs/$run_barcode/'
+      path: '/$run_barcode'
+      fullPath: '/runs/$run_barcode'
+      preLoaderRoute: typeof RunsRunbarcodeIndexImport
+      parentRoute: typeof RunsRouteImport
+    }
     '/projects/$project_id/actions/': {
       id: '/projects/$project_id/actions/'
       path: '/'
@@ -339,10 +353,12 @@ const ProjectsRouteRouteWithChildren = ProjectsRouteRoute._addFileChildren(
 
 interface RunsRouteRouteChildren {
   RunsIndexRoute: typeof RunsIndexRoute
+  RunsRunbarcodeIndexRoute: typeof RunsRunbarcodeIndexRoute
 }
 
 const RunsRouteRouteChildren: RunsRouteRouteChildren = {
   RunsIndexRoute: RunsIndexRoute,
+  RunsRunbarcodeIndexRoute: RunsRunbarcodeIndexRoute,
 }
 
 const RunsRouteRouteWithChildren = RunsRouteRoute._addFileChildren(
@@ -361,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/projects/$project_id/ingest': typeof ProjectsProjectidIngestRouteRouteWithChildren
   '/projects/$project_id/overview': typeof ProjectsProjectidOverviewRouteRouteWithChildren
   '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
+  '/runs/$run_barcode': typeof RunsRunbarcodeIndexRoute
   '/projects/$project_id/actions/': typeof ProjectsProjectidActionsIndexRoute
   '/projects/$project_id/files/': typeof ProjectsProjectidFilesIndexRoute
   '/projects/$project_id/ingest/': typeof ProjectsProjectidIngestIndexRoute
@@ -372,6 +389,7 @@ export interface FileRoutesByTo {
   '/projects': typeof ProjectsIndexRoute
   '/runs': typeof RunsIndexRoute
   '/projects/$project_id': typeof ProjectsProjectidIndexRoute
+  '/runs/$run_barcode': typeof RunsRunbarcodeIndexRoute
   '/projects/$project_id/actions': typeof ProjectsProjectidActionsIndexRoute
   '/projects/$project_id/files': typeof ProjectsProjectidFilesIndexRoute
   '/projects/$project_id/ingest': typeof ProjectsProjectidIngestIndexRoute
@@ -391,6 +409,7 @@ export interface FileRoutesById {
   '/projects/$project_id/ingest': typeof ProjectsProjectidIngestRouteRouteWithChildren
   '/projects/$project_id/overview': typeof ProjectsProjectidOverviewRouteRouteWithChildren
   '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
+  '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
   '/projects/$project_id/actions/': typeof ProjectsProjectidActionsIndexRoute
   '/projects/$project_id/files/': typeof ProjectsProjectidFilesIndexRoute
   '/projects/$project_id/ingest/': typeof ProjectsProjectidIngestIndexRoute
@@ -411,6 +430,7 @@ export interface FileRouteTypes {
     | '/projects/$project_id/ingest'
     | '/projects/$project_id/overview'
     | '/projects/$project_id/'
+    | '/runs/$run_barcode'
     | '/projects/$project_id/actions/'
     | '/projects/$project_id/files/'
     | '/projects/$project_id/ingest/'
@@ -421,6 +441,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/runs'
     | '/projects/$project_id'
+    | '/runs/$run_barcode'
     | '/projects/$project_id/actions'
     | '/projects/$project_id/files'
     | '/projects/$project_id/ingest'
@@ -438,6 +459,7 @@ export interface FileRouteTypes {
     | '/projects/$project_id/ingest'
     | '/projects/$project_id/overview'
     | '/projects/$project_id/'
+    | '/runs/$run_barcode/'
     | '/projects/$project_id/actions/'
     | '/projects/$project_id/files/'
     | '/projects/$project_id/ingest/'
@@ -485,7 +507,8 @@ export const routeTree = rootRoute
     "/runs": {
       "filePath": "runs.route.tsx",
       "children": [
-        "/runs/"
+        "/runs/",
+        "/runs/$run_barcode/"
       ]
     },
     "/projects/$project_id": {
@@ -538,6 +561,10 @@ export const routeTree = rootRoute
     "/projects/$project_id/": {
       "filePath": "projects.$project_id.index.tsx",
       "parent": "/projects/$project_id"
+    },
+    "/runs/$run_barcode/": {
+      "filePath": "runs.$run_barcode.index.tsx",
+      "parent": "/runs"
     },
     "/projects/$project_id/actions/": {
       "filePath": "projects.$project_id.actions.index.tsx",
