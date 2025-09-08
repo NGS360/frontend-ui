@@ -1,101 +1,9 @@
 import { Link, createFileRoute, getRouteApi, } from '@tanstack/react-router'
 import {  createColumnHelper } from '@tanstack/react-table'
+import type { RunSamplesheet } from '@/routes/runs.$run_barcode.samplesheet.route'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
-
-// Define run metadata types (these will come later from the API)
-interface ReadMetrics {
-  ReadNumber?: number,
-  Yield?: number,
-  YieldQ30?: number,
-  QualityScoreSum?: number,
-  TrimmedBases?: number
-}
-
-interface RunMetadata {
-  Flowcell?: string,
-  RunNumber?: number,
-  RunId?: string,
-  ReadInfosForLanes?: [
-    {
-      LaneNumber?: number,
-      ReadInfos?: [
-        Number?: number,
-        NumCycles?: number,
-        IsIndexedRead?: boolean
-      ]
-    }
-  ],
-  ConversionResults?: [
-    {
-      LaneNumber?: number,
-      TotalClustersRaw?: number,
-      TotalClustersPF?: number,
-      Yield?: number,
-      DemuxResults?: [
-        {
-          SampleId?: string,
-          SampleName?: string,
-          IndexMetrics?: [
-            {
-              IndexSequence?: string,
-              MismatchCounts?: {
-               0: number,
-               1: number 
-              }
-            }
-          ],
-          NumberReads?: number,
-          Yield?: number,
-          ReadMetrics?: Array<ReadMetrics>
-        }
-      ],
-      Undetermined?: {
-        NumberReads?: number,
-        Yield?: number,
-        ReadMetrics?: Array<ReadMetrics>
-      }
-    }
-  ],
-  UnknownBarcodes?: [
-    {
-      Lane?: number,
-      Barcodes: Record<string, number>
-    }
-  ]
-}
-
-interface RunSamplesheet {
-  Summary: {
-    id: number,
-    run_date: string,
-    machine_id: string,
-    run_number: string,
-    run_time: string,
-    flowcell_id: string,
-    experiment_name:string,
-    s3_run_folder_path: string,
-    status: string,
-    barcode: string
-  },
-  Header: {
-    IEMFileVersion: string,
-    InvestigatorName: string,
-    ExperimentName: string,
-    Date: string,
-    Workflow: string,
-    Application: string,
-    InstrumentType: string,
-    Assay: string,
-    IndexAdapters: string,
-    Chemistry: string
-  },
-  Reads: Array<number>,
-  Settings: {},
-  DataCols: Array<string>,
-  Data: Array<Record<string, string>>
-}
 
 export const Route = createFileRoute('/runs/$run_barcode/samplesheet/')({
   component: RouteComponent,
@@ -103,8 +11,8 @@ export const Route = createFileRoute('/runs/$run_barcode/samplesheet/')({
 
 function RouteComponent() {
   // Load run data
-  const routeApi = getRouteApi('/runs/$run_barcode')
-  const { run, runInfo } = routeApi.useLoaderData()
+  const routeApi = getRouteApi('/runs/$run_barcode/samplesheet')
+  const { runInfo } = routeApi.useLoaderData()
 
   // Transform header, reads, and settings 
   // into a list of key, value pairs
