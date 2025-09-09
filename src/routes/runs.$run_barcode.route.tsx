@@ -5,6 +5,7 @@ import { getRun } from '@/client'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export const Route = createFileRoute('/runs/$run_barcode')({
   component: RouteComponent,
@@ -62,18 +63,32 @@ function RouteComponent() {
                 </span>
                 <div className='h-4'><Separator orientation='vertical' /></div>
                 <div className='flex gap-0 items-center'>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                  >
-                    <RotateCw />
-                  </Button>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                  >
-                    <FolderOpen />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                      >
+                        <RotateCw />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Re-sync Run
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                      >
+                        <FolderOpen />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Browse Run Folder
+                    </TooltipContent>
+                  </Tooltip>                        
                 </div>
               </div>
               <div className='flex gap-2'>
