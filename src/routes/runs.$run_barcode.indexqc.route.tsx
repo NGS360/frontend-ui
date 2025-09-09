@@ -31,13 +31,13 @@ interface RunMetrics {
   ],
   ConversionResults?: [
     {
-      LaneNumber?: number,
-      TotalClustersRaw?: number,
-      TotalClustersPF?: number,
+      LaneNumber: number,
+      TotalClustersRaw: number,
+      TotalClustersPF: number,
       Yield?: number,
       DemuxResults?: [
         {
-          SampleId?: string,
+          SampleId: string,
           SampleName?: string,
           IndexMetrics?: [
             {
@@ -48,7 +48,7 @@ interface RunMetrics {
               }
             }
           ],
-          NumberReads?: number,
+          NumberReads: number,
           Yield?: number,
           ReadMetrics?: Array<ReadMetrics>
         }
@@ -73,7 +73,7 @@ export const Route = createFileRoute('/runs/$run_barcode/indexqc')({
   loader: async () => { // loader: async ({ params }) => {
   
       // Get run metrics data
-      const res = await fetch('/data/example_run_metrics_data.json')
+      const res = await fetch('/data/example_run_metrics_data2.json')
       if (!res.ok) throw new Error('Unable to fetch run metrics data')
       const runMetrics: RunMetrics = await res.json()
   

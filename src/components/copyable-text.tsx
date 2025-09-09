@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
@@ -60,7 +60,8 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
     return () => clearTimeout(timer)
   }, [copied, timeout])
 
-  const onClick = async () => {
+  const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
@@ -83,7 +84,7 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
         )}
         <button 
           className={clsx(copied && "!visible bg-transparent")}
-          onClick={onClick}
+          onClick={(e) => onClick(e)}
         >
           {copied
             ? <Check className="size-[1em]" /> 

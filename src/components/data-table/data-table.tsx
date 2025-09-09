@@ -1,8 +1,9 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 import React from "react"
+import clsx from "clsx";
 import { DataTableColumnToggle } from "./column-toggle";
 import type { JSX } from "react";
-import type { ColumnDef, OnChangeFn, PaginationState, Table as ReactTable, SortingState  } from "@tanstack/react-table";
+import type { ColumnDef, OnChangeFn, PaginationState, Table as ReactTable, Row, RowSelectionState, SortingState  } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
@@ -15,19 +16,22 @@ interface BaseDataTableProps<TData, TValue> {
   totalItems?: number,
   notFoundComponent?: JSX.Element,
   columnVisibility?: Record<string, boolean>,
+  rowClickCallback?: (row: Row<TData>) => void
 }
 
 // Data table component
 interface DataTableProps<TData> {
   table: ReactTable<TData>,
   notFoundComponent?: JSX.Element,
-  totalItems: number
+  totalItems: number,
+  rowClickCallback?: (row: Row<TData>) => void
 }
 
 export function DataTable<TData>({
   table,
   notFoundComponent = <span>No results.</span>,
-  totalItems
+  totalItems,
+  rowClickCallback
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -51,6 +55,16 @@ export function DataTable<TData>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
+                className={clsx(
+                  rowClickCallback && `cursor-pointer`,
+                  `data-[state=selected]:bg-muted`
+                )}
+                onClick={() => {
+                  if (rowClickCallback) {
+                    table.setRowSelection({ [row.id]: true })
+                    rowClickCallback(row)
+                  }
+                }}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
@@ -186,7 +200,8 @@ export function ServerDataTable<TData, TValue>({
 
 // Client-side controller
 interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, TValue> {
-  pageSize?: number
+  pageSize?: number,
+  rowSelection?: RowSelectionState
 }
 
 export function ClientDataTable<TData, TValue>({
@@ -194,13 +209,15 @@ export function ClientDataTable<TData, TValue>({
   columns,
   pageSize = 20,
   notFoundComponent,
-  columnVisibility
+  columnVisibility,
+  rowClickCallback,
 }: ClientDataTableProps<TData, TValue>) {
 
   const table = useReactTable({
     data,
     columns,
     initialState: { pagination: { pageSize }, columnVisibility},
+    enableRowSelection: true,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -212,6 +229,7 @@ export function ClientDataTable<TData, TValue>({
       table={table}
       totalItems={data.length}
       notFoundComponent={notFoundComponent}
+      rowClickCallback={rowClickCallback}
     />
   )
 }
