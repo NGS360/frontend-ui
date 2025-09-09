@@ -6,7 +6,7 @@ import type { VariantProps } from "class-variance-authority";
 
 
 const copyableStyles = cva(
-  "flex items-center gap-2 [&>button]:rounded-sm [&>button]:p-[0.5em]",
+  "flex items-center [&>button]:rounded-sm [&>button]:p-[0.5em]",
   {
     variants: {
       variant: {
@@ -17,9 +17,9 @@ const copyableStyles = cva(
         hoverLink: "[&>button]:hover:bg-primary/5 [&>button]:dark:hover:bg-accent/50 [&>button]:invisible hover:[&>button]:visible hover:underline text-primary group-hover:text-primary hover:text-primary"
       },
       size: {
-        sm: "text-sm gap-1",
-        md: "text-base gap-2",
-        lg: "text-lg gap-3",
+        sm: "text-sm gap-0.25",
+        md: "text-base gap-0.25",
+        lg: "text-lg gap-0.25",
       },
     },
     defaultVariants: {

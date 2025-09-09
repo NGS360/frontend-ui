@@ -1,7 +1,7 @@
 import { 
   Bar, 
   BarChart, 
-  CartesianGrid, 
+  CartesianGrid,
   LabelList, 
   ResponsiveContainer, 
   Tooltip, 
@@ -33,19 +33,19 @@ export const IndexQCBarChart: React.FC<IndexQCBarChartProps> = ({
 }) => (
   <>
     {title && <h1>{title}</h1>}
-    <ResponsiveContainer width={width} height={height} className="m-auto mb-15">
+    <ResponsiveContainer width={width} height={height} className="m-auto mb-10">
       <BarChart
         data={barChartData}
-        layout="vertical"
-        margin={{ top: 20, right: 50, left: 80, bottom: 20 }}
+        layout="horizontal"
+        margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
       >
         <CartesianGrid
-          horizontal={false}
+          vertical={false}
           stroke='#ddd'
           strokeDasharray="3 3"
         />
 
-        <XAxis
+        <YAxis
           type="number"
           tickFormatter={(val) => `${val}`}
           domain={[0, 'auto']}
@@ -53,17 +53,25 @@ export const IndexQCBarChart: React.FC<IndexQCBarChartProps> = ({
           tickLine={false}
           label={{
             value: '% Reads Identified (PF)',
-            position: 'bottom'
+            angle: -90,
+            dx: -20
           }}
         />
 
-        <YAxis
+        <XAxis
           dataKey="sampleId"
           type="category"
           width={100}
-          hide={isMobile}
           axisLine={false}
           tickLine={false}
+          tick={false}
+          angle={45}
+          dy={50}
+          dx={50}
+          label={{
+            value: 'Sample',
+            dy: 20
+          }}
         />
 
         <Tooltip
@@ -78,12 +86,13 @@ export const IndexQCBarChart: React.FC<IndexQCBarChartProps> = ({
           isAnimationActive={true}
           radius={5}
         >
-          {/* Optional: show value tags on each bar */}
-          <LabelList
-            dataKey="pctReadsIdentified"
-            position="right"
-            formatter={(label) => `${label}%`}
-          />
+          {!isMobile && (
+            <LabelList
+              dataKey="pctReadsIdentified"
+              position="top"
+              formatter={(label) => `${label}%`}
+            />
+          )}
         </Bar>
 
       </BarChart>

@@ -54,7 +54,6 @@ function RouteComponent() {
   // Set state for filtering data and setting plot height
   const [lane, setLane] = useState<number>();
   const [filteredBarChartData, setFilteredBarChartData] = useState<Array<BarChartData>>()
-  const [plotHeight, setPlotHeight] = useState<string | number>(600);
 
   // Handle row click callback
   const handleRowClick = (row: Row<ReadCountData>) => {
@@ -65,9 +64,6 @@ function RouteComponent() {
     // Filter barChartData by selected lane
     const filteredData = barChartData.filter(value => value.lane == rowLane)
     setFilteredBarChartData(filteredData)
-
-    // Compute plot height
-    setPlotHeight(filteredData.length * 55)
   }
 
   // Define columns for metrics table 
@@ -125,7 +121,6 @@ function RouteComponent() {
           barChartData={filteredBarChartData}
           title={`Lane ${lane}`}
           isMobile={isMobile}
-          height={plotHeight}
         />
       )}
     </>

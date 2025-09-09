@@ -2,7 +2,6 @@ import { AxiosError } from 'axios'
 import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
 import { FolderOpen, HardDriveDownload, LayoutDashboard, Zap } from 'lucide-react'
 import { getProjectByProjectId } from '@/client'
-import { useIsMobile } from '@/hooks/use-mobile'
 import { TabLink, TabNav } from '@/components/tab-nav'
 
 export const Route = createFileRoute('/projects/$project_id')({
@@ -29,9 +28,6 @@ function RouteComponent() {
   // Load project data
   const routeApi = getRouteApi('/projects/$project_id')
   const { project } = routeApi.useLoaderData()
-
-  // Use mobile hook
-  const isMobile = useIsMobile();
 
   return (
     <>

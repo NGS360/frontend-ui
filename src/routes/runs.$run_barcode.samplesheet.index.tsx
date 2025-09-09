@@ -39,7 +39,7 @@ function RouteComponent() {
               <Link
                 to='/projects/$project_id'
                 params={{ project_id: value }}
-                preload={false}
+                preload='intent' // backend should prevent invalid projectIds
               >
                 {value}
               </Link>
