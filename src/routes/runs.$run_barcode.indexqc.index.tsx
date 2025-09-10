@@ -1,4 +1,4 @@
-import { createFileRoute, getRouteApi } from '@tanstack/react-router'
+import { createFileRoute, getRouteApi, notFound } from '@tanstack/react-router'
 import { useState } from 'react';
 import type {ColumnDef, Row} from '@tanstack/react-table';
 import type {BarChartData} from '@/components/indexqc-barchart';
@@ -7,10 +7,92 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ClientDataTable } from '@/components/data-table/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {  IndexQCBarChart } from '@/components/indexqc-barchart';
+import { NotFoundComponent } from '@/components/indexq-not-found-component';
 
+// Define run metadata types (these will come later from the API)
+interface ReadMetrics {
+  ReadNumber?: number,
+  Yield?: number,
+  YieldQ30?: number,
+  QualityScoreSum?: number,
+  TrimmedBases?: number
+}
+
+interface RunMetrics {
+  Flowcell?: string,
+  RunNumber?: number,
+  RunId?: string,
+  ReadInfosForLanes?: [
+    {
+      LaneNumber?: number,
+      ReadInfos?: [
+        Number?: number,
+        NumCycles?: number,
+        IsIndexedRead?: boolean
+      ]
+    }
+  ],
+  ConversionResults?: [
+    {
+      LaneNumber: number,
+      TotalClustersRaw: number,
+      TotalClustersPF: number,
+      Yield?: number,
+      DemuxResults?: [
+        {
+          SampleId: string,
+          SampleName?: string,
+          IndexMetrics?: [
+            {
+              IndexSequence?: string,
+              MismatchCounts?: {
+                0: number,
+                1: number
+              }
+            }
+          ],
+          NumberReads: number,
+          Yield?: number,
+          ReadMetrics?: Array<ReadMetrics>
+        }
+      ],
+      Undetermined?: {
+        NumberReads?: number,
+        Yield?: number,
+        ReadMetrics?: Array<ReadMetrics>
+      }
+    }
+  ],
+  UnknownBarcodes?: [
+    {
+      Lane?: number,
+      Barcodes: Record<string, number>
+    }
+  ]
+}
 
 export const Route = createFileRoute('/runs/$run_barcode/indexqc/')({
   component: RouteComponent,
+  loader: async () => { // loader: async ({ params }) => {
+
+    // Get run metrics data
+    // const res = await fetch('/data/example_run_metrics_data2.json')
+    const res = new Response(null, {status: 404, statusText: "Not found"})
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw notFound()
+      }
+      if (res.status !== 200) {
+        throw new Error("An error occurred: " + res.statusText || "An unknown error occurred.")
+      }
+    }
+
+    const runMetrics: RunMetrics = await res.json()
+    return ({
+      runMetrics: runMetrics
+    })
+  },
+  notFoundComponent: NotFoundComponent
 })
 
 // Define data shape for the Read count table
@@ -22,7 +104,7 @@ interface ReadCountData {
 
 function RouteComponent() {
   // Load run data
-  const routeApi = getRouteApi('/runs/$run_barcode/indexqc')
+  const routeApi = getRouteApi('/runs/$run_barcode/indexqc/')
   const { runMetrics } = routeApi.useLoaderData()
 
   // Get mobile state

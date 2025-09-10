@@ -1,8 +1,10 @@
+import clsx from "clsx";
 import { CloudUpload } from "lucide-react";
 import { useCallback } from "react";
 import { useDropzone } from 'react-dropzone';
 import type { DropEvent, FileRejection } from "react-dropzone";
 
+// Generic file upload component
 interface FileUploadProps {
   /** The subject text that is displayed in drag and drop text.*/
   subject: string,
@@ -47,6 +49,65 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             ? "Drop to upload"
             : `Drag and drop your ${subject} here, or click to select`}
         </span>
+      </div>
+    </>
+  )
+}
+
+// Full screen dropzone component
+interface FullscreenDropzoneProps {
+  subject?: string,
+  children: React.ReactNode
+}
+
+export const FullscreenDropzone: React.FC<FullscreenDropzoneProps> = ({
+  subject = "a new samplesheet",
+  children
+}) => {
+
+  // Prepare dropzone for file upload
+  const onDrop = useCallback((
+    acceptedFiles: Array<File>,
+    fileRejections: Array<FileRejection>,
+    event: DropEvent
+  ) => {
+    console.log(acceptedFiles);
+    console.log(fileRejections);
+    console.log(event)
+  }, [])
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'text/plain': ['.csv', '.tsv', '.txt'],
+      'application/vnd.ms-excel': ['.csv', '.tsv', '.txt']
+    },
+    multiple: false,
+    noClick: true
+  })
+
+
+  return (
+    <>
+      <div
+        {...getRootProps()}
+        className='relative'
+      >
+        <input {...getInputProps()} />
+
+        {/* Page contents */}
+        {children}
+        
+      </div>
+
+      {/* Full-screen overlay */}
+      <div
+        className={clsx(
+          'fixed inset-0 z-10 flex flex-col gap-2 items-center justify-center border-primary border-4 bg-background/75 transition-opacity duration-200 pointer-events-none',
+          isDragActive ? 'opacity-100' : 'opacity-0'
+        )}
+      >
+        <CloudUpload className="text-primary size-18" />
+        <span className="ml-2 text-primary font-bold">Drop file here to upload {subject}</span>
       </div>
     </>
   )

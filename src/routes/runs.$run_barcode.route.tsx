@@ -1,6 +1,8 @@
 import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
 import { AxiosError } from 'axios'
 import { ChartBar, FileSpreadsheet, FolderOpen, PlayCircle, RotateCw, Upload } from 'lucide-react'
+import {  useRef } from 'react'
+import type {ChangeEvent} from 'react';
 import { getRun } from '@/client'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
@@ -33,6 +35,18 @@ function RouteComponent() {
   // Load project data
   const routeApi = getRouteApi('/runs/$run_barcode')
   const { run } = routeApi.useLoaderData()
+  
+  // Samplesheet file upload
+  const inputRef = useRef<HTMLInputElement>(null)
+  const handleClick = () => {
+    inputRef.current?.click()
+  }
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length) {
+      // Post to API
+      console.log(e.target.files[0])
+    }
+  }
 
   return (
     <>
@@ -78,12 +92,20 @@ function RouteComponent() {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                      >
-                        <FolderOpen />
-                      </Button>
+                      <div>
+                        <input
+                          type='file'
+                          ref={inputRef}
+                          className='hidden'
+                          onChange={handleChange}
+                        />
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                        >
+                          <FolderOpen />
+                        </Button>
+                      </div>
                     </TooltipTrigger>
                     <TooltipContent>
                       Browse Run Folder
@@ -92,12 +114,20 @@ function RouteComponent() {
                 </div>
               </div>
               <div className='flex gap-2'>
-                <Button
-                  className='flex-1 min-w-0 md:flex-none md:w-auto'
-                  variant='primary2'
-                >
-                  <Upload /> Upload File
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className='flex-1 min-w-0 md:flex-none md:w-auto'
+                      variant='primary2'
+                      onClick={handleClick}
+                    >
+                      <Upload /> Upload file
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className='max-w-45 text-wrap text-center'>
+                      Drop file on the page or click here to upload a new samplesheet
+                  </TooltipContent>
+                </Tooltip>
                 <Button
                   className='flex-1 min-w-0 md:flex-none md:w-auto'
                   variant='primary2'
