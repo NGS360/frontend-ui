@@ -7,7 +7,7 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ClientDataTable } from '@/components/data-table/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {  IndexQCBarChart } from '@/components/indexqc-barchart';
-import { NotFoundComponent } from '@/components/indexq-not-found-component';
+import { NotFoundComponent } from '@/components/indexqc-not-found-component';
 
 // Define run metadata types (these will come later from the API)
 interface ReadMetrics {
