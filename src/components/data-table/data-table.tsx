@@ -16,7 +16,9 @@ interface BaseDataTableProps<TData, TValue> {
   totalItems?: number,
   notFoundComponent?: JSX.Element,
   columnVisibility?: Record<string, boolean>,
-  rowClickCallback?: (row: Row<TData>) => void
+  rowClickCallback?: (row: Row<TData>) => void,
+  customRowComponent?: () => React.ReactNode,
+  renderCustomRowComponent?: boolean
 }
 
 // Data table component
@@ -24,14 +26,18 @@ interface DataTableProps<TData> {
   table: ReactTable<TData>,
   notFoundComponent?: JSX.Element,
   totalItems: number,
-  rowClickCallback?: (row: Row<TData>) => void
+  rowClickCallback?: (row: Row<TData>) => void,
+  customRowComponent?: () => React.ReactNode,
+  renderCustomRowComponent?: boolean
 }
 
 export function DataTable<TData>({
   table,
   notFoundComponent = <span>No results.</span>,
   totalItems,
-  rowClickCallback
+  rowClickCallback,
+  customRowComponent,
+  renderCustomRowComponent = false
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -49,6 +55,15 @@ export function DataTable<TData>({
         ))}
       </TableHeader>
       <TableBody>
+        {renderCustomRowComponent && customRowComponent && (
+          <React.Fragment>
+            <TableRow>
+              <TableCell>
+                {customRowComponent()}
+              </TableCell>
+            </TableRow>
+          </React.Fragment>
+        )}
         {table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => (
             <React.Fragment key={row.id}>
@@ -91,8 +106,8 @@ export function DataTable<TData>({
   );
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 mb-10">
+    <>
+      <div className="flex flex-col gap-4">
         <div className="flex items-center justify-end gap-2">
           <Input
             autoFocus
@@ -114,7 +129,7 @@ export function DataTable<TData>({
         </div>
         <DataTablePagination table={table} totalItems={totalItems} />
       </div>
-    </div>
+    </>
   )
 }
 
@@ -211,6 +226,8 @@ export function ClientDataTable<TData, TValue>({
   notFoundComponent,
   columnVisibility,
   rowClickCallback,
+  customRowComponent,
+  renderCustomRowComponent = false
 }: ClientDataTableProps<TData, TValue>) {
 
   const table = useReactTable({
@@ -230,6 +247,8 @@ export function ClientDataTable<TData, TValue>({
       totalItems={data.length}
       notFoundComponent={notFoundComponent}
       rowClickCallback={rowClickCallback}
+      customRowComponent={customRowComponent}
+      renderCustomRowComponent={renderCustomRowComponent}
     />
   )
 }

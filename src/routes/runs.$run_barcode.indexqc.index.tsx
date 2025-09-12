@@ -76,8 +76,8 @@ export const Route = createFileRoute('/runs/$run_barcode/indexqc/')({
   loader: async () => { // loader: async ({ params }) => {
 
     // Get run metrics data
-    // const res = await fetch('/data/example_run_metrics_data2.json')
-    const res = new Response(null, {status: 404, statusText: "Not found"})
+    const res = await fetch('/data/example_run_metrics_data2.json')
+    // const res = new Response(null, {status: 404, statusText: "Not found"})
     if (!res.ok) {
       if (res.status === 404) {
         throw notFound()

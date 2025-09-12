@@ -1,13 +1,15 @@
 import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
 import { AxiosError } from 'axios'
 import { ChartBar, FileSpreadsheet, FolderOpen, PlayCircle, RotateCw, Upload } from 'lucide-react'
-import {  useRef } from 'react'
-import type {ChangeEvent} from 'react';
+import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent } from 'react';
+import type { FileBrowserData } from '@/components/file-browser';
 import { getRun } from '@/client'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { FileBrowser } from '@/components/file-browser';
 
 export const Route = createFileRoute('/runs/$run_barcode')({
   component: RouteComponent,
@@ -25,7 +27,7 @@ export const Route = createFileRoute('/runs/$run_barcode')({
 
     return ({
       crumb: runData.data.barcode,
-      includeCrumbLink: true,
+      includeCrumbLink: false,
       run: runData.data
     })
   }
@@ -35,7 +37,7 @@ function RouteComponent() {
   // Load project data
   const routeApi = getRouteApi('/runs/$run_barcode')
   const { run } = routeApi.useLoaderData()
-  
+
   // Samplesheet file upload
   const inputRef = useRef<HTMLInputElement>(null)
   const handleClick = () => {
@@ -47,6 +49,19 @@ function RouteComponent() {
       console.log(e.target.files[0])
     }
   }
+
+  // Import file browser data (replace with API)
+  const [fileData, setFileData] = useState<FileBrowserData>();
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await fetch('/data/example_runs_file.json')
+      if (!res.ok) throw new Error('Unable to fetch file data')
+      const data = await res.json()
+      setFileData(data)
+    }
+    fetchData()
+  }, [])
+  
 
   return (
     <>
@@ -91,41 +106,47 @@ function RouteComponent() {
                     </TooltipContent>
                   </Tooltip>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <input
-                          type='file'
-                          ref={inputRef}
-                          className='hidden'
-                          onChange={handleChange}
-                        />
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                        >
-                          <FolderOpen />
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
+                    <FileBrowser
+                      trigger={(
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                          >
+                            <FolderOpen />
+                          </Button>
+                        </TooltipTrigger>
+                      )}
+                      data={fileData}
+                      rootPath={`illumina/${run.barcode}/`}
+                    >
+                    </FileBrowser>
                     <TooltipContent>
                       Browse Run Folder
                     </TooltipContent>
-                  </Tooltip>                        
+                  </Tooltip>
                 </div>
               </div>
               <div className='flex gap-2'>
+                <input
+                  id='samplesheetFileUpload'
+                  type='file'
+                  ref={inputRef}
+                  className='hidden'
+                  onChange={handleChange}
+                />
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      className='flex-1 min-w-0 md:flex-none md:w-auto'
-                      variant='primary2'
-                      onClick={handleClick}
-                    >
-                      <Upload /> Upload file
-                    </Button>
+                      <Button
+                        className='flex-1 min-w-0 md:flex-none md:w-auto'
+                        variant='primary2'
+                        onClick={handleClick}
+                      >
+                        <Upload /> Upload file
+                      </Button>
                   </TooltipTrigger>
                   <TooltipContent className='max-w-45 text-wrap text-center'>
-                      Drop file on the page or click here to upload a new samplesheet
+                    Drop file on the page or click here to upload a new samplesheet
                   </TooltipContent>
                 </Tooltip>
                 <Button

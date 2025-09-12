@@ -43,8 +43,8 @@ export const Route = createFileRoute('/runs/$run_barcode/samplesheet/')({
   loader: async () => { // loader: async ({ params }) => {
 
     // Get run samplesheet data
-    // const res = await fetch('/data/example_run_samplesheet_data.json')
-    const res = new Response(null, {status: 404, statusText: "Not found"})
+    const res = await fetch('/data/example_run_samplesheet_data.json')
+    // const res = new Response(null, {status: 404, statusText: "Not found"})
     if (!res.ok) {
       if (res.status === 404) {
         throw notFound()
@@ -170,10 +170,12 @@ function RouteComponent() {
           {/* Data table */}
           <div className='flex flex-col gap-2'>
             <h2 className='text-lg uppercase font-light text-primary'>Data</h2>
-            <ClientDataTable
-              data={runInfo.Data}
-              columns={columns}
-            />
+            <div className='mb-15'>
+              <ClientDataTable
+                data={runInfo.Data}
+                columns={columns}
+              />
+            </div>
           </div>
         </div>
       </FullscreenDropzone>
