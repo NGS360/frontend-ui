@@ -71,7 +71,7 @@ export const serializeArrayParam = ({
   style,
   value,
 }: SerializeOptions<ArraySeparatorStyle> & {
-  value: Array<unknown>
+  value: unknown[]
 }) => {
   if (!explode) {
     const joinedValues = (
@@ -142,7 +142,7 @@ export const serializeObjectParam = ({
   }
 
   if (style !== 'deepObject' && !explode) {
-    let values: Array<string> = []
+    let values: string[] = []
     Object.entries(value).forEach(([key, v]) => {
       values = [
         ...values,

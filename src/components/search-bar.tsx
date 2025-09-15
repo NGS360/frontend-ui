@@ -154,9 +154,8 @@ export const SearchBar: FC = () => {
                     <SearchItem
                       key={r.barcode}
                       onClick={() => navigate({
-                        // TODO: Update to run details page
-                        to: '/projects/$project_id',
-                        params: { project_id: "" }
+                        to: '/runs/$run_barcode',
+                        params: { run_barcode: r.barcode || "" }
                       })}
                     >
                       <span className='text-sm'>

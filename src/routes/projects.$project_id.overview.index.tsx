@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { isValidHttpURL } from '@/lib/utils'
 import { getSamplesOptions } from '@/client/@tanstack/react-query.gen'
+import { FullscreenSpinner } from '@/components/spinner'
 
 export const Route = createFileRoute('/projects/$project_id/overview/')({
   component: RouteComponent,
@@ -41,7 +42,7 @@ function RouteComponent() {
     }),
   })
 
-  if (isFetching) return 'Loading...'
+  if (isFetching) return <FullscreenSpinner variant='ellipsis' />
   if (error) return 'An error has occurred: ' + error.message
 
   // Define columns

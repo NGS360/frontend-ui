@@ -9,6 +9,7 @@ import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { useDebounce } from '@/hooks/use-debounce';
+import { FullscreenSpinner } from '@/components/spinner';
 
 // Define the search schema for projects 
 const projectsSearchSchema = z.object({
@@ -94,7 +95,7 @@ function RouteComponent() {
     placeholderData: keepPreviousData // Makes the search feel faster
   })
 
-  if (isLoading) return "Loading...";
+  if (isLoading) return <FullscreenSpinner variant='ellipsis' />;
   if (error) return 'An error has occurred: ' + error.message
   if (!data) return 'No data was returned.';
 

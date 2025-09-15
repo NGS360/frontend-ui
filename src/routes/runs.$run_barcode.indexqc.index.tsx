@@ -1,5 +1,6 @@
-import { createFileRoute, getRouteApi, notFound } from '@tanstack/react-router'
+import { createFileRoute, getRouteApi, notFound, redirect } from '@tanstack/react-router'
 import { useState } from 'react';
+import { AxiosError } from 'axios';
 import type {ColumnDef, Row} from '@tanstack/react-table';
 import type {BarChartData} from '@/components/indexqc-barchart';
 import { CopyableText } from '@/components/copyable-text'
@@ -8,91 +9,38 @@ import { ClientDataTable } from '@/components/data-table/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {  IndexQCBarChart } from '@/components/indexqc-barchart';
 import { NotFoundComponent } from '@/components/indexqc-not-found-component';
-
-// Define run metadata types (these will come later from the API)
-interface ReadMetrics {
-  ReadNumber?: number,
-  Yield?: number,
-  YieldQ30?: number,
-  QualityScoreSum?: number,
-  TrimmedBases?: number
-}
-
-interface RunMetrics {
-  Flowcell?: string,
-  RunNumber?: number,
-  RunId?: string,
-  ReadInfosForLanes?: [
-    {
-      LaneNumber?: number,
-      ReadInfos?: [
-        Number?: number,
-        NumCycles?: number,
-        IsIndexedRead?: boolean
-      ]
-    }
-  ],
-  ConversionResults?: [
-    {
-      LaneNumber: number,
-      TotalClustersRaw: number,
-      TotalClustersPF: number,
-      Yield?: number,
-      DemuxResults?: [
-        {
-          SampleId: string,
-          SampleName?: string,
-          IndexMetrics?: [
-            {
-              IndexSequence?: string,
-              MismatchCounts?: {
-                0: number,
-                1: number
-              }
-            }
-          ],
-          NumberReads: number,
-          Yield?: number,
-          ReadMetrics?: Array<ReadMetrics>
-        }
-      ],
-      Undetermined?: {
-        NumberReads?: number,
-        Yield?: number,
-        ReadMetrics?: Array<ReadMetrics>
-      }
-    }
-  ],
-  UnknownBarcodes?: [
-    {
-      Lane?: number,
-      Barcodes: Record<string, number>
-    }
-  ]
-}
+import { getRunMetrics } from '@/client';
+import { FullscreenSpinner } from '@/components/spinner';
 
 export const Route = createFileRoute('/runs/$run_barcode/indexqc/')({
   component: RouteComponent,
-  loader: async () => { // loader: async ({ params }) => {
+  loader: async ({ params }) => {
 
     // Get run metrics data
-    const res = await fetch('/data/example_run_metrics_data2.json')
-    // const res = new Response(null, {status: 404, statusText: "Not found"})
-    if (!res.ok) {
-      if (res.status === 404) {
-        throw notFound()
+    const res = await getRunMetrics({
+      path: {
+        run_barcode: params.run_barcode
       }
-      if (res.status !== 200) {
-        throw new Error("An error occurred: " + res.statusText || "An unknown error occurred.")
+    });
+
+    if (!res.data) {
+      if (res.status === 204) throw notFound();
+      if (res instanceof AxiosError) {
+        const msg = "An error occurred: " + res.error.detail || "An unknown error occurred."
+        alert(msg)
+        throw redirect({ to: '/runs' })
       }
+      alert('An unknown error occurred.')
+      throw redirect({ to: '/runs'})
     }
 
-    const runMetrics: RunMetrics = await res.json()
     return ({
-      runMetrics: runMetrics
+      runMetrics: res.data
     })
   },
-  notFoundComponent: NotFoundComponent
+  notFoundComponent: NotFoundComponent,
+  pendingComponent: () => <FullscreenSpinner variant='ellipsis' />,
+  pendingMs: 200
 })
 
 // Define data shape for the Read count table
@@ -124,7 +72,7 @@ function RouteComponent() {
 
     // Compute the barchart data
     d.DemuxResults?.forEach(res => {
-      const pct = (res.NumberReads / d.TotalClustersPF) * 100
+      const pct = (res.NumberReads || 0 / d.TotalClustersPF) * 100
       barChartData.push({
         lane: d.LaneNumber,
         sampleId: res.SampleId,

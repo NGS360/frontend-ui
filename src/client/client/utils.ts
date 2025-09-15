@@ -1,14 +1,14 @@
 import { getAuthToken } from '../core/auth'
-import {
-  serializeArrayParam,
-  serializeObjectParam,
-  serializePrimitiveParam,
-} from '../core/pathSerializer'
 import type {
   QuerySerializer,
   QuerySerializerOptions,
 } from '../core/bodySerializer'
 import type { ArraySeparatorStyle } from '../core/pathSerializer'
+import {
+  serializeArrayParam,
+  serializeObjectParam,
+  serializePrimitiveParam,
+} from '../core/pathSerializer'
 import type { Client, ClientOptions, Config, RequestOptions } from './types'
 
 interface PathSerializer {
@@ -94,7 +94,7 @@ export const createQuerySerializer = <T = unknown>({
   object,
 }: QuerySerializerOptions = {}) => {
   const querySerializer = (queryParams: T) => {
-    const search: Array<string> = []
+    const search: string[] = []
     if (queryParams && typeof queryParams === 'object') {
       for (const name in queryParams) {
         const value = queryParams[name]

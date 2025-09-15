@@ -9,6 +9,7 @@ import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { useDebounce } from '@/hooks/use-debounce';
+import { FullscreenSpinner } from '@/components/spinner';
 
 // Define the search schema for projects 
 const runsSearchSchema = z.object({
@@ -95,7 +96,7 @@ function RouteComponent() {
     placeholderData: keepPreviousData // Makes the search feel faster
   })
 
-  if (isLoading) return "Loading...";
+  if (isLoading) return <FullscreenSpinner variant='ellipsis' />;
   if (error) return 'An error has occurred: ' + error.message
   if (!data) return 'No data was returned.';
 
@@ -117,6 +118,7 @@ function RouteComponent() {
                 <Link
                   to='/runs/$run_barcode'
                   params={{ run_barcode: barcode }}
+                  preload={false}
                 >
                   {barcode}
                 </Link>
@@ -146,7 +148,7 @@ function RouteComponent() {
       header: "Run Date"
     },
     {
-      accessorKey: 's3_run_folder_path',
+      accessorKey: 'run_folder_uri',
       meta: { alias: "Run Folder" },
       header: "Run Folder"
     },

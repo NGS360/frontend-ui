@@ -15,38 +15,60 @@ export type Attribute = {
 }
 
 /**
- * GenericSearchResponse
- * Fallback response model for other search types
+ * ConversionResult
  */
-export type GenericSearchResponse = {
+export type ConversionResult = {
   /**
-   * Total Items
+   * Lanenumber
    */
-  total_items?: number
+  LaneNumber: number
   /**
-   * Total Pages
+   * Totalclustersraw
    */
-  total_pages?: number
+  TotalClustersRaw: number
   /**
-   * Current Page
+   * Totalclusterspf
    */
-  current_page?: number
+  TotalClustersPF: number
   /**
-   * Per Page
+   * Yield
    */
-  per_page?: number
+  Yield?: number | null
   /**
-   * Has Next
+   * Demuxresults
    */
-  has_next?: boolean
+  DemuxResults?: Array<DemuxResult> | null
+  Undetermined?: UndeterminedType | null
+}
+
+/**
+ * DemuxResult
+ */
+export type DemuxResult = {
   /**
-   * Has Prev
+   * Sampleid
    */
-  has_prev?: boolean
+  SampleId: string
   /**
-   * Data
+   * Samplename
    */
-  data?: Array<SearchDocument>
+  SampleName?: string | null
+  /**
+   * Indexmetrics
+   */
+  IndexMetrics?: Array<IndexMetric> | null
+  /**
+   * Numberreads
+   */
+  NumberReads?: number
+  /**
+   * Yield
+   */
+  Yield?: number | null
+  /**
+   * Readmetrics
+   */
+  ReadMetrics?: Array<ReadMetricsType>
 }
 
 /**
@@ -57,6 +79,90 @@ export type HttpValidationError = {
    * Detail
    */
   detail?: Array<ValidationError>
+}
+
+/**
+ * IlluminaMetricsResponseModel
+ */
+export type IlluminaMetricsResponseModel = {
+  /**
+   * Flowcell
+   */
+  Flowcell?: string | null
+  /**
+   * Runnumber
+   */
+  RunNumber?: number | null
+  /**
+   * Runid
+   */
+  RunId?: string | null
+  /**
+   * Readinfosforlanes
+   */
+  ReadInfosForLanes?: Array<ReadInfosForLane> | null
+  /**
+   * Conversionresults
+   */
+  ConversionResults?: Array<ConversionResult> | null
+  /**
+   * Unknownbarcodes
+   */
+  UnknownBarcodes?: Array<UnknownBarcode> | null
+}
+
+/**
+ * IlluminaSampleSheetResponseModel
+ */
+export type IlluminaSampleSheetResponseModel = {
+  /**
+   * Summary
+   */
+  Summary?: {
+    [key: string]: string
+  } | null
+  /**
+   * Header
+   */
+  Header?: {
+    [key: string]: string
+  } | null
+  /**
+   * Reads
+   */
+  Reads?: Array<number> | null
+  /**
+   * Settings
+   */
+  Settings?: {
+    [key: string]: string
+  } | null
+  /**
+   * Data
+   */
+  Data?: Array<{
+    [key: string]: string
+  }> | null
+  /**
+   * Datacols
+   */
+  DataCols?: Array<string> | null
+}
+
+/**
+ * IndexMetric
+ */
+export type IndexMetric = {
+  /**
+   * Indexsequence
+   */
+  IndexSequence?: string | null
+  /**
+   * Mismatchcounts
+   */
+  MismatchCounts?: {
+    [key: string]: number
+  } | null
 }
 
 /**
@@ -89,41 +195,6 @@ export type ProjectPublic = {
    * Attributes
    */
   attributes: Array<Attribute> | null
-}
-
-/**
- * ProjectSearchResponse
- * Response model for project searches
- */
-export type ProjectSearchResponse = {
-  /**
-   * Total Items
-   */
-  total_items?: number
-  /**
-   * Total Pages
-   */
-  total_pages?: number
-  /**
-   * Current Page
-   */
-  current_page?: number
-  /**
-   * Per Page
-   */
-  per_page?: number
-  /**
-   * Has Next
-   */
-  has_next?: boolean
-  /**
-   * Has Prev
-   */
-  has_prev?: boolean
-  /**
-   * Projects
-   */
-  projects?: Array<ProjectPublic>
 }
 
 /**
@@ -161,38 +232,61 @@ export type ProjectsPublic = {
 }
 
 /**
- * RunSearchResponse
- * Response model for sequencing run searches
+ * ReadInfo
  */
-export type RunSearchResponse = {
+export type ReadInfo = {
   /**
-   * Total Items
+   * Number
    */
-  total_items?: number
+  Number?: number | null
   /**
-   * Total Pages
+   * Numcycles
    */
-  total_pages?: number
+  NumCycles?: number | null
   /**
-   * Current Page
+   * Isindexedread
    */
-  current_page?: number
+  IsIndexedRead?: boolean | null
+}
+
+/**
+ * ReadInfosForLane
+ */
+export type ReadInfosForLane = {
   /**
-   * Per Page
+   * Lanenumber
    */
-  per_page?: number
+  LaneNumber?: number | null
   /**
-   * Has Next
+   * Readinfos
    */
-  has_next?: boolean
+  ReadInfos?: Array<ReadInfo> | null
+}
+
+/**
+ * ReadMetricsType
+ */
+export type ReadMetricsType = {
   /**
-   * Has Prev
+   * Readnumber
    */
-  has_prev?: boolean
+  ReadNumber?: number | null
   /**
-   * Illumina Runs
+   * Yield
    */
-  illumina_runs?: Array<SequencingRunPublic>
+  Yield?: number | null
+  /**
+   * Yieldq30
+   */
+  YieldQ30?: number | null
+  /**
+   * Qualityscoresum
+   */
+  QualityScoreSum?: number | null
+  /**
+   * Trimmedbases
+   */
+  TrimmedBases?: number | null
 }
 
 /**
@@ -262,20 +356,6 @@ export type SamplesPublic = {
 }
 
 /**
- * SearchDocument
- */
-export type SearchDocument = {
-  /**
-   * Id
-   */
-  id: string
-  /**
-   * Body
-   */
-  body: unknown
-}
-
-/**
  * SearchResponse
  */
 export type SearchResponse = {
@@ -308,9 +388,9 @@ export type SequencingRunCreate = {
    */
   experiment_name?: string | null
   /**
-   * S3 Run Folder Path
+   * Run Folder Uri
    */
-  s3_run_folder_path?: string | null
+  run_folder_uri?: string | null
   /**
    * Status
    */
@@ -346,9 +426,9 @@ export type SequencingRunPublic = {
    */
   experiment_name: string | null
   /**
-   * S3 Run Folder Path
+   * Run Folder Uri
    */
-  s3_run_folder_path: string | null
+  run_folder_uri: string | null
   /**
    * Status
    */
@@ -395,6 +475,40 @@ export type SequencingRunsPublic = {
    * Has Prev
    */
   has_prev: boolean
+}
+
+/**
+ * UndeterminedType
+ */
+export type UndeterminedType = {
+  /**
+   * Numberreads
+   */
+  NumberReads?: number | null
+  /**
+   * Yield
+   */
+  Yield?: number | null
+  /**
+   * Readmetrics
+   */
+  ReadMetrics?: Array<ReadMetricsType> | null
+}
+
+/**
+ * UnknownBarcode
+ */
+export type UnknownBarcode = {
+  /**
+   * Lane
+   */
+  Lane?: number | null
+  /**
+   * Barcodes
+   */
+  Barcodes?: {
+    [key: string]: number
+  } | null
 }
 
 /**
@@ -510,7 +624,7 @@ export type SearchProjectsData = {
      * Query
      * Search query string
      */
-    query: string | null
+    query: string
     /**
      * Page
      * Page number (1-indexed)
@@ -749,7 +863,7 @@ export type SearchRunsData = {
      * Query
      * Search query string
      */
-    query: string | null
+    query: string
     /**
      * Page
      * Page number (1-indexed)
@@ -822,64 +936,68 @@ export type GetRunResponses = {
 
 export type GetRunResponse = GetRunResponses[keyof GetRunResponses]
 
-export type SearchOriginalData = {
+export type GetRunSamplesheetData = {
   body?: never
-  path?: never
-  query: {
+  path: {
     /**
-     * Index
-     * Index to search
+     * Run Barcode
      */
-    index: string
-    /**
-     * Query
-     * Search query string
-     */
-    query: string
-    /**
-     * Page
-     * Page number (1-indexed)
-     */
-    page?: number
-    /**
-     * Per Page
-     * Number of items per page
-     */
-    per_page?: number
-    /**
-     * Sort By
-     * Field to sort by (id, name)
-     */
-    sort_by?: string | null
-    /**
-     * Sort Order
-     * Sort order (asc or desc)
-     */
-    sort_order?: ('asc' | 'desc') | null
+    run_barcode: string
   }
-  url: '/api/v1/search_original'
+  query?: never
+  url: '/api/v1/runs/{run_barcode}/samplesheet'
 }
 
-export type SearchOriginalErrors = {
+export type GetRunSamplesheetErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type SearchOriginalError =
-  SearchOriginalErrors[keyof SearchOriginalErrors]
+export type GetRunSamplesheetError =
+  GetRunSamplesheetErrors[keyof GetRunSamplesheetErrors]
 
-export type SearchOriginalResponses = {
+export type GetRunSamplesheetResponses = {
   /**
-   * Response Search Original
    * Successful Response
    */
-  200: ProjectSearchResponse | RunSearchResponse | GenericSearchResponse
+  200: IlluminaSampleSheetResponseModel
 }
 
-export type SearchOriginalResponse =
-  SearchOriginalResponses[keyof SearchOriginalResponses]
+export type GetRunSamplesheetResponse =
+  GetRunSamplesheetResponses[keyof GetRunSamplesheetResponses]
+
+export type GetRunMetricsData = {
+  body?: never
+  path: {
+    /**
+     * Run Barcode
+     */
+    run_barcode: string
+  }
+  query?: never
+  url: '/api/v1/runs/{run_barcode}/metrics'
+}
+
+export type GetRunMetricsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetRunMetricsError = GetRunMetricsErrors[keyof GetRunMetricsErrors]
+
+export type GetRunMetricsResponses = {
+  /**
+   * Successful Response
+   */
+  200: IlluminaMetricsResponseModel
+}
+
+export type GetRunMetricsResponse =
+  GetRunMetricsResponses[keyof GetRunMetricsResponses]
 
 export type SearchData = {
   body?: never
