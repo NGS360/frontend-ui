@@ -43,152 +43,169 @@ interface FileBrowserColumns {
 
 // File browser component
 interface FileBrowserProps {
-  /** Child element that triggers the dialog to open */
-  trigger: React.ReactElement,
-
   /** Data to populate the file browser table */
   data: FileBrowserData | undefined,
 
   /** Root path (bucket and subdirectories) of the contents */
   rootPath: string,
 
-  /** Title that is displyed in the dialog title in the header */
-  title?: string
+  /** Optionally control the current root directory */
+  root?: string,
+  setRoot?: (root: string) => void,
 }
 
 export const FileBrowser: React.FC<FileBrowserProps> = ({
-  trigger,
   data,
   rootPath,
-  title = `Files for s3://${rootPath}`,
+  root: controlledRoot,
+  setRoot: controlledSetRoot,
 }) => {
-  
-  // Control dialog open/close state
-  const [isOpen, setIsOpen] = useState(false);
-  const handleOnOpenChange = (willOpen: boolean) => {
-    setIsOpen(willOpen);
-  }
+  // Use controlled root if provided, otherwise manage internally
+  const [uncontrolledRoot, setUncontrolledRoot] = useState<string>(rootPath);
+  const root = controlledRoot !== undefined ? controlledRoot : uncontrolledRoot;
+  const setRoot = controlledSetRoot !== undefined ? controlledSetRoot : setUncontrolledRoot;
 
-  // Reformat the data into a structure suitable
-  // for rendering to a table
-  const tableData: Array<FileBrowserColumns> = []
+  // Reformat the data into a structure suitable for rendering to a table
+  const tableData: Array<FileBrowserColumns> = [];
   data?.folders.forEach((d) => {
-    // Strip the file path from the name
-    const newName = d.name.replace(rootPath, '')
+    const newName = d.name.replace(rootPath, '');
     tableData.push({
       name: newName,
       date: d.date,
-      dir: true
-    })   
-  })
+      dir: true,
+    });
+  });
   data?.files.forEach((d) => {
-    const newName = d.name.replace(rootPath, '')
+    const newName = d.name.replace(rootPath, '');
     tableData.push({
       name: newName,
       date: d.date,
       size: d.size,
-      dir: false
-    })
-  })
+      dir: false,
+    });
+  });
 
   // Define up/down directory click handlers
-  const [root, setRoot] = useState<string>(rootPath);
   const downDirClickHandler = (next: string) => {
-    const newRoot = root + next
-    setRoot(newRoot)
-    console.log(newRoot)
-  }
+    const newRoot = root + next;
+    setRoot(newRoot);
+    console.log(newRoot);
+  };
   const upDirClickHandler = () => {
-    const newRoot = root.split('/').filter(Boolean).slice(0, -1).join('/') + '/'
-    setRoot(newRoot)
-    console.log(newRoot)
-  }
-
+    const newRoot = root.split('/').filter(Boolean).slice(0, -1).join('/') + '/';
+    setRoot(newRoot);
+    console.log(newRoot);
+  };
 
   // Define columns for file display component
   const columns: Array<ColumnDef<FileBrowserColumns>> = [
     {
       accessorKey: 'name',
-      meta: { alias: "Name" },
+      meta: { alias: 'Name' },
       header: ({ column }) => <SortableHeader column={column} name="Name" />,
       cell: ({ cell }) => {
-        const isDir = cell.row.original.dir
-        const value = cell.row.original.name
-        return(
-          <>
-            <span 
-              className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
-              onClick={() => isDir ? downDirClickHandler(value) : ''}
-            >
-              <Folder className={`size-4 ${isDir ? 'opacity-100' : 'opacity-0'}`} />
-              {isDir ? value.replace('/', '') : value}
-            </span>
-          </>
-        )
-      }
+        const isDir = cell.row.original.dir;
+        const value = cell.row.original.name;
+        return (
+          <span
+            className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
+            onClick={() => (isDir ? downDirClickHandler(value) : undefined)}
+          >
+            <Folder className={`size-4 ${isDir ? 'opacity-100' : 'opacity-0'}`} />
+            {isDir ? value.replace('/', '') : value}
+          </span>
+        );
+      },
     },
     {
       accessorKey: 'size',
-      meta: { alias: "Size" },
+      meta: { alias: 'Size' },
       header: ({ column }) => <SortableHeader column={column} name="Size" />,
       cell: ({ row }) => {
-        const isDir = row.original.dir
-        const size = row.original.size
-        return (
-          <>
-            {!isDir && size != null ? formatBytes(size) : '-'}
-          </>
-        )
-      }
+        const isDir = row.original.dir;
+        const size = row.original.size;
+        return !isDir && size != null ? formatBytes(size) : '-';
+      },
     },
     {
       accessorKey: 'date',
-      meta: { alias: "Modified" },
+      meta: { alias: 'Modified' },
       header: ({ column }) => <SortableHeader column={column} name="Modified" />,
       cell: ({ row }) => {
-        const raw = row.original.date
-        const value = raw !== '-' ? new Date(raw).toLocaleString() : '-'
-        return value
-      }
-    }
-  ]
-  
+        const raw = row.original.date;
+        const value = raw !== '-' ? new Date(raw).toLocaleString() : '-';
+        return value;
+      },
+    },
+  ];
+
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
-        <DialogTrigger asChild>
-          {trigger}
-        </DialogTrigger>
-        <DialogContent className="!max-w-4xl">
-          <DialogHeader>
-            <DialogTitle className="text-muted-foreground max-w-3xl text-wrap break-words whitespace-normal">
-              {root !== rootPath ? `Files for s3://${root}` : title}
-            </DialogTitle>
-            <DialogDescription className="hidden">Browse files in bucket</DialogDescription>
-          </DialogHeader>
-          <div className="overflow-auto px-2 pt-2">
-            <ClientDataTable
-              data={tableData}
-              columns={columns}
-              renderCustomRowComponent={root !== rootPath}
-              customRowComponent={() => (
-                <span 
-                  className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
-                  onClick={upDirClickHandler}
-                >
-                  <Undo2 className={`size-4`} />
-                  Up a level
-                </span>
-              )}
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant='outline'>Close</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  )
+    <ClientDataTable
+      data={tableData}
+      columns={columns}
+      renderCustomRowComponent={root !== rootPath}
+      customRowComponent={() => (
+        <span
+          className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
+          onClick={upDirClickHandler}
+        >
+          <Undo2 className={`size-4`} />
+          Up a level
+        </span>
+      )}
+    />
+  );
+};
+
+// File browser dialog component
+interface FileBrowserDialogProps 
+  extends FileBrowserProps {
+  /** Child element that triggers the dialog to open */
+  trigger: React.ReactElement,
+
+  /** Title that is displyed in the dialog title in the header */
+  title?: string
 }
+
+export const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
+  trigger,
+  data,
+  rootPath,
+  title = `Files for s3://${rootPath}`,
+}) => {
+  // Control dialog open/close state
+  const [isOpen, setIsOpen] = useState(false);
+  const handleOnOpenChange = (willOpen: boolean) => {
+    setIsOpen(willOpen);
+  };
+
+  // Control root state for FileBrowser
+  const [root, setRoot] = useState<string>(rootPath);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="!max-w-4xl">
+        <DialogHeader>
+          <DialogTitle className="text-muted-foreground max-w-3xl text-wrap break-words whitespace-normal">
+            {root !== rootPath ? `Files for s3://${root}` : title}
+          </DialogTitle>
+          <DialogDescription className="hidden">Browse files in bucket</DialogDescription>
+        </DialogHeader>
+        <div className="overflow-auto px-2 pt-2">
+          <FileBrowser
+            data={data}
+            rootPath={rootPath}
+            root={root}
+            setRoot={setRoot}
+          />
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};

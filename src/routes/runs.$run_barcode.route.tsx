@@ -9,7 +9,7 @@ import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { FileBrowser } from '@/components/file-browser';
+import { FileBrowserDialog } from '@/components/file-browser';
 
 export const Route = createFileRoute('/runs/$run_barcode')({
   component: RouteComponent,
@@ -106,7 +106,7 @@ function RouteComponent() {
                     </TooltipContent>
                   </Tooltip>
                   <Tooltip>
-                    <FileBrowser
+                    <FileBrowserDialog
                       trigger={(
                         <TooltipTrigger asChild>
                           <Button
@@ -120,7 +120,7 @@ function RouteComponent() {
                       data={fileData}
                       rootPath={`illumina/${run.barcode}/`}
                     >
-                    </FileBrowser>
+                    </FileBrowserDialog>
                     <TooltipContent>
                       Browse Run Folder
                     </TooltipContent>
