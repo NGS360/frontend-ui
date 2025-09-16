@@ -36,7 +36,7 @@ export interface Config<T extends ClientOptions = ClientOptions>
         | string
         | number
         | boolean
-        | (string | number | boolean)[]
+        | Array<string | number | boolean>
         | null
         | undefined
         | unknown

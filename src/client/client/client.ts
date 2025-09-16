@@ -1,7 +1,4 @@
-import type { AxiosError, RawAxiosRequestHeaders } from 'axios'
 import axios from 'axios'
-
-import type { Client, Config } from './types'
 import {
   buildUrl,
   createConfig,
@@ -9,11 +6,14 @@ import {
   mergeHeaders,
   setAuthParams,
 } from './utils'
+import type { AxiosError, RawAxiosRequestHeaders } from 'axios'
+
+import type { Client, Config } from './types'
 
 export const createClient = (config: Config = {}): Client => {
   let _config = mergeConfigs(createConfig(), config)
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const { auth, ...configWithoutAuth } = _config
   const instance = axios.create(configWithoutAuth)
 
@@ -58,8 +58,8 @@ export const createClient = (config: Config = {}): Client => {
 
     try {
       // assign Axios here for consistency with fetch
-      const _axios = opts.axios!
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _axios = opts.axios
+       
       const { auth, ...optsWithoutAuth } = opts
       const response = await _axios({
         ...optsWithoutAuth,
