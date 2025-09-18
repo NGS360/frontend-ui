@@ -1,5 +1,5 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import clsx from 'clsx'
 import { Briefcase, Building, Check, ClipboardCheck, File, FileInput, Folder, MousePointer2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -24,9 +24,97 @@ function RouteComponent() {
   const routeApi = getRouteApi('/projects/$project_id')
   const { project } = routeApi.useLoaderData()
   
+  // Stepper state managed by useReducer
+  type State = {
+    sourceIsData: boolean | undefined;
+    selectedVendor: { value: string; label?: string };
+    selectedFile: string;
+    validManifest: boolean;
+    activeStep: number;
+  };
+  type Action =
+    | { type: 'SET_SOURCE'; value: 'data' | 'vendor' | undefined }
+    | { type: 'SET_VENDOR'; value: string; label?: string }
+    | { type: 'SET_FILE'; value: string }
+    | { type: 'SET_VALID_MANIFEST'; value: boolean }
+    | { type: 'SET_ACTIVE_STEP'; value: number };
 
-  // Capture source state
-  const [sourceIsData, setSourceIsData] = useState<boolean | undefined>(undefined);
+  const initialState: State = {
+    sourceIsData: undefined,
+    selectedVendor: { value: '', label: '' },
+    selectedFile: '',
+    validManifest: false,
+    activeStep: 0,
+  };
+
+  function stepperReducer(state: State, action: Action): State {
+    switch (action.type) {
+      case 'SET_SOURCE': {
+        if (action.value === 'data') {
+          return {
+            ...state,
+            sourceIsData: true,
+            selectedVendor: { value: '', label: '' },
+            selectedFile: '',
+            validManifest: false,
+            activeStep: 1,
+          };
+        } else if (action.value === 'vendor') {
+          return {
+            ...state,
+            sourceIsData: false,
+            selectedVendor: { value: '', label: '' },
+            selectedFile: '',
+            validManifest: false,
+            activeStep: 0,
+          };
+        } else {
+          return {
+            ...state,
+            sourceIsData: undefined,
+            selectedVendor: { value: '', label: '' },
+            selectedFile: '',
+            validManifest: false,
+            activeStep: 0,
+          };
+        }
+      }
+      case 'SET_VENDOR': {
+        return {
+          ...state,
+          selectedVendor: { value: action.value, label: action.label },
+          selectedFile: '',
+          validManifest: false,
+          activeStep: action.value ? 1 : 0,
+        };
+      }
+      case 'SET_FILE': {
+        return {
+          ...state,
+          selectedFile: action.value,
+          validManifest: false,
+          activeStep: action.value ? 2 : 1,
+        };
+      }
+      case 'SET_VALID_MANIFEST': {
+        return {
+          ...state,
+          validManifest: action.value,
+          activeStep: action.value ? 3 : state.activeStep,
+        };
+      }
+      case 'SET_ACTIVE_STEP': {
+        return {
+          ...state,
+          activeStep: action.value,
+        };
+      }
+      default:
+        return state;
+    }
+  }
+
+  const [state, dispatch] = useReducer(stepperReducer, initialState);
 
   // Load vendor options
   const [vendorOptions, setVendorOptions] = useState<Array<ComboBoxOption>>();
@@ -42,11 +130,6 @@ function RouteComponent() {
     fetchVendors()
   }, [])
 
-  // Selected vendor
-  const [selectedVendor, setSelectedVendor] = useState<{ value: string, label?: string }>({
-    value: '',
-    label: ''
-  });
 
   // Example vendor bucket data
   const [vendorBucketData, setVendorBucketData] = useState();
@@ -62,59 +145,14 @@ function RouteComponent() {
     fetchVendorBucketData()
   }, [])
 
-  // Selected manifest file
-  const [selectedFile, setSelectedFile] = useState<string>('');
-
-  // Validated file
-  const [validManifest, setValidManifest] = useState<boolean>(false);
-
-  // Stepper progress
-  const [activeStep, setActiveStep] = useState<number>(0)
-
-  // Concise step change handler for ingest stepper
-  const handleStepChange = (step: number, value: string, label?: string) => {
-    if (step === 0) {
-      if (value === 'data') {
-        setSourceIsData(true);
-        setSelectedVendor({ value: '', label: '' });
-        setSelectedFile('');
-        setValidManifest(false);
-        setActiveStep(1);
-      } else if (value === 'vendor') {
-        setSourceIsData(false);
-        setSelectedVendor({ value: '', label: '' });
-        setSelectedFile('');
-        setValidManifest(false);
-        setActiveStep(0);
-      } else {
-        setSourceIsData(undefined);
-        setSelectedVendor({ value: '', label: '' });
-        setSelectedFile('');
-        setValidManifest(false);
-        setActiveStep(0);
-      }
-    } else if (step === 1) {
-      setSelectedVendor({ value, label });
-      setSelectedFile('');
-      setValidManifest(false);
-      setActiveStep(value ? 1 : 0);
-    } else if (step === 2) {
-      setSelectedFile(value);
-      setValidManifest(false);
-      setActiveStep(value ? 2 : 1);
-    }
-  };
-
-
   return (
     <>
       <div className='flex flex-col gap-12 max-w-[40rem] mt-4 mb-15'>
 
         {/* Stepper component */}
         <Stepper
-          activeStep={activeStep}
+          activeStep={state.activeStep}
           showFutureSteps={true}
-          onStepChange={setActiveStep}
           steps={[ 
             {
               label: "Source",
@@ -127,15 +165,15 @@ function RouteComponent() {
                         className={clsx(
                           'row-span-1 cursor-pointer',
                           'hover:border-primary hover:bg-primary/5',
-                          sourceIsData ? 'border-primary bg-primary/5' : ''
+                          state.sourceIsData ? 'border-primary bg-primary/5' : ''
                         )}
-                        onClick={() => handleStepChange(0, 'data')}
+                        onClick={() => dispatch({ type: 'SET_SOURCE', value: 'data' })}
                       >
                         <CardHeader>
                           <CardTitle
                             className={clsx(
                               'flex items-center gap-2',
-                              sourceIsData ? 'text-primary' : ''
+                              state.sourceIsData ? 'text-primary' : ''
                             )}
                           >
                             <Briefcase /> Data Bucket
@@ -146,8 +184,8 @@ function RouteComponent() {
                           <CardAction >
                             <Input
                               type='radio'
-                              checked={sourceIsData === true}
-                              onChange={e => setSourceIsData(e.target.checked)}
+                              checked={state.sourceIsData === true}
+                              onChange={e => dispatch({ type: 'SET_SOURCE', value: e.target.checked ? 'data' : undefined })}
                               className='accent-primary'
                             >
                             </Input>
@@ -158,15 +196,15 @@ function RouteComponent() {
                         className={clsx(
                           'row-span-1 cursor-pointer',
                           'hover:border-primary hover:bg-primary/5',
-                          sourceIsData === false ? 'border-primary bg-primary/5' : ''
+                          state.sourceIsData === false ? 'border-primary bg-primary/5' : ''
                         )}
-                        onClick={() => handleStepChange(0, 'vendor')}
+                        onClick={() => dispatch({ type: 'SET_SOURCE', value: 'vendor' })}
                       >
                         <CardHeader>
                           <CardTitle
                             className={clsx(
                               'flex items-center gap-2',
-                              sourceIsData === false ? 'text-primary' : ''
+                              state.sourceIsData === false ? 'text-primary' : ''
                             )}
                           >
                             <Building /> Vendor Bucket
@@ -177,8 +215,8 @@ function RouteComponent() {
                           <CardAction>
                             <Input
                               type='radio'
-                              checked={sourceIsData === false}
-                              onChange={e => setSourceIsData(e.target.checked)}
+                              checked={state.sourceIsData === false}
+                              onChange={e => dispatch({ type: 'SET_SOURCE', value: e.target.checked ? 'vendor' : undefined })}
                               className='accent-primary'
                             >
                             </Input>
@@ -188,7 +226,7 @@ function RouteComponent() {
                     </div>
 
                     {/* Vendor Bucket Selected */}
-                    {sourceIsData === false && (
+                    {state.sourceIsData === false && (
                       <div className="flex flex-col gap-2">
                         <Label>Which vendor bucket?</Label>
                         <div className='flex gap-2'>
@@ -197,8 +235,8 @@ function RouteComponent() {
                               id="vendorBucket"
                               options={vendorOptions ?? []}
                               placeholder="Select vendor bucket"
-                              value={selectedVendor.value}
-                              onChange={(value: string, label?: string) => handleStepChange(1, value, label)}
+                              value={state.selectedVendor.value}
+                              onChange={(value: string, label?: string) => dispatch({ type: 'SET_VENDOR', value, label })}
                             />
                           </div>
 
@@ -208,7 +246,7 @@ function RouteComponent() {
                                 <TooltipTrigger asChild>
                                   <Button
                                     variant='ghost'
-                                    disabled={selectedVendor.value === ''}
+                                    disabled={state.selectedVendor.value === ''}
                                   >
                                     <Folder /> Browse
                                   </Button>
@@ -235,7 +273,7 @@ function RouteComponent() {
               content: (
                 <>
                   {/* Step-2 */}
-                  {(selectedVendor.value !== '' || sourceIsData === true) && (
+                  {(state.selectedVendor.value !== '' || state.sourceIsData === true) && (
                     <div className='flex flex-col gap-4'>
                       <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-2">
 
@@ -245,13 +283,13 @@ function RouteComponent() {
                             trigger={(
                               <div
                                 className="relative flex items-center justify-center text-center w-full h-48 border-2 rounded-lg cursor-pointer hover:bg-primary/5 hover:border-primary"
-                                onClick={() => handleStepChange(2, '/path/to/selected_manfiest_file.csv')}
+                                onClick={() => dispatch({ type: 'SET_FILE', value: '/path/to/selected_manfiest_file.csv' })}
                               >
                                 <MousePointer2 className="absolute inset-0 z-[-1] text-accent w-full h-full" />
                                 <div className="text-center">
                                   <div className="font-semibold">Click to select file</div>
                                   <div className="text-sm text-muted-foreground">
-                                    {sourceIsData ? 'from internal data bucket' : `from ${selectedVendor.label} bucket`}
+                                    {state.sourceIsData ? 'from internal data bucket' : `from ${state.selectedVendor.label} bucket`}
                                   </div>
                                 </div>
                               </div>
@@ -282,9 +320,9 @@ function RouteComponent() {
                               <div className="flex flex-col items-center justify-center">
                                 <div className="font-semibold">Drag or click to upload file</div>
                                 <div className="text-sm text-muted-foreground mt-1">
-                                  {sourceIsData 
+                                  {state.sourceIsData 
                                     ? 'upload to internal data bucket' 
-                                    : `to ${selectedVendor.label} bucket`}
+                                    : `to ${state.selectedVendor.label} bucket`}
                                 </div>
                               </div>
                             )}
@@ -303,19 +341,19 @@ function RouteComponent() {
               content: (
                 <>
                   {/* Selected file */}
-                  {selectedFile !== '' && (
+                  {state.selectedFile !== '' && (
                     <div className='flex flex-col gap-4'>
                       <div className='border-1 rounded-lg border-primary/25 p-2'>
                         <div className='flex items-center justify-between gap-8'>
                           <div className='flex items-center gap-2 text-primary whitespace-normal text-wrap break-all'>
                             <File className='size-4' />
-                            {selectedFile}
+                            {state.selectedFile}
                           </div>
                           <Button
                             variant='link'
                             className='text-destructive'
                             onClick={() => {
-                              handleStepChange(2, '');
+                              dispatch({ type: 'SET_FILE', value: '' });
                             }}
                           >
                             Remove
@@ -327,11 +365,10 @@ function RouteComponent() {
                         <Button
                           variant='secondary'
                           onClick={() => { 
-                            setValidManifest(true)
-                            setActiveStep(3)
+                            dispatch({ type: 'SET_VALID_MANIFEST', value: true });
                           }}
                         >
-                          {validManifest
+                          {state.validManifest
                             ? (
                               <><Check /> Valid</>
                             ) : (
@@ -339,9 +376,9 @@ function RouteComponent() {
                             )}
                         </Button>
                         <Button
-                          disabled={!validManifest}
+                          disabled={!state.validManifest}
                           onClick={() => {
-                            toast.success(`Successfully ingested ${selectedFile} into project ${project.project_id}`);
+                            toast.success(`Successfully ingested ${state.selectedFile} into project ${project.project_id}`);
                           }}
                         >
                           <FileInput /> Ingest
