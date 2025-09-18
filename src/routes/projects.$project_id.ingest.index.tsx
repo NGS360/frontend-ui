@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { Briefcase, Building, Check, ClipboardCheck, File, FileInput, Folder, MousePointer2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { ComboBoxOption } from '@/components/combobox'
 import { Card, CardAction, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -19,6 +20,10 @@ export const Route = createFileRoute('/projects/$project_id/ingest/')({
 })
 
 function RouteComponent() {
+  // Load project data
+  const routeApi = getRouteApi('/projects/$project_id')
+  const { project } = routeApi.useLoaderData()
+  
 
   // Capture source state
   const [sourceIsData, setSourceIsData] = useState<boolean | undefined>(undefined);
@@ -66,14 +71,49 @@ function RouteComponent() {
   // Stepper progress
   const [activeStep, setActiveStep] = useState<number>(0)
 
+  // Concise step change handler for ingest stepper
+  const handleStepChange = (step: number, value: string, label?: string) => {
+    if (step === 0) {
+      if (value === 'data') {
+        setSourceIsData(true);
+        setSelectedVendor({ value: '', label: '' });
+        setSelectedFile('');
+        setValidManifest(false);
+        setActiveStep(1);
+      } else if (value === 'vendor') {
+        setSourceIsData(false);
+        setSelectedVendor({ value: '', label: '' });
+        setSelectedFile('');
+        setValidManifest(false);
+        setActiveStep(0);
+      } else {
+        setSourceIsData(undefined);
+        setSelectedVendor({ value: '', label: '' });
+        setSelectedFile('');
+        setValidManifest(false);
+        setActiveStep(0);
+      }
+    } else if (step === 1) {
+      setSelectedVendor({ value, label });
+      setSelectedFile('');
+      setValidManifest(false);
+      setActiveStep(value ? 1 : 0);
+    } else if (step === 2) {
+      setSelectedFile(value);
+      setValidManifest(false);
+      setActiveStep(value ? 2 : 1);
+    }
+  };
+
 
   return (
     <>
-      <div className='flex flex-col gap-12 max-w-[40rem] mb-15'>
+      <div className='flex flex-col gap-12 max-w-[40rem] mt-4 mb-15'>
 
         {/* Stepper component */}
         <Stepper
           activeStep={activeStep}
+          showFutureSteps={true}
           onStepChange={setActiveStep}
           steps={[ 
             {
@@ -85,15 +125,11 @@ function RouteComponent() {
                     <div className='flex flex-col gap-2 sm:grid sm:grid-cols-2'>
                       <Card
                         className={clsx(
-                          'row-span-1',
+                          'row-span-1 cursor-pointer',
+                          'hover:border-primary hover:bg-primary/5',
                           sourceIsData ? 'border-primary bg-primary/5' : ''
                         )}
-                        onClick={() => { 
-                          setSourceIsData(true)
-                          setSelectedFile('')
-                          setValidManifest(false)
-                          setActiveStep(1)
-                        }}
+                        onClick={() => handleStepChange(0, 'data')}
                       >
                         <CardHeader>
                           <CardTitle
@@ -120,16 +156,11 @@ function RouteComponent() {
                       </Card>
                       <Card
                         className={clsx(
-                          'row-span-1',
+                          'row-span-1 cursor-pointer',
+                          'hover:border-primary hover:bg-primary/5',
                           sourceIsData === false ? 'border-primary bg-primary/5' : ''
                         )}
-                        onClick={() => { 
-                          setSourceIsData(false)
-                          setSelectedVendor({ value: '', label: '' })
-                          setSelectedFile('')
-                          setValidManifest(false)
-                          setActiveStep(0)
-                        }}
+                        onClick={() => handleStepChange(0, 'vendor')}
                       >
                         <CardHeader>
                           <CardTitle
@@ -167,10 +198,7 @@ function RouteComponent() {
                               options={vendorOptions ?? []}
                               placeholder="Select vendor bucket"
                               value={selectedVendor.value}
-                              onChange={(value: string, label?: string) => { 
-                                setSelectedVendor({ value, label })
-                                if (value) setActiveStep(1)
-                              }}
+                              onChange={(value: string, label?: string) => handleStepChange(1, value, label)}
                             />
                           </div>
 
@@ -217,10 +245,7 @@ function RouteComponent() {
                             trigger={(
                               <div
                                 className="relative flex items-center justify-center text-center w-full h-48 border-2 rounded-lg cursor-pointer hover:bg-primary/5 hover:border-primary"
-                                onClick={() => { 
-                                  setSelectedFile('/path/to/selected_manfiest_file.csv')
-                                  setActiveStep(2)
-                                }}
+                                onClick={() => handleStepChange(2, '/path/to/selected_manfiest_file.csv')}
                               >
                                 <MousePointer2 className="absolute inset-0 z-[-1] text-accent w-full h-full" />
                                 <div className="text-center">
@@ -229,7 +254,6 @@ function RouteComponent() {
                                     {sourceIsData ? 'from internal data bucket' : `from ${selectedVendor.label} bucket`}
                                   </div>
                                 </div>
-
                               </div>
                             )}
                             data={vendorBucketData}
@@ -290,10 +314,8 @@ function RouteComponent() {
                           <Button
                             variant='link'
                             className='text-destructive'
-                            onClick={() => { 
-                              setSelectedFile('')
-                              setValidManifest(false)
-                              setActiveStep(1)
+                            onClick={() => {
+                              handleStepChange(2, '');
                             }}
                           >
                             Remove
@@ -318,6 +340,9 @@ function RouteComponent() {
                         </Button>
                         <Button
                           disabled={!validManifest}
+                          onClick={() => {
+                            toast.success(`Successfully ingested ${selectedFile} into project ${project.project_id}`);
+                          }}
                         >
                           <FileInput /> Ingest
                         </Button>

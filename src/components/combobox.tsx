@@ -20,7 +20,9 @@ interface ComboBoxProps {
   label?: string;
   value?: string; // Controlled value from react-hook-form
   onChange: (value: string, label?: string) => void; // Controlled onChange handler from react-hook-form
+  disabled?: boolean;
 }
+
 
 export const ComboBox: React.FC<ComboBoxProps> = ({
   id,
@@ -28,11 +30,13 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
   placeholder,
   value,
   onChange,
+  disabled = false,
 }) => {
   const [open, setOpen] = useState(false);
   const selected = value ?? "";
 
   const handleSelect = (option: ComboBoxOption) => {
+    if (disabled) return;
     if (selected === option.value) {
       onChange(""); // Deselect the option if it's already selected
     } else {
@@ -41,21 +45,33 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
     setOpen(false); // Close the dropdown after selection/deselection
   };
 
+  // Sort options so selected is at the top
+  const sortedOptions = [...options];
+  if (selected) {
+    sortedOptions.sort((a, b) => {
+      if (a.value === selected) return -1;
+      if (b.value === selected) return 1;
+      return 0;
+    });
+  }
+
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen} modal={true} >
+      <Popover open={open} onOpenChange={v => !disabled && setOpen(v)} modal={true} >
         <PopoverTrigger asChild>
           <div
             id={id}
             role="combobox"
             aria-expanded={open}
+            aria-disabled={disabled}
             className={cn(
               "border rounded-md flex items-center justify-between",
               "py-2 px-2 text-left whitespace-pre-wrap break-words",
               selected ? "" : "text-muted-foreground",
-              "cursor-pointer"
+              disabled ? "bg-muted cursor-not-allowed opacity-60" : "cursor-pointer"
             )}
-            onClick={() => setOpen(!open)}
+            onClick={() => { if (!disabled) setOpen(!open); }}
+            tabIndex={disabled ? -1 : 0}
           >
             <span className="flex-1 text-sm">
               {selected
@@ -78,7 +94,7 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
             <CommandList>
               <CommandEmpty>Not found.</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
+                {sortedOptions.map((option) => (
                   <CommandItem
                     key={option.value}
                     value={option.value}
