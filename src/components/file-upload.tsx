@@ -6,12 +6,24 @@ import type { DropEvent, FileRejection } from "react-dropzone";
 
 // Generic file upload component
 interface FileUploadProps {
-  /** The subject text that is displayed in drag and drop text.*/
-  subject: string,
+  /** Text to display in the box */
+  displayComponent?: React.ReactElement,
+
+  /** Text to display when the drag is active */
+  dragActiveComponent?: React.ReactElement
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
-  subject = "file"
+  displayComponent = (
+    <span className="text-primary hover:underline mx-2">
+      Drag and drop your file here, or click to select
+    </span>
+  ),
+  dragActiveComponent = (
+    <span className="text-primary hover:underline mx-2">
+      Drop to upload
+    </span>
+  )
 }) => {
 
   const onDrop = useCallback((
@@ -37,18 +49,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     <>
       <div
         {...getRootProps()}
-        className={`relative flex items-center justify-center text-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer 
-          ${isDragActive && "bg-primary/2"}`}
+        className={`relative flex items-center justify-center text-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-primary/5 hover:border-primary 
+          ${isDragActive && "bg-primary/5"}`}
       >
         <CloudUpload
           className="absolute inset-0 z-[-1] text-accent w-full h-full"
         />
         <input {...getInputProps()} />
-        <span className="text-primary hover:underline mx-2">
-          {isDragActive
-            ? "Drop to upload"
-            : `Drag and drop your ${subject} here, or click to select`}
-        </span>
+        {isDragActive
+          ? dragActiveComponent
+          : displayComponent}
       </div>
     </>
   )

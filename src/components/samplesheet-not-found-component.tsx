@@ -7,7 +7,11 @@ export const NotFoundComponent = () => {
   return (
     <>
       <FileUpload
-        subject="samplesheet"
+        displayComponent={(
+          <span className="text-primary hover:underline mx-2">
+            Drag and drop your samplesheet here, or click to select
+          </span>
+        )}
       />
     </>
   )

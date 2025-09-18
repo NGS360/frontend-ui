@@ -5,7 +5,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export interface Option {
+export interface ComboBoxOption {
   label: string;
   value: string;
   description?: string;
@@ -15,10 +15,11 @@ export interface Option {
 // Single-select combobox
 interface ComboBoxProps {
   id: string;
-  options: Array<Option>;
+  options: Array<ComboBoxOption>;
   placeholder: string;
-  value: string; // Controlled value from react-hook-form
-  onChange: (value: string) => void; // Controlled onChange handler from react-hook-form
+  label?: string;
+  value?: string; // Controlled value from react-hook-form
+  onChange: (value: string, label?: string) => void; // Controlled onChange handler from react-hook-form
 }
 
 export const ComboBox: React.FC<ComboBoxProps> = ({
@@ -29,19 +30,20 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
   onChange,
 }) => {
   const [open, setOpen] = useState(false);
+  const selected = value ?? "";
 
-  const handleSelect = (option: Option) => {
-    if (value === option.value) {
+  const handleSelect = (option: ComboBoxOption) => {
+    if (selected === option.value) {
       onChange(""); // Deselect the option if it's already selected
     } else {
-      onChange(option.value); // Update the value via react-hook-form
+      onChange(option.value, option.label); // Update the value via react-hook-form
     }
     setOpen(false); // Close the dropdown after selection/deselection
   };
 
   return (
     <>
-      <Popover modal={true}>
+      <Popover open={open} onOpenChange={setOpen} modal={true} >
         <PopoverTrigger asChild>
           <div
             id={id}
@@ -50,14 +52,14 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
             className={cn(
               "border rounded-md flex items-center justify-between",
               "py-2 px-2 text-left whitespace-pre-wrap break-words",
-              value ? "" : "text-muted-foreground",
+              selected ? "" : "text-muted-foreground",
               "cursor-pointer"
             )}
             onClick={() => setOpen(!open)}
           >
             <span className="flex-1 text-sm">
-              {value
-                ? options.find((option) => option.value === value)?.label || placeholder
+              {selected
+                ? options.find((option) => option.value === selected)?.label || placeholder
                 : placeholder}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -84,7 +86,7 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
                     keywords={[option.label, option.description || ""]}
                   >
                     <Checkbox
-                      checked={value === option.value}
+                      checked={selected === option.value}
                       onCheckedChange={() => handleSelect(option)}
                       className="mr-2"
                     />

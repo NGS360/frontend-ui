@@ -206,7 +206,13 @@ function RouteComponent() {
                 }}
               />
             ) : (
-              <FileUpload subject='samplesheet.tsv' />
+                <FileUpload
+                  displayComponent={(
+                    <span className="text-primary hover:underline mx-2">
+                      Drag and drop your samplesheet.tsv here, or click to select
+                    </span>
+                  )}
+                />
             )}
 
           </AccordionContent>

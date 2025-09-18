@@ -47,7 +47,7 @@ function RouteComponent() {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 mt-4">
         <h1 className="font-light">
           View data associated with this NGS360 project
         </h1>
