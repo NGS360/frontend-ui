@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { FileUpload } from "@/components/file-upload"
-import { createFileMutation } from "@/client/@tanstack/react-query.gen";
+import { createFileMutation, getRunSamplesheetQueryKey } from "@/client/@tanstack/react-query.gen";
 
 // Define error component for samplesheet path
 export const NotFoundComponent = () => {
@@ -12,11 +12,21 @@ export const NotFoundComponent = () => {
   const routeApi = getRouteApi('/runs/$run_barcode/samplesheet/')
   const { run_barcode } = routeApi.useParams()
 
+  const queryClient = useQueryClient();
+
   // File upload mutation
   const { mutate } = useMutation({
     ...createFileMutation(),
     onSuccess: (data) => {
       console.log(data);
+      // Invalidate the query for the run to refresh samplesheet info
+      queryClient.invalidateQueries({
+        queryKey: getRunSamplesheetQueryKey({
+          path: {
+            run_barcode: run_barcode
+          }
+        })
+      });
       toast.success(`${data.filename} for run ${run_barcode} uploaded successfully`);
     },
     onError: (error) => {

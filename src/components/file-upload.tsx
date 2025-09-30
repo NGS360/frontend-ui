@@ -75,24 +75,35 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 // Full screen dropzone component
 interface FullscreenDropzoneProps {
   subject?: string,
-  children: React.ReactNode
+
+  /** onDrop callback */
+  onDrop?: (
+    acceptedFiles: Array<File>,
+    fileRejections?: Array<FileRejection>,
+    event?: DropEvent
+  ) => void,
+
+  children: React.ReactNode,
+  
 }
 
 export const FullscreenDropzone: React.FC<FullscreenDropzoneProps> = ({
   subject = "a new samplesheet",
+  onDrop: onDropProp,
   children
 }) => {
 
   // Prepare dropzone for file upload
-  const onDrop = useCallback((
+  const onDrop = onDropProp ?? useCallback((
     acceptedFiles: Array<File>,
     fileRejections: Array<FileRejection>,
     event: DropEvent
   ) => {
     console.log(acceptedFiles);
     console.log(fileRejections);
-    console.log(event)
-  }, [])
+    console.log(event);
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {

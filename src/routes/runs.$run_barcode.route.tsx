@@ -1,9 +1,12 @@
 import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { ChartBar, FileSpreadsheet, FolderOpen, PlayCircle, RotateCw, Upload } from 'lucide-react'
 import { useRef } from 'react'
+import { toast } from 'sonner'
 import type { ChangeEvent } from 'react';
 import { getRun } from '@/client'
+import { createFileMutation, getRunSamplesheetQueryKey } from '@/client/@tanstack/react-query.gen'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -36,6 +39,28 @@ function RouteComponent() {
   // Load project data
   const routeApi = getRouteApi('/runs/$run_barcode')
   const { run } = routeApi.useLoaderData()
+  const queryClient = useQueryClient()
+
+  // File upload mutation
+  const { mutate } = useMutation({
+    ...createFileMutation(),
+    onSuccess: (data) => {
+      console.log(data);
+      // Invalidate the query for the run to refresh samplesheet info
+      queryClient.invalidateQueries({
+        queryKey: getRunSamplesheetQueryKey({
+          path: {
+            run_barcode: run.barcode as string
+          }
+        })
+      });
+      toast.success(`${data.filename} for run ${run.barcode} uploaded successfully`);
+    },
+    onError: (uploadError) => {
+      console.error(uploadError);
+      toast.error('Failed to upload file');
+    }
+  })
 
   // Samplesheet file upload
   const inputRef = useRef<HTMLInputElement>(null)
@@ -44,8 +69,25 @@ function RouteComponent() {
   }
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length) {
-      // Post to API
-      console.log(e.target.files[0])
+      const file = e.target.files[0]
+      console.log(file)
+      
+      // Upload file using the mutation
+      mutate({ 
+        body: {
+          filename: file.name,
+          content: file,
+          entity_type: "run",
+          entity_id: run.barcode as string,
+          file_type: "samplesheet",
+          created_by: "current_user",
+          description: "Uploaded via UI",
+          is_public: false
+        }
+      });
+      
+      // Reset the input value so the same file can be uploaded again
+      e.target.value = '';
     }
   }
 
