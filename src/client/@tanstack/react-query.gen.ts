@@ -10,7 +10,13 @@ import {
   
   addRun,
   addSampleToProject,
+  browseFilesystem,
+  createFile,
   createProject,
+  deleteFile,
+  downloadFile,
+  getFile,
+  getFileCountForEntity,
   getProjectByProjectId,
   getProjects,
   getRun,
@@ -18,10 +24,16 @@ import {
   getRunSamplesheet,
   getRuns,
   getSamples,
+  listFiles,
+  listFilesBrowserFormat,
+  listFilesForEntity,
   root,
   search,
   searchProjects,
-  searchRuns
+  searchRuns,
+  updateFile,
+  updateRun,
+  uploadFileContent
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
 import type {InfiniteData, UseMutationOptions} from '@tanstack/react-query';
@@ -33,9 +45,19 @@ import type {
   AddSampleToProjectData,
   AddSampleToProjectError,
   AddSampleToProjectResponse,
+  BrowseFilesystemData,
+  CreateFileData,
+  CreateFileError,
+  CreateFileResponse,
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
+  DeleteFileData,
+  DeleteFileError,
+  DeleteFileResponse,
+  DownloadFileData,
+  GetFileCountForEntityData,
+  GetFileData,
   GetProjectByProjectIdData,
   GetProjectsData,
   GetProjectsError,
@@ -49,6 +71,15 @@ import type {
   GetSamplesData,
   GetSamplesError,
   GetSamplesResponse,
+  ListFilesBrowserFormatData,
+  ListFilesBrowserFormatError,
+  ListFilesBrowserFormatResponse,
+  ListFilesData,
+  ListFilesError,
+  ListFilesForEntityData,
+  ListFilesForEntityError,
+  ListFilesForEntityResponse,
+  ListFilesResponse,
   RootData,
   SearchData,
   SearchProjectsData,
@@ -57,6 +88,15 @@ import type {
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
+  UpdateFileData,
+  UpdateFileError,
+  UpdateFileResponse,
+  UpdateRunData,
+  UpdateRunError,
+  UpdateRunResponse,
+  UploadFileContentData,
+  UploadFileContentError,
+  UploadFileContentResponse,
 } from '../types.gen'
 import type { AxiosError } from 'axios'
 
@@ -713,6 +753,35 @@ export const getRunOptions = (options: Options<GetRunData>) => {
   })
 }
 
+/**
+ * Update Run
+ * Update the status of a specific run.
+ * Valid status values are: "In Progress", "Uploading", "Ready", "Resync"
+ */
+export const updateRunMutation = (
+  options?: Partial<Options<UpdateRunData>>,
+): UseMutationOptions<
+  UpdateRunResponse,
+  AxiosError<UpdateRunError>,
+  Options<UpdateRunData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateRunResponse,
+    AxiosError<UpdateRunError>,
+    Options<UpdateRunData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateRun({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const getRunSamplesheetQueryKey = (
   options: Options<GetRunSamplesheetData>,
 ) => createQueryKey('getRunSamplesheet', options)
@@ -778,5 +847,564 @@ export const searchOptions = (options: Options<SearchData>) => {
       return data
     },
     queryKey: searchQueryKey(options),
+  })
+}
+
+export const listFilesQueryKey = (options?: Options<ListFilesData>) =>
+  createQueryKey('listFiles', options)
+
+/**
+ * List files with filtering and pagination
+ * Get a paginated list of files with optional filtering.
+ *
+ * Supports filtering by:
+ * - Entity type and ID (project or run)
+ * - File type (fastq, bam, vcf, etc.)
+ * - Public/private status
+ * - Creator
+ * - Text search in filename and description
+ */
+export const listFilesOptions = (options?: Options<ListFilesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listFiles({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listFilesQueryKey(options),
+  })
+}
+
+export const listFilesInfiniteQueryKey = (
+  options?: Options<ListFilesData>,
+): QueryKey<Options<ListFilesData>> =>
+  createQueryKey('listFiles', options, true)
+
+/**
+ * List files with filtering and pagination
+ * Get a paginated list of files with optional filtering.
+ *
+ * Supports filtering by:
+ * - Entity type and ID (project or run)
+ * - File type (fastq, bam, vcf, etc.)
+ * - Public/private status
+ * - Creator
+ * - Text search in filename and description
+ */
+export const listFilesInfiniteOptions = (options?: Options<ListFilesData>) => {
+  return infiniteQueryOptions<
+    ListFilesResponse,
+    AxiosError<ListFilesError>,
+    InfiniteData<ListFilesResponse>,
+    QueryKey<Options<ListFilesData>>,
+    | number
+    | Pick<
+        QueryKey<Options<ListFilesData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListFilesData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await listFiles({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: listFilesInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const createFileQueryKey = (options: Options<CreateFileData>) =>
+  createQueryKey('createFile', options)
+
+/**
+ * Create a new file record
+ * Create a new file record with optional file content upload.
+ *
+ * - **filename**: Name of the file
+ * - **description**: Optional description of the file
+ * - **file_type**: Type of file (fastq, bam, vcf, etc.)
+ * - **entity_type**: Whether this file belongs to a project or run
+ * - **entity_id**: ID of the project or run this file belongs to
+ * - **is_public**: Whether the file is publicly accessible
+ * - **created_by**: User who created the file
+ */
+export const createFileOptions = (options: Options<CreateFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createFileQueryKey(options),
+  })
+}
+
+/**
+ * Create a new file record
+ * Create a new file record with optional file content upload.
+ *
+ * - **filename**: Name of the file
+ * - **description**: Optional description of the file
+ * - **file_type**: Type of file (fastq, bam, vcf, etc.)
+ * - **entity_type**: Whether this file belongs to a project or run
+ * - **entity_id**: ID of the project or run this file belongs to
+ * - **is_public**: Whether the file is publicly accessible
+ * - **created_by**: User who created the file
+ */
+export const createFileMutation = (
+  options?: Partial<Options<CreateFileData>>,
+): UseMutationOptions<
+  CreateFileResponse,
+  AxiosError<CreateFileError>,
+  Options<CreateFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateFileResponse,
+    AxiosError<CreateFileError>,
+    Options<CreateFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await createFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const browseFilesystemQueryKey = (
+  options?: Options<BrowseFilesystemData>,
+) => createQueryKey('browseFilesystem', options)
+
+/**
+ * Browse filesystem directory
+ * Browse a filesystem directory or S3 bucket and return folders and files in structured format.
+ *
+ * Supports both local filesystem and AWS S3:
+ * - **Local paths**: Relative to storage_root (empty for root) or absolute paths
+ * - **S3 paths**: Use s3://bucket/key format (e.g., s3://my-bucket/path/to/folder/)
+ * - **storage_root**: Base storage directory for local paths (ignored for S3)
+ *
+ * Returns separate arrays for folders and files with name, date, and size information.
+ *
+ * For S3 paths:
+ * - Requires AWS credentials to be configured
+ * - Folders represent S3 prefixes (common prefixes)
+ * - Files show S3 object metadata (size, last modified)
+ *
+ * Examples:
+ * - Local: `/browse?directory_path=project1/data`
+ * - S3: `/browse?directory_path=s3://my-bucket/project1/data/`
+ */
+export const browseFilesystemOptions = (
+  options?: Options<BrowseFilesystemData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await browseFilesystem({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: browseFilesystemQueryKey(options),
+  })
+}
+
+export const listFilesBrowserFormatQueryKey = (
+  options?: Options<ListFilesBrowserFormatData>,
+) => createQueryKey('listFilesBrowserFormat', options)
+
+/**
+ * List database files in browser format
+ * Get database files in FileBrowserData format (files only, no folders).
+ *
+ * This endpoint returns the same file data as the regular list_files endpoint,
+ * but formatted to match the FileBrowserData structure with separate folders and files arrays.
+ * Since database files don't have folder structure, the folders array will be empty.
+ */
+export const listFilesBrowserFormatOptions = (
+  options?: Options<ListFilesBrowserFormatData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listFilesBrowserFormat({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listFilesBrowserFormatQueryKey(options),
+  })
+}
+
+export const listFilesBrowserFormatInfiniteQueryKey = (
+  options?: Options<ListFilesBrowserFormatData>,
+): QueryKey<Options<ListFilesBrowserFormatData>> =>
+  createQueryKey('listFilesBrowserFormat', options, true)
+
+/**
+ * List database files in browser format
+ * Get database files in FileBrowserData format (files only, no folders).
+ *
+ * This endpoint returns the same file data as the regular list_files endpoint,
+ * but formatted to match the FileBrowserData structure with separate folders and files arrays.
+ * Since database files don't have folder structure, the folders array will be empty.
+ */
+export const listFilesBrowserFormatInfiniteOptions = (
+  options?: Options<ListFilesBrowserFormatData>,
+) => {
+  return infiniteQueryOptions<
+    ListFilesBrowserFormatResponse,
+    AxiosError<ListFilesBrowserFormatError>,
+    InfiniteData<ListFilesBrowserFormatResponse>,
+    QueryKey<Options<ListFilesBrowserFormatData>>,
+    | number
+    | Pick<
+        QueryKey<Options<ListFilesBrowserFormatData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListFilesBrowserFormatData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await listFilesBrowserFormat({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: listFilesBrowserFormatInfiniteQueryKey(options),
+    },
+  )
+}
+
+/**
+ * Delete file
+ * Delete a file and its content.
+ *
+ * - **file_id**: The unique file identifier
+ */
+export const deleteFileMutation = (
+  options?: Partial<Options<DeleteFileData>>,
+): UseMutationOptions<
+  DeleteFileResponse,
+  AxiosError<DeleteFileError>,
+  Options<DeleteFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteFileResponse,
+    AxiosError<DeleteFileError>,
+    Options<DeleteFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getFileQueryKey = (options: Options<GetFileData>) =>
+  createQueryKey('getFile', options)
+
+/**
+ * Get file by ID
+ * Get a single file by its file_id.
+ *
+ * - **file_id**: The unique file identifier
+ */
+export const getFileOptions = (options: Options<GetFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getFileQueryKey(options),
+  })
+}
+
+/**
+ * Update file metadata
+ * Update file metadata.
+ *
+ * - **file_id**: The unique file identifier
+ * - **file_update**: Fields to update
+ */
+export const updateFileMutation = (
+  options?: Partial<Options<UpdateFileData>>,
+): UseMutationOptions<
+  UpdateFileResponse,
+  AxiosError<UpdateFileError>,
+  Options<UpdateFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateFileResponse,
+    AxiosError<UpdateFileError>,
+    Options<UpdateFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
+  createQueryKey('downloadFile', options)
+
+/**
+ * Download file content
+ * Download the content of a file.
+ *
+ * - **file_id**: The unique file identifier
+ */
+export const downloadFileOptions = (options: Options<DownloadFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await downloadFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: downloadFileQueryKey(options),
+  })
+}
+
+export const uploadFileContentQueryKey = (
+  options: Options<UploadFileContentData>,
+) => createQueryKey('uploadFileContent', options)
+
+/**
+ * Upload file content
+ * Upload content for an existing file record.
+ *
+ * - **file_id**: The unique file identifier
+ * - **content**: The file content to upload
+ */
+export const uploadFileContentOptions = (
+  options: Options<UploadFileContentData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadFileContent({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadFileContentQueryKey(options),
+  })
+}
+
+/**
+ * Upload file content
+ * Upload content for an existing file record.
+ *
+ * - **file_id**: The unique file identifier
+ * - **content**: The file content to upload
+ */
+export const uploadFileContentMutation = (
+  options?: Partial<Options<UploadFileContentData>>,
+): UseMutationOptions<
+  UploadFileContentResponse,
+  AxiosError<UploadFileContentError>,
+  Options<UploadFileContentData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadFileContentResponse,
+    AxiosError<UploadFileContentError>,
+    Options<UploadFileContentData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadFileContent({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const listFilesForEntityQueryKey = (
+  options: Options<ListFilesForEntityData>,
+) => createQueryKey('listFilesForEntity', options)
+
+/**
+ * List files for a specific entity.
+ * Get all files associated with a specific project or run.
+ * This is the same as /api/v1/files, but scoped to a specific entity.
+ *
+ * - **entity_type**: Either "project" or "run"
+ * - **entity_id**: The project ID or run barcode
+ */
+export const listFilesForEntityOptions = (
+  options: Options<ListFilesForEntityData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listFilesForEntity({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listFilesForEntityQueryKey(options),
+  })
+}
+
+export const listFilesForEntityInfiniteQueryKey = (
+  options: Options<ListFilesForEntityData>,
+): QueryKey<Options<ListFilesForEntityData>> =>
+  createQueryKey('listFilesForEntity', options, true)
+
+/**
+ * List files for a specific entity.
+ * Get all files associated with a specific project or run.
+ * This is the same as /api/v1/files, but scoped to a specific entity.
+ *
+ * - **entity_type**: Either "project" or "run"
+ * - **entity_id**: The project ID or run barcode
+ */
+export const listFilesForEntityInfiniteOptions = (
+  options: Options<ListFilesForEntityData>,
+) => {
+  return infiniteQueryOptions<
+    ListFilesForEntityResponse,
+    AxiosError<ListFilesForEntityError>,
+    InfiniteData<ListFilesForEntityResponse>,
+    QueryKey<Options<ListFilesForEntityData>>,
+    | number
+    | Pick<
+        QueryKey<Options<ListFilesForEntityData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListFilesForEntityData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await listFilesForEntity({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: listFilesForEntityInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const getFileCountForEntityQueryKey = (
+  options: Options<GetFileCountForEntityData>,
+) => createQueryKey('getFileCountForEntity', options)
+
+/**
+ * Get file count for entity
+ * Get the total number of files for a specific project or run.
+ *
+ * - **entity_type**: Either "project" or "run"
+ * - **entity_id**: The project ID or run barcode
+ */
+export const getFileCountForEntityOptions = (
+  options: Options<GetFileCountForEntityData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getFileCountForEntity({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getFileCountForEntityQueryKey(options),
   })
 }

@@ -18,7 +18,7 @@ const copyableStyles = cva(
       },
       size: {
         sm: "text-sm gap-0.25",
-        md: "text-base gap-0.25",
+        md: "text-md gap-0.25",
         lg: "text-lg gap-0.25",
       },
     },

@@ -15,6 +15,48 @@ export type Attribute = {
 }
 
 /**
+ * Body_create_file
+ */
+export type BodyCreateFile = {
+  /**
+   * Filename
+   */
+  filename: string
+  entity_type: EntityType
+  /**
+   * Entity Id
+   */
+  entity_id: string
+  /**
+   * Description
+   */
+  description?: string | null
+  file_type?: FileType
+  /**
+   * Is Public
+   */
+  is_public?: boolean
+  /**
+   * Created By
+   */
+  created_by?: string | null
+  /**
+   * Content
+   */
+  content?: (Blob | File) | null
+}
+
+/**
+ * Body_upload_file_content
+ */
+export type BodyUploadFileContent = {
+  /**
+   * Content
+   */
+  content: Blob | File
+}
+
+/**
  * ConversionResult
  */
 export type ConversionResult = {
@@ -69,6 +111,159 @@ export type DemuxResult = {
    * Readmetrics
    */
   ReadMetrics?: Array<ReadMetricsType>
+}
+
+/**
+ * EntityType
+ * Entity types that can have files
+ */
+export type EntityType = 'project' | 'run'
+
+/**
+ * FileBrowserData
+ * File browser data structure with separate folders and files
+ */
+export type FileBrowserData = {
+  /**
+   * Folders
+   */
+  folders: Array<FileBrowserFolder>
+  /**
+   * Files
+   */
+  files: Array<FileBrowserFile>
+}
+
+/**
+ * FileBrowserFile
+ * File item for file browser
+ */
+export type FileBrowserFile = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Date
+   */
+  date: string
+  /**
+   * Size
+   */
+  size: number
+}
+
+/**
+ * FileBrowserFolder
+ * Folder item for file browser
+ */
+export type FileBrowserFolder = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Date
+   */
+  date: string
+}
+
+/**
+ * FilePublic
+ * Public file representation
+ */
+export type FilePublic = {
+  /**
+   * File Id
+   */
+  file_id: string
+  /**
+   * Filename
+   */
+  filename: string
+  /**
+   * Original Filename
+   */
+  original_filename: string
+  /**
+   * File Size
+   */
+  file_size: number | null
+  /**
+   * Mime Type
+   */
+  mime_type: string | null
+  /**
+   * Description
+   */
+  description: string | null
+  file_type: FileType
+  /**
+   * Upload Date
+   */
+  upload_date: string
+  /**
+   * Created By
+   */
+  created_by: string | null
+  entity_type: EntityType
+  /**
+   * Entity Id
+   */
+  entity_id: string
+  /**
+   * Is Public
+   */
+  is_public: boolean
+  /**
+   * Is Archived
+   */
+  is_archived: boolean
+  storage_backend: StorageBackend
+  /**
+   * Checksum
+   */
+  checksum?: string | null
+}
+
+/**
+ * FileType
+ * File type categories
+ */
+export type FileType =
+  | 'fastq'
+  | 'bam'
+  | 'vcf'
+  | 'samplesheet'
+  | 'metrics'
+  | 'report'
+  | 'log'
+  | 'image'
+  | 'document'
+  | 'other'
+
+/**
+ * FileUpdate
+ * Request model for updating file metadata
+ */
+export type FileUpdate = {
+  /**
+   * Filename
+   */
+  filename?: string | null
+  /**
+   * Description
+   */
+  description?: string | null
+  file_type?: FileType | null
+  /**
+   * Is Public
+   */
+  is_public?: boolean | null
+  /**
+   * Is Archived
+   */
+  is_archived?: boolean | null
 }
 
 /**
@@ -163,6 +358,41 @@ export type IndexMetric = {
   MismatchCounts?: {
     [key: string]: number
   } | null
+}
+
+/**
+ * PaginatedFileResponse
+ * Paginated response for file listings
+ */
+export type PaginatedFileResponse = {
+  /**
+   * Data
+   */
+  data: Array<FilePublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
 }
 
 /**
@@ -290,6 +520,12 @@ export type ReadMetricsType = {
 }
 
 /**
+ * RunStatus
+ * Enumeration of valid sequencing run statuses
+ */
+export type RunStatus = 'In Progress' | 'Uploading' | 'Ready' | 'Resync'
+
+/**
  * SampleCreate
  */
 export type SampleCreate = {
@@ -391,10 +627,7 @@ export type SequencingRunCreate = {
    * Run Folder Uri
    */
   run_folder_uri?: string | null
-  /**
-   * Status
-   */
-  status?: string | null
+  status?: RunStatus | null
   /**
    * Run Time
    */
@@ -429,10 +662,7 @@ export type SequencingRunPublic = {
    * Run Folder Uri
    */
   run_folder_uri: string | null
-  /**
-   * Status
-   */
-  status: string | null
+  status: RunStatus | null
   /**
    * Run Time
    */
@@ -441,6 +671,13 @@ export type SequencingRunPublic = {
    * Barcode
    */
   barcode: string | null
+}
+
+/**
+ * SequencingRunUpdateRequest
+ */
+export type SequencingRunUpdateRequest = {
+  run_status: RunStatus
 }
 
 /**
@@ -476,6 +713,12 @@ export type SequencingRunsPublic = {
    */
   has_prev: boolean
 }
+
+/**
+ * StorageBackend
+ * Storage backend types
+ */
+export type StorageBackend = 'local' | 's3' | 'azure' | 'gcs'
 
 /**
  * UndeterminedType
@@ -936,6 +1179,36 @@ export type GetRunResponses = {
 
 export type GetRunResponse = GetRunResponses[keyof GetRunResponses]
 
+export type UpdateRunData = {
+  body: SequencingRunUpdateRequest
+  path: {
+    /**
+     * Run Barcode
+     */
+    run_barcode: string
+  }
+  query?: never
+  url: '/api/v1/runs/{run_barcode}'
+}
+
+export type UpdateRunErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateRunError = UpdateRunErrors[keyof UpdateRunErrors]
+
+export type UpdateRunResponses = {
+  /**
+   * Successful Response
+   */
+  200: SequencingRunPublic
+}
+
+export type UpdateRunResponse = UpdateRunResponses[keyof UpdateRunResponses]
+
 export type GetRunSamplesheetData = {
   body?: never
   path: {
@@ -1034,6 +1307,438 @@ export type SearchResponses = {
 }
 
 export type SearchResponse2 = SearchResponses[keyof SearchResponses]
+
+export type ListFilesData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Entity Type
+     * Filter by entity type
+     */
+    entity_type?: EntityType | null
+    /**
+     * Entity Id
+     * Filter by entity ID
+     */
+    entity_id?: string | null
+    /**
+     * File Type
+     * Filter by file type
+     */
+    file_type?: FileType | null
+    /**
+     * Search
+     * Search in filename and description
+     */
+    search?: string | null
+    /**
+     * Is Public
+     * Filter by public/private status
+     */
+    is_public?: boolean | null
+    /**
+     * Created By
+     * Filter by creator
+     */
+    created_by?: string | null
+  }
+  url: '/api/v1/files'
+}
+
+export type ListFilesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ListFilesError = ListFilesErrors[keyof ListFilesErrors]
+
+export type ListFilesResponses = {
+  /**
+   * Successful Response
+   */
+  200: PaginatedFileResponse
+}
+
+export type ListFilesResponse = ListFilesResponses[keyof ListFilesResponses]
+
+export type CreateFileData = {
+  body: BodyCreateFile
+  path?: never
+  query?: never
+  url: '/api/v1/files'
+}
+
+export type CreateFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateFileError = CreateFileErrors[keyof CreateFileErrors]
+
+export type CreateFileResponses = {
+  /**
+   * Successful Response
+   */
+  201: FilePublic
+}
+
+export type CreateFileResponse = CreateFileResponses[keyof CreateFileResponses]
+
+export type BrowseFilesystemData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Directory Path
+     * Directory path to browse (local path or s3://bucket/key)
+     */
+    directory_path?: string
+    /**
+     * Storage Root
+     * Storage root directory (ignored for S3 paths)
+     */
+    storage_root?: string
+  }
+  url: '/api/v1/files/browse'
+}
+
+export type BrowseFilesystemErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type BrowseFilesystemError =
+  BrowseFilesystemErrors[keyof BrowseFilesystemErrors]
+
+export type BrowseFilesystemResponses = {
+  /**
+   * Successful Response
+   */
+  200: FileBrowserData
+}
+
+export type BrowseFilesystemResponse =
+  BrowseFilesystemResponses[keyof BrowseFilesystemResponses]
+
+export type ListFilesBrowserFormatData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Entity Type
+     * Filter by entity type
+     */
+    entity_type?: EntityType | null
+    /**
+     * Entity Id
+     * Filter by entity ID
+     */
+    entity_id?: string | null
+    /**
+     * File Type
+     * Filter by file type
+     */
+    file_type?: FileType | null
+    /**
+     * Search
+     * Search in filename and description
+     */
+    search?: string | null
+    /**
+     * Is Public
+     * Filter by public/private status
+     */
+    is_public?: boolean | null
+    /**
+     * Created By
+     * Filter by creator
+     */
+    created_by?: string | null
+  }
+  url: '/api/v1/files/browse-db'
+}
+
+export type ListFilesBrowserFormatErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ListFilesBrowserFormatError =
+  ListFilesBrowserFormatErrors[keyof ListFilesBrowserFormatErrors]
+
+export type ListFilesBrowserFormatResponses = {
+  /**
+   * Successful Response
+   */
+  200: FileBrowserData
+}
+
+export type ListFilesBrowserFormatResponse =
+  ListFilesBrowserFormatResponses[keyof ListFilesBrowserFormatResponses]
+
+export type DeleteFileData = {
+  body?: never
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}'
+}
+
+export type DeleteFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteFileError = DeleteFileErrors[keyof DeleteFileErrors]
+
+export type DeleteFileResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteFileResponse = DeleteFileResponses[keyof DeleteFileResponses]
+
+export type GetFileData = {
+  body?: never
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}'
+}
+
+export type GetFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetFileError = GetFileErrors[keyof GetFileErrors]
+
+export type GetFileResponses = {
+  /**
+   * Successful Response
+   */
+  200: FilePublic
+}
+
+export type GetFileResponse = GetFileResponses[keyof GetFileResponses]
+
+export type UpdateFileData = {
+  body: FileUpdate
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}'
+}
+
+export type UpdateFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateFileError = UpdateFileErrors[keyof UpdateFileErrors]
+
+export type UpdateFileResponses = {
+  /**
+   * Successful Response
+   */
+  200: FilePublic
+}
+
+export type UpdateFileResponse = UpdateFileResponses[keyof UpdateFileResponses]
+
+export type DownloadFileData = {
+  body?: never
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}/content'
+}
+
+export type DownloadFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DownloadFileError = DownloadFileErrors[keyof DownloadFileErrors]
+
+export type DownloadFileResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
+export type UploadFileContentData = {
+  body: BodyUploadFileContent
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}/content'
+}
+
+export type UploadFileContentErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UploadFileContentError =
+  UploadFileContentErrors[keyof UploadFileContentErrors]
+
+export type UploadFileContentResponses = {
+  /**
+   * Successful Response
+   */
+  200: FilePublic
+}
+
+export type UploadFileContentResponse =
+  UploadFileContentResponses[keyof UploadFileContentResponses]
+
+export type ListFilesForEntityData = {
+  body?: never
+  path: {
+    entity_type: EntityType
+    /**
+     * Entity Id
+     */
+    entity_id: string
+  }
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * File Type
+     * Filter by file type
+     */
+    file_type?: FileType | null
+  }
+  url: '/api/v1/files/entity/{entity_type}/{entity_id}'
+}
+
+export type ListFilesForEntityErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ListFilesForEntityError =
+  ListFilesForEntityErrors[keyof ListFilesForEntityErrors]
+
+export type ListFilesForEntityResponses = {
+  /**
+   * Successful Response
+   */
+  200: PaginatedFileResponse
+}
+
+export type ListFilesForEntityResponse =
+  ListFilesForEntityResponses[keyof ListFilesForEntityResponses]
+
+export type GetFileCountForEntityData = {
+  body?: never
+  path: {
+    entity_type: EntityType
+    /**
+     * Entity Id
+     */
+    entity_id: string
+  }
+  query?: never
+  url: '/api/v1/files/entity/{entity_type}/{entity_id}/count'
+}
+
+export type GetFileCountForEntityErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetFileCountForEntityError =
+  GetFileCountForEntityErrors[keyof GetFileCountForEntityErrors]
+
+export type GetFileCountForEntityResponses = {
+  /**
+   * Response Get File Count For Entity
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type GetFileCountForEntityResponse =
+  GetFileCountForEntityResponses[keyof GetFileCountForEntityResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})

@@ -134,7 +134,7 @@ function RouteComponent() {
       <div className='flex flex-col gap-12 max-w-[40rem] mt-4 mb-15'>
         <Stepper
           activeStep={state.activeStep}
-          showFutureSteps={false}
+          showFutureSteps={true}
           steps={[
             {
               label: "Choose Action",
@@ -156,7 +156,7 @@ function RouteComponent() {
             {
               label: "Select Platform",
               description: "Which platform should execute this action?",
-              content: !!state.projectAction.value && (
+              content: (
                 <>
                   <div className='flex flex-col flex-1'>
                     <ComboBox
@@ -174,7 +174,7 @@ function RouteComponent() {
             {
               label: "Project Type",
               description: "What type of project is this?",
-              content: !!state.projectPlatform.value && (
+              content: (
                 <>
                   <div className='flex flex-col flex-1 gap-4'>
                     <ComboBox

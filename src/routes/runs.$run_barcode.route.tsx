@@ -1,9 +1,8 @@
 import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
 import { AxiosError } from 'axios'
 import { ChartBar, FileSpreadsheet, FolderOpen, PlayCircle, RotateCw, Upload } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { ChangeEvent } from 'react';
-import type { FileBrowserData } from '@/components/file-browser';
 import { getRun } from '@/client'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
@@ -49,19 +48,6 @@ function RouteComponent() {
       console.log(e.target.files[0])
     }
   }
-
-  // Import file browser data (replace with API)
-  const [fileData, setFileData] = useState<FileBrowserData>();
-  useEffect(() => {
-    const fetchData = async () => {
-      const res = await fetch('/data/example_runs_file.json')
-      if (!res.ok) throw new Error('Unable to fetch file data')
-      const data = await res.json()
-      setFileData(data)
-    }
-    fetchData()
-  }, [])
-  
 
   return (
     <>
@@ -117,10 +103,11 @@ function RouteComponent() {
                           </Button>
                         </TooltipTrigger>
                       )}
-                      data={fileData}
-                      rootPath={`illumina/${run.barcode}/`}
-                    >
-                    </FileBrowserDialog>
+                      queryParams={{
+                        storage_root: `storage/run`,
+                        directory_path: run.barcode || ''
+                      }}
+                    />
                     <TooltipContent>
                       Browse Run Folder
                     </TooltipContent>

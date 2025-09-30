@@ -124,8 +124,13 @@ function RouteComponent() {
       if (!res.ok) {
         throw new Error('Unable to fetch vendor data')
       }
-      const options = await res.json()
-      setVendorOptions(options)
+      const options: Array<ComboBoxOption> = await res.json()
+      const newOptions = options.map(opt => ({
+        label: `${opt.label} (${opt.value})`,
+        value: opt.value,
+        description: opt.description,
+      }))
+      setVendorOptions(newOptions)
     }
     fetchVendors()
   }, [])
@@ -252,10 +257,11 @@ function RouteComponent() {
                                   </Button>
                                 </TooltipTrigger>
                               )}
-                              data={vendorBucketData}
-                              rootPath={`/`} // selectedVendor will go here
-                            >
-                            </FileBrowserDialog>
+                              queryParams={{
+                                directory_path: state.selectedVendor.value,
+                                storage_root: 'storage/vendor'
+                              }}
+                            />
                             <TooltipContent>
                               Browse Vendor Bucket
                             </TooltipContent>
@@ -294,8 +300,10 @@ function RouteComponent() {
                                 </div>
                               </div>
                             )}
-                            data={vendorBucketData}
-                            rootPath={`/`}
+                            queryParams={{
+                              directory_path: state.sourceIsData ? project.project_id : state.selectedVendor.value,
+                              storage_root: state.sourceIsData ? 'storage/project' : 'storage/vendor'
+                            }}
                           />
                         </div>
 

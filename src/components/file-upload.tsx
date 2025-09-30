@@ -11,6 +11,13 @@ interface FileUploadProps {
 
   /** Text to display when the drag is active */
   dragActiveComponent?: React.ReactElement
+
+  /** onDrop callback */
+  onDrop?: (
+    acceptedFiles: Array<File>,
+    fileRejections?: Array<FileRejection>,
+    event?: DropEvent
+  ) => void
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
@@ -23,18 +30,19 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     <span className="text-primary hover:underline mx-2">
       Drop to upload
     </span>
-  )
+  ),
+  onDrop: onDropProp
 }) => {
 
-  const onDrop = useCallback((
+  const onDrop = onDropProp ?? useCallback((
     acceptedFiles: Array<File>,
     fileRejections: Array<FileRejection>,
     event: DropEvent
   ) => {
     console.log(acceptedFiles);
     console.log(fileRejections);
-    console.log(event)
-  }, [])
+    console.log(event);
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

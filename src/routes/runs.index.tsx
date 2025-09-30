@@ -135,12 +135,30 @@ function RouteComponent() {
     {
       accessorKey: 'machine_id',
       meta: { alias: "Instrument" },
-      header: "Instrument"
+      header: "Instrument",
+      cell: ({ cell }) => {
+        const value = cell.getValue() as string
+        return (
+          <CopyableText
+            text={value}
+            variant='hover'
+          />
+        )
+      }
     },
     {
       accessorKey: 'flowcell_id',
       meta: { alias: "Flowcell" },
-      header: "Flowcell"
+      header: "Flowcell",
+      cell: ({ cell }) => {
+        const value = cell.getValue() as string
+        return (
+          <CopyableText
+            text={value}
+            variant='hover'
+          />
+        )
+      }
     },
     {
       accessorKey: 'run_date',
@@ -166,7 +184,7 @@ function RouteComponent() {
       <ServerDataTable
         data={data.data}
         columns={columns}
-        columnVisibility={{s3_run_folder_path: false}}
+        columnVisibility={{ run_folder_uri: false}}
         globalFilter={globalFilter}
         onFilterChange={setGlobalFilter}
         pagination={pagination}

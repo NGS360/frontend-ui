@@ -103,7 +103,7 @@ function RouteComponent() {
   const columns: Array<ColumnDef<ProjectPublic>> = [
     {
       accessorKey: 'project_id',
-      meta: { alias: 'Project ID' },
+      meta: { alias: 'Project ID', tdClassName: 'align-top' },
       header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
       cell: ({ cell }) => {
         const project_id = cell.getValue() as string
@@ -126,31 +126,29 @@ function RouteComponent() {
     },
     {
       accessorKey: 'name',
-      meta: { alias: 'Project Name' },
+      meta: { alias: 'Project Name', tdClassName: 'align-top' },
       header: ({ column }) => <SortableHeader column={column} name="Project Name" />,
       cell: ({ row }) => {
         const name: string = row.getValue('name')
         const attributes: Array<Attribute> = row.original.attributes ?? []
         return (
-          <>
-            <div className='flex flex-col gap-2 break-words whitespace-normal'>
-              <span className='text-sm'> {/* Use line-clamp-1 here to truncate */}
-                {name}
-              </span>
-              <div className='flex flex-wrap gap-0.5'>
-                {attributes.map((a) => (
-                  <div
-                    key={a.key}
-                    className='text-muted-foreground border-1 rounded-full px-2 text-xs'
-                  >
-                    <span>
-                      {a.key}: {a.value && a.value.length > 50 ? a.value.slice(0, 50) + "..." : a.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
+          <div className='flex flex-col gap-2 break-words whitespace-normal'>
+            <span className='text-sm'> {/* Use line-clamp-1 here to truncate */}
+              {name}
+            </span>
+            <div className='flex flex-wrap gap-0.5'>
+              {attributes.map((a) => (
+                <div
+                  key={a.key}
+                  className='text-muted-foreground border-1 rounded-full px-2 text-xs'
+                >
+                  <span>
+                    {a.key}: {a.value && a.value.length > 50 ? a.value.slice(0, 50) + "..." : a.value}
+                  </span>
+                </div>
+              ))}
             </div>
-          </>
+          </div>
         )
       }
     }

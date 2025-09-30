@@ -1,36 +1,21 @@
-import {  useState } from "react";
+import { useState } from "react";
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Folder, Undo2 } from "lucide-react";
 import { ClientDataTable } from "./data-table/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
+import { browseFilesystemOptions } from '@/client/@tanstack/react-query.gen';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SortableHeader } from "@/components/data-table/sortable-header";
 
 // Helper function for formatting bytes
 function formatBytes(bytes: number, decimals = 2) {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const dm = Math.max(0, decimals)
-  const idx = Math.floor(Math.log(bytes) / Math.log(k))
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  return parseFloat((bytes / Math.pow(k, idx)).toFixed(dm)) + ' ' + sizes[idx]
-}
-
-// Define shape for file browser data
-export interface FileBrowserData {
-  folders: [
-    {
-      name: string,
-      date: string
-    }
-  ],
-  files: [
-    {
-      name: string,
-      date: string,
-      size: number
-    }
-  ]
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const dm = Math.max(0, decimals);
+  const idx = Math.floor(Math.log(bytes) / Math.log(k));
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  return parseFloat((bytes / Math.pow(k, idx)).toFixed(dm)) + ' ' + sizes[idx];
 }
 
 // Define column structure
@@ -41,42 +26,55 @@ interface FileBrowserColumns {
   dir: boolean
 }
 
+
 // File browser component
 interface FileBrowserProps {
-  /** Data to populate the file browser table */
-  data: FileBrowserData | undefined,
-
-  /** Root path (bucket and subdirectories) of the contents */
-  rootPath: string,
-
-  /** Optionally control the current root directory */
-  root?: string,
-  setRoot?: (root: string) => void,
+  /** Query params for browseFilesystem (must include directory_path, storage_root, etc) */
+  queryParams: Record<string, any>;
+  /** Optional header to display current path */
+  showHeader?: boolean;
+  /** Optional callback when directory path changes */
+  onDirectoryChange?: (path: string) => void;
 }
 
 export const FileBrowser: React.FC<FileBrowserProps> = ({
-  data,
-  rootPath,
-  root: controlledRoot,
-  setRoot: controlledSetRoot,
+  queryParams,
+  showHeader = false,
+  onDirectoryChange,
 }) => {
-  // Use controlled root if provided, otherwise manage internally
-  const [uncontrolledRoot, setUncontrolledRoot] = useState<string>(rootPath);
-  const root = controlledRoot !== undefined ? controlledRoot : uncontrolledRoot;
-  const setRoot = controlledSetRoot !== undefined ? controlledSetRoot : setUncontrolledRoot;
+  // Manage directory path internally
+  const initialPath = queryParams.directory_path || '';
+  const [directoryPath, setDirectoryPath] = useState<string>(initialPath);
+
+  // Wrapper for setDirectoryPath that also calls the callback
+  const handleDirectoryChange = (newPath: string) => {
+    setDirectoryPath(newPath);
+    onDirectoryChange?.(newPath);
+  };
+
+  // Query for file/folder data using browseFilesystem
+  const { data, isLoading, isError, error } = useQuery({
+    ...browseFilesystemOptions({
+      query: {
+        ...queryParams,
+        directory_path: directoryPath,
+      },
+    }),
+    placeholderData: keepPreviousData
+  });
 
   // Reformat the data into a structure suitable for rendering to a table
   const tableData: Array<FileBrowserColumns> = [];
-  data?.folders.forEach((d) => {
-    const newName = d.name.replace(rootPath, '');
+  data?.folders?.forEach((d) => {
+    const newName = d.name.replace(directoryPath, '').replace(/^\//, '');
     tableData.push({
       name: newName,
       date: d.date,
       dir: true,
     });
   });
-  data?.files.forEach((d) => {
-    const newName = d.name.replace(rootPath, '');
+  data?.files?.forEach((d) => {
+    const newName = d.name.replace(directoryPath, '').replace(/^\//, '');
     tableData.push({
       name: newName,
       date: d.date,
@@ -87,15 +85,22 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
   // Define up/down directory click handlers
   const downDirClickHandler = (next: string) => {
-    const newRoot = root + next;
-    setRoot(newRoot);
-    console.log(newRoot);
+    let newPath = directoryPath;
+    if (!newPath.endsWith('/')) newPath += '/';
+    newPath += next;
+    if (!newPath.endsWith('/')) newPath += '/';
+    handleDirectoryChange(newPath);
   };
   const upDirClickHandler = () => {
-    const newRoot = root.split('/').filter(Boolean).slice(0, -1).join('/') + '/';
-    setRoot(newRoot);
-    console.log(newRoot);
+    const parts = directoryPath.split('/').filter(Boolean);
+    if (parts.length === 0) return;
+    const newPath = parts.slice(0, -1).join('/') + (parts.length > 1 ? '/' : '');
+    handleDirectoryChange(newPath || '');
   };
+
+  // Only show "Up a level" if normalized directoryPath and initialPath differ
+  const normalizedPath = directoryPath.replace(/\/+$/, '');
+  const normalizedInitial = initialPath.replace(/\/+$/, '');
 
   // Define columns for file display component
   const columns: Array<ColumnDef<FileBrowserColumns>> = [
@@ -139,39 +144,55 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     },
   ];
 
+  if (isLoading) {
+    return <div className="p-4 text-center text-muted-foreground">Loading...</div>;
+  }
+  if (isError) {
+    return <div className="p-4 text-center text-destructive">Error: {error.message || 'Failed to load directory.'}</div>;
+  }
+
+  // Compose display path for header (same logic as dialog)
+  let displayRoot = directoryPath;
+  if (queryParams.storage_root) {
+    displayRoot = `${queryParams.storage_root}${directoryPath ? '/' + directoryPath.replace(/^\/+/, '') : ''}`;
+  }
+
   return (
-    <ClientDataTable
-      data={tableData}
-      columns={columns}
-      renderCustomRowComponent={root !== rootPath}
-      customRowComponent={() => (
-        <span
-          className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
-          onClick={upDirClickHandler}
-        >
-          <Undo2 className={`size-4`} />
-          Up a level
-        </span>
+    <div className="flex flex-col gap-4">
+      {showHeader && (
+        <h2 className="text-lg font-medium text-muted-foreground break-words">
+          Files for {displayRoot || queryParams.storage_root || ''}
+        </h2>
       )}
-    />
+      <ClientDataTable
+        data={tableData}
+        columns={columns}
+        renderCustomRowComponent={normalizedPath !== normalizedInitial}
+        customRowComponent={() => (
+          <span
+            className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
+            onClick={upDirClickHandler}
+          >
+            <Undo2 className={`size-4`} />
+            Up a level
+          </span>
+        )}
+      />
+    </div>
   );
 };
 
 // File browser dialog component
-interface FileBrowserDialogProps 
-  extends FileBrowserProps {
+interface FileBrowserDialogProps {
+  /** Query params for browseFilesystem (must include directory_path, storage_root, etc) */
+  queryParams: Record<string, any>;
   /** Child element that triggers the dialog to open */
-  trigger: React.ReactElement,
-
-  /** Title that is displyed in the dialog title in the header */
-  title?: string
+  trigger: React.ReactElement;
 }
 
 export const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
   trigger,
-  data,
-  rootPath,
-  title = `Files for s3://${rootPath}`,
+  queryParams,
 }) => {
   // Control dialog open/close state
   const [isOpen, setIsOpen] = useState(false);
@@ -179,8 +200,14 @@ export const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
     setIsOpen(willOpen);
   };
 
-  // Control root state for FileBrowser
-  const [root, setRoot] = useState<string>(rootPath);
+  // Track current directory for title updates
+  const [currentDirectory, setCurrentDirectory] = useState<string>(queryParams.directory_path || '');
+
+  // Compose display path for header
+  let displayRoot = currentDirectory;
+  if (queryParams.storage_root) {
+    displayRoot = `${queryParams.storage_root}${currentDirectory ? '/' + currentDirectory.replace(/^\/+/, '') : ''}`;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
@@ -188,16 +215,14 @@ export const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
       <DialogContent className="!max-w-4xl">
         <DialogHeader>
           <DialogTitle className="text-muted-foreground max-w-3xl text-wrap break-words whitespace-normal">
-            {root !== rootPath ? `Files for s3://${root}` : title}
+            Files for {displayRoot || queryParams.storage_root || ''}
           </DialogTitle>
           <DialogDescription className="hidden">Browse files in bucket</DialogDescription>
         </DialogHeader>
         <div className="overflow-auto px-2 pt-2">
           <FileBrowser
-            data={data}
-            rootPath={rootPath}
-            root={root}
-            setRoot={setRoot}
+            queryParams={queryParams}
+            onDirectoryChange={setCurrentDirectory}
           />
         </div>
         <DialogFooter>

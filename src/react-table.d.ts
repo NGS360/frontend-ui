@@ -6,5 +6,7 @@ declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     /** Column alias name - used for column toggle display */
     alias?: string
+    /** Custom class for the table cell */
+    tdClassName?: string
   }
 }
