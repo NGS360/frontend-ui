@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Folder, Undo2 } from "lucide-react";
 import { ClientDataTable } from "./data-table/data-table";
@@ -18,6 +18,11 @@ function formatBytes(bytes: number, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, idx)).toFixed(dm)) + ' ' + sizes[idx];
 }
 
+// Helper function to normalize file names
+function normalizeFileName(fullPath: string, currentPath: string) {
+  return fullPath.replace(currentPath, '').replace(/^\//, '');
+}
+
 // Define column structure
 interface FileBrowserColumns {
   name: string,
@@ -26,29 +31,39 @@ interface FileBrowserColumns {
   dir: boolean
 }
 
-
 // File browser component
 interface FileBrowserProps {
-  /** Query params for browseFilesystem (must include directory_path, storage_root, etc) */
-  queryParams: Record<string, any>;
+
+  /** Root path - user unable to navigate above here */
+  rootPath: string;
+  
+  /** Full path to browse */
+  directoryPath?: string;
+
   /** Optional header to display current path */
   showHeader?: boolean;
+
   /** Optional callback when directory path changes */
   onDirectoryChange?: (path: string) => void;
 }
 
 export const FileBrowser: React.FC<FileBrowserProps> = ({
-  queryParams,
+  rootPath,
+  directoryPath = rootPath,
   showHeader = false,
   onDirectoryChange,
 }) => {
-  // Manage directory path internally
-  const initialPath = queryParams.directory_path || '';
-  const [directoryPath, setDirectoryPath] = useState<string>(initialPath);
+  // Manage directory path internally, but initialize with directoryPath
+  const [currentDirectoryPath, setCurrentDirectoryPath] = useState<string>(directoryPath);
+
+  // Update internal state when directoryPath prop changes
+  useEffect(() => {
+    setCurrentDirectoryPath(directoryPath);
+  }, [directoryPath]);
 
   // Wrapper for setDirectoryPath that also calls the callback
   const handleDirectoryChange = (newPath: string) => {
-    setDirectoryPath(newPath);
+    setCurrentDirectoryPath(newPath);
     onDirectoryChange?.(newPath);
   };
 
@@ -56,51 +71,45 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   const { data, isLoading, isError, error } = useQuery({
     ...browseFilesystemOptions({
       query: {
-        ...queryParams,
-        directory_path: directoryPath,
+        directory_path: currentDirectoryPath,
       },
     }),
     placeholderData: keepPreviousData
   });
 
   // Reformat the data into a structure suitable for rendering to a table
-  const tableData: Array<FileBrowserColumns> = [];
-  data?.folders?.forEach((d) => {
-    const newName = d.name.replace(directoryPath, '').replace(/^\//, '');
-    tableData.push({
-      name: newName,
+  const tableData: Array<FileBrowserColumns> = [
+    ...(data?.folders?.map((d) => ({
+      name: normalizeFileName(d.name, currentDirectoryPath),
       date: d.date,
       dir: true,
-    });
-  });
-  data?.files?.forEach((d) => {
-    const newName = d.name.replace(directoryPath, '').replace(/^\//, '');
-    tableData.push({
-      name: newName,
+    })) || []),
+    ...(data?.files?.map((d) => ({
+      name: normalizeFileName(d.name, currentDirectoryPath),
       date: d.date,
       size: d.size,
       dir: false,
-    });
-  });
+    })) || [])
+  ];
 
   // Define up/down directory click handlers
   const downDirClickHandler = (next: string) => {
-    let newPath = directoryPath;
-    if (!newPath.endsWith('/')) newPath += '/';
-    newPath += next;
-    if (!newPath.endsWith('/')) newPath += '/';
+    const newPath = currentDirectoryPath.endsWith('/') 
+      ? `${currentDirectoryPath}${next}/`
+      : `${currentDirectoryPath}/${next}/`;
     handleDirectoryChange(newPath);
   };
   const upDirClickHandler = () => {
-    const parts = directoryPath.split('/').filter(Boolean);
+    const parts = currentDirectoryPath.split('/').filter(Boolean);
     if (parts.length === 0) return;
-    const newPath = parts.slice(0, -1).join('/') + (parts.length > 1 ? '/' : '');
-    handleDirectoryChange(newPath || '');
+    
+    // Don't allow navigation above rootPath
+    const rootParts = rootPath.split('/').filter(Boolean);
+    if (parts.length <= rootParts.length) return;
+    
+    const newPath = '/' + parts.slice(0, -1).join('/') + (parts.length > 1 ? '/' : '');
+    handleDirectoryChange(newPath);
   };
-
-  // Only show "Up a level" if normalized directoryPath and initialPath differ
-  const normalizedPath = directoryPath.replace(/\/+$/, '');
-  const normalizedInitial = initialPath.replace(/\/+$/, '');
 
   // Define columns for file display component
   const columns: Array<ColumnDef<FileBrowserColumns>> = [
@@ -109,15 +118,14 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       meta: { alias: 'Name' },
       header: ({ column }) => <SortableHeader column={column} name="Name" />,
       cell: ({ cell }) => {
-        const isDir = cell.row.original.dir;
-        const value = cell.row.original.name;
+        const { dir, name } = cell.row.original;
         return (
           <span
             className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
-            onClick={() => (isDir ? downDirClickHandler(value) : undefined)}
+            onClick={() => dir && downDirClickHandler(name)}
           >
-            <Folder className={`size-4 ${isDir ? 'opacity-100' : 'opacity-0'}`} />
-            {isDir ? value.replace('/', '') : value}
+            <Folder className={`size-4 ${dir ? 'opacity-100' : 'opacity-0'}`} />
+            {dir ? name.replace('/', '') : name}
           </span>
         );
       },
@@ -127,9 +135,8 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       meta: { alias: 'Size' },
       header: ({ column }) => <SortableHeader column={column} name="Size" />,
       cell: ({ row }) => {
-        const isDir = row.original.dir;
-        const size = row.original.size;
-        return !isDir && size != null ? formatBytes(size) : '-';
+        const { dir, size } = row.original;
+        return !dir && size != null ? formatBytes(size) : '-';
       },
     },
     {
@@ -137,9 +144,8 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       meta: { alias: 'Modified' },
       header: ({ column }) => <SortableHeader column={column} name="Modified" />,
       cell: ({ row }) => {
-        const raw = row.original.date;
-        const value = raw !== '-' ? new Date(raw).toLocaleString() : '-';
-        return value;
+        const { date } = row.original;
+        return date !== '-' ? new Date(date).toLocaleString() : '-';
       },
     },
   ];
@@ -151,23 +157,17 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     return <div className="p-4 text-center text-destructive">Error: {error.message || 'Failed to load directory.'}</div>;
   }
 
-  // Compose display path for header (same logic as dialog)
-  let displayRoot = directoryPath;
-  if (queryParams.storage_root) {
-    displayRoot = `${queryParams.storage_root}${directoryPath ? '/' + directoryPath.replace(/^\/+/, '') : ''}`;
-  }
-
   return (
     <div className="flex flex-col gap-4">
       {showHeader && (
         <h2 className="text-lg font-medium text-muted-foreground break-words">
-          Files for {displayRoot || queryParams.storage_root || ''}
+          Files for {currentDirectoryPath}
         </h2>
       )}
       <ClientDataTable
         data={tableData}
         columns={columns}
-        renderCustomRowComponent={normalizedPath !== normalizedInitial}
+        renderCustomRowComponent={currentDirectoryPath !== rootPath}
         customRowComponent={() => (
           <span
             className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
@@ -183,45 +183,33 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 };
 
 // File browser dialog component
-interface FileBrowserDialogProps {
-  /** Query params for browseFilesystem (must include directory_path, storage_root, etc) */
-  queryParams: Record<string, any>;
+interface FileBrowserDialogProps extends Omit<FileBrowserProps, 'onDirectoryChange' | 'showHeader'> {
   /** Child element that triggers the dialog to open */
   trigger: React.ReactElement;
 }
 
 export const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
   trigger,
-  queryParams,
+  rootPath,
+  directoryPath = rootPath
 }) => {
-  // Control dialog open/close state
   const [isOpen, setIsOpen] = useState(false);
-  const handleOnOpenChange = (willOpen: boolean) => {
-    setIsOpen(willOpen);
-  };
-
-  // Track current directory for title updates
-  const [currentDirectory, setCurrentDirectory] = useState<string>(queryParams.directory_path || '');
-
-  // Compose display path for header
-  let displayRoot = currentDirectory;
-  if (queryParams.storage_root) {
-    displayRoot = `${queryParams.storage_root}${currentDirectory ? '/' + currentDirectory.replace(/^\/+/, '') : ''}`;
-  }
-
+  const [currentDirectory, setCurrentDirectory] = useState<string>(directoryPath);
+  
   return (
-    <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="!max-w-4xl">
         <DialogHeader>
           <DialogTitle className="text-muted-foreground max-w-3xl text-wrap break-words whitespace-normal">
-            Files for {displayRoot || queryParams.storage_root || ''}
+            Files for {currentDirectory}
           </DialogTitle>
           <DialogDescription className="hidden">Browse files in bucket</DialogDescription>
         </DialogHeader>
         <div className="overflow-auto px-2 pt-2">
           <FileBrowser
-            queryParams={queryParams}
+            rootPath={rootPath}
+            directoryPath={currentDirectory}
             onDirectoryChange={setCurrentDirectory}
           />
         </div>

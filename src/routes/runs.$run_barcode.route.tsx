@@ -145,10 +145,7 @@ function RouteComponent() {
                           </Button>
                         </TooltipTrigger>
                       )}
-                      queryParams={{
-                        storage_root: `storage/run`,
-                        directory_path: run.barcode || ''
-                      }}
+                      rootPath={`${run.run_folder_uri}/`}
                     />
                     <TooltipContent>
                       Browse Run Folder

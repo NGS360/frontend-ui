@@ -30,19 +30,13 @@ function RouteComponent() {
           <TabsContent value="data">
             <FileBrowser
               showHeader={true}
-              queryParams={{
-                directory_path: project.project_id ? 'PROJ001' : 'PROJ001',
-                storage_root: `storage/project`
-              }}
+              rootPath='/app/storage/project/PROJ001/'
             />
           </TabsContent>
           <TabsContent value="results">
             <FileBrowser
               showHeader={true}
-              queryParams={{
-                directory_path: project.project_id ? 'PROJ001' : 'PROJ001',
-                storage_root: `storage/project`
-              }}
+              rootPath='/app/storage/project/PROJ001/'
             />
           </TabsContent>
         </Tabs>
