@@ -257,10 +257,9 @@ function RouteComponent() {
                                   </Button>
                                 </TooltipTrigger>
                               )}
-                              queryParams={{
-                                directory_path: state.selectedVendor.value,
-                                storage_root: 'storage/vendor'
-                              }}
+                              rootPath={state.selectedVendor.value === '' 
+                                ? '/'
+                                : `/${state.selectedVendor.value}/`}
                             />
                             <TooltipContent>
                               Browse Vendor Bucket
@@ -300,10 +299,7 @@ function RouteComponent() {
                                 </div>
                               </div>
                             )}
-                            queryParams={{
-                              directory_path: state.sourceIsData ? project.project_id : state.selectedVendor.value,
-                              storage_root: state.sourceIsData ? 'storage/project' : 'storage/vendor'
-                            }}
+                            rootPath={'/'}
                           />
                         </div>
 

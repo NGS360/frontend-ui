@@ -10,7 +10,11 @@ export const Route = createFileRoute('/projects/$project_id/files/')({
 function RouteComponent() {
   // Load project data
   const routeApi = getRouteApi('/projects/$project_id')
-  const { project } = routeApi.useLoaderData()
+  const { project: _project } = routeApi.useLoaderData()
+
+  // Set data and results bucket URIs
+  const DATA_BUCKET_URI = import.meta.env.VITE_DATA_BUCKET_URI || ''
+  const RESULTS_BUCKET_URI = import.meta.env.VITE_RESULTS_BUCKET_URI || ''
 
   return (
     <>
@@ -30,13 +34,13 @@ function RouteComponent() {
           <TabsContent value="data">
             <FileBrowser
               showHeader={true}
-              rootPath='/app/storage/project/PROJ001/'
+              rootPath={`${DATA_BUCKET_URI}/`}
             />
           </TabsContent>
           <TabsContent value="results">
             <FileBrowser
               showHeader={true}
-              rootPath='/app/storage/project/PROJ001/'
+              rootPath={`${RESULTS_BUCKET_URI}/`}
             />
           </TabsContent>
         </Tabs>

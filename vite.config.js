@@ -28,4 +28,7 @@ export default defineConfig({
       usePolling: true,
     },
   },
+  build: {
+    sourcemap: true
+  },
 })

@@ -10,7 +10,7 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { FullscreenDropzone } from '@/components/file-upload'
 import { NotFoundComponent } from '@/components/samplesheet-not-found-component'
-import { createFileMutation, getRunSamplesheetOptions, getRunSamplesheetQueryKey } from '@/client/@tanstack/react-query.gen'
+import { getRunSamplesheetOptions, getRunSamplesheetQueryKey, postRunSamplesheetMutation } from '@/client/@tanstack/react-query.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 
 export const Route = createFileRoute('/runs/$run_barcode/samplesheet/')({
@@ -39,7 +39,7 @@ function RouteComponent() {
 
   // File upload mutation
   const { mutate } = useMutation({
-    ...createFileMutation(),
+    ...postRunSamplesheetMutation(),
     onSuccess: (data) => {
       console.log(data);
       // Invalidate the query for the run to refresh samplesheet info
@@ -50,7 +50,7 @@ function RouteComponent() {
           }
         })
       });
-      toast.success(`${data.filename} for run ${run_barcode} uploaded successfully`);
+      toast.success(`Samplesheet for run ${run_barcode} uploaded successfully`);
     },
     onError: (uploadError) => {
       console.error(uploadError);
@@ -60,16 +60,14 @@ function RouteComponent() {
   // File upload handler (moved to top to avoid hook order issues)
   const onDrop = useCallback((acceptedFiles: Array<File>) => {
     if (acceptedFiles.length > 0) {
-      mutate({ body: {
-        filename: acceptedFiles[0].name,
-        content: acceptedFiles[0],
-        entity_type: "run",
-        entity_id: run_barcode,
-        file_type: "samplesheet",
-        created_by: "current_user",
-        description: "Uploaded via UI",
-        is_public: false
-      }});
+      mutate({
+        path: {
+          run_barcode: run_barcode
+        },
+        body: {
+          file: acceptedFiles[0]
+        }
+      });
     } else {
       console.error("No files accepted");
     }

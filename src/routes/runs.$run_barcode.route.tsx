@@ -6,7 +6,7 @@ import { useRef } from 'react'
 import { toast } from 'sonner'
 import type { ChangeEvent } from 'react';
 import { getRun } from '@/client'
-import { createFileMutation, getRunSamplesheetQueryKey } from '@/client/@tanstack/react-query.gen'
+import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from '@/client/@tanstack/react-query.gen'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -43,7 +43,7 @@ function RouteComponent() {
 
   // File upload mutation
   const { mutate } = useMutation({
-    ...createFileMutation(),
+    ...postRunSamplesheetMutation(),
     onSuccess: (data) => {
       console.log(data);
       // Invalidate the query for the run to refresh samplesheet info
@@ -54,7 +54,7 @@ function RouteComponent() {
           }
         })
       });
-      toast.success(`${data.filename} for run ${run.barcode} uploaded successfully`);
+      toast.success(`Samplesheet for run ${run.barcode} uploaded successfully`);
     },
     onError: (uploadError) => {
       console.error(uploadError);
@@ -74,15 +74,11 @@ function RouteComponent() {
       
       // Upload file using the mutation
       mutate({ 
+        path: {
+          run_barcode: run.barcode as string
+        },
         body: {
-          filename: file.name,
-          content: file,
-          entity_type: "run",
-          entity_id: run.barcode as string,
-          file_type: "samplesheet",
-          created_by: "current_user",
-          description: "Uploaded via UI",
-          is_public: false
+          file: file
         }
       });
       
@@ -125,6 +121,9 @@ function RouteComponent() {
                       <Button
                         variant='ghost'
                         size='icon'
+                        onClick={() => {
+                          console.log('Re-sync run')
+                        }}
                       >
                         <RotateCw />
                       </Button>

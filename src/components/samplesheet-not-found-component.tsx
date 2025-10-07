@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { FileUpload } from "@/components/file-upload"
-import { createFileMutation, getRunSamplesheetQueryKey } from "@/client/@tanstack/react-query.gen";
+import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from "@/client/@tanstack/react-query.gen";
 
 // Define error component for samplesheet path
 export const NotFoundComponent = () => {
@@ -16,7 +16,7 @@ export const NotFoundComponent = () => {
 
   // File upload mutation
   const { mutate } = useMutation({
-    ...createFileMutation(),
+    ...postRunSamplesheetMutation(),
     onSuccess: (data) => {
       console.log(data);
       // Invalidate the query for the run to refresh samplesheet info
@@ -27,7 +27,7 @@ export const NotFoundComponent = () => {
           }
         })
       });
-      toast.success(`${data.filename} for run ${run_barcode} uploaded successfully`);
+      toast.success(`Samplesheet for run ${run_barcode} uploaded successfully`);
     },
     onError: (error) => {
       console.error(error);
@@ -39,16 +39,14 @@ export const NotFoundComponent = () => {
     acceptedFiles: Array<File>
   ) => {
     if (acceptedFiles.length > 0) {
-      mutate({ body: {
-        filename: acceptedFiles[0].name,
-        content: acceptedFiles[0],
-        entity_type: "run",
-        entity_id: run_barcode,
-        file_type: "samplesheet",
-        created_by: "current_user",
-        description: "Uploaded via UI",
-        is_public: false
-      }});
+      mutate({ 
+        path: {
+          run_barcode: run_barcode
+        },
+        body: {
+          file: acceptedFiles[0],
+        }
+      });
     } else {
       console.error("No files accepted");
     }

@@ -15,27 +15,9 @@ import type {
   AddSampleToProjectData,
   AddSampleToProjectErrors,
   AddSampleToProjectResponses,
-  BrowseFilesystemData,
-  BrowseFilesystemErrors,
-  BrowseFilesystemResponses,
-  CreateFileData,
-  CreateFileErrors,
-  CreateFileResponses,
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
-  DeleteFileData,
-  DeleteFileErrors,
-  DeleteFileResponses,
-  DownloadFileData,
-  DownloadFileErrors,
-  DownloadFileResponses,
-  GetFileCountForEntityData,
-  GetFileCountForEntityErrors,
-  GetFileCountForEntityResponses,
-  GetFileData,
-  GetFileErrors,
-  GetFileResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
@@ -57,15 +39,12 @@ import type {
   GetSamplesData,
   GetSamplesErrors,
   GetSamplesResponses,
-  ListFilesBrowserFormatData,
-  ListFilesBrowserFormatErrors,
-  ListFilesBrowserFormatResponses,
   ListFilesData,
   ListFilesErrors,
-  ListFilesForEntityData,
-  ListFilesForEntityErrors,
-  ListFilesForEntityResponses,
   ListFilesResponses,
+  PostRunSamplesheetData,
+  PostRunSamplesheetErrors,
+  PostRunSamplesheetResponses,
   RootData,
   RootResponses,
   SearchData,
@@ -77,15 +56,9 @@ import type {
   SearchRunsData,
   SearchRunsErrors,
   SearchRunsResponses,
-  UpdateFileData,
-  UpdateFileErrors,
-  UpdateFileResponses,
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
-  UploadFileContentData,
-  UploadFileContentErrors,
-  UploadFileContentResponses,
 } from './types.gen'
 
 export type Options<
@@ -118,6 +91,28 @@ export const root = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/',
+    ...options,
+  })
+}
+
+/**
+ * List Files
+ * Browse files and folders at the specified URI.
+ *
+ * For S3:
+ * - Full s3:// URI is required
+ * - No navigation outside the initial uri is allowed
+ */
+export const listFiles = <ThrowOnError extends boolean = false>(
+  options: Options<ListFilesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    ListFilesResponses,
+    ListFilesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/files/list',
     ...options,
   })
 }
@@ -356,6 +351,29 @@ export const getRunSamplesheet = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Post Run Samplesheet
+ * Upload a samplesheet to a run.
+ */
+export const postRunSamplesheet = <ThrowOnError extends boolean = false>(
+  options: Options<PostRunSamplesheetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostRunSamplesheetResponses,
+    PostRunSamplesheetErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/runs/{run_barcode}/samplesheet',
+    ...options,
+    headers: {
+      'Content-Type': null,
+      ...options.headers,
+    },
+  })
+}
+
+/**
  * Get Run Metrics
  * Retrieve demultiplexing metrics for a specific run.
  */
@@ -386,271 +404,6 @@ export const search = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/search',
-    ...options,
-  })
-}
-
-/**
- * List files with filtering and pagination
- * Get a paginated list of files with optional filtering.
- *
- * Supports filtering by:
- * - Entity type and ID (project or run)
- * - File type (fastq, bam, vcf, etc.)
- * - Public/private status
- * - Creator
- * - Text search in filename and description
- */
-export const listFiles = <ThrowOnError extends boolean = false>(
-  options?: Options<ListFilesData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListFilesResponses,
-    ListFilesErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/files',
-    ...options,
-  })
-}
-
-/**
- * Create a new file record
- * Create a new file record with optional file content upload.
- *
- * - **filename**: Name of the file
- * - **description**: Optional description of the file
- * - **file_type**: Type of file (fastq, bam, vcf, etc.)
- * - **entity_type**: Whether this file belongs to a project or run
- * - **entity_id**: ID of the project or run this file belongs to
- * - **is_public**: Whether the file is publicly accessible
- * - **created_by**: User who created the file
- */
-export const createFile = <ThrowOnError extends boolean = false>(
-  options: Options<CreateFileData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    CreateFileResponses,
-    CreateFileErrors,
-    ThrowOnError
-  >({
-    ...formDataBodySerializer,
-    responseType: 'json',
-    url: '/api/v1/files',
-    ...options,
-    headers: {
-      'Content-Type': null,
-      ...options.headers,
-    },
-  })
-}
-
-/**
- * Browse filesystem directory
- * Browse a filesystem directory or S3 bucket and return folders and files in structured format.
- *
- * Supports both local filesystem and AWS S3:
- * - **Local paths**: Relative to storage_root (empty for root) or absolute paths
- * - **S3 paths**: Use s3://bucket/key format (e.g., s3://my-bucket/path/to/folder/)
- * - **storage_root**: Base storage directory for local paths (ignored for S3)
- *
- * Returns separate arrays for folders and files with name, date, and size information.
- *
- * For S3 paths:
- * - Requires AWS credentials to be configured
- * - Folders represent S3 prefixes (common prefixes)
- * - Files show S3 object metadata (size, last modified)
- *
- * Examples:
- * - Local: `/browse?directory_path=project1/data`
- * - S3: `/browse?directory_path=s3://my-bucket/project1/data/`
- */
-export const browseFilesystem = <ThrowOnError extends boolean = false>(
-  options?: Options<BrowseFilesystemData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    BrowseFilesystemResponses,
-    BrowseFilesystemErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/files/browse',
-    ...options,
-  })
-}
-
-/**
- * List database files in browser format
- * Get database files in FileBrowserData format (files only, no folders).
- *
- * This endpoint returns the same file data as the regular list_files endpoint,
- * but formatted to match the FileBrowserData structure with separate folders and files arrays.
- * Since database files don't have folder structure, the folders array will be empty.
- */
-export const listFilesBrowserFormat = <ThrowOnError extends boolean = false>(
-  options?: Options<ListFilesBrowserFormatData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListFilesBrowserFormatResponses,
-    ListFilesBrowserFormatErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/files/browse-db',
-    ...options,
-  })
-}
-
-/**
- * Delete file
- * Delete a file and its content.
- *
- * - **file_id**: The unique file identifier
- */
-export const deleteFile = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteFileData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).delete<
-    DeleteFileResponses,
-    DeleteFileErrors,
-    ThrowOnError
-  >({
-    url: '/api/v1/files/{file_id}',
-    ...options,
-  })
-}
-
-/**
- * Get file by ID
- * Get a single file by its file_id.
- *
- * - **file_id**: The unique file identifier
- */
-export const getFile = <ThrowOnError extends boolean = false>(
-  options: Options<GetFileData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetFileResponses,
-    GetFileErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/files/{file_id}',
-    ...options,
-  })
-}
-
-/**
- * Update file metadata
- * Update file metadata.
- *
- * - **file_id**: The unique file identifier
- * - **file_update**: Fields to update
- */
-export const updateFile = <ThrowOnError extends boolean = false>(
-  options: Options<UpdateFileData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).put<
-    UpdateFileResponses,
-    UpdateFileErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/files/{file_id}',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
-
-/**
- * Download file content
- * Download the content of a file.
- *
- * - **file_id**: The unique file identifier
- */
-export const downloadFile = <ThrowOnError extends boolean = false>(
-  options: Options<DownloadFileData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    DownloadFileResponses,
-    DownloadFileErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/files/{file_id}/content',
-    ...options,
-  })
-}
-
-/**
- * Upload file content
- * Upload content for an existing file record.
- *
- * - **file_id**: The unique file identifier
- * - **content**: The file content to upload
- */
-export const uploadFileContent = <ThrowOnError extends boolean = false>(
-  options: Options<UploadFileContentData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    UploadFileContentResponses,
-    UploadFileContentErrors,
-    ThrowOnError
-  >({
-    ...formDataBodySerializer,
-    responseType: 'json',
-    url: '/api/v1/files/{file_id}/content',
-    ...options,
-    headers: {
-      'Content-Type': null,
-      ...options.headers,
-    },
-  })
-}
-
-/**
- * List files for a specific entity.
- * Get all files associated with a specific project or run.
- * This is the same as /api/v1/files, but scoped to a specific entity.
- *
- * - **entity_type**: Either "project" or "run"
- * - **entity_id**: The project ID or run barcode
- */
-export const listFilesForEntity = <ThrowOnError extends boolean = false>(
-  options: Options<ListFilesForEntityData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    ListFilesForEntityResponses,
-    ListFilesForEntityErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/files/entity/{entity_type}/{entity_id}',
-    ...options,
-  })
-}
-
-/**
- * Get file count for entity
- * Get the total number of files for a specific project or run.
- *
- * - **entity_type**: Either "project" or "run"
- * - **entity_id**: The project ID or run barcode
- */
-export const getFileCountForEntity = <ThrowOnError extends boolean = false>(
-  options: Options<GetFileCountForEntityData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetFileCountForEntityResponses,
-    GetFileCountForEntityErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/files/entity/{entity_type}/{entity_id}/count',
     ...options,
   })
 }

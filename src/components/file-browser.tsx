@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Folder, Undo2 } from "lucide-react";
 import { ClientDataTable } from "./data-table/data-table";
+import { FullscreenSpinner } from "./spinner";
 import type { ColumnDef } from "@tanstack/react-table";
-import { browseFilesystemOptions } from '@/client/@tanstack/react-query.gen';
+import { listFilesOptions } from '@/client/@tanstack/react-query.gen';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SortableHeader } from "@/components/data-table/sortable-header";
@@ -20,7 +21,7 @@ function formatBytes(bytes: number, decimals = 2) {
 
 // Helper function to normalize file names
 function normalizeFileName(fullPath: string, currentPath: string) {
-  return fullPath.replace(currentPath, '').replace(/^\//, '');
+  return fullPath.replace(currentPath, '').replace(/^\//, '/');
 }
 
 // Define column structure
@@ -69,22 +70,22 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
   // Query for file/folder data using browseFilesystem
   const { data, isLoading, isError, error } = useQuery({
-    ...browseFilesystemOptions({
+    ...listFilesOptions({
       query: {
-        directory_path: currentDirectoryPath,
+        uri: currentDirectoryPath
       },
     }),
-    placeholderData: keepPreviousData
+    // placeholderData: keepPreviousData // comment out for now
   });
 
   // Reformat the data into a structure suitable for rendering to a table
   const tableData: Array<FileBrowserColumns> = [
-    ...(data?.folders?.map((d) => ({
+    ...(data?.folders.map((d) => ({
       name: normalizeFileName(d.name, currentDirectoryPath),
       date: d.date,
       dir: true,
     })) || []),
-    ...(data?.files?.map((d) => ({
+    ...(data?.files.map((d) => ({
       name: normalizeFileName(d.name, currentDirectoryPath),
       date: d.date,
       size: d.size,
@@ -106,9 +107,14 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     // Don't allow navigation above rootPath
     const rootParts = rootPath.split('/').filter(Boolean);
     if (parts.length <= rootParts.length) return;
-    
-    const newPath = '/' + parts.slice(0, -1).join('/') + (parts.length > 1 ? '/' : '');
-    handleDirectoryChange(newPath);
+
+    // Reconstruct the new path
+    const stemPart = parts.slice(0, 2).join('//')
+    const endParts = parts.slice(2)
+    endParts.pop()
+    const end = endParts.join('/')
+    const newPath = end ? [stemPart, end].join('/') : stemPart;
+    handleDirectoryChange(newPath.endsWith('/') ? newPath : newPath + '/');
   };
 
   // Define columns for file display component
@@ -151,7 +157,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   ];
 
   if (isLoading) {
-    return <div className="p-4 text-center text-muted-foreground">Loading...</div>;
+    return <FullscreenSpinner variant='ellipsis' />;
   }
   if (isError) {
     return <div className="p-4 text-center text-destructive">Error: {error.message || 'Failed to load directory.'}</div>;
