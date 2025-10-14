@@ -168,7 +168,16 @@ function RouteComponent() {
     {
       accessorKey: 'run_folder_uri',
       meta: { alias: "Run Folder" },
-      header: "Run Folder"
+      header: "Run Folder",
+      cell: ({ cell }) => {
+        const value = cell.getValue() as string
+        return (
+          <CopyableText
+            text={value}
+            variant='hover'
+          />
+        )
+      }
     },
     {
       accessorKey: 'status',

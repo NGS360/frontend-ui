@@ -38,10 +38,9 @@ function RouteComponent() {
   })
 
   // File upload mutation
-  const { mutate } = useMutation({
+  const { mutate, isPending } = useMutation({
     ...postRunSamplesheetMutation(),
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: () => {
       // Invalidate the query for the run to refresh samplesheet info
       queryClient.invalidateQueries({
         queryKey: getRunSamplesheetQueryKey({
@@ -94,7 +93,7 @@ function RouteComponent() {
   }, [isError, error, navigate])
 
   // Show loading spinner
-  if (isLoading) {
+  if (isLoading || isPending) {
     return <FullscreenSpinner variant='ellipsis' />
   }
 

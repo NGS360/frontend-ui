@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Folder, Undo2 } from "lucide-react";
 import { ClientDataTable } from "./data-table/data-table";
-import { FullscreenSpinner } from "./spinner";
 import type { ColumnDef } from "@tanstack/react-table";
 import { listFilesOptions } from '@/client/@tanstack/react-query.gen';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -156,9 +155,6 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     },
   ];
 
-  if (isLoading) {
-    return <FullscreenSpinner variant='ellipsis' />;
-  }
   if (isError) {
     return <div className="p-4 text-center text-destructive">Error: {error.message || 'Failed to load directory.'}</div>;
   }
@@ -183,6 +179,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             Up a level
           </span>
         )}
+        isLoading={isLoading}
       />
     </div>
   );

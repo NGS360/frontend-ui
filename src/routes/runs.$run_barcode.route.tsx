@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { FileBrowserDialog } from '@/components/file-browser';
+import { FullscreenSpinner } from '@/components/spinner'
 
 export const Route = createFileRoute('/runs/$run_barcode')({
   component: RouteComponent,
@@ -42,10 +43,9 @@ function RouteComponent() {
   const queryClient = useQueryClient()
 
   // File upload mutation
-  const { mutate } = useMutation({
+  const { mutate, isPending } = useMutation({
     ...postRunSamplesheetMutation(),
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: () => {
       // Invalidate the query for the run to refresh samplesheet info
       queryClient.invalidateQueries({
         queryKey: getRunSamplesheetQueryKey({
@@ -86,6 +86,11 @@ function RouteComponent() {
       e.target.value = '';
     }
   }
+
+    // Show loading spinner
+    if (isPending) {
+      return <FullscreenSpinner variant='ellipsis' />
+    }
 
   return (
     <>

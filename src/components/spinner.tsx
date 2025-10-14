@@ -278,3 +278,13 @@ export const FullscreenSpinner = ({ variant, ...props }: SpinnerProps) => {
     </>
   )
 }
+
+export const ContainedSpinner = ({ variant, ...props }: SpinnerProps) => {
+  return (
+    <>
+      <div className='flex flex-col gap-2 items-center justify-center text-primary'>
+        <Spinner variant={variant} size={48} {...props} />
+      </div>
+    </>
+  )
+}

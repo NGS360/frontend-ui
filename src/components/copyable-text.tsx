@@ -87,7 +87,7 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
           onClick={(e) => onClick(e)}
         >
           {copied
-            ? <Check className="size-[1em]" /> 
+            ? <Check className="size-[1em] text-success" /> 
             : <Copy className="size-[1em]" />}
         </button>
       </div >

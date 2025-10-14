@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { FullscreenSpinner } from "@/components/spinner";
 import { FileUpload } from "@/components/file-upload"
 import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from "@/client/@tanstack/react-query.gen";
 
@@ -15,10 +16,9 @@ export const NotFoundComponent = () => {
   const queryClient = useQueryClient();
 
   // File upload mutation
-  const { mutate } = useMutation({
+  const { mutate, isPending } = useMutation({
     ...postRunSamplesheetMutation(),
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: () => {
       // Invalidate the query for the run to refresh samplesheet info
       queryClient.invalidateQueries({
         queryKey: getRunSamplesheetQueryKey({
@@ -51,6 +51,11 @@ export const NotFoundComponent = () => {
       console.error("No files accepted");
     }
   }, [])
+
+  // Show loading spinner
+  if (isPending) {
+    return <FullscreenSpinner variant='ellipsis' />
+  }
 
   return (
     <FileUpload
