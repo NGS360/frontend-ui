@@ -1,8 +1,10 @@
-import { Link, createFileRoute, getRouteApi } from '@tanstack/react-router'
-import { useReducer } from 'react'
 import { Check, FileInput, Folder, Upload } from 'lucide-react'
+import type React from 'react'
+import type { JSX } from 'react'
+import { useReducer } from 'react'
+import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import type { VendorPublic } from '@/client'
+import type { VendorPublic } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
 import { getVendors } from '@/client'
 import { ComboBox } from '@/components/combobox'
@@ -12,18 +14,21 @@ import { Spinner } from '@/components/spinner'
 import { Stepper } from '@/components/stepper'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
 
-export const Route = createFileRoute('/projects/$project_id/ingest/')({
-  component: RouteComponent,
-})
+interface IngestVendorDataFormProps {
+  /** Trigger for the Sheet component */
+  trigger: JSX.Element
+  /** Project ID for file paths */
+  projectId: string
+}
 
-function RouteComponent() {
-  // Load project data
-  const routeApi = getRouteApi('/projects/$project_id')
-  const { project } = routeApi.useLoaderData()
-  
+export const IngestVendorDataForm: React.FC<IngestVendorDataFormProps> = ({
+  trigger,
+  projectId
+}) => {
   // Stepper state managed by useReducer
   type State = {
     selectedVendor: { value: string; label?: string };
@@ -98,21 +103,25 @@ function RouteComponent() {
   })) ?? []
 
   return (
-    <>
-      <div className='flex flex-col gap-12 max-w-[40rem] mt-4 mb-15'>
-
-        {/* Stepper component */}
-        <Stepper
-          activeStep={state.activeStep}
-          showFutureSteps={true}
-          steps={[ 
-            {
-              label: "Select Source",
-              description: "Select source bucket for FASTQ file ingestion",
-              content: (
-                <>
-                  <div className='flex flex-col gap-6'>
-                    {/* Vendor Bucket Selected */}
+    <Sheet>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Ingest Vendor Data</SheetTitle>
+          <SheetDescription>
+            Upload and validate vendor manifest files for data ingestion
+          </SheetDescription>
+        <div className='flex flex-col gap-12 mt-6'>
+          <Stepper
+            activeStep={state.activeStep}
+            showFutureSteps={true}
+            steps={[ 
+              {
+                label: "Select Source",
+                description: "Select source bucket for FASTQ file ingestion",
+                content: (
+                  <>
+                    <div className='flex flex-col gap-6'>
                       <div className="flex flex-col gap-2">
                         <div className='flex flex-col gap-2 md:flex-row md:gap-2'>
                           <div className='flex flex-col flex-1'>
@@ -148,7 +157,7 @@ function RouteComponent() {
                                   </Button>
                                 </TooltipTrigger>
                               )}
-                              rootPath={`${state.selectedVendor.value}/${project.project_id}/`}
+                              rootPath={`${state.selectedVendor.value}/${projectId}/`}
                             />
                             <TooltipContent>
                               Browse {state.selectedVendor.value}
@@ -156,84 +165,81 @@ function RouteComponent() {
                           </Tooltip>
                         </div>
                       </div>
-                    
-                  </div>
-                </>
-              ),
-            },
-            {
-              label: "Ingest",
-              description: "Choose or upload a manifest file describing files to ingest",
-              content: (
-                <>
-                  {/* Step-2 */}
-                  {(state.activeStep === 1) && (
-                    <>
-                    {/* TODO: call APIs */}
-                      {false ? (
-                        <div className='flex flex-col gap-2'>
-                          <div className='flex flex-col gap-2 md:flex-row md:items-center md:gap-2'>
-                            <Input
-                              readOnly
-                              value={`${state.selectedVendor.value}/path/to/manifest.csv`}
-                              className='md:flex-1'
-                            />
-                            {/* TODO: Replace with validate output */}
-                            {false ? (
-                              <div className='flex items-center gap-1'>
-                                <Check className='text-success size-4' />
-                                <span className='text-success text-sm'> Valid</span>
-                              </div>
-                            ) : (
-                              <div className='flex items-center gap-1'>
-                                <Spinner variant='ring' />
-                                <span className='text-muted-foreground text-sm'> Validating...</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className='flex flex-col gap-2 md:flex-row md:justify-end'>
-                            <Button
-                              variant='outline'
-                              className='w-full md:w-auto'
-                            >
-                              <Upload /> Upload new manifest
-                            </Button>
-
-                            <Button
-                              disabled={!state.validManifest}
-                              onClick={() => {
-                                toast.success(`Successfully ingested ${state.selectedFile} into project ${project.project_id}`);
-                              }}
-                              className='w-full md:w-auto'
-                            >
-                              <FileInput /> Ingest
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-2 md:flex-1">
-                          <FileUpload
-                            // TODO: Add on upload handler
-                            displayComponent={(
-                              <div className="flex flex-col items-center justify-center">
-                                <div className="font-semibold">Drag or click to upload file</div>
-                                <div className="text-sm text-muted-foreground mt-1">
-                                  {`to ${state.selectedVendor.label} bucket`}
+                    </div>
+                  </>
+                ),
+              },
+              {
+                label: "Ingest",
+                description: "Choose or upload a manifest file describing files to ingest",
+                content: (
+                  <>
+                    {(state.activeStep === 1) && (
+                      <>
+                        {false ? (
+                          <div className='flex flex-col gap-2'>
+                            <div className='flex flex-col gap-2 md:flex-row md:items-center md:gap-2'>
+                              <Input
+                                readOnly
+                                value={`${state.selectedVendor.value}/path/to/manifest.csv`}
+                                className='md:flex-1'
+                              />
+                              {false ? (
+                                <div className='flex items-center gap-1'>
+                                  <Check className='text-success size-4' />
+                                  <span className='text-success text-sm'> Valid</span>
                                 </div>
-                              </div>
-                            )}
-                          />
-                        </div>
-                      )}
-                    </>
-                  )}
-                </>
-              )
-            }
-          ]}
-        />
-      </div>
-    </>
+                              ) : (
+                                <div className='flex items-center gap-1'>
+                                  <Spinner variant='ring' />
+                                  <span className='text-muted-foreground text-sm'> Validating...</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className='flex flex-col gap-2 md:flex-row md:justify-end'>
+                              <Button
+                                variant='outline'
+                                className='w-full md:w-auto'
+                              >
+                                <Upload /> Upload new manifest
+                              </Button>
+
+                              <Button
+                                disabled={!state.validManifest}
+                                onClick={() => {
+                                  toast.success(`Successfully ingested ${state.selectedFile} into project ${projectId}`);
+                                }}
+                                className='w-full md:w-auto'
+                              >
+                                <FileInput /> Ingest
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-2 md:flex-1">
+                            <FileUpload
+                              displayComponent={(
+                                <div className="flex flex-col items-center justify-center">
+                                  <div className="font-semibold">Drag or click to upload file</div>
+                                  <div className="text-sm text-muted-foreground mt-1">
+                                    {`to ${state.selectedVendor.label} bucket`}
+                                  </div>
+                                </div>
+                              )}
+                            />
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                )
+              }
+            ]}
+          />
+        </div>
+        </SheetHeader>
+      </SheetContent>
+    </Sheet>
   )
 }

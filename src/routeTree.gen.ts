@@ -26,16 +26,8 @@ import { Route as ProjectsProjectidIndexImport } from './routes/projects.$projec
 import { Route as AdminVendorsIndexImport } from './routes/admin.vendors.index'
 import { Route as RunsRunbarcodeSamplesheetRouteImport } from './routes/runs.$run_barcode.samplesheet.route'
 import { Route as RunsRunbarcodeIndexqcRouteImport } from './routes/runs.$run_barcode.indexqc.route'
-import { Route as ProjectsProjectidOverviewRouteImport } from './routes/projects.$project_id.overview.route'
-import { Route as ProjectsProjectidIngestRouteImport } from './routes/projects.$project_id.ingest.route'
-import { Route as ProjectsProjectidFilesRouteImport } from './routes/projects.$project_id.files.route'
-import { Route as ProjectsProjectidActionsRouteImport } from './routes/projects.$project_id.actions.route'
 import { Route as RunsRunbarcodeSamplesheetIndexImport } from './routes/runs.$run_barcode.samplesheet.index'
 import { Route as RunsRunbarcodeIndexqcIndexImport } from './routes/runs.$run_barcode.indexqc.index'
-import { Route as ProjectsProjectidOverviewIndexImport } from './routes/projects.$project_id.overview.index'
-import { Route as ProjectsProjectidIngestIndexImport } from './routes/projects.$project_id.ingest.index'
-import { Route as ProjectsProjectidFilesIndexImport } from './routes/projects.$project_id.files.index'
-import { Route as ProjectsProjectidActionsIndexImport } from './routes/projects.$project_id.actions.index'
 
 // Create/Update Routes
 
@@ -132,34 +124,6 @@ const RunsRunbarcodeIndexqcRouteRoute = RunsRunbarcodeIndexqcRouteImport.update(
   } as any,
 )
 
-const ProjectsProjectidOverviewRouteRoute =
-  ProjectsProjectidOverviewRouteImport.update({
-    id: '/overview',
-    path: '/overview',
-    getParentRoute: () => ProjectsProjectidRouteRoute,
-  } as any)
-
-const ProjectsProjectidIngestRouteRoute =
-  ProjectsProjectidIngestRouteImport.update({
-    id: '/ingest',
-    path: '/ingest',
-    getParentRoute: () => ProjectsProjectidRouteRoute,
-  } as any)
-
-const ProjectsProjectidFilesRouteRoute =
-  ProjectsProjectidFilesRouteImport.update({
-    id: '/files',
-    path: '/files',
-    getParentRoute: () => ProjectsProjectidRouteRoute,
-  } as any)
-
-const ProjectsProjectidActionsRouteRoute =
-  ProjectsProjectidActionsRouteImport.update({
-    id: '/actions',
-    path: '/actions',
-    getParentRoute: () => ProjectsProjectidRouteRoute,
-  } as any)
-
 const RunsRunbarcodeSamplesheetIndexRoute =
   RunsRunbarcodeSamplesheetIndexImport.update({
     id: '/',
@@ -174,34 +138,6 @@ const RunsRunbarcodeIndexqcIndexRoute = RunsRunbarcodeIndexqcIndexImport.update(
     getParentRoute: () => RunsRunbarcodeIndexqcRouteRoute,
   } as any,
 )
-
-const ProjectsProjectidOverviewIndexRoute =
-  ProjectsProjectidOverviewIndexImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => ProjectsProjectidOverviewRouteRoute,
-  } as any)
-
-const ProjectsProjectidIngestIndexRoute =
-  ProjectsProjectidIngestIndexImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => ProjectsProjectidIngestRouteRoute,
-  } as any)
-
-const ProjectsProjectidFilesIndexRoute =
-  ProjectsProjectidFilesIndexImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => ProjectsProjectidFilesRouteRoute,
-  } as any)
-
-const ProjectsProjectidActionsIndexRoute =
-  ProjectsProjectidActionsIndexImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => ProjectsProjectidActionsRouteRoute,
-  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -277,34 +213,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunsIndexImport
       parentRoute: typeof RunsRouteImport
     }
-    '/projects/$project_id/actions': {
-      id: '/projects/$project_id/actions'
-      path: '/actions'
-      fullPath: '/projects/$project_id/actions'
-      preLoaderRoute: typeof ProjectsProjectidActionsRouteImport
-      parentRoute: typeof ProjectsProjectidRouteImport
-    }
-    '/projects/$project_id/files': {
-      id: '/projects/$project_id/files'
-      path: '/files'
-      fullPath: '/projects/$project_id/files'
-      preLoaderRoute: typeof ProjectsProjectidFilesRouteImport
-      parentRoute: typeof ProjectsProjectidRouteImport
-    }
-    '/projects/$project_id/ingest': {
-      id: '/projects/$project_id/ingest'
-      path: '/ingest'
-      fullPath: '/projects/$project_id/ingest'
-      preLoaderRoute: typeof ProjectsProjectidIngestRouteImport
-      parentRoute: typeof ProjectsProjectidRouteImport
-    }
-    '/projects/$project_id/overview': {
-      id: '/projects/$project_id/overview'
-      path: '/overview'
-      fullPath: '/projects/$project_id/overview'
-      preLoaderRoute: typeof ProjectsProjectidOverviewRouteImport
-      parentRoute: typeof ProjectsProjectidRouteImport
-    }
     '/runs/$run_barcode/indexqc': {
       id: '/runs/$run_barcode/indexqc'
       path: '/indexqc'
@@ -339,34 +247,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs/$run_barcode/'
       preLoaderRoute: typeof RunsRunbarcodeIndexImport
       parentRoute: typeof RunsRunbarcodeRouteImport
-    }
-    '/projects/$project_id/actions/': {
-      id: '/projects/$project_id/actions/'
-      path: '/'
-      fullPath: '/projects/$project_id/actions/'
-      preLoaderRoute: typeof ProjectsProjectidActionsIndexImport
-      parentRoute: typeof ProjectsProjectidActionsRouteImport
-    }
-    '/projects/$project_id/files/': {
-      id: '/projects/$project_id/files/'
-      path: '/'
-      fullPath: '/projects/$project_id/files/'
-      preLoaderRoute: typeof ProjectsProjectidFilesIndexImport
-      parentRoute: typeof ProjectsProjectidFilesRouteImport
-    }
-    '/projects/$project_id/ingest/': {
-      id: '/projects/$project_id/ingest/'
-      path: '/'
-      fullPath: '/projects/$project_id/ingest/'
-      preLoaderRoute: typeof ProjectsProjectidIngestIndexImport
-      parentRoute: typeof ProjectsProjectidIngestRouteImport
-    }
-    '/projects/$project_id/overview/': {
-      id: '/projects/$project_id/overview/'
-      path: '/'
-      fullPath: '/projects/$project_id/overview/'
-      preLoaderRoute: typeof ProjectsProjectidOverviewIndexImport
-      parentRoute: typeof ProjectsProjectidOverviewRouteImport
     }
     '/runs/$run_barcode/indexqc/': {
       id: '/runs/$run_barcode/indexqc/'
@@ -412,80 +292,12 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
-interface ProjectsProjectidActionsRouteRouteChildren {
-  ProjectsProjectidActionsIndexRoute: typeof ProjectsProjectidActionsIndexRoute
-}
-
-const ProjectsProjectidActionsRouteRouteChildren: ProjectsProjectidActionsRouteRouteChildren =
-  {
-    ProjectsProjectidActionsIndexRoute: ProjectsProjectidActionsIndexRoute,
-  }
-
-const ProjectsProjectidActionsRouteRouteWithChildren =
-  ProjectsProjectidActionsRouteRoute._addFileChildren(
-    ProjectsProjectidActionsRouteRouteChildren,
-  )
-
-interface ProjectsProjectidFilesRouteRouteChildren {
-  ProjectsProjectidFilesIndexRoute: typeof ProjectsProjectidFilesIndexRoute
-}
-
-const ProjectsProjectidFilesRouteRouteChildren: ProjectsProjectidFilesRouteRouteChildren =
-  {
-    ProjectsProjectidFilesIndexRoute: ProjectsProjectidFilesIndexRoute,
-  }
-
-const ProjectsProjectidFilesRouteRouteWithChildren =
-  ProjectsProjectidFilesRouteRoute._addFileChildren(
-    ProjectsProjectidFilesRouteRouteChildren,
-  )
-
-interface ProjectsProjectidIngestRouteRouteChildren {
-  ProjectsProjectidIngestIndexRoute: typeof ProjectsProjectidIngestIndexRoute
-}
-
-const ProjectsProjectidIngestRouteRouteChildren: ProjectsProjectidIngestRouteRouteChildren =
-  {
-    ProjectsProjectidIngestIndexRoute: ProjectsProjectidIngestIndexRoute,
-  }
-
-const ProjectsProjectidIngestRouteRouteWithChildren =
-  ProjectsProjectidIngestRouteRoute._addFileChildren(
-    ProjectsProjectidIngestRouteRouteChildren,
-  )
-
-interface ProjectsProjectidOverviewRouteRouteChildren {
-  ProjectsProjectidOverviewIndexRoute: typeof ProjectsProjectidOverviewIndexRoute
-}
-
-const ProjectsProjectidOverviewRouteRouteChildren: ProjectsProjectidOverviewRouteRouteChildren =
-  {
-    ProjectsProjectidOverviewIndexRoute: ProjectsProjectidOverviewIndexRoute,
-  }
-
-const ProjectsProjectidOverviewRouteRouteWithChildren =
-  ProjectsProjectidOverviewRouteRoute._addFileChildren(
-    ProjectsProjectidOverviewRouteRouteChildren,
-  )
-
 interface ProjectsProjectidRouteRouteChildren {
-  ProjectsProjectidActionsRouteRoute: typeof ProjectsProjectidActionsRouteRouteWithChildren
-  ProjectsProjectidFilesRouteRoute: typeof ProjectsProjectidFilesRouteRouteWithChildren
-  ProjectsProjectidIngestRouteRoute: typeof ProjectsProjectidIngestRouteRouteWithChildren
-  ProjectsProjectidOverviewRouteRoute: typeof ProjectsProjectidOverviewRouteRouteWithChildren
   ProjectsProjectidIndexRoute: typeof ProjectsProjectidIndexRoute
 }
 
 const ProjectsProjectidRouteRouteChildren: ProjectsProjectidRouteRouteChildren =
   {
-    ProjectsProjectidActionsRouteRoute:
-      ProjectsProjectidActionsRouteRouteWithChildren,
-    ProjectsProjectidFilesRouteRoute:
-      ProjectsProjectidFilesRouteRouteWithChildren,
-    ProjectsProjectidIngestRouteRoute:
-      ProjectsProjectidIngestRouteRouteWithChildren,
-    ProjectsProjectidOverviewRouteRoute:
-      ProjectsProjectidOverviewRouteRouteWithChildren,
     ProjectsProjectidIndexRoute: ProjectsProjectidIndexRoute,
   }
 
@@ -577,19 +389,11 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/runs/': typeof RunsIndexRoute
-  '/projects/$project_id/actions': typeof ProjectsProjectidActionsRouteRouteWithChildren
-  '/projects/$project_id/files': typeof ProjectsProjectidFilesRouteRouteWithChildren
-  '/projects/$project_id/ingest': typeof ProjectsProjectidIngestRouteRouteWithChildren
-  '/projects/$project_id/overview': typeof ProjectsProjectidOverviewRouteRouteWithChildren
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
   '/admin/vendors/': typeof AdminVendorsIndexRoute
   '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
   '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
-  '/projects/$project_id/actions/': typeof ProjectsProjectidActionsIndexRoute
-  '/projects/$project_id/files/': typeof ProjectsProjectidFilesIndexRoute
-  '/projects/$project_id/ingest/': typeof ProjectsProjectidIngestIndexRoute
-  '/projects/$project_id/overview/': typeof ProjectsProjectidOverviewIndexRoute
   '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
   '/runs/$run_barcode/samplesheet/': typeof RunsRunbarcodeSamplesheetIndexRoute
 }
@@ -602,10 +406,6 @@ export interface FileRoutesByTo {
   '/admin/vendors': typeof AdminVendorsIndexRoute
   '/projects/$project_id': typeof ProjectsProjectidIndexRoute
   '/runs/$run_barcode': typeof RunsRunbarcodeIndexRoute
-  '/projects/$project_id/actions': typeof ProjectsProjectidActionsIndexRoute
-  '/projects/$project_id/files': typeof ProjectsProjectidFilesIndexRoute
-  '/projects/$project_id/ingest': typeof ProjectsProjectidIngestIndexRoute
-  '/projects/$project_id/overview': typeof ProjectsProjectidOverviewIndexRoute
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcIndexRoute
   '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetIndexRoute
 }
@@ -622,19 +422,11 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/runs/': typeof RunsIndexRoute
-  '/projects/$project_id/actions': typeof ProjectsProjectidActionsRouteRouteWithChildren
-  '/projects/$project_id/files': typeof ProjectsProjectidFilesRouteRouteWithChildren
-  '/projects/$project_id/ingest': typeof ProjectsProjectidIngestRouteRouteWithChildren
-  '/projects/$project_id/overview': typeof ProjectsProjectidOverviewRouteRouteWithChildren
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
   '/admin/vendors/': typeof AdminVendorsIndexRoute
   '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
   '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
-  '/projects/$project_id/actions/': typeof ProjectsProjectidActionsIndexRoute
-  '/projects/$project_id/files/': typeof ProjectsProjectidFilesIndexRoute
-  '/projects/$project_id/ingest/': typeof ProjectsProjectidIngestIndexRoute
-  '/projects/$project_id/overview/': typeof ProjectsProjectidOverviewIndexRoute
   '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
   '/runs/$run_barcode/samplesheet/': typeof RunsRunbarcodeSamplesheetIndexRoute
 }
@@ -652,19 +444,11 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/projects/'
     | '/runs/'
-    | '/projects/$project_id/actions'
-    | '/projects/$project_id/files'
-    | '/projects/$project_id/ingest'
-    | '/projects/$project_id/overview'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
     | '/admin/vendors/'
     | '/projects/$project_id/'
     | '/runs/$run_barcode/'
-    | '/projects/$project_id/actions/'
-    | '/projects/$project_id/files/'
-    | '/projects/$project_id/ingest/'
-    | '/projects/$project_id/overview/'
     | '/runs/$run_barcode/indexqc/'
     | '/runs/$run_barcode/samplesheet/'
   fileRoutesByTo: FileRoutesByTo
@@ -676,10 +460,6 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/projects/$project_id'
     | '/runs/$run_barcode'
-    | '/projects/$project_id/actions'
-    | '/projects/$project_id/files'
-    | '/projects/$project_id/ingest'
-    | '/projects/$project_id/overview'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
   id:
@@ -694,19 +474,11 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/projects/'
     | '/runs/'
-    | '/projects/$project_id/actions'
-    | '/projects/$project_id/files'
-    | '/projects/$project_id/ingest'
-    | '/projects/$project_id/overview'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
     | '/admin/vendors/'
     | '/projects/$project_id/'
     | '/runs/$run_barcode/'
-    | '/projects/$project_id/actions/'
-    | '/projects/$project_id/files/'
-    | '/projects/$project_id/ingest/'
-    | '/projects/$project_id/overview/'
     | '/runs/$run_barcode/indexqc/'
     | '/runs/$run_barcode/samplesheet/'
   fileRoutesById: FileRoutesById
@@ -777,10 +549,6 @@ export const routeTree = rootRoute
       "filePath": "projects.$project_id.route.tsx",
       "parent": "/projects",
       "children": [
-        "/projects/$project_id/actions",
-        "/projects/$project_id/files",
-        "/projects/$project_id/ingest",
-        "/projects/$project_id/overview",
         "/projects/$project_id/"
       ]
     },
@@ -804,34 +572,6 @@ export const routeTree = rootRoute
     "/runs/": {
       "filePath": "runs.index.tsx",
       "parent": "/runs"
-    },
-    "/projects/$project_id/actions": {
-      "filePath": "projects.$project_id.actions.route.tsx",
-      "parent": "/projects/$project_id",
-      "children": [
-        "/projects/$project_id/actions/"
-      ]
-    },
-    "/projects/$project_id/files": {
-      "filePath": "projects.$project_id.files.route.tsx",
-      "parent": "/projects/$project_id",
-      "children": [
-        "/projects/$project_id/files/"
-      ]
-    },
-    "/projects/$project_id/ingest": {
-      "filePath": "projects.$project_id.ingest.route.tsx",
-      "parent": "/projects/$project_id",
-      "children": [
-        "/projects/$project_id/ingest/"
-      ]
-    },
-    "/projects/$project_id/overview": {
-      "filePath": "projects.$project_id.overview.route.tsx",
-      "parent": "/projects/$project_id",
-      "children": [
-        "/projects/$project_id/overview/"
-      ]
     },
     "/runs/$run_barcode/indexqc": {
       "filePath": "runs.$run_barcode.indexqc.route.tsx",
@@ -858,22 +598,6 @@ export const routeTree = rootRoute
     "/runs/$run_barcode/": {
       "filePath": "runs.$run_barcode.index.tsx",
       "parent": "/runs/$run_barcode"
-    },
-    "/projects/$project_id/actions/": {
-      "filePath": "projects.$project_id.actions.index.tsx",
-      "parent": "/projects/$project_id/actions"
-    },
-    "/projects/$project_id/files/": {
-      "filePath": "projects.$project_id.files.index.tsx",
-      "parent": "/projects/$project_id/files"
-    },
-    "/projects/$project_id/ingest/": {
-      "filePath": "projects.$project_id.ingest.index.tsx",
-      "parent": "/projects/$project_id/ingest"
-    },
-    "/projects/$project_id/overview/": {
-      "filePath": "projects.$project_id.overview.index.tsx",
-      "parent": "/projects/$project_id/overview"
     },
     "/runs/$run_barcode/indexqc/": {
       "filePath": "runs.$run_barcode.indexqc.index.tsx",
