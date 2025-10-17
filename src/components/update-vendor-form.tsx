@@ -76,6 +76,7 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
     onSuccess: (data: VendorPublic) => {
       reset();
       queryClient.invalidateQueries({ queryKey: getVendorsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: ['vendors', 'all'] });
       toast.success(`Successfully updated vendor ${data.name}`);
       setIsOpen(false);
     }

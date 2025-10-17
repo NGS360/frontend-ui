@@ -73,8 +73,8 @@ export function useAllPaginated<T>({
   queryKey,
   fetcher,
   perPage = 100,
-  staleTime = 5 * 60 * 1000,
-  gcTime = 10 * 60 * 1000,
+  staleTime = 0,
+  gcTime = 0,
   enabled = true,
 }: UseAllPaginatedOptions<T>): UseQueryResult<Array<T>, Error> {
   return useQuery({

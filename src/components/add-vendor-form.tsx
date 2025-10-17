@@ -75,6 +75,7 @@ export const AddVendorForm: React.FC<AddVendorFormProps> = ({
     onSuccess: (data: VendorPublic) => {
       reset();
       queryClient.invalidateQueries({ queryKey: getVendorsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: ['vendors', 'all'] });
       toast.success(`Successfully added vendor ${data.name}`);
       setIsOpen(false);
     }

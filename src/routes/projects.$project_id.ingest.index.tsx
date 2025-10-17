@@ -87,9 +87,7 @@ function RouteComponent() {
   const { data: vendors, isLoading: isLoadingVendors } = useAllPaginated<VendorPublic>({
     queryKey: ['vendors', 'all'],
     fetcher: getVendors,
-    perPage: 100,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    perPage: 100
   })
 
   // Transform vendors data into ComboBox options
