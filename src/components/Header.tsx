@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { MenuIcon, XIcon } from 'lucide-react'
+import { Building, Database, Folder, MenuIcon, Settings, ShieldCheck, XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from './ui/button'
 import { CreateProjectForm } from './create-project-form'
@@ -21,6 +21,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 type NavItemType = {
   to: string
   label: string
+  icon?: React.ReactNode
   search?: {}
 }
 
@@ -39,8 +40,9 @@ export default function Header() {
   ]
 
   const navItems: Array<NavItemType> = [
-    { to: '/runs', label: 'Illumina Runs' },
-    { to: '/projects', label: 'Projects', search: {sort_by: undefined, sort_order: undefined}}
+    { to: '/runs', label: 'Illumina Runs', icon: <Database className="inline mr-1" /> },
+    { to: '/projects', label: 'Projects', icon: <Folder className="inline mr-1" />, search: {sort_by: undefined, sort_order: undefined} },
+    { to: '/admin', label: 'Admin', icon: <ShieldCheck className="inline mr-1" /> }
   ]
 
   return (
@@ -80,10 +82,13 @@ export default function Header() {
 
             {/* Mobile menu (using DropdownMenu) */}
             <DropdownMenuContent align="end" sideOffset={4} className="w-screen flex flex-col gap-2">
-              {navItems.map(({ to, label, search }) => (
+              {navItems.map(({ to, label, icon, search }) => (
                 <DropdownMenuItem asChild key={to} className='w-full justify-center'>
                   <Link to={to} search={search} onClick={() => setMenuOpen(false)}>
-                    {label}
+                    <div className='flex items-center gap-1'>
+                      {icon}
+                      {label}
+                    </div>
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -100,10 +105,15 @@ export default function Header() {
           /* Desktop menu (using NavigationMenu) */
           <NavigationMenu>
             <NavigationMenuList className="gap-4">
-              {navItems.map(({ to, label, search }) => (
+              {navItems.map(({ to, label, icon, search }) => (
                 <NavigationMenuItem key={to}>
                   <NavigationMenuLink asChild>
-                    <Link to={to} search={search}>{label}</Link>
+                    <Link to={to} search={search}>
+                    <div className='flex items-center gap-1'>
+                        {icon}
+                        {label}
+                    </div>
+                    </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}

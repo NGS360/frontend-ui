@@ -33,7 +33,8 @@ interface DataTableProps<TData> {
   customRowComponent?: () => React.ReactNode,
   renderCustomRowComponent?: boolean,
   isLoading?: boolean,
-  loadingComponent?: JSX.Element
+  loadingComponent?: JSX.Element,
+  showSearch?: boolean
 }
 
 export function DataTable<TData>({
@@ -44,7 +45,8 @@ export function DataTable<TData>({
   customRowComponent,
   renderCustomRowComponent = false,
   isLoading = false,
-  loadingComponent = <ContainedSpinner variant='ellipsis' />
+  loadingComponent = <ContainedSpinner variant='ellipsis' />,
+  showSearch = true
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -128,16 +130,18 @@ export function DataTable<TData>({
     <>
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-end gap-2">
-          <Input
-            autoFocus
-            value={table.getState().globalFilter ?? ""}
-            onChange={e => {
-              table.setGlobalFilter(String(e.target.value))
-              table.setPageIndex(0)
-            }}
-            placeholder="Type to filter..."
-            className="w-full md:w-1/3"
-          />
+          {showSearch && (
+            <Input
+              autoFocus
+              value={table.getState().globalFilter ?? ""}
+              onChange={e => {
+                table.setGlobalFilter(String(e.target.value))
+                table.setPageIndex(0)
+              }}
+              placeholder="Type to filter..."
+              className="w-full md:w-1/3"
+            />
+          )}
           <DataTableColumnToggle table={table} />
         </div>
         <div className="flex">
@@ -155,9 +159,9 @@ export function DataTable<TData>({
 // Server-side controller
 interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, TValue> {
 
-  // Search/filter
-  globalFilter: string,
-  onFilterChange: OnChangeFn<string>,
+  // Search/filter (optional - if not provided, search will be hidden)
+  globalFilter?: string,
+  onFilterChange?: OnChangeFn<string>,
 
   // Pagination
   pagination: PaginationState,
@@ -225,6 +229,9 @@ export function ServerDataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel()
   })
 
+  // Show search only if both globalFilter and onFilterChange are provided
+  const showSearch = globalFilter !== undefined && setGlobalFilter !== undefined
+
   return(
     <DataTable 
       table={table} 
@@ -232,6 +239,7 @@ export function ServerDataTable<TData, TValue>({
       notFoundComponent={notFoundComponent}
       isLoading={isLoading}
       loadingComponent={loadingComponent}
+      showSearch={showSearch}
     />
   )
 }

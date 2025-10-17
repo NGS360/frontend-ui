@@ -596,6 +596,106 @@ export type ValidationError = {
   type: string
 }
 
+/**
+ * VendorCreate
+ * Represents the data needed to create a vendor
+ */
+export type VendorCreate = {
+  /**
+   * Vendor Id
+   */
+  vendor_id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Description
+   */
+  description: string
+  /**
+   * Bucket
+   */
+  bucket?: string | null
+}
+
+/**
+ * VendorPublic
+ * Represents a public view of a vendor
+ */
+export type VendorPublic = {
+  /**
+   * Vendor Id
+   */
+  vendor_id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Description
+   */
+  description: string
+  /**
+   * Bucket
+   */
+  bucket?: string | null
+}
+
+/**
+ * VendorUpdate
+ * Represents the data that can be updated for a vendor
+ */
+export type VendorUpdate = {
+  /**
+   * Name
+   */
+  name?: string | null
+  /**
+   * Description
+   */
+  description?: string | null
+  /**
+   * Bucket
+   */
+  bucket?: string | null
+}
+
+/**
+ * VendorsPublic
+ * Represents a paginated list of vendors
+ */
+export type VendorsPublic = {
+  /**
+   * Data
+   */
+  data: Array<VendorPublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
+
 export type RootData = {
   body?: never
   path?: never
@@ -1194,6 +1294,138 @@ export type SearchResponses = {
 }
 
 export type SearchResponse2 = SearchResponses[keyof SearchResponses]
+
+export type GetVendorsData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: string
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: 'asc' | 'desc'
+  }
+  url: '/api/v1/vendors'
+}
+
+export type GetVendorsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetVendorsError = GetVendorsErrors[keyof GetVendorsErrors]
+
+export type GetVendorsResponses = {
+  /**
+   * Successful Response
+   */
+  200: VendorsPublic
+}
+
+export type GetVendorsResponse = GetVendorsResponses[keyof GetVendorsResponses]
+
+export type AddVendorData = {
+  body: VendorCreate
+  path?: never
+  query?: never
+  url: '/api/v1/vendors'
+}
+
+export type AddVendorErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type AddVendorError = AddVendorErrors[keyof AddVendorErrors]
+
+export type AddVendorResponses = {
+  /**
+   * Successful Response
+   */
+  201: VendorPublic
+}
+
+export type AddVendorResponse = AddVendorResponses[keyof AddVendorResponses]
+
+export type GetVendorData = {
+  body?: never
+  path: {
+    /**
+     * Vendor Id
+     */
+    vendor_id: string
+  }
+  query?: never
+  url: '/api/v1/vendors/{vendor_id}'
+}
+
+export type GetVendorErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetVendorError = GetVendorErrors[keyof GetVendorErrors]
+
+export type GetVendorResponses = {
+  /**
+   * Successful Response
+   */
+  200: VendorPublic
+}
+
+export type GetVendorResponse = GetVendorResponses[keyof GetVendorResponses]
+
+export type UpdateVendorData = {
+  body: VendorUpdate
+  path: {
+    /**
+     * Vendor Id
+     */
+    vendor_id: string
+  }
+  query?: never
+  url: '/api/v1/vendors/{vendor_id}'
+}
+
+export type UpdateVendorErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateVendorError = UpdateVendorErrors[keyof UpdateVendorErrors]
+
+export type UpdateVendorResponses = {
+  /**
+   * Successful Response
+   */
+  200: VendorPublic
+}
+
+export type UpdateVendorResponse =
+  UpdateVendorResponses[keyof UpdateVendorResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})

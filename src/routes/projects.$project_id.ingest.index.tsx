@@ -1,19 +1,19 @@
-import { createFileRoute, getRouteApi } from '@tanstack/react-router'
-import { useEffect, useReducer, useState } from 'react'
-import clsx from 'clsx'
-import { Briefcase, Building, Check, ClipboardCheck, File, FileInput, Folder, MousePointer2 } from 'lucide-react'
+import { Link, createFileRoute, getRouteApi } from '@tanstack/react-router'
+import { useReducer } from 'react'
+import { Check, FileInput, Folder, Upload } from 'lucide-react'
 import { toast } from 'sonner'
+import type { VendorPublic } from '@/client'
 import type { ComboBoxOption } from '@/components/combobox'
-import { Card, CardAction, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { getVendors } from '@/client'
 import { ComboBox } from '@/components/combobox'
-import { Button } from '@/components/ui/button'
 import { FileBrowserDialog } from '@/components/file-browser'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { FileUpload } from '@/components/file-upload'
-import { Separator } from '@/components/ui/separator'
+import { Spinner } from '@/components/spinner'
 import { Stepper } from '@/components/stepper'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useAllPaginated } from '@/hooks/use-all-paginated'
 
 export const Route = createFileRoute('/projects/$project_id/ingest/')({
   component: RouteComponent,
@@ -26,21 +26,18 @@ function RouteComponent() {
   
   // Stepper state managed by useReducer
   type State = {
-    sourceIsData: boolean | undefined;
     selectedVendor: { value: string; label?: string };
     selectedFile: string;
     validManifest: boolean;
     activeStep: number;
   };
   type Action =
-    | { type: 'SET_SOURCE'; value: 'data' | 'vendor' | undefined }
     | { type: 'SET_VENDOR'; value: string; label?: string }
     | { type: 'SET_FILE'; value: string }
     | { type: 'SET_VALID_MANIFEST'; value: boolean }
     | { type: 'SET_ACTIVE_STEP'; value: number };
 
   const initialState: State = {
-    sourceIsData: undefined,
     selectedVendor: { value: '', label: '' },
     selectedFile: '',
     validManifest: false,
@@ -49,36 +46,6 @@ function RouteComponent() {
 
   function stepperReducer(state: State, action: Action): State {
     switch (action.type) {
-      case 'SET_SOURCE': {
-        if (action.value === 'data') {
-          return {
-            ...state,
-            sourceIsData: true,
-            selectedVendor: { value: '', label: '' },
-            selectedFile: '',
-            validManifest: false,
-            activeStep: 1,
-          };
-        } else if (action.value === 'vendor') {
-          return {
-            ...state,
-            sourceIsData: false,
-            selectedVendor: { value: '', label: '' },
-            selectedFile: '',
-            validManifest: false,
-            activeStep: 0,
-          };
-        } else {
-          return {
-            ...state,
-            sourceIsData: undefined,
-            selectedVendor: { value: '', label: '' },
-            selectedFile: '',
-            validManifest: false,
-            activeStep: 0,
-          };
-        }
-      }
       case 'SET_VENDOR': {
         return {
           ...state,
@@ -116,39 +83,21 @@ function RouteComponent() {
 
   const [state, dispatch] = useReducer(stepperReducer, initialState);
 
-  // Load vendor options
-  const [vendorOptions, setVendorOptions] = useState<Array<ComboBoxOption>>();
-  useEffect(() => {
-    const fetchVendors = async () => {
-      const res = await fetch('/data/example_vendors.json')
-      if (!res.ok) {
-        throw new Error('Unable to fetch vendor data')
-      }
-      const options: Array<ComboBoxOption> = await res.json()
-      const newOptions = options.map(opt => ({
-        label: `${opt.label} (${opt.value})`,
-        value: opt.value,
-        description: opt.description,
-      }))
-      setVendorOptions(newOptions)
-    }
-    fetchVendors()
-  }, [])
+  // Fetch all vendors using sequential page fetch
+  const { data: vendors, isLoading: isLoadingVendors } = useAllPaginated<VendorPublic>({
+    queryKey: ['vendors', 'all'],
+    fetcher: getVendors,
+    perPage: 100,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+  })
 
-
-  // Example vendor bucket data
-  const [vendorBucketData, setVendorBucketData] = useState();
-  useEffect(() => {
-    const fetchVendorBucketData = async () => {
-      const res = await fetch('/data/example_project_data.json')
-      if (!res.ok) {
-        throw new Error('Unable to fetch vendor bucket data')
-      }
-      const data = await res.json()
-      setVendorBucketData(data)
-    }
-    fetchVendorBucketData()
-  }, [])
+  // Transform vendors data into ComboBox options
+  const vendorOptions: Array<ComboBoxOption> = vendors?.map(vendor => ({
+    label: `${vendor.name} (${vendor.vendor_id})`,
+    value: vendor.bucket || '',
+    description: vendor.description,
+  })) ?? []
 
   return (
     <>
@@ -160,89 +109,32 @@ function RouteComponent() {
           showFutureSteps={true}
           steps={[ 
             {
-              label: "Source",
-              description: "Select data or vendor bucket",
+              label: "Select Source",
+              description: "Select source bucket for FASTQ file ingestion",
               content: (
                 <>
                   <div className='flex flex-col gap-6'>
-                    <div className='flex flex-col gap-2 sm:grid sm:grid-cols-2'>
-                      <Card
-                        className={clsx(
-                          'row-span-1 cursor-pointer',
-                          'hover:border-primary hover:bg-primary/5',
-                          state.sourceIsData ? 'border-primary bg-primary/5' : ''
-                        )}
-                        onClick={() => dispatch({ type: 'SET_SOURCE', value: 'data' })}
-                      >
-                        <CardHeader>
-                          <CardTitle
-                            className={clsx(
-                              'flex items-center gap-2',
-                              state.sourceIsData ? 'text-primary' : ''
-                            )}
-                          >
-                            <Briefcase /> Data Bucket
-                          </CardTitle>
-                          <CardDescription>
-                            Select manifest file from the internal data bucket.
-                          </CardDescription>
-                          <CardAction >
-                            <Input
-                              type='radio'
-                              checked={state.sourceIsData === true}
-                              onChange={e => dispatch({ type: 'SET_SOURCE', value: e.target.checked ? 'data' : undefined })}
-                              className='accent-primary'
-                            >
-                            </Input>
-                          </CardAction>
-                        </CardHeader>
-                      </Card>
-                      <Card
-                        className={clsx(
-                          'row-span-1 cursor-pointer',
-                          'hover:border-primary hover:bg-primary/5',
-                          state.sourceIsData === false ? 'border-primary bg-primary/5' : ''
-                        )}
-                        onClick={() => dispatch({ type: 'SET_SOURCE', value: 'vendor' })}
-                      >
-                        <CardHeader>
-                          <CardTitle
-                            className={clsx(
-                              'flex items-center gap-2',
-                              state.sourceIsData === false ? 'text-primary' : ''
-                            )}
-                          >
-                            <Building /> Vendor Bucket
-                          </CardTitle>
-                          <CardDescription>
-                            Select manifest file from a vendor bucket.
-                          </CardDescription>
-                          <CardAction>
-                            <Input
-                              type='radio'
-                              checked={state.sourceIsData === false}
-                              onChange={e => dispatch({ type: 'SET_SOURCE', value: e.target.checked ? 'vendor' : undefined })}
-                              className='accent-primary'
-                            >
-                            </Input>
-                          </CardAction>
-                        </CardHeader>
-                      </Card>
-                    </div>
-
                     {/* Vendor Bucket Selected */}
-                    {state.sourceIsData === false && (
                       <div className="flex flex-col gap-2">
-                        <Label>Which vendor bucket?</Label>
-                        <div className='flex gap-2'>
+                        <div className='flex flex-col gap-2 md:flex-row md:gap-2'>
                           <div className='flex flex-col flex-1'>
                             <ComboBox
                               id="vendorBucket"
-                              options={vendorOptions ?? []}
-                              placeholder="Select vendor bucket"
+                              options={vendorOptions}
+                              placeholder={isLoadingVendors ? "Loading vendors..." : "Select source bucket"}
                               value={state.selectedVendor.value}
                               onChange={(value: string, label?: string) => dispatch({ type: 'SET_VENDOR', value, label })}
+                              disabled={isLoadingVendors}
                             />
+                            <div className='flex flex-col gap-1 text-xs text-muted-foreground mt-1 md:flex-row md:justify-end md:items-center'>
+                              <span>Not seeing your vendor's bucket? </span>
+                              <Link
+                                to='/admin/vendors'
+                                className="text-primary hover:underline"
+                              >
+                                Add a vendor
+                              </Link>
+                            </div>
                           </div>
 
                           <Tooltip>
@@ -250,73 +142,78 @@ function RouteComponent() {
                               trigger={(
                                 <TooltipTrigger asChild>
                                   <Button
-                                    variant='ghost'
+                                    variant='outline'
                                     disabled={state.selectedVendor.value === ''}
+                                    className='w-full md:w-auto'
                                   >
                                     <Folder /> Browse
                                   </Button>
                                 </TooltipTrigger>
                               )}
-                              rootPath={state.selectedVendor.value === '' 
-                                ? '/'
-                                : `/${state.selectedVendor.value}/`}
+                              rootPath={`${state.selectedVendor.value}/${project.project_id}/`}
                             />
                             <TooltipContent>
-                              Browse Vendor Bucket
+                              Browse {state.selectedVendor.value}
                             </TooltipContent>
                           </Tooltip>
                         </div>
                       </div>
-                    )}
+                    
                   </div>
                 </>
               ),
             },
             {
-              label: "Manifest",
-              description: "Choose or upload manifest file",
+              label: "Ingest",
+              description: "Choose or upload a manifest file describing files to ingest",
               content: (
                 <>
                   {/* Step-2 */}
-                  {(state.selectedVendor.value !== '' || state.sourceIsData === true) && (
-                    <div className='flex flex-col gap-4'>
-                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-2">
-
-                        {/* Left box */}
-                        <div className="flex flex-col gap-2 md:flex-1">
-                          <FileBrowserDialog
-                            trigger={(
-                              <div
-                                className="relative flex items-center justify-center text-center w-full h-48 border-2 rounded-lg cursor-pointer hover:bg-primary/5 hover:border-primary"
-                                onClick={() => dispatch({ type: 'SET_FILE', value: '/path/to/selected_manfiest_file.csv' })}
-                              >
-                                <MousePointer2 className="absolute inset-0 z-[-1] text-accent w-full h-full" />
-                                <div className="text-center">
-                                  <div className="font-semibold">Click to select file</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {state.sourceIsData ? 'from internal data bucket' : `from ${state.selectedVendor.label} bucket`}
-                                  </div>
-                                </div>
+                  {(state.activeStep === 1) && (
+                    <>
+                    {/* TODO: call APIs */}
+                      {false ? (
+                        <div className='flex flex-col gap-2'>
+                          <div className='flex flex-col gap-2 md:flex-row md:items-center md:gap-2'>
+                            <Input
+                              readOnly
+                              value={`${state.selectedVendor.value}/path/to/manifest.csv`}
+                              className='md:flex-1'
+                            />
+                            {/* TODO: Replace with validate output */}
+                            {false ? (
+                              <div className='flex items-center gap-1'>
+                                <Check className='text-success size-4' />
+                                <span className='text-success text-sm'> Valid</span>
+                              </div>
+                            ) : (
+                              <div className='flex items-center gap-1'>
+                                <Spinner variant='ring' />
+                                <span className='text-muted-foreground text-sm'> Validating...</span>
                               </div>
                             )}
-                            rootPath={'/'}
-                          />
-                        </div>
+                          </div>
 
-                        {/* Separator for small screens: shows line with OR overlay, hidden at md and up */}
-                        <div className="relative py-8 md:hidden">
-                          <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background px-6 text-muted-foreground">
-                            OR
-                          </span>
-                          <Separator />
-                        </div>
+                          <div className='flex flex-col gap-2 md:flex-row md:justify-end'>
+                            <Button
+                              variant='outline'
+                              className='w-full md:w-auto'
+                            >
+                              <Upload /> Upload new manifest
+                            </Button>
 
-                        {/* Separator for md and up: just OR text centered between the boxes, no line */}
-                        <div className="hidden md:flex md:items-center md:justify-center">
-                          <span className="bg-transparent px-2 text-muted-foreground">OR</span>
+                            <Button
+                              disabled={!state.validManifest}
+                              onClick={() => {
+                                toast.success(`Successfully ingested ${state.selectedFile} into project ${project.project_id}`);
+                              }}
+                              className='w-full md:w-auto'
+                            >
+                              <FileInput /> Ingest
+                            </Button>
+                          </div>
                         </div>
-
-                        {/* Right box */}
+                      ) : (
                         <div className="flex flex-col gap-2 md:flex-1">
                           <FileUpload
                             // TODO: Add on upload handler
@@ -324,71 +221,14 @@ function RouteComponent() {
                               <div className="flex flex-col items-center justify-center">
                                 <div className="font-semibold">Drag or click to upload file</div>
                                 <div className="text-sm text-muted-foreground mt-1">
-                                  {state.sourceIsData 
-                                    ? 'upload to internal data bucket' 
-                                    : `to ${state.selectedVendor.label} bucket`}
+                                  {`to ${state.selectedVendor.label} bucket`}
                                 </div>
                               </div>
                             )}
                           />
                         </div>
-                      </div>
-
-                    </div>
-                  )}
-                </>
-              )
-            },
-            {
-              label: "Ingest",
-              description: "Ingest a validated manifest",
-              content: (
-                <>
-                  {/* Selected file */}
-                  {state.selectedFile !== '' && (
-                    <div className='flex flex-col gap-4'>
-                      <div className='border-1 rounded-lg border-primary/25 p-2'>
-                        <div className='flex items-center justify-between gap-8'>
-                          <div className='flex items-center gap-2 text-primary whitespace-normal text-wrap break-all'>
-                            <File className='size-4' />
-                            {state.selectedFile}
-                          </div>
-                          <Button
-                            variant='link'
-                            className='text-destructive'
-                            onClick={() => {
-                              dispatch({ type: 'SET_FILE', value: '' });
-                            }}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className='flex flex-col gap-2 justify-end sm:flex-row'>
-                        <Button
-                          variant='secondary'
-                          onClick={() => { 
-                            dispatch({ type: 'SET_VALID_MANIFEST', value: true });
-                          }}
-                        >
-                          {state.validManifest
-                            ? (
-                              <><Check /> Valid</>
-                            ) : (
-                              <><ClipboardCheck /> Validate</>
-                            )}
-                        </Button>
-                        <Button
-                          disabled={!state.validManifest}
-                          onClick={() => {
-                            toast.success(`Successfully ingested ${state.selectedFile} into project ${project.project_id}`);
-                          }}
-                        >
-                          <FileInput /> Ingest
-                        </Button>
-                      </div>
-                    </div>
+                      )}
+                    </>
                   )}
                 </>
               )

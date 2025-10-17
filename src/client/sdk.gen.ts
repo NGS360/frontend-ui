@@ -15,6 +15,9 @@ import type {
   AddSampleToProjectData,
   AddSampleToProjectErrors,
   AddSampleToProjectResponses,
+  AddVendorData,
+  AddVendorErrors,
+  AddVendorResponses,
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
@@ -39,6 +42,12 @@ import type {
   GetSamplesData,
   GetSamplesErrors,
   GetSamplesResponses,
+  GetVendorData,
+  GetVendorErrors,
+  GetVendorResponses,
+  GetVendorsData,
+  GetVendorsErrors,
+  GetVendorsResponses,
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
@@ -59,6 +68,9 @@ import type {
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
+  UpdateVendorData,
+  UpdateVendorErrors,
+  UpdateVendorResponses,
 } from './types.gen'
 
 export type Options<
@@ -405,5 +417,85 @@ export const search = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     url: '/api/v1/search',
     ...options,
+  })
+}
+
+/**
+ * Get Vendors
+ * Retrieve a list of all vendors.
+ */
+export const getVendors = <ThrowOnError extends boolean = false>(
+  options?: Options<GetVendorsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetVendorsResponses,
+    GetVendorsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/vendors',
+    ...options,
+  })
+}
+
+/**
+ * Add Vendor
+ * Create a new vendor with optional attributes.
+ */
+export const addVendor = <ThrowOnError extends boolean = false>(
+  options: Options<AddVendorData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    AddVendorResponses,
+    AddVendorErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/vendors',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Vendor
+ * Retrieve a specific vendor by ID.
+ */
+export const getVendor = <ThrowOnError extends boolean = false>(
+  options: Options<GetVendorData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetVendorResponses,
+    GetVendorErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/vendors/{vendor_id}',
+    ...options,
+  })
+}
+
+/**
+ * Update Vendor
+ * Update information about a specific vendor.
+ */
+export const updateVendor = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateVendorData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    UpdateVendorResponses,
+    UpdateVendorErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/vendors/{vendor_id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }

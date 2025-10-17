@@ -10,6 +10,7 @@ import {
   
   addRun,
   addSampleToProject,
+  addVendor,
   createProject,
   getProjectByProjectId,
   getProjects,
@@ -18,13 +19,16 @@ import {
   getRunSamplesheet,
   getRuns,
   getSamples,
+  getVendor,
+  getVendors,
   listFiles,
   postRunSamplesheet,
   root,
   search,
   searchProjects,
   searchRuns,
-  updateRun
+  updateRun,
+  updateVendor
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
 import type {InfiniteData, UseMutationOptions} from '@tanstack/react-query';
@@ -36,6 +40,9 @@ import type {
   AddSampleToProjectData,
   AddSampleToProjectError,
   AddSampleToProjectResponse,
+  AddVendorData,
+  AddVendorError,
+  AddVendorResponse,
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
@@ -52,6 +59,10 @@ import type {
   GetSamplesData,
   GetSamplesError,
   GetSamplesResponse,
+  GetVendorData,
+  GetVendorsData,
+  GetVendorsError,
+  GetVendorsResponse,
   ListFilesData,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
@@ -67,6 +78,9 @@ import type {
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
+  UpdateVendorData,
+  UpdateVendorError,
+  UpdateVendorResponse,
 } from '../types.gen'
 import type { AxiosError } from 'axios'
 
@@ -897,4 +911,178 @@ export const searchOptions = (options: Options<SearchData>) => {
     },
     queryKey: searchQueryKey(options),
   })
+}
+
+export const getVendorsQueryKey = (options?: Options<GetVendorsData>) =>
+  createQueryKey('getVendors', options)
+
+/**
+ * Get Vendors
+ * Retrieve a list of all vendors.
+ */
+export const getVendorsOptions = (options?: Options<GetVendorsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getVendors({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getVendorsQueryKey(options),
+  })
+}
+
+export const getVendorsInfiniteQueryKey = (
+  options?: Options<GetVendorsData>,
+): QueryKey<Options<GetVendorsData>> =>
+  createQueryKey('getVendors', options, true)
+
+/**
+ * Get Vendors
+ * Retrieve a list of all vendors.
+ */
+export const getVendorsInfiniteOptions = (
+  options?: Options<GetVendorsData>,
+) => {
+  return infiniteQueryOptions<
+    GetVendorsResponse,
+    AxiosError<GetVendorsError>,
+    InfiniteData<GetVendorsResponse>,
+    QueryKey<Options<GetVendorsData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetVendorsData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetVendorsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await getVendors({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: getVendorsInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const addVendorQueryKey = (options: Options<AddVendorData>) =>
+  createQueryKey('addVendor', options)
+
+/**
+ * Add Vendor
+ * Create a new vendor with optional attributes.
+ */
+export const addVendorOptions = (options: Options<AddVendorData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await addVendor({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: addVendorQueryKey(options),
+  })
+}
+
+/**
+ * Add Vendor
+ * Create a new vendor with optional attributes.
+ */
+export const addVendorMutation = (
+  options?: Partial<Options<AddVendorData>>,
+): UseMutationOptions<
+  AddVendorResponse,
+  AxiosError<AddVendorError>,
+  Options<AddVendorData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    AddVendorResponse,
+    AxiosError<AddVendorError>,
+    Options<AddVendorData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await addVendor({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getVendorQueryKey = (options: Options<GetVendorData>) =>
+  createQueryKey('getVendor', options)
+
+/**
+ * Get Vendor
+ * Retrieve a specific vendor by ID.
+ */
+export const getVendorOptions = (options: Options<GetVendorData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getVendor({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getVendorQueryKey(options),
+  })
+}
+
+/**
+ * Update Vendor
+ * Update information about a specific vendor.
+ */
+export const updateVendorMutation = (
+  options?: Partial<Options<UpdateVendorData>>,
+): UseMutationOptions<
+  UpdateVendorResponse,
+  AxiosError<UpdateVendorError>,
+  Options<UpdateVendorData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateVendorResponse,
+    AxiosError<UpdateVendorError>,
+    Options<UpdateVendorData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateVendor({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }

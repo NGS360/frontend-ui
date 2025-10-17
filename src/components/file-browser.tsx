@@ -199,6 +199,11 @@ export const FileBrowserDialog: React.FC<FileBrowserDialogProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [currentDirectory, setCurrentDirectory] = useState<string>(directoryPath);
   
+  // Update currentDirectory when directoryPath or rootPath changes
+  useEffect(() => {
+    setCurrentDirectory(directoryPath);
+  }, [directoryPath, rootPath]);
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
