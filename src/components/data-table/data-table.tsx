@@ -3,7 +3,7 @@ import React from "react"
 import clsx from "clsx";
 import { DataTableColumnToggle } from "./column-toggle";
 import type { JSX } from "react";
-import type { ColumnDef, OnChangeFn, PaginationState, Table as ReactTable, Row, RowSelectionState, SortingState  } from "@tanstack/react-table";
+import type { ColumnDef, OnChangeFn, PaginationState, Table as ReactTable, Row, RowSelectionState, SortingState } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
@@ -172,7 +172,10 @@ interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
 
   // Sorting
   sorting: SortingState,
-  onSortingChange: OnChangeFn<SortingState>
+  onSortingChange: OnChangeFn<SortingState>,
+
+  // Column visibility
+  onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
 }
 
 export function ServerDataTable<TData, TValue>({
@@ -195,9 +198,15 @@ export function ServerDataTable<TData, TValue>({
 
   // Sorting
   sorting,
-  onSortingChange: setSorting
+  onSortingChange: setSorting,
+
+  // Column visibility
+  onColumnVisibilityChange: setColumnVisibility
 
 }: ServerDataTableProps<TData, TValue>) {
+
+  // Determine if column visibility is controlled or uncontrolled
+  const isControlledColumnVisibility = setColumnVisibility !== undefined
 
   const table = useReactTable({
     data,
@@ -217,14 +226,20 @@ export function ServerDataTable<TData, TValue>({
     manualSorting: true,
     onSortingChange: setSorting,
 
+    // Column visibility (only controlled if handler is provided)
+    ...(isControlledColumnVisibility && { onColumnVisibilityChange: setColumnVisibility }),
+
     // Table state
     state: {
       globalFilter: globalFilter,
       pagination: pagination,
-      sorting: sorting
+      sorting: sorting,
+      // Only include columnVisibility in state if controlled
+      ...(isControlledColumnVisibility && { columnVisibility: columnVisibility })
     },
+    // Use initialState for uncontrolled column visibility
     initialState: {
-      columnVisibility
+      ...(!isControlledColumnVisibility && { columnVisibility })
     },
     getPaginationRowModel: getPaginationRowModel()
   })
@@ -232,9 +247,9 @@ export function ServerDataTable<TData, TValue>({
   // Show search only if both globalFilter and onFilterChange are provided
   const showSearch = globalFilter !== undefined && setGlobalFilter !== undefined
 
-  return(
-    <DataTable 
-      table={table} 
+  return (
+    <DataTable
+      table={table}
       totalItems={totalItems}
       notFoundComponent={notFoundComponent}
       isLoading={isLoading}
@@ -266,7 +281,7 @@ export function ClientDataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    initialState: { pagination: { pageSize }, columnVisibility},
+    initialState: { pagination: { pageSize }, columnVisibility },
     enableRowSelection: true,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -274,7 +289,7 @@ export function ClientDataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel()
   })
 
-  return(
+  return (
     <DataTable
       table={table}
       totalItems={data.length}

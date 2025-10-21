@@ -12,6 +12,8 @@ import {
   addSampleToProject,
   addVendor,
   createProject,
+  demultiplexRun,
+  getMultiplexWorkflows,
   getProjectByProjectId,
   getProjects,
   getRun,
@@ -46,6 +48,10 @@ import type {
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
+  DemultiplexRunData,
+  DemultiplexRunError,
+  DemultiplexRunResponse,
+  GetMultiplexWorkflowsData,
   GetProjectByProjectIdData,
   GetProjectsData,
   GetProjectsError,
@@ -739,6 +745,81 @@ export const searchRunsInfiniteOptions = (options: Options<SearchRunsData>) => {
       queryKey: searchRunsInfiniteQueryKey(options),
     },
   )
+}
+
+export const getMultiplexWorkflowsQueryKey = (
+  options?: Options<GetMultiplexWorkflowsData>,
+) => createQueryKey('getMultiplexWorkflows', options)
+
+/**
+ * Get Multiplex Workflows
+ * Placeholder endpoint for getting available demultiplex workflows.
+ */
+export const getMultiplexWorkflowsOptions = (
+  options?: Options<GetMultiplexWorkflowsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getMultiplexWorkflows({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getMultiplexWorkflowsQueryKey(options),
+  })
+}
+
+export const demultiplexRunQueryKey = (options: Options<DemultiplexRunData>) =>
+  createQueryKey('demultiplexRun', options)
+
+/**
+ * Demultiplex Run
+ * Submit a demultiplex job for a specific run.
+ */
+export const demultiplexRunOptions = (options: Options<DemultiplexRunData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await demultiplexRun({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: demultiplexRunQueryKey(options),
+  })
+}
+
+/**
+ * Demultiplex Run
+ * Submit a demultiplex job for a specific run.
+ */
+export const demultiplexRunMutation = (
+  options?: Partial<Options<DemultiplexRunData>>,
+): UseMutationOptions<
+  DemultiplexRunResponse,
+  AxiosError<DemultiplexRunError>,
+  Options<DemultiplexRunData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DemultiplexRunResponse,
+    AxiosError<DemultiplexRunError>,
+    Options<DemultiplexRunData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await demultiplexRun({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getRunQueryKey = (options: Options<GetRunData>) =>

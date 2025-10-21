@@ -1,9 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { Cog, FolderCheck, FolderSearch, HardDriveDownload, Pencil, PillBottle, Plus, Tag, Zap } from 'lucide-react'
-import { Link, createFileRoute, getRouteApi } from '@tanstack/react-router'
-import type { Attribute, SamplePublic } from '@/client/types.gen'
-import type { ColumnDef, SortingState, Updater } from '@tanstack/react-table'
+import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router'
+import z from 'zod'
+import type { SamplePublic } from '@/client/types.gen'
+import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
@@ -17,9 +18,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { isValidHttpURL } from '@/lib/utils'
 import { getSamplesOptions } from '@/client/@tanstack/react-query.gen'
 import { FullscreenSpinner } from '@/components/spinner'
+import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
+
+// Define the search schema for samples
+const samplesSearchSchema = z.object({
+  page: z.number().optional().default(1),
+  per_page: z.number().optional().default(10),
+  sort_by: z.string().optional().default('sample_id'),
+  sort_order: z.union([
+    z.literal('asc'),
+    z.literal('desc')
+  ]).optional().default('desc')
+})
 
 export const Route = createFileRoute('/projects/$project_id/')({
   component: RouteComponent,
+  validateSearch: samplesSearchSchema,
+  beforeLoad: ({ search }) => {
+    search
+  },
 })
 
 function RouteComponent() {
@@ -31,77 +48,108 @@ function RouteComponent() {
   const DATA_BUCKET_URI = import.meta.env.VITE_DATA_BUCKET_URI || ''
   const RESULTS_BUCKET_URI = import.meta.env.VITE_RESULTS_BUCKET_URI || ''
 
-  // Tanstack Table pagination is 0-based
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  // Manage the state of search params
+  const search = Route.useSearch()
+  const navigate = useNavigate()
+
+  // Local table state
+  // Pagination (0-based for Tanstack Table)
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: search.page - 1,
+    pageSize: search.per_page
+  })
+
+  // Sorting (default: sample_id desc)
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: search.sort_by, desc: search.sort_order === 'desc' ? true : false }
+  ])
+
+  // Column visibility (persisted in Zustand store per project)
+  const { getVisibility, setVisibility } = useColumnVisibilityStore()
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
+    getVisibility(project.project_id) || {}
+  )
+
+  // Sync column visibility to Zustand store when it changes
+  useEffect(() => {
+    setVisibility(project.project_id, columnVisibility)
+  }, [columnVisibility, project.project_id, setVisibility])
+
+  useEffect(() => {
+    navigate({
+      to: '/projects/$project_id',
+      params: { project_id: project.project_id },
+      search: {
+        ...search,
+        page: pagination.pageIndex + 1,
+        per_page: pagination.pageSize,
+        sort_by: sorting[0]?.id || 'sample_id',
+        sort_order: sorting[0]?.desc ? 'desc' : 'asc'
+      },
+      replace: true
+    })
+  }, [pagination, sorting])
 
   // Query samples
-  const { data, isFetching, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     ...getSamplesOptions({
       query: {
-        page: pagination.pageIndex + 1, // API is 1-based
-        per_page: pagination.pageSize,
-        sort_by: 'id',
-        sort_order: 'desc'
+        page: search.page,
+        per_page: search.per_page,
+        sort_by: search.sort_by,
+        sort_order: search.sort_order
       },
       path: {
         project_id: project.project_id
       }
     }),
+    placeholderData: keepPreviousData // Makes pagination feel faster
   })
 
-  if (isFetching) return <FullscreenSpinner variant='ellipsis' />
+  if (isLoading) return <FullscreenSpinner variant='ellipsis' />
   if (error) return 'An error has occurred: ' + error.message
+  if (!data) return 'No data was returned.'
 
-  // Define columns
-  const columns: Array<ColumnDef<SamplePublic>> = [
+  // Define fixed columns for sample_id and project_id
+  const fixedColumns: Array<ColumnDef<SamplePublic>> = [
     {
       accessorKey: 'sample_id',
       header: ({ column }) => <SortableHeader column={column} name="Sample ID" />,
-      cell: ({ cell }) => {
-        const sample_id = cell.getValue() as string
-        return (
-          <CopyableText
-            text={sample_id}
-            variant='hoverLink'
-            asChild={true}
-            children={(
-              <Link
-                // to='/projects/$project_id'
-                to='/'
-              // params={{ project_id: project_id }}
-              >
-                {sample_id}
-              </Link>
-            )}
-          />
-        )
+      cell: ({ getValue }) => {
+        const value = getValue() as string
+        return <CopyableText text={value} variant='hover' />
       }
     },
     {
-      accessorKey: 'name',
-      header: ({ column }) => <SortableHeader column={column} name="Sample Name" />
-    },
-    {
-      accessorKey: 'attributes',
-      header: 'Attributes',
-      size: 300,
-      cell: ({ cell }) => {
-        const attributes = cell.getValue() as Array<Attribute>
-        return (
-          <div className='flex flex-wrap gap-2'>
-            {attributes.map((d) => (
-              <span
-                key={d.key}
-                className='bg-accent rounded-full px-2 py-0.5'
-              >
-                {d.key}: {d.value}
-              </span>
-            ))}
-          </div>
-        )
+      accessorKey: 'project_id',
+      header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
+      cell: ({ getValue }) => {
+        const value = getValue() as string
+        return <CopyableText text={value} variant='hover' />
       }
     }
   ]
+
+  // Define dynamic columns based on data_cols
+  const dynamicColumns: Array<ColumnDef<SamplePublic>> = (data.data_cols || []).map((colName) => ({
+    id: colName,
+    accessorFn: (row) => {
+      // Look up in attributes array
+      const attr = row.attributes?.find((a) => a.key === colName)
+      return attr?.value
+    },
+    header: ({ column }) => <SortableHeader column={column} name={colName} />,
+    cell: ({ getValue }) => {
+      const value = getValue() as string | undefined
+      if (!value) {
+        return <span className='text-muted-foreground italic'>Not found</span>
+      }
+      return <CopyableText text={value} variant='hover' />
+    }
+  }))
+
+  // Combine fixed and dynamic columns
+  const columns = [...fixedColumns, ...dynamicColumns]
 
   return(
     <>
@@ -285,25 +333,18 @@ function RouteComponent() {
             </span>
           </AccordionTrigger>
           <AccordionContent className='pt-2'>
-            {data ? (
-              // <DataTable<EmptyRow, any>
+            {data.data.length > 0 ? (
               <ServerDataTable
-                // data={emptyData}
-                // columns={emptyColumns}
                 data={data.data}
                 columns={columns}
                 pagination={pagination}
                 onPaginationChange={setPagination}
-                pageCount={0}
-                totalItems={0} 
-                globalFilter={''} 
-                onFilterChange={function (updaterOrValue: Updater<string>): void {
-                  throw new Error('Function not implemented.')
-                }} 
-                sorting={[]} 
-                onSortingChange={function (updaterOrValue: Updater<SortingState>): void {
-                  throw new Error('Function not implemented.')
-                }}
+                pageCount={data.total_pages}
+                totalItems={data.total_items}
+                sorting={sorting}
+                onSortingChange={setSorting}
+                columnVisibility={columnVisibility}
+                onColumnVisibilityChange={setColumnVisibility}
               />
             ) : (
                 <FileUpload

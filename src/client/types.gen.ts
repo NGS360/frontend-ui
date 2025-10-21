@@ -53,6 +53,16 @@ export type ConversionResult = {
 }
 
 /**
+ * DemultiplexAnalysisAvailable
+ */
+export type DemultiplexAnalysisAvailable = {
+  /**
+   * Demux Analysis Name
+   */
+  demux_analysis_name?: Array<string> | null
+}
+
+/**
  * DemuxResult
  */
 export type DemuxResult = {
@@ -395,6 +405,10 @@ export type SamplesPublic = {
    * Data
    */
   data: Array<SamplePublic>
+  /**
+   * Data Cols
+   */
+  data_cols?: Array<string> | null
   /**
    * Total Items
    */
@@ -1103,6 +1117,55 @@ export type SearchRunsResponses = {
 }
 
 export type SearchRunsResponse = SearchRunsResponses[keyof SearchRunsResponses]
+
+export type GetMultiplexWorkflowsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/runs/demultiplex'
+}
+
+export type GetMultiplexWorkflowsResponses = {
+  /**
+   * Successful Response
+   */
+  200: DemultiplexAnalysisAvailable
+}
+
+export type GetMultiplexWorkflowsResponse =
+  GetMultiplexWorkflowsResponses[keyof GetMultiplexWorkflowsResponses]
+
+export type DemultiplexRunData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Run Barcode
+     */
+    run_barcode: string
+  }
+  url: '/api/v1/runs/demultiplex'
+}
+
+export type DemultiplexRunErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DemultiplexRunError =
+  DemultiplexRunErrors[keyof DemultiplexRunErrors]
+
+export type DemultiplexRunResponses = {
+  /**
+   * Successful Response
+   */
+  202: SequencingRunPublic
+}
+
+export type DemultiplexRunResponse =
+  DemultiplexRunResponses[keyof DemultiplexRunResponses]
 
 export type GetRunData = {
   body?: never

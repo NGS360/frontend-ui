@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { Building, Database, Folder, MenuIcon, Settings, ShieldCheck, XIcon } from 'lucide-react'
+import { Database, Folder, MenuIcon, ShieldCheck, XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from './ui/button'
 import { CreateProjectForm } from './create-project-form'

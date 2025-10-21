@@ -21,6 +21,11 @@ import type {
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
+  DemultiplexRunData,
+  DemultiplexRunErrors,
+  DemultiplexRunResponses,
+  GetMultiplexWorkflowsData,
+  GetMultiplexWorkflowsResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
@@ -299,6 +304,42 @@ export const searchRuns = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/runs/search',
+    ...options,
+  })
+}
+
+/**
+ * Get Multiplex Workflows
+ * Placeholder endpoint for getting available demultiplex workflows.
+ */
+export const getMultiplexWorkflows = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMultiplexWorkflowsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetMultiplexWorkflowsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs/demultiplex',
+    ...options,
+  })
+}
+
+/**
+ * Demultiplex Run
+ * Submit a demultiplex job for a specific run.
+ */
+export const demultiplexRun = <ThrowOnError extends boolean = false>(
+  options: Options<DemultiplexRunData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    DemultiplexRunResponses,
+    DemultiplexRunErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs/demultiplex',
     ...options,
   })
 }

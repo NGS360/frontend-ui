@@ -116,6 +116,12 @@ function RouteComponent() {
               <Link
                 to='/projects/$project_id'
                 params={{ project_id: project_id }}
+                search={{ 
+                  page: 1,
+                  per_page: 5,
+                  sort_by: undefined, 
+                  sort_order: undefined 
+                }}
               >
                 {project_id}
               </Link>
