@@ -18,6 +18,22 @@ function formatBytes(bytes: number, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, idx)).toFixed(dm)) + ' ' + sizes[idx];
 }
 
+// Helper function to safely format dates
+function formatDate(dateString: string): string {
+  if (!dateString || dateString === '-') return '-';
+  
+  try {
+    const date = new Date(dateString);
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return '-';
+    }
+    return date.toLocaleString();
+  } catch {
+    return '-';
+  }
+}
+
 // Helper function to normalize file names
 function normalizeFileName(fullPath: string, currentPath: string) {
   return fullPath.replace(currentPath, '').replace(/^\//, '/');
@@ -150,7 +166,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       header: ({ column }) => <SortableHeader column={column} name="Modified" />,
       cell: ({ row }) => {
         const { date } = row.original;
-        return date !== '-' ? new Date(date).toLocaleString() : '-';
+        return formatDate(date);
       },
     },
   ];

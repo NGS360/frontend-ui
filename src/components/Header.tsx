@@ -31,12 +31,12 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const logoMap = [
-    ['N', '#4CAF50'],
-    ['G', '#000000'],
-    ['S', '#2196F3'],
-    ['3', '#F44336'],
-    ['6', '#4CAF50'],
-    ['0', '#2196F3'],
+    ['N', '#9de073'],
+    ['G', '#68706e'],
+    ['S', '#25aedd'],
+    ['3', '#eb6341'],
+    ['6', '#ffc180'],
+    ['0', '#9de073'],
   ]
 
   const navItems: Array<NavItemType> = [

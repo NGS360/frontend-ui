@@ -65,8 +65,8 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
-    } catch (e) {
-      console.error("Copy failed: ", e)
+    } catch (error) {
+      console.error("Copy failed: ", error)
     }
   }
 
@@ -76,14 +76,14 @@ export const CopyableText: React.FC<CopyableTextProps> = ({
         {asChild ? (
           children
         ) : variant === 'hoverLink' ? (
-          <a href={text} target="_blank">{children ?? text}</a>
+          <a href={text} target="_blank" className="truncate min-w-0">{children ?? text}</a>
         ) : (
-          <span>
+          <span className="truncate min-w-0">
             {children ?? text}
           </span>
         )}
         <button 
-          className={clsx(copied && "!visible bg-transparent")}
+          className={clsx(copied && "!visible bg-transparent flex-shrink-0")}
           onClick={(e) => onClick(e)}
         >
           {copied
