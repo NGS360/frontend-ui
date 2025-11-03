@@ -1,13 +1,16 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 import React from "react"
 import clsx from "clsx";
+import { X } from "lucide-react"
 import { DataTableColumnToggle } from "./column-toggle";
+import { DataTableColumnFilterToggle } from "./column-filter";
 import type { JSX } from "react";
 import type { ColumnDef, OnChangeFn, PaginationState, Table as ReactTable, Row, RowSelectionState, SortingState } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ContainedSpinner } from "@/components/spinner";
 
 // Common props
@@ -34,7 +37,10 @@ interface DataTableProps<TData> {
   renderCustomRowComponent?: boolean,
   isLoading?: boolean,
   loadingComponent?: JSX.Element,
-  showSearch?: boolean
+  showSearch?: boolean,
+  showColumnFilters?: boolean,
+  onToggleFilters?: () => void,
+  onClearFilters?: () => void
 }
 
 export function DataTable<TData>({
@@ -46,7 +52,10 @@ export function DataTable<TData>({
   renderCustomRowComponent = false,
   isLoading = false,
   loadingComponent = <ContainedSpinner variant='ellipsis' />,
-  showSearch = true
+  showSearch = true,
+  showColumnFilters = false,
+  onToggleFilters,
+  onClearFilters
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -54,13 +63,47 @@ export function DataTable<TData>({
     <Table className="w-full">
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableHead>
-            ))}
-          </TableRow>
+          <React.Fragment key={headerGroup.id}>
+            <TableRow>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+            {showColumnFilters && (
+              <TableRow>
+                {headerGroup.headers.map((header) => {
+                  const filterValue = (header.column.getFilterValue() as string) || ''
+                  
+                  return (
+                    <TableHead key={`${header.id}-filter`}>
+                      {header.column.getCanFilter() ? (
+                        <div className="relative">
+                          <Input
+                            value={filterValue}
+                            onChange={(e) => header.column.setFilterValue(e.target.value)}
+                            placeholder={`Filter...`}
+                            className="h-8 pr-8"
+                          />
+                          {filterValue && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-8 w-8 p-0 hover:bg-transparent"
+                              onClick={() => header.column.setFilterValue('')}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ) : null}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            )}
+          </React.Fragment>
         ))}
       </TableHeader>
       <TableBody>
@@ -129,7 +172,7 @@ export function DataTable<TData>({
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
           {showSearch && (
             <Input
               autoFocus
@@ -138,8 +181,16 @@ export function DataTable<TData>({
                 table.setGlobalFilter(String(e.target.value))
                 table.setPageIndex(0)
               }}
-              placeholder="Type to filter..."
-              className="w-full md:w-1/3"
+              placeholder="Type to filter all columns..."
+              className="w-full md:w-full lg:w-1/3"
+            />
+          )}
+          {onToggleFilters && onClearFilters && (
+            <DataTableColumnFilterToggle 
+              table={table} 
+              showFilters={showColumnFilters}
+              onToggle={onToggleFilters}
+              onClear={onClearFilters}
             />
           )}
           <DataTableColumnToggle table={table} />
@@ -282,6 +333,9 @@ export function ClientDataTable<TData, TValue>({
 
   // Determine if column visibility is controlled or uncontrolled
   const isControlledColumnVisibility = onColumnVisibilityChange !== undefined
+  
+  // Local state for showing/hiding column filters
+  const [showColumnFilters, setShowColumnFilters] = React.useState(false)
 
   const table = useReactTable({
     data,
@@ -306,6 +360,18 @@ export function ClientDataTable<TData, TValue>({
       ...(!isControlledColumnVisibility && { columnVisibility })
     }
   })
+  
+  // Handler to toggle filter visibility
+  const handleToggleFilters = () => {
+    setShowColumnFilters(!showColumnFilters)
+  }
+  
+  // Handler to clear all filters
+  const handleClearFilters = () => {
+    table.resetColumnFilters()
+    table.resetGlobalFilter()
+    setShowColumnFilters(false)
+  }
 
   return (
     <DataTable
@@ -317,6 +383,9 @@ export function ClientDataTable<TData, TValue>({
       renderCustomRowComponent={renderCustomRowComponent}
       isLoading={isLoading}
       loadingComponent={loadingComponent}
+      showColumnFilters={showColumnFilters}
+      onToggleFilters={handleToggleFilters}
+      onClearFilters={handleClearFilters}
     />
   )
 }
