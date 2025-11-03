@@ -262,7 +262,8 @@ export function ServerDataTable<TData, TValue>({
 // Client-side controller
 interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, TValue> {
   pageSize?: number,
-  rowSelection?: RowSelectionState
+  rowSelection?: RowSelectionState,
+  onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
 }
 
 export function ClientDataTable<TData, TValue>({
@@ -275,18 +276,35 @@ export function ClientDataTable<TData, TValue>({
   customRowComponent,
   renderCustomRowComponent = false,
   isLoading,
-  loadingComponent
+  loadingComponent,
+  onColumnVisibilityChange
 }: ClientDataTableProps<TData, TValue>) {
+
+  // Determine if column visibility is controlled or uncontrolled
+  const isControlledColumnVisibility = onColumnVisibilityChange !== undefined
 
   const table = useReactTable({
     data,
     columns,
-    initialState: { pagination: { pageSize }, columnVisibility },
     enableRowSelection: true,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel()
+    getSortedRowModel: getSortedRowModel(),
+    
+    // Column visibility (only controlled if handler is provided)
+    ...(isControlledColumnVisibility && { onColumnVisibilityChange }),
+
+    // Table state
+    state: {
+      // Only include columnVisibility in state if controlled
+      ...(isControlledColumnVisibility && { columnVisibility })
+    },
+    // Use initialState for uncontrolled column visibility
+    initialState: { 
+      pagination: { pageSize },
+      ...(!isControlledColumnVisibility && { columnVisibility })
+    }
   })
 
   return (

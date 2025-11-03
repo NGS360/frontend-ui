@@ -1,12 +1,10 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Cog, FolderCheck, FolderSearch, HardDriveDownload, Pencil, PillBottle, Plus, Tag, Zap } from 'lucide-react'
-import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router'
-import z from 'zod'
+import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 import type { SamplePublic } from '@/client/types.gen'
-import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
-import { ServerDataTable } from '@/components/data-table/data-table'
+import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ExecuteWorkflowForm } from '@/components/execute-workflow-form'
 import { FileBrowserDialog } from '@/components/file-browser'
@@ -16,27 +14,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { isValidHttpURL } from '@/lib/utils'
-import { getSamplesOptions } from '@/client/@tanstack/react-query.gen'
+import { getSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
-
-// Define the search schema for samples
-const samplesSearchSchema = z.object({
-  page: z.number().optional().default(1),
-  per_page: z.number().optional().default(10),
-  sort_by: z.string().optional().default('sample_id'),
-  sort_order: z.union([
-    z.literal('asc'),
-    z.literal('desc')
-  ]).optional().default('desc')
-})
+import { useAllPaginated } from '@/hooks/use-all-paginated'
 
 export const Route = createFileRoute('/projects/$project_id/')({
   component: RouteComponent,
-  validateSearch: samplesSearchSchema,
-  beforeLoad: ({ search }) => {
-    search
-  },
 })
 
 function RouteComponent() {
@@ -47,22 +31,6 @@ function RouteComponent() {
   // Set data and results bucket URIs
   const DATA_BUCKET_URI = import.meta.env.VITE_DATA_BUCKET_URI || ''
   const RESULTS_BUCKET_URI = import.meta.env.VITE_RESULTS_BUCKET_URI || ''
-
-  // Manage the state of search params
-  const search = Route.useSearch()
-  const navigate = useNavigate()
-
-  // Local table state
-  // Pagination (0-based for Tanstack Table)
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: search.page - 1,
-    pageSize: search.per_page
-  })
-
-  // Sorting (default: sample_id desc)
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: search.sort_by, desc: search.sort_order === 'desc' ? true : false }
-  ])
 
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
@@ -75,40 +43,27 @@ function RouteComponent() {
     setVisibility(project.project_id, columnVisibility)
   }, [columnVisibility, project.project_id, setVisibility])
 
-  useEffect(() => {
-    navigate({
-      to: '/projects/$project_id',
-      params: { project_id: project.project_id },
-      search: {
-        ...search,
-        page: pagination.pageIndex + 1,
-        per_page: pagination.pageSize,
-        sort_by: sorting[0]?.id || 'sample_id',
-        sort_order: sorting[0]?.desc ? 'desc' : 'asc'
-      },
-      replace: true
-    })
-  }, [pagination, sorting])
-
-  // Query samples
-  const { data, isLoading, error } = useQuery({
-    ...getSamplesOptions({
-      query: {
-        page: search.page,
-        per_page: search.per_page,
-        sort_by: search.sort_by,
-        sort_order: search.sort_order
-      },
-      path: {
-        project_id: project.project_id
-      }
+  // Fetch all samples using the use-all-paginated hook
+  const { data: allSamples, isLoading, error } = useAllPaginated({
+    queryKey: ['samples', 'all', project.project_id],
+    fetcher: ({ query }) => getSamples({
+      path: { project_id: project.project_id },
+      query
     }),
-    placeholderData: keepPreviousData // Makes pagination feel faster
+    perPage: 100, // Fetch 100 items per page
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   })
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />
   if (error) return 'An error has occurred: ' + error.message
-  if (!data) return 'No data was returned.'
+  if (!allSamples) return 'No data was returned.'
+
+  // Since we're using client-side rendering, we need to extract unique keys from sample attributes
+  const dataColumns = allSamples.length > 0 ? 
+    Array.from(new Set(allSamples.flatMap(sample => 
+      sample.attributes?.map(attr => attr.key) || []
+    ))) : []
 
   // Define fixed columns for sample_id and project_id
   const fixedColumns: Array<ColumnDef<SamplePublic>> = [
@@ -130,8 +85,8 @@ function RouteComponent() {
     }
   ]
 
-  // Define dynamic columns based on data_cols
-  const dynamicColumns: Array<ColumnDef<SamplePublic>> = (data.data_cols || []).map((colName) => ({
+  // Define dynamic columns based on extracted data columns
+  const dynamicColumns: Array<ColumnDef<SamplePublic>> = dataColumns.filter((colName): colName is string => colName !== null).map((colName: string) => ({
     id: colName,
     accessorFn: (row) => {
       // Look up in attributes array
@@ -333,18 +288,14 @@ function RouteComponent() {
             </span>
           </AccordionTrigger>
           <AccordionContent className='pt-2'>
-            {data.data.length > 0 ? (
-              <ServerDataTable
-                data={data.data}
+            {allSamples.length > 0 ? (
+              <ClientDataTable
+                data={allSamples}
                 columns={columns}
-                pagination={pagination}
-                onPaginationChange={setPagination}
-                pageCount={data.total_pages}
-                totalItems={data.total_items}
-                sorting={sorting}
-                onSortingChange={setSorting}
                 columnVisibility={columnVisibility}
                 onColumnVisibilityChange={setColumnVisibility}
+                pageSize={5}
+                isLoading={isLoading}
               />
             ) : (
                 <FileUpload
