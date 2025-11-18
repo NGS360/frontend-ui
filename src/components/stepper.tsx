@@ -19,7 +19,6 @@ export const Stepper: React.FC<StepperProps> = ({
   steps,
   activeStep,
   onStepChange,
-  className = "",
   showFutureSteps = true,
 }) => {
   return (
