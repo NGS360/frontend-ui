@@ -6,11 +6,11 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbS
 export const BreadcrumbNav: React.FC = () => {
   const matches = useMatches();
   const items = matches
-    .filter((match) => match.loaderData?.crumb)
+    .filter((match) => match.loaderData && 'crumb' in match.loaderData)
     .map(({ pathname, loaderData }) => ({
       href: pathname,
-      crumb: loaderData?.crumb,
-      includeCrumbLink: loaderData?.includeCrumbLink,
+      crumb: (loaderData as { crumb: string }).crumb,
+      includeCrumbLink: (loaderData as { includeCrumbLink?: boolean }).includeCrumbLink,
     }))
 
   return (

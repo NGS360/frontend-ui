@@ -297,11 +297,11 @@ function RouteComponent() {
                 pageCount={0}
                 totalItems={0} 
                 globalFilter={''} 
-                onFilterChange={function (updaterOrValue: Updater<string>): void {
+                onFilterChange={function (_updaterOrValue: Updater<string>): void {
                   throw new Error('Function not implemented.')
-                }} 
-                sorting={[]} 
-                onSortingChange={function (updaterOrValue: Updater<SortingState>): void {
+                }}
+                sorting={[]}
+                onSortingChange={function (_updaterOrValue: Updater<SortingState>): void {
                   throw new Error('Function not implemented.')
                 }}
               />
