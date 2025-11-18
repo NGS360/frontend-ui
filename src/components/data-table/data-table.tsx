@@ -1,17 +1,19 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 import React from "react"
 import clsx from "clsx";
-import { X } from "lucide-react"
+import { ListFilter } from "lucide-react"
 import { DataTableColumnToggle } from "./column-toggle";
-import { DataTableColumnFilterToggle } from "./column-filter";
+import { MultiConditionFilter } from "./multi-condition-filter";
+import { multiConditionFilter } from "./multi-condition-filter-fn";
 import type { JSX } from "react";
 import type { ColumnDef, OnChangeFn, PaginationState, Table as ReactTable, Row, RowSelectionState, SortingState } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ContainedSpinner } from "@/components/spinner";
+import { Input } from "@/components/ui/input";
 
 // Common props
 interface BaseDataTableProps<TData, TValue> {
@@ -38,9 +40,7 @@ interface DataTableProps<TData> {
   isLoading?: boolean,
   loadingComponent?: JSX.Element,
   showSearch?: boolean,
-  showColumnFilters?: boolean,
-  onToggleFilters?: () => void,
-  onClearFilters?: () => void
+  enableColumnFilters?: boolean
 }
 
 export function DataTable<TData>({
@@ -53,9 +53,7 @@ export function DataTable<TData>({
   isLoading = false,
   loadingComponent = <ContainedSpinner variant='ellipsis' />,
   showSearch = true,
-  showColumnFilters = false,
-  onToggleFilters,
-  onClearFilters
+  enableColumnFilters = false
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -63,47 +61,44 @@ export function DataTable<TData>({
     <Table className="w-full">
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
-          <React.Fragment key={headerGroup.id}>
-            <TableRow>
-              {headerGroup.headers.map((header) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => {
+              const filterValue = (header.column.getFilterValue() as string) || ''
+              const isFiltered = !!filterValue
+              
+              return (
                 <TableHead key={header.id}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-            {showColumnFilters && (
-              <TableRow>
-                {headerGroup.headers.map((header) => {
-                  const filterValue = (header.column.getFilterValue() as string) || ''
-                  
-                  return (
-                    <TableHead key={`${header.id}-filter`}>
-                      {header.column.getCanFilter() ? (
-                        <div className="relative">
-                          <Input
+                  <div className="flex items-center gap-2 group">
+                    <div className="flex-1">
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </div>
+                    {enableColumnFilters && header.column.getCanFilter() && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={clsx(
+                              "h-6 w-6 p-0",
+                              isFiltered ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                            )}
+                          >
+                            <ListFilter className={clsx("h-3.5 w-3.5", isFiltered && "fill-current")} />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-80">
+                          <MultiConditionFilter
                             value={filterValue}
-                            onChange={(e) => header.column.setFilterValue(e.target.value)}
-                            placeholder={`Filter...`}
-                            className="h-8 pr-8"
+                            onChange={(value) => header.column.setFilterValue(value)}
                           />
-                          {filterValue && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-0 top-0 h-8 w-8 p-0 hover:bg-transparent"
-                              onClick={() => header.column.setFilterValue('')}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      ) : null}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            )}
-          </React.Fragment>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </div>
+                </TableHead>
+              )
+            })}
+          </TableRow>
         ))}
       </TableHeader>
       <TableBody>
@@ -183,14 +178,6 @@ export function DataTable<TData>({
               }}
               placeholder="Type to filter all columns..."
               className="w-full md:w-full lg:w-1/3"
-            />
-          )}
-          {onToggleFilters && onClearFilters && (
-            <DataTableColumnFilterToggle 
-              table={table} 
-              showFilters={showColumnFilters}
-              onToggle={onToggleFilters}
-              onClear={onClearFilters}
             />
           )}
           <DataTableColumnToggle table={table} />
@@ -306,6 +293,7 @@ export function ServerDataTable<TData, TValue>({
       isLoading={isLoading}
       loadingComponent={loadingComponent}
       showSearch={showSearch}
+      enableColumnFilters={false}
     />
   )
 }
@@ -333,13 +321,19 @@ export function ClientDataTable<TData, TValue>({
 
   // Determine if column visibility is controlled or uncontrolled
   const isControlledColumnVisibility = onColumnVisibilityChange !== undefined
-  
-  // Local state for showing/hiding column filters
-  const [showColumnFilters, setShowColumnFilters] = React.useState(false)
+
+  // Map columns to include the custom filter function
+  const columnsWithFilter = React.useMemo(
+    () => columns.map((col) => ({
+      ...col,
+      filterFn: multiConditionFilter,
+    })),
+    [columns]
+  );
 
   const table = useReactTable({
     data,
-    columns,
+    columns: columnsWithFilter,
     enableRowSelection: true,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -360,18 +354,6 @@ export function ClientDataTable<TData, TValue>({
       ...(!isControlledColumnVisibility && { columnVisibility })
     }
   })
-  
-  // Handler to toggle filter visibility
-  const handleToggleFilters = () => {
-    setShowColumnFilters(!showColumnFilters)
-  }
-  
-  // Handler to clear all filters
-  const handleClearFilters = () => {
-    table.resetColumnFilters()
-    table.resetGlobalFilter()
-    setShowColumnFilters(false)
-  }
 
   return (
     <DataTable
@@ -383,9 +365,7 @@ export function ClientDataTable<TData, TValue>({
       renderCustomRowComponent={renderCustomRowComponent}
       isLoading={isLoading}
       loadingComponent={loadingComponent}
-      showColumnFilters={showColumnFilters}
-      onToggleFilters={handleToggleFilters}
-      onClearFilters={handleClearFilters}
+      enableColumnFilters={true}
     />
   )
 }
