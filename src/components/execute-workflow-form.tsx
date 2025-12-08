@@ -73,6 +73,19 @@ export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  // Handle reset - clear form state
+  const handleReset = () => {
+    dispatch({ type: 'SET_ACTION', value: '', label: '' });
+    dispatch({ type: 'SET_ACTIVE_STEP', value: 0 });
+  };
+
+  // Handle sheet open/close - clear state when closing
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleReset();
+    }
+  };
+
   // Project action options
   const [projectActionOptions, setProjectActionOptions] = useState<Array<ComboBoxOption>>();
   useEffect(() => {
@@ -120,7 +133,7 @@ export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
   const projectTypeOptions = projectTypeData ? (typeOptionsLookup.lookup(state.projectAction.value, state.projectPlatform.value) ?? []) : [];
 
   return (
-    <Sheet>
+    <Sheet onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
@@ -205,6 +218,7 @@ export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
           <SheetClose asChild>
             <Button
               variant='secondary'
+              onClick={handleReset}
             >
               Close
             </Button>

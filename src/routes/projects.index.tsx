@@ -161,7 +161,7 @@ function RouteComponent() {
   ]
 
   return (
-    <>
+    <div className='animate-fade-in-up'>
       <h1 className="text-2xl">Projects</h1>
       <p className="text-muted-foreground mb-6">View all projects in NGS360</p>
       <ServerDataTable
@@ -176,6 +176,6 @@ function RouteComponent() {
         sorting={sorting}
         onSortingChange={setSorting}
       />
-    </>
+    </div>
   )
 }

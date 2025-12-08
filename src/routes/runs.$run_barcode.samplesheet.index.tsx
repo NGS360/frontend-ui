@@ -153,7 +153,7 @@ function RouteComponent() {
   )
 
   return (
-    <>
+    <div className='animate-fade-in-up'>
       <FullscreenDropzone 
         subject='a new samplesheet'
         onDrop={onDrop}
@@ -236,6 +236,6 @@ function RouteComponent() {
           </div>
         </div>
       </FullscreenDropzone>
-    </>
+    </div>
   )
 }

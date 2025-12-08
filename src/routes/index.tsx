@@ -8,13 +8,15 @@ export const Route = createFileRoute('/')({
 function App() {
   return (
     <div className="text-center">
-      <div className="min-h-[75vh] flex flex-col items-center justify-center gap-4">
-        <h1 className="text-4xl font-light">Welcome to NGS360</h1>
-        <h2 className="text-sm text-muted-foreground text-wrap max-w-lg w-[95%]">
-          Put a really nice tagline here describing what NGS360 does or what
-          action the user should take next.
+      <div className="min-h-[75vh] flex flex-col items-center justify-center gap-6 px-4">
+        <h1 className="text-5xl md:text-6xl font-bold gradient-text animate-fade-in-up">
+          Welcome to NGS360
+        </h1>
+        <h2 className="text-base md:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0, animationFillMode: 'forwards' }}>
+          Your comprehensive next-generation sequencing data management platform.
+          Search, analyze, and manage your genomic data with ease.
         </h2>
-        <div className="max-w-xl w-[95%]">
+        <div className="max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.2s', opacity: 0, animationFillMode: 'forwards' }}>
           <SearchBar />
         </div>
       </div>

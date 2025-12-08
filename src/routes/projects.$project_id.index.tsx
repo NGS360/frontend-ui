@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Cog, FolderCheck, FolderSearch, HardDriveDownload, Pencil, PillBottle, Plus, Tag, Zap } from 'lucide-react'
+import { Building2, Check, Cog, FolderCheck, FolderSearch, HardDriveDownload, Pencil, PillBottle, Plus, Tag, Zap } from 'lucide-react'
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 import type { SamplePublic } from '@/client/types.gen'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -10,9 +10,11 @@ import { ExecuteWorkflowForm } from '@/components/execute-workflow-form'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
 import { IngestVendorDataForm } from '@/components/ingest-vendor-data-form'
+import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { isValidHttpURL } from '@/lib/utils'
 import { getSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
@@ -107,7 +109,7 @@ function RouteComponent() {
   const columns = [...fixedColumns, ...dynamicColumns]
 
   return(
-    <>
+    <div className='animate-fade-in-up'>
       {/* Grid for attributes and new content */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
         {/* Attributes */}
@@ -203,8 +205,8 @@ function RouteComponent() {
                   trigger={(
                     <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
                       <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                          <FolderSearch className='size-5' />
+                        <CardTitle className='flex items-center gap-2 text-lg'>
+                          <FolderSearch className='size-5 text-primary' />
                           Data Bucket
                         </CardTitle>
                         <CardDescription>
@@ -221,11 +223,11 @@ function RouteComponent() {
                   trigger={(
                     <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
                       <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                          <FolderCheck className='size-5' />
+                        <CardTitle className='flex items-center gap-2 text-lg'>
+                          <FolderCheck className='size-5 text-primary-2' />
                           Results Bucket
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className='text-sm'>
                           View analysis results and outputs stored in the results bucket
                         </CardDescription>
                       </CardHeader>
@@ -234,34 +236,64 @@ function RouteComponent() {
                   rootPath={`${RESULTS_BUCKET_URI}/${project.project_id}/`}
                 />
 
-                {/* Ingest Vendor Data */}
-                <IngestVendorDataForm
-                  trigger={(
-                    <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
-                      <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                          <HardDriveDownload className='size-5' />
-                          Ingest Vendor Data
-                        </CardTitle>
-                        <CardDescription>
-                          Upload and validate vendor manifest files for data ingestion
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  )}
-                  projectId={project.project_id}
-                />
+                {/* Vendor Data */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2 text-lg'>
+                      <Building2 className='size-5 text-primary' />
+                      Vendor Data
+                    </CardTitle>
+                    <div className='flex flex-col gap-2 mt-4 sm:flex-row'>
+                      <Tooltip>
+                        <ValidateManifestForm
+                          trigger={(
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="sm" className='flex-1'>
+                                <Check className='size-4' />
+                                 Validate
+                              </Button>
+                            </TooltipTrigger>
+                          )}
+                          projectId={project.project_id}
+                        />
+                        <TooltipContent>
+                          <p>Validate a manifest</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <IngestVendorDataForm
+                          trigger={(
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className='flex-1'
+                              >
+                                <HardDriveDownload className='size-4' />
+                                Ingest
+                              </Button>
+                            </TooltipTrigger>
+                          )}
+                          projectId={project.project_id}
+                        />
+                        <TooltipContent>
+                          <p>Ingest vendor data</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </CardHeader>
+                </Card>
 
                 {/* Execute Workflow */}
                 <ExecuteWorkflowForm
                   trigger={(
                     <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
                       <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                          <Cog className='size-5' />
+                        <CardTitle className='flex items-center gap-2 text-lg'>
+                          <Cog className='size-5 text-primary' />
                           Execute Workflow
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className='text-sm'>
                           Execute workflows and actions on this project
                         </CardDescription>
                       </CardHeader>
@@ -310,6 +342,6 @@ function RouteComponent() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-    </>
+    </div>
   )
 }

@@ -140,7 +140,7 @@ function RouteComponent() {
   ]
 
   return (
-    <>
+    <div className='animate-fade-in-up'>
       <ClientDataTable 
         data={readCountData}
         columns={columns}
@@ -153,6 +153,6 @@ function RouteComponent() {
           isMobile={isMobile}
         />
       )}
-    </>
+    </div>
   )
 }
