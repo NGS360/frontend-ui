@@ -15,7 +15,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { isValidHttpURL } from '@/lib/utils'
+import { highlightMatch, isValidHttpURL } from '@/lib/utils'
 import { getSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
@@ -39,6 +39,9 @@ function RouteComponent() {
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
     getVisibility(project.project_id) || {}
   )
+
+  // Global filter for search
+  const [globalFilter, setGlobalFilter] = useState<string>('')
 
   // Sync column visibility to Zustand store when it changes
   useEffect(() => {
@@ -74,7 +77,7 @@ function RouteComponent() {
       header: ({ column }) => <SortableHeader column={column} name="Sample ID" />,
       cell: ({ getValue }) => {
         const value = getValue() as string
-        return <CopyableText text={value} variant='hover' />
+        return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
       }
     },
     {
@@ -82,7 +85,7 @@ function RouteComponent() {
       header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
       cell: ({ getValue }) => {
         const value = getValue() as string
-        return <CopyableText text={value} variant='hover' />
+        return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
       }
     }
   ]
@@ -101,7 +104,7 @@ function RouteComponent() {
       if (!value) {
         return <span className='text-muted-foreground italic'>Not found</span>
       }
-      return <CopyableText text={value} variant='hover' />
+      return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
     }
   }))
 
@@ -326,6 +329,8 @@ function RouteComponent() {
                 columns={columns}
                 columnVisibility={columnVisibility}
                 onColumnVisibilityChange={setColumnVisibility}
+                globalFilter={globalFilter}
+                onFilterChange={setGlobalFilter}
                 pageSize={5}
                 isLoading={isLoading}
               />

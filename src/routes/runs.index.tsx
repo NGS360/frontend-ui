@@ -10,6 +10,7 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { useDebounce } from '@/hooks/use-debounce';
 import { FullscreenSpinner } from '@/components/spinner';
+import { highlightMatch } from '@/lib/utils';
 
 // Define the search schema for projects 
 const runsSearchSchema = z.object({
@@ -120,7 +121,7 @@ function RouteComponent() {
                   params={{ run_barcode: barcode }}
                   preload={false}
                 >
-                  {barcode}
+                  {highlightMatch(barcode, debouncedInput)}
                 </Link>
               )}
             />
@@ -128,6 +129,7 @@ function RouteComponent() {
             <CopyableText
               text={barcode}
               variant='hoverLight'
+              children={highlightMatch(barcode, debouncedInput)}
             />
           )
       }
@@ -142,6 +144,7 @@ function RouteComponent() {
           <CopyableText
             text={value}
             variant='hover'
+            children={highlightMatch(value, debouncedInput)}
           />
         )
       }
@@ -156,6 +159,7 @@ function RouteComponent() {
           <CopyableText
             text={value}
             variant='hover'
+            children={highlightMatch(value, debouncedInput)}
           />
         )
       }
@@ -175,6 +179,7 @@ function RouteComponent() {
           <CopyableText
             text={value}
             variant='hover'
+            children={highlightMatch(value, debouncedInput)}
           />
         )
       }

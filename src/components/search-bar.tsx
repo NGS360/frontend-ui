@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { searchOptions } from '@/client/@tanstack/react-query.gen'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Separator } from '@/components/ui/separator'
+import { highlightMatch } from '@/lib/utils'
 
 // Search item component
 interface SearchItemProps {
@@ -107,50 +108,48 @@ export const SearchBar: FC = () => {
           <ScrollArea>
             <div className='max-h-125'>
               <ScrollBar orientation="vertical" />
-              <SearchGroup heading="Projects">
-                {projects.length
-                  ? projects.map((p: ProjectPublic) => (
-                    <SearchItem
-                      key={p.project_id}
-                      onClick={() => navigate({
-                        to: '/projects/$project_id',
-                        params: { project_id: p.project_id }
-                      })}
-                    >
-                      <span className='text-sm'>
-                        {p.project_id}
-                      </span>
-                      <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
-                        {p.name}
-                      </span>
+              {projects.length > 0 && (
+                <>
+                  <SearchGroup heading="Projects">
+                    {projects.map((p: ProjectPublic) => (
+                      <SearchItem
+                        key={p.project_id}
+                        onClick={() => navigate({
+                          to: '/projects/$project_id',
+                          params: { project_id: p.project_id }
+                        })}
+                      >
+                        <span className='text-sm'>
+                          {highlightMatch(p.project_id, debouncedInput)}
+                        </span>
+                        <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
+                          {highlightMatch(p.name || '', debouncedInput)}
+                        </span>
+                      </SearchItem>
+                    ))}
+                    <SearchItem>
+                      <Link 
+                        className="flex items-center gap-2 text-primary cursor-pointer"
+                        to="/projects"
+                        search={{ 
+                          query: debouncedInput,
+                          sort_by: 'name',
+                          sort_order: 'asc'
+                        }}
+                      >
+                        <ExternalLink size={14} />
+                        <span>View all projects</span>
+                      </Link>
                     </SearchItem>
-                  ))
-                  :
-                  <SearchItem>
-                    <span className='flex justify-center'>No results.</span>
-                  </SearchItem>
-                }
-                <SearchItem>
-                  <Link 
-                    className="flex items-center gap-2"
-                    to="/projects"
-                    search={{ 
-                      query: debouncedInput,
-                      sort_by: 'name',
-                      sort_order: 'asc'
-                    }}
-                  >
-                    <ExternalLink size={14} className="text-muted-foreground" />
-                    <span>View all projects</span>
-                  </Link>
-                </SearchItem>
-              </SearchGroup>
+                  </SearchGroup>
 
-              <Separator className="my-0.5" />
+                  {runs.length > 0 && <Separator className="my-0.5" />}
+                </>
+              )}
 
-              <SearchGroup heading="Runs">
-                {runs.length
-                  ? runs.map((r: SequencingRunPublic) => (
+              {runs.length > 0 && (
+                <SearchGroup heading="Runs">
+                  {runs.map((r: SequencingRunPublic) => (
                     <SearchItem
                       key={r.barcode}
                       onClick={() => navigate({
@@ -159,30 +158,32 @@ export const SearchBar: FC = () => {
                       })}
                     >
                       <span className='text-sm'>
-                        {r.barcode}
+                        {highlightMatch(r.barcode || '', debouncedInput)}
                       </span>
                       <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
-                        {r.experiment_name}
+                        {highlightMatch(r.experiment_name || '', debouncedInput)}
                       </span>
                     </SearchItem>
-                  ))
-                  :
+                  ))}
                   <SearchItem>
-                    <span className='flex justify-center'>No results.</span>
+                    {/* TODO: update to runs page */}
+                    <Link
+                      className="flex items-center gap-2 text-primary cursor-pointer"
+                      to="/runs"
+                      search={{ query: debouncedInput }}
+                    >
+                      <ExternalLink size={14} />
+                      <span>View all runs</span>
+                    </Link>
                   </SearchItem>
-                }
-                <SearchItem>
-                  {/* TODO: update to runs page */}
-                  <Link
-                    className="flex items-center gap-2"
-                    to="/runs"
-                    search={{ query: debouncedInput }}
-                  >
-                    <ExternalLink size={14} className="text-muted-foreground" />
-                    <span>View all runs</span>
-                  </Link>
-                </SearchItem>
-              </SearchGroup>
+                </SearchGroup>
+              )}
+
+              {projects.length === 0 && runs.length === 0 && (
+                <div className="flex justify-center p-4 text-sm text-muted-foreground">
+                  No results found.
+                </div>
+              )}
             </div>
           </ScrollArea>
         </PopoverContent>
