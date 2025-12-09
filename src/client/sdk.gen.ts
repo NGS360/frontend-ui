@@ -21,6 +21,9 @@ import type {
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
+  DeleteVendorData,
+  DeleteVendorErrors,
+  DeleteVendorResponses,
   DemultiplexRunData,
   DemultiplexRunErrors,
   DemultiplexRunResponses,
@@ -47,12 +50,17 @@ import type {
   GetSamplesData,
   GetSamplesErrors,
   GetSamplesResponses,
+  GetToolConfigData,
+  GetToolConfigErrors,
+  GetToolConfigResponses,
   GetVendorData,
   GetVendorErrors,
   GetVendorResponses,
   GetVendorsData,
   GetVendorsErrors,
   GetVendorsResponses,
+  ListAvailableToolsData,
+  ListAvailableToolsResponses,
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
@@ -73,6 +81,9 @@ import type {
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
+  UpdateSampleInProjectData,
+  UpdateSampleInProjectErrors,
+  UpdateSampleInProjectResponses,
   UpdateVendorData,
   UpdateVendorErrors,
   UpdateVendorResponses,
@@ -176,6 +187,7 @@ export const createProject = <ThrowOnError extends boolean = false>(
 
 /**
  * Search Projects
+ * Search projects by project_id or name.
  */
 export const searchProjects = <ThrowOnError extends boolean = false>(
   options: Options<SearchProjectsData, ThrowOnError>,
@@ -242,6 +254,28 @@ export const addSampleToProject = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/projects/{project_id}/samples',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Update Sample In Project
+ * Update an existing sample in a project.
+ */
+export const updateSampleInProject = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateSampleInProjectData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    UpdateSampleInProjectResponses,
+    UpdateSampleInProjectErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/{project_id}/samples/{sample_id}',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -446,6 +480,7 @@ export const getRunMetrics = <ThrowOnError extends boolean = false>(
 
 /**
  * Search
+ * Search across all indices using OpenSearch.
  */
 export const search = <ThrowOnError extends boolean = false>(
   options: Options<SearchData, ThrowOnError>,
@@ -457,6 +492,50 @@ export const search = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/search',
+    ...options,
+  })
+}
+
+/**
+ * List Available Tools
+ * List all available tool configurations from S3.
+ *
+ * Returns a list of tool IDs (config filenames without extensions).
+ */
+export const listAvailableTools = <ThrowOnError extends boolean = false>(
+  options?: Options<ListAvailableToolsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListAvailableToolsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/tools/',
+    ...options,
+  })
+}
+
+/**
+ * Get Tool Config
+ * Retrieve a specific tool configuration.
+ *
+ * Args:
+ * tool_id: The tool identifier (filename without extension)
+ *
+ * Returns:
+ * Complete tool configuration
+ */
+export const getToolConfig = <ThrowOnError extends boolean = false>(
+  options: Options<GetToolConfigData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetToolConfigResponses,
+    GetToolConfigErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/tools/{tool_id}',
     ...options,
   })
 }
@@ -498,6 +577,23 @@ export const addVendor = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Delete Vendor
+ * Delete a specific vendor by ID.
+ */
+export const deleteVendor = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteVendorData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteVendorResponses,
+    DeleteVendorErrors,
+    ThrowOnError
+  >({
+    url: '/api/v1/vendors/{vendor_id}',
+    ...options,
   })
 }
 

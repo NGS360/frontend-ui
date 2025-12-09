@@ -236,6 +236,11 @@ export type IndexMetric = {
 }
 
 /**
+ * InputType
+ */
+export type InputType = 'Enum' | 'String' | 'Integer' | 'Boolean'
+
+/**
  * ProjectCreate
  */
 export type ProjectCreate = {
@@ -556,6 +561,77 @@ export type SequencingRunsPublic = {
    * Has Prev
    */
   has_prev: boolean
+}
+
+/**
+ * ToolConfig
+ */
+export type ToolConfig = {
+  /**
+   * Version
+   */
+  version: number
+  /**
+   * Tool Id
+   */
+  tool_id: string
+  /**
+   * Tool Name
+   */
+  tool_name: string
+  /**
+   * Tool Description
+   */
+  tool_description: string
+  /**
+   * Inputs
+   */
+  inputs: Array<ToolConfigInput>
+  /**
+   * Help
+   */
+  help: string
+  /**
+   * Tags
+   */
+  tags: Array<ToolConfigTag>
+}
+
+/**
+ * ToolConfigInput
+ */
+export type ToolConfigInput = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Desc
+   */
+  desc: string
+  type: InputType
+  /**
+   * Required
+   */
+  required?: boolean
+  /**
+   * Default
+   */
+  default?: unknown | null
+  /**
+   * Options
+   */
+  options?: Array<string> | null
+}
+
+/**
+ * ToolConfigTag
+ */
+export type ToolConfigTag = {
+  /**
+   * Name
+   */
+  name: string
 }
 
 /**
@@ -996,6 +1072,42 @@ export type AddSampleToProjectResponses = {
 export type AddSampleToProjectResponse =
   AddSampleToProjectResponses[keyof AddSampleToProjectResponses]
 
+export type UpdateSampleInProjectData = {
+  body: Attribute
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+    /**
+     * Sample Id
+     */
+    sample_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/samples/{sample_id}'
+}
+
+export type UpdateSampleInProjectErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateSampleInProjectError =
+  UpdateSampleInProjectErrors[keyof UpdateSampleInProjectErrors]
+
+export type UpdateSampleInProjectResponses = {
+  /**
+   * Successful Response
+   */
+  200: SamplePublic
+}
+
+export type UpdateSampleInProjectResponse =
+  UpdateSampleInProjectResponses[keyof UpdateSampleInProjectResponses]
+
 export type GetRunsData = {
   body?: never
   path?: never
@@ -1358,6 +1470,55 @@ export type SearchResponses = {
 
 export type SearchResponse2 = SearchResponses[keyof SearchResponses]
 
+export type ListAvailableToolsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/tools/'
+}
+
+export type ListAvailableToolsResponses = {
+  /**
+   * Response List Available Tools
+   * Successful Response
+   */
+  200: Array<string>
+}
+
+export type ListAvailableToolsResponse =
+  ListAvailableToolsResponses[keyof ListAvailableToolsResponses]
+
+export type GetToolConfigData = {
+  body?: never
+  path: {
+    /**
+     * Tool Id
+     */
+    tool_id: string
+  }
+  query?: never
+  url: '/api/v1/tools/{tool_id}'
+}
+
+export type GetToolConfigErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetToolConfigError = GetToolConfigErrors[keyof GetToolConfigErrors]
+
+export type GetToolConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: ToolConfig
+}
+
+export type GetToolConfigResponse =
+  GetToolConfigResponses[keyof GetToolConfigResponses]
+
 export type GetVendorsData = {
   body?: never
   path?: never
@@ -1428,6 +1589,37 @@ export type AddVendorResponses = {
 }
 
 export type AddVendorResponse = AddVendorResponses[keyof AddVendorResponses]
+
+export type DeleteVendorData = {
+  body?: never
+  path: {
+    /**
+     * Vendor Id
+     */
+    vendor_id: string
+  }
+  query?: never
+  url: '/api/v1/vendors/{vendor_id}'
+}
+
+export type DeleteVendorErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteVendorError = DeleteVendorErrors[keyof DeleteVendorErrors]
+
+export type DeleteVendorResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteVendorResponse =
+  DeleteVendorResponses[keyof DeleteVendorResponses]
 
 export type GetVendorData = {
   body?: never
