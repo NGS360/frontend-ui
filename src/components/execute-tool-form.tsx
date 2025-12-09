@@ -145,7 +145,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   // Handle dialog close
   const handleOnOpenChange = (willOpen: boolean) => {
     if (!willOpen) {
-      reset();
+      reset(getDefaultValues());
     }
     onOpenChange(willOpen);
   };
@@ -177,7 +177,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
 
       // Close dialog and reset form
       handleOnOpenChange(false);
-      reset();
+      reset(getDefaultValues());
     } catch (error) {
       console.error("Error submitting tool execution:", error);
       toast.error("Failed to execute tool");
@@ -188,7 +188,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{toolConfig.tool_name}</DialogTitle>
           <DialogDescription>{toolConfig.tool_description}</DialogDescription>
@@ -197,10 +197,12 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
           <div className="grid gap-6 py-4">
             {toolConfig.inputs.map((input) => (
               <div key={input.name} className="grid gap-2">
-                <Label htmlFor={input.desc}>
-                  {input.desc}
-                  {input.required && <span className="text-red-500">*</span>}
-                </Label>
+                {input.type !== "Boolean" && (
+                  <Label htmlFor={input.desc}>
+                    {input.desc}
+                    {input.required && <span className="text-red-500">*</span>}
+                  </Label>
+                )}
 
                 {/* Render input based on type */}
                 {input.type === "String" && (
@@ -231,12 +233,10 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                         setValue(input.name, checked as any);
                       }}
                     />
-                    <label
-                      htmlFor={input.name}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Enable
-                    </label>
+                    <Label htmlFor={input.name} className="!mt-0">
+                      {input.desc}
+                      {input.required && <span className="text-red-500 ml-1">*</span>}
+                    </Label>
                   </div>
                 )}
 
@@ -259,7 +259,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                 )}
 
                 {errors[input.name] && (
-                  <div className="text-xs text-red-500 text-left">
+                  <div className="text-xs text-red-500 text-left break-all">
                     {errors[input.name]?.message as string}
                   </div>
                 )}
@@ -276,12 +276,21 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
           </div>
 
           <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                reset(getDefaultValues());
+              }}
+            >
+              Reset
+            </Button>
             <DialogClose asChild>
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => {
-                  reset();
+                  reset(getDefaultValues());
                 }}
               >
                 Cancel
