@@ -63,6 +63,8 @@ code {
   --bms-primary-2: #45b14e;
   --bms-secondary-1: #595454;
   --success: #45b14e;
+  --accent2: #eb6341;
+  --accent3: #25aedd;
 }
 
 .dark {
@@ -103,6 +105,8 @@ code {
   /* Custom colors */
   --color-semi-transparent: #0f0f0fcc;
   --success: #45b14e;
+  --accent2: #eb6341;
+  --accent3: #25aedd;
 }
 
 @theme inline {
@@ -150,6 +154,8 @@ code {
   --bms-primary-1: var(--bms-primary-1);
   --bms-primary-2: var(--bms-primary-2);
   --color-success: var(--success);
+  --color-accent2: var(--accent2);
+  --color-accent3: var(--accent3);
 }
 
 @layer base {
