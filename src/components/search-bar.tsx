@@ -85,7 +85,7 @@ export const SearchBar: FC = () => {
         <input
           id="es-input"
           className="w-full text-sm focus:outline-none"
-          placeholder="Type a command or search..."
+          placeholder="Search for projects or runs..."
           {...register('search')}
         />
         <Button
