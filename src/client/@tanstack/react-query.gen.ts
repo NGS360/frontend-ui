@@ -12,6 +12,7 @@ import {
   addSampleToProject,
   addVendor,
   createProject,
+  deleteVendor,
   demultiplexRun,
   getMultiplexWorkflows,
   getProjectByProjectId,
@@ -21,8 +22,10 @@ import {
   getRunSamplesheet,
   getRuns,
   getSamples,
+  getToolConfig,
   getVendor,
   getVendors,
+  listAvailableTools,
   listFiles,
   postRunSamplesheet,
   root,
@@ -30,6 +33,7 @@ import {
   searchProjects,
   searchRuns,
   updateRun,
+  updateSampleInProject,
   updateVendor
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
@@ -48,6 +52,9 @@ import type {
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
+  DeleteVendorData,
+  DeleteVendorError,
+  DeleteVendorResponse,
   DemultiplexRunData,
   DemultiplexRunError,
   DemultiplexRunResponse,
@@ -65,10 +72,12 @@ import type {
   GetSamplesData,
   GetSamplesError,
   GetSamplesResponse,
+  GetToolConfigData,
   GetVendorData,
   GetVendorsData,
   GetVendorsError,
   GetVendorsResponse,
+  ListAvailableToolsData,
   ListFilesData,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
@@ -84,6 +93,9 @@ import type {
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
+  UpdateSampleInProjectData,
+  UpdateSampleInProjectError,
+  UpdateSampleInProjectResponse,
   UpdateVendorData,
   UpdateVendorError,
   UpdateVendorResponse,
@@ -336,6 +348,7 @@ export const searchProjectsQueryKey = (options: Options<SearchProjectsData>) =>
 
 /**
  * Search Projects
+ * Search projects by project_id or name.
  */
 export const searchProjectsOptions = (options: Options<SearchProjectsData>) => {
   return queryOptions({
@@ -359,6 +372,7 @@ export const searchProjectsInfiniteQueryKey = (
 
 /**
  * Search Projects
+ * Search projects by project_id or name.
  */
 export const searchProjectsInfiniteOptions = (
   options: Options<SearchProjectsData>,
@@ -544,6 +558,34 @@ export const addSampleToProjectMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await addSampleToProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Update Sample In Project
+ * Update an existing sample in a project.
+ */
+export const updateSampleInProjectMutation = (
+  options?: Partial<Options<UpdateSampleInProjectData>>,
+): UseMutationOptions<
+  UpdateSampleInProjectResponse,
+  AxiosError<UpdateSampleInProjectError>,
+  Options<UpdateSampleInProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateSampleInProjectResponse,
+    AxiosError<UpdateSampleInProjectError>,
+    Options<UpdateSampleInProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateSampleInProject({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -978,6 +1020,7 @@ export const searchQueryKey = (options: Options<SearchData>) =>
 
 /**
  * Search
+ * Search across all indices using OpenSearch.
  */
 export const searchOptions = (options: Options<SearchData>) => {
   return queryOptions({
@@ -991,6 +1034,61 @@ export const searchOptions = (options: Options<SearchData>) => {
       return data
     },
     queryKey: searchQueryKey(options),
+  })
+}
+
+export const listAvailableToolsQueryKey = (
+  options?: Options<ListAvailableToolsData>,
+) => createQueryKey('listAvailableTools', options)
+
+/**
+ * List Available Tools
+ * List all available tool configurations from S3.
+ *
+ * Returns a list of tool IDs (config filenames without extensions).
+ */
+export const listAvailableToolsOptions = (
+  options?: Options<ListAvailableToolsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listAvailableTools({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listAvailableToolsQueryKey(options),
+  })
+}
+
+export const getToolConfigQueryKey = (options: Options<GetToolConfigData>) =>
+  createQueryKey('getToolConfig', options)
+
+/**
+ * Get Tool Config
+ * Retrieve a specific tool configuration.
+ *
+ * Args:
+ * tool_id: The tool identifier (filename without extension)
+ *
+ * Returns:
+ * Complete tool configuration
+ */
+export const getToolConfigOptions = (options: Options<GetToolConfigData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getToolConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getToolConfigQueryKey(options),
   })
 }
 
@@ -1108,6 +1206,34 @@ export const addVendorMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await addVendor({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete Vendor
+ * Delete a specific vendor by ID.
+ */
+export const deleteVendorMutation = (
+  options?: Partial<Options<DeleteVendorData>>,
+): UseMutationOptions<
+  DeleteVendorResponse,
+  AxiosError<DeleteVendorError>,
+  Options<DeleteVendorData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteVendorResponse,
+    AxiosError<DeleteVendorError>,
+    Options<DeleteVendorData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteVendor({
         ...options,
         ...localOptions,
         throwOnError: true,

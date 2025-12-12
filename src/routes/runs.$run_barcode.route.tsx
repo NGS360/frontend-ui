@@ -1,18 +1,26 @@
 import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import { ChartBar, FileSpreadsheet, FolderOpen, PlayCircle, RotateCw, Upload } from 'lucide-react'
-import { useRef } from 'react'
+import { ChartBar, ChevronDown, FileSpreadsheet, FolderOpen, Loader2, PlayCircle, RotateCw, Upload } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { ChangeEvent } from 'react';
-import { getRun } from '@/client'
+import type { ToolConfig } from '@/client'
+import { getRun, getToolConfig, listAvailableTools } from '@/client'
 import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from '@/client/@tanstack/react-query.gen'
+import { ExecuteToolForm } from '@/components/execute-tool-form'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { FileBrowserDialog } from '@/components/file-browser';
 import { FullscreenSpinner } from '@/components/spinner'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 export const Route = createFileRoute('/runs/$run_barcode')({
   component: RouteComponent,
@@ -37,10 +45,40 @@ export const Route = createFileRoute('/runs/$run_barcode')({
 })
 
 function RouteComponent() {
-  // Load project data
+  // Load run data
   const routeApi = getRouteApi('/runs/$run_barcode')
   const { run } = routeApi.useLoaderData()
   const queryClient = useQueryClient()
+
+  // Fetch available tools
+  const toolsQuery = useQuery({
+    queryKey: ['listAvailableTools'],
+    queryFn: async () => {
+      const result = await listAvailableTools({ throwOnError: true })
+      return result.data
+    }
+  })
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [selectedToolConfig, setSelectedToolConfig] = useState<ToolConfig | null>(null)
+  const [toolDialogOpen, setToolDialogOpen] = useState(false)
+
+  // Handle tool selection
+  const handleToolSelect = async (tool: string) => {
+    try {
+      const result = await getToolConfig({
+        path: {
+          tool_id: tool
+        },
+        throwOnError: true
+      })
+      setSelectedToolConfig(result.data)
+      setToolDialogOpen(true)
+    } catch (error) {
+      console.error('Error fetching tool config:', error)
+      toast.error(`Failed to fetch config for tool: ${tool}`)
+    }
+    setDropdownOpen(false)
+  }
 
   // File upload mutation
   const { mutate, isPending } = useMutation({
@@ -94,6 +132,16 @@ function RouteComponent() {
 
   return (
     <>
+      {/* Tool Execution Dialog */}
+      {selectedToolConfig && (
+        <ExecuteToolForm
+          toolConfig={selectedToolConfig}
+          runBarcode={run.barcode as string}
+          isOpen={toolDialogOpen}
+          onOpenChange={setToolDialogOpen}
+        />
+      )}
+
       <div className='flex flex-col gap-4'>
         {/* Header and tab navigation */}
         <h1 className='text-3xl font-extralight overflow-x-clip overflow-ellipsis'>{run.barcode}</h1>
@@ -179,12 +227,35 @@ function RouteComponent() {
                     Drop file on the page or click here to upload a new samplesheet
                   </TooltipContent>
                 </Tooltip>
-                <Button
-                  className='flex-1 min-w-0 md:flex-none md:w-auto'
-                  variant='primary2'
-                >
-                  <PlayCircle /> Demultiplex Run
-                </Button>
+                <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className='flex-1 min-w-0 md:flex-none md:w-auto'
+                      variant='primary2'
+                      disabled={toolsQuery.isLoading}
+                    >
+                      {toolsQuery.isLoading ? (
+                        <>
+                          <Loader2 className="animate-spin" /> Getting tools...
+                        </>
+                      ) : (
+                        <>
+                          <PlayCircle /> Demultiplex Run <ChevronDown className="ml-1" />
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {toolsQuery.data?.map((tool) => (
+                      <DropdownMenuItem
+                        key={tool}
+                        onClick={() => handleToolSelect(tool)}
+                      >
+                        {tool}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </TabNav>

@@ -10,6 +10,7 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { useDebounce } from '@/hooks/use-debounce';
 import { FullscreenSpinner } from '@/components/spinner';
+import { highlightMatch } from '@/lib/utils';
 
 // Define the search schema for projects 
 const projectsSearchSchema = z.object({
@@ -123,7 +124,7 @@ function RouteComponent() {
                   sort_order: undefined 
                 }}
               >
-                {project_id}
+                {highlightMatch(project_id, debouncedInput)}
               </Link>
             )}
           />
@@ -140,7 +141,7 @@ function RouteComponent() {
         return (
           <div className='flex flex-col gap-2 break-words whitespace-normal'>
             <span className='text-sm'> {/* Use line-clamp-1 here to truncate */}
-              {name}
+              {highlightMatch(name, debouncedInput)}
             </span>
             <div className='flex flex-wrap gap-0.5'>
               {attributes.map((a) => (

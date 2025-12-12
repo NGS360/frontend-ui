@@ -1,11 +1,12 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import z from 'zod'
 import { Plus, SquarePen, Trash2 } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import type { VendorPublic } from '@/client'
-import { getVendorsOptions } from '@/client/@tanstack/react-query.gen'
+import { deleteVendorMutation, getVendorsOptions, getVendorsQueryKey } from '@/client/@tanstack/react-query.gen'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
@@ -46,6 +47,9 @@ function RouteComponent() {
   const search = Route.useSearch()
   const navigate = useNavigate()
 
+  // Query client for cache invalidation
+  const queryClient = useQueryClient()
+
   // Local table state
   // Pagination (0-based for Tanstack Table)
   const [pagination, setPagination] = useState<PaginationState>({
@@ -57,6 +61,33 @@ function RouteComponent() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: search.sort_by, desc: search.sort_order == 'desc' ? true : false }
   ])
+
+  // Delete vendor mutation
+  const deleteMutation = useMutation({
+    ...deleteVendorMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getVendorsQueryKey() })
+      queryClient.invalidateQueries({ queryKey: ['vendors', 'all'] })
+      toast.success('Vendor deleted successfully')
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete vendor: ${error.message}`)
+    }
+  })
+
+  const handleDeleteVendor = (vendor: VendorPublic) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete vendor "${vendor.name}"? This action cannot be undone.`
+    )
+    
+    if (confirmed) {
+      deleteMutation.mutate({
+        path: {
+          vendor_id: vendor.vendor_id
+        }
+      })
+    }
+  }
 
   useEffect(() => {
     navigate({
@@ -168,9 +199,8 @@ function RouteComponent() {
                   variant="ghost"
                   size="icon"
                   className="text-destructive hover:text-destructive"
-                  onClick={() => {
-                    alert('Deleting vendors is not yet implemented.')
-                  }}
+                  onClick={() => handleDeleteVendor(vendor)}
+                  disabled={deleteMutation.isPending}
                 >
                   <Trash2 />
                   <span className="sr-only">Delete</span>

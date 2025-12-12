@@ -3,7 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { IlluminaSampleSheetResponseModel as RunSamplesheet } from '@/client/types.gen'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
@@ -12,6 +12,7 @@ import { FullscreenDropzone } from '@/components/file-upload'
 import { NotFoundComponent } from '@/components/samplesheet-not-found-component'
 import { getRunSamplesheetOptions, getRunSamplesheetQueryKey, postRunSamplesheetMutation } from '@/client/@tanstack/react-query.gen'
 import { FullscreenSpinner } from '@/components/spinner'
+import { highlightMatch } from '@/lib/utils'
 
 export const Route = createFileRoute('/runs/$run_barcode/samplesheet/')({
   component: RouteComponent,
@@ -25,6 +26,9 @@ function RouteComponent() {
   const { run_barcode } = routeApi.useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient();
+  
+  // Global filter for search
+  const [globalFilter, setGlobalFilter] = useState<string>('')
   
   // Use TanStack Query to fetch samplesheet data with custom error handling
   const { data: runInfo, isLoading, error, isError } = useQuery({
@@ -138,7 +142,7 @@ function RouteComponent() {
                 params={{ project_id: value }}
                 preload='intent' // backend should prevent invalid projectIds
               >
-                {value}
+                {highlightMatch(value, globalFilter)}
               </Link>
             )}
           />
@@ -146,6 +150,7 @@ function RouteComponent() {
           <CopyableText
             text={value}
             variant='hover'
+            children={highlightMatch(value, globalFilter)}
           />
         )
       }
@@ -231,6 +236,8 @@ function RouteComponent() {
               <ClientDataTable
                 data={runInfo.Data ?? []}
                 columns={columns ?? []}
+                globalFilter={globalFilter}
+                onFilterChange={setGlobalFilter}
               />
             </div>
           </div>

@@ -302,7 +302,9 @@ export function ServerDataTable<TData, TValue>({
 interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, TValue> {
   pageSize?: number,
   rowSelection?: RowSelectionState,
-  onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
+  onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>,
+  globalFilter?: string,
+  onFilterChange?: (value: string) => void
 }
 
 export function ClientDataTable<TData, TValue>({
@@ -316,7 +318,9 @@ export function ClientDataTable<TData, TValue>({
   renderCustomRowComponent = false,
   isLoading,
   loadingComponent,
-  onColumnVisibilityChange
+  onColumnVisibilityChange,
+  globalFilter,
+  onFilterChange
 }: ClientDataTableProps<TData, TValue>) {
 
   // Determine if column visibility is controlled or uncontrolled
@@ -340,13 +344,17 @@ export function ClientDataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     
+    // Global filter
+    ...(onFilterChange && { onGlobalFilterChange: onFilterChange }),
+    
     // Column visibility (only controlled if handler is provided)
     ...(isControlledColumnVisibility && { onColumnVisibilityChange }),
 
     // Table state
     state: {
       // Only include columnVisibility in state if controlled
-      ...(isControlledColumnVisibility && { columnVisibility })
+      ...(isControlledColumnVisibility && { columnVisibility }),
+      ...(onFilterChange && { globalFilter })
     },
     // Use initialState for uncontrolled column visibility
     initialState: { 
@@ -354,6 +362,9 @@ export function ClientDataTable<TData, TValue>({
       ...(!isControlledColumnVisibility && { columnVisibility })
     }
   })
+
+  // Show search only if both globalFilter and onFilterChange are provided
+  const showSearch = globalFilter !== undefined && onFilterChange !== undefined
 
   return (
     <DataTable
@@ -365,6 +376,7 @@ export function ClientDataTable<TData, TValue>({
       renderCustomRowComponent={renderCustomRowComponent}
       isLoading={isLoading}
       loadingComponent={loadingComponent}
+      showSearch={showSearch}
       enableColumnFilters={true}
     />
   )

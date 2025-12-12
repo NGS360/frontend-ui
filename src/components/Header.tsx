@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { Database, Folder, MenuIcon, ShieldCheck, XIcon } from 'lucide-react'
+import { BookOpen, Database, Folder, MenuIcon, ShieldCheck, XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from './ui/button'
 import { CreateProjectForm } from './create-project-form'
@@ -23,12 +23,15 @@ type NavItemType = {
   label: string
   icon?: React.ReactNode
   search?: {}
+  isExternal?: boolean
 }
 
 export default function Header() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const apiDocsUrl = `${import.meta.env.VITE_API_URL}docs`
 
   const logoMap = [
     ['N', '#9de073'],
@@ -42,7 +45,8 @@ export default function Header() {
   const navItems: Array<NavItemType> = [
     { to: '/runs', label: 'Illumina Runs', icon: <Database className="inline mr-1" /> },
     { to: '/projects', label: 'Projects', icon: <Folder className="inline mr-1" />, search: {sort_by: undefined, sort_order: undefined} },
-    { to: '/admin', label: 'Admin', icon: <ShieldCheck className="inline mr-1" /> }
+    { to: '/admin', label: 'Admin', icon: <ShieldCheck className="inline mr-1" /> },
+    { to: apiDocsUrl, label: 'API Docs', icon: <BookOpen className="inline mr-1" />, isExternal: true }
   ]
 
   return (
@@ -82,14 +86,23 @@ export default function Header() {
 
             {/* Mobile menu (using DropdownMenu) */}
             <DropdownMenuContent align="end" sideOffset={4} className="w-screen flex flex-col gap-2">
-              {navItems.map(({ to, label, icon, search }) => (
+              {navItems.map(({ to, label, icon, search, isExternal }) => (
                 <DropdownMenuItem asChild key={to} className='w-full justify-center'>
-                  <Link to={to} search={search} onClick={() => setMenuOpen(false)}>
-                    <div className='flex items-center gap-1'>
-                      {icon}
-                      {label}
-                    </div>
-                  </Link>
+                  {isExternal ? (
+                    <a href={to} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>
+                      <div className='flex items-center gap-1'>
+                        {icon}
+                        {label}
+                      </div>
+                    </a>
+                  ) : (
+                    <Link to={to} search={search} onClick={() => setMenuOpen(false)}>
+                      <div className='flex items-center gap-1'>
+                        {icon}
+                        {label}
+                      </div>
+                    </Link>
+                  )}
                 </DropdownMenuItem>
               ))}
               <DropdownMenuItem asChild>
@@ -105,15 +118,24 @@ export default function Header() {
           /* Desktop menu (using NavigationMenu) */
           <NavigationMenu>
             <NavigationMenuList className="gap-4">
-              {navItems.map(({ to, label, icon, search }) => (
+              {navItems.map(({ to, label, icon, search, isExternal }) => (
                 <NavigationMenuItem key={to}>
                   <NavigationMenuLink asChild>
-                    <Link to={to} search={search}>
-                    <div className='flex items-center gap-1'>
-                        {icon}
-                        {label}
-                    </div>
-                    </Link>
+                    {isExternal ? (
+                      <a href={to} target="_blank" rel="noopener noreferrer">
+                        <div className='flex items-center gap-1'>
+                          {icon}
+                          {label}
+                        </div>
+                      </a>
+                    ) : (
+                      <Link to={to} search={search}>
+                        <div className='flex items-center gap-1'>
+                          {icon}
+                          {label}
+                        </div>
+                      </Link>
+                    )}
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
