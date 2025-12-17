@@ -44,7 +44,11 @@ const SearchGroup: FC<SearchGroupProps> = ({ children, heading }) => (
 )
 
 // Main SearchBar component
-export const SearchBar: FC = () => {
+interface SearchBarProps {
+  onResultClick?: () => void
+}
+
+export const SearchBar: FC<SearchBarProps> = ({ onResultClick }) => {
   const navigate = useNavigate();
 
   // State to control popover
@@ -60,6 +64,7 @@ export const SearchBar: FC = () => {
     navigateFn();
     setValue('search', '');
     setOpenResults(false);
+    onResultClick?.(); // Call the optional callback
   };
 
   // Query using debounced input

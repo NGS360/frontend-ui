@@ -17,13 +17,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => (
     <>
       <Header />
-      {/* Set max width for all page content & center */}
-      <div className='max-w-[80rem] mx-auto'> 
-        <div className='ml-8 mt-4'>
-          <BreadcrumbNav />
-        </div>
-        <Outlet />
+      <div className='ml-8 mt-4'>
+        <BreadcrumbNav />
       </div>
+      <Outlet />
       <Toaster />
       {/* <TanStackRouterDevtools />
       <TanStackQueryLayout /> */}

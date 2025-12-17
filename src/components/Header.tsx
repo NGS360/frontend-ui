@@ -17,7 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useIsMobile } from '@/hooks/use-mobile'
 
 type NavItemType = {
   to: string
@@ -29,7 +28,6 @@ type NavItemType = {
 
 export default function Header() {
   const navigate = useNavigate()
-  const isMobile = useIsMobile()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const apiDocsUrl = `${import.meta.env.VITE_API_URL}docs`
@@ -153,7 +151,7 @@ export default function Header() {
               </DropdownMenuItem>
             ))}
             <div className="px-2 py-2">
-              <SearchBar />
+              <SearchBar onResultClick={() => setMenuOpen(false)} />
             </div>
             <DropdownMenuItem asChild>
               <CreateProjectForm
