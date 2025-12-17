@@ -3,6 +3,7 @@
 import {
   
   
+  
   infiniteQueryOptions,
   queryOptions
 } from '@tanstack/react-query'
@@ -25,9 +26,13 @@ import {
   getToolConfig,
   getVendor,
   getVendors,
+  healthCheck,
   listAvailableTools,
   listFiles,
   postRunSamplesheet,
+  reindexProjects,
+  reindexRuns,
+  reindexSamples,
   root,
   search,
   searchProjects,
@@ -37,7 +42,7 @@ import {
   updateVendor
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
-import type {InfiniteData, UseMutationOptions} from '@tanstack/react-query';
+import type {DefaultError, InfiniteData, UseMutationOptions} from '@tanstack/react-query';
 import type {Options} from '../sdk.gen';
 import type {
   AddRunData,
@@ -77,11 +82,15 @@ import type {
   GetVendorsData,
   GetVendorsError,
   GetVendorsResponse,
+  HealthCheckData,
   ListAvailableToolsData,
   ListFilesData,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
   PostRunSamplesheetResponse,
+  ReindexProjectsData,
+  ReindexRunsData,
+  ReindexSamplesData,
   RootData,
   SearchData,
   SearchProjectsData,
@@ -154,6 +163,27 @@ export const rootOptions = (options?: Options<RootData>) => {
       return data
     },
     queryKey: rootQueryKey(options),
+  })
+}
+
+export const healthCheckQueryKey = (options?: Options<HealthCheckData>) =>
+  createQueryKey('healthCheck', options)
+
+/**
+ * Health Check
+ */
+export const healthCheckOptions = (options?: Options<HealthCheckData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await healthCheck({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: healthCheckQueryKey(options),
   })
 }
 
@@ -415,6 +445,59 @@ export const searchProjectsInfiniteOptions = (
       queryKey: searchProjectsInfiniteQueryKey(options),
     },
   )
+}
+
+export const reindexProjectsQueryKey = (
+  options?: Options<ReindexProjectsData>,
+) => createQueryKey('reindexProjects', options)
+
+/**
+ * Reindex Projects
+ * Reindex projects in database with OpenSearch
+ */
+export const reindexProjectsOptions = (
+  options?: Options<ReindexProjectsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await reindexProjects({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: reindexProjectsQueryKey(options),
+  })
+}
+
+/**
+ * Reindex Projects
+ * Reindex projects in database with OpenSearch
+ */
+export const reindexProjectsMutation = (
+  options?: Partial<Options<ReindexProjectsData>>,
+): UseMutationOptions<
+  unknown,
+  AxiosError<DefaultError>,
+  Options<ReindexProjectsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<DefaultError>,
+    Options<ReindexProjectsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await reindexProjects({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getProjectByProjectIdQueryKey = (
@@ -789,6 +872,56 @@ export const searchRunsInfiniteOptions = (options: Options<SearchRunsData>) => {
   )
 }
 
+export const reindexRunsQueryKey = (options?: Options<ReindexRunsData>) =>
+  createQueryKey('reindexRuns', options)
+
+/**
+ * Reindex Runs
+ * Reindex runs in database with OpenSearch
+ */
+export const reindexRunsOptions = (options?: Options<ReindexRunsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await reindexRuns({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: reindexRunsQueryKey(options),
+  })
+}
+
+/**
+ * Reindex Runs
+ * Reindex runs in database with OpenSearch
+ */
+export const reindexRunsMutation = (
+  options?: Partial<Options<ReindexRunsData>>,
+): UseMutationOptions<
+  unknown,
+  AxiosError<DefaultError>,
+  Options<ReindexRunsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<DefaultError>,
+    Options<ReindexRunsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await reindexRuns({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const getMultiplexWorkflowsQueryKey = (
   options?: Options<GetMultiplexWorkflowsData>,
 ) => createQueryKey('getMultiplexWorkflows', options)
@@ -1013,6 +1146,58 @@ export const getRunMetricsOptions = (options: Options<GetRunMetricsData>) => {
     },
     queryKey: getRunMetricsQueryKey(options),
   })
+}
+
+export const reindexSamplesQueryKey = (options?: Options<ReindexSamplesData>) =>
+  createQueryKey('reindexSamples', options)
+
+/**
+ * Reindex Samples
+ * Reindex samples in database with OpenSearch
+ */
+export const reindexSamplesOptions = (
+  options?: Options<ReindexSamplesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await reindexSamples({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: reindexSamplesQueryKey(options),
+  })
+}
+
+/**
+ * Reindex Samples
+ * Reindex samples in database with OpenSearch
+ */
+export const reindexSamplesMutation = (
+  options?: Partial<Options<ReindexSamplesData>>,
+): UseMutationOptions<
+  unknown,
+  AxiosError<DefaultError>,
+  Options<ReindexSamplesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<DefaultError>,
+    Options<ReindexSamplesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await reindexSamples({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const searchQueryKey = (options: Options<SearchData>) =>

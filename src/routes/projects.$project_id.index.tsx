@@ -30,10 +30,6 @@ function RouteComponent() {
   const routeApi = getRouteApi('/projects/$project_id')
   const { project } = routeApi.useLoaderData()
 
-  // Set data and results bucket URIs
-  const DATA_BUCKET_URI = import.meta.env.VITE_DATA_BUCKET_URI || ''
-  const RESULTS_BUCKET_URI = import.meta.env.VITE_RESULTS_BUCKET_URI || ''
-
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
@@ -218,7 +214,7 @@ function RouteComponent() {
                       </CardHeader>
                     </Card>
                   )}
-                  rootPath={`${DATA_BUCKET_URI}/${project.project_id}/`}
+                  rootPath={`${project.data_folder_uri}`}
                 />
 
                 {/* Results Bucket */}
@@ -236,7 +232,7 @@ function RouteComponent() {
                       </CardHeader>
                     </Card>
                   )}
-                  rootPath={`${RESULTS_BUCKET_URI}/${project.project_id}/`}
+                  rootPath={`${project.results_folder_uri}`}
                 />
 
                 {/* Vendor Data */}

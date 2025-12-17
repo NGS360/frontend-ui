@@ -59,6 +59,8 @@ import type {
   GetVendorsData,
   GetVendorsErrors,
   GetVendorsResponses,
+  HealthCheckData,
+  HealthCheckResponses,
   ListAvailableToolsData,
   ListAvailableToolsResponses,
   ListFilesData,
@@ -67,6 +69,12 @@ import type {
   PostRunSamplesheetData,
   PostRunSamplesheetErrors,
   PostRunSamplesheetResponses,
+  ReindexProjectsData,
+  ReindexProjectsResponses,
+  ReindexRunsData,
+  ReindexRunsResponses,
+  ReindexSamplesData,
+  ReindexSamplesResponses,
   RootData,
   RootResponses,
   SearchData,
@@ -119,6 +127,23 @@ export const root = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/',
+    ...options,
+  })
+}
+
+/**
+ * Health Check
+ */
+export const healthCheck = <ThrowOnError extends boolean = false>(
+  options?: Options<HealthCheckData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    HealthCheckResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/health',
     ...options,
   })
 }
@@ -195,6 +220,24 @@ export const searchProjects = <ThrowOnError extends boolean = false>(
   return (options.client ?? _heyApiClient).get<
     SearchProjectsResponses,
     SearchProjectsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/search',
+    ...options,
+  })
+}
+
+/**
+ * Reindex Projects
+ * Reindex projects in database with OpenSearch
+ */
+export const reindexProjects = <ThrowOnError extends boolean = false>(
+  options?: Options<ReindexProjectsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    ReindexProjectsResponses,
+    unknown,
     ThrowOnError
   >({
     responseType: 'json',
@@ -343,6 +386,24 @@ export const searchRuns = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Reindex Runs
+ * Reindex runs in database with OpenSearch
+ */
+export const reindexRuns = <ThrowOnError extends boolean = false>(
+  options?: Options<ReindexRunsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    ReindexRunsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs/search',
+    ...options,
+  })
+}
+
+/**
  * Get Multiplex Workflows
  * Placeholder endpoint for getting available demultiplex workflows.
  */
@@ -474,6 +535,24 @@ export const getRunMetrics = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/runs/{run_barcode}/metrics',
+    ...options,
+  })
+}
+
+/**
+ * Reindex Samples
+ * Reindex samples in database with OpenSearch
+ */
+export const reindexSamples = <ThrowOnError extends boolean = false>(
+  options?: Options<ReindexSamplesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    ReindexSamplesResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/samples/search',
     ...options,
   })
 }

@@ -13,8 +13,6 @@ services:
       - /app/node_modules
     environment:
       - VITE_API_URL=http://localhost:3000/
-      - VITE_DATA_BUCKET_URI=${VITE_DATA_BUCKET_URI:-s3://my-data-bucket/}
-      - VITE_RESULTS_BUCKET_URI=${VITE_RESULTS_BUCKET_URI:-s3://my-results-bucket/}
 
 networks:
   ngs360-network:

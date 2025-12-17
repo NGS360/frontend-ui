@@ -267,6 +267,14 @@ export type ProjectPublic = {
    */
   name: string | null
   /**
+   * Data Folder Uri
+   */
+  data_folder_uri: string | null
+  /**
+   * Results Folder Uri
+   */
+  results_folder_uri: string | null
+  /**
    * Attributes
    */
   attributes: Array<Attribute> | null
@@ -800,6 +808,20 @@ export type RootResponses = {
   200: unknown
 }
 
+export type HealthCheckData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/health'
+}
+
+export type HealthCheckResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
 export type ListFilesData = {
   body?: never
   path?: never
@@ -956,6 +978,20 @@ export type SearchProjectsResponses = {
 
 export type SearchProjectsResponse =
   SearchProjectsResponses[keyof SearchProjectsResponses]
+
+export type ReindexProjectsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/search'
+}
+
+export type ReindexProjectsResponses = {
+  /**
+   * Successful Response
+   */
+  201: unknown
+}
 
 export type GetProjectByProjectIdData = {
   body?: never
@@ -1230,6 +1266,20 @@ export type SearchRunsResponses = {
 
 export type SearchRunsResponse = SearchRunsResponses[keyof SearchRunsResponses]
 
+export type ReindexRunsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/runs/search'
+}
+
+export type ReindexRunsResponses = {
+  /**
+   * Successful Response
+   */
+  201: unknown
+}
+
 export type GetMultiplexWorkflowsData = {
   body?: never
   path?: never
@@ -1433,6 +1483,20 @@ export type GetRunMetricsResponses = {
 
 export type GetRunMetricsResponse =
   GetRunMetricsResponses[keyof GetRunMetricsResponses]
+
+export type ReindexSamplesData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/samples/search'
+}
+
+export type ReindexSamplesResponses = {
+  /**
+   * Successful Response
+   */
+  201: unknown
+}
 
 export type SearchData = {
   body?: never
