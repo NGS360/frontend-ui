@@ -55,6 +55,13 @@ export const SearchBar: FC = () => {
   const watchedInput = watch('search', '');
   const debouncedInput = useDebounce(watchedInput, 300);
 
+  // Function to handle result click: close popover and clear search
+  const handleResultClick = (navigateFn: () => void) => {
+    navigateFn();
+    setValue('search', '');
+    setOpenResults(false);
+  };
+
   // Query using debounced input
   const { 
     data: { projects, runs } = { projects: [], runs: [] }
@@ -114,10 +121,10 @@ export const SearchBar: FC = () => {
                     {projects.map((p: ProjectPublic) => (
                       <SearchItem
                         key={p.project_id}
-                        onClick={() => navigate({
+                        onClick={() => handleResultClick(() => navigate({
                           to: '/projects/$project_id',
                           params: { project_id: p.project_id }
-                        })}
+                        }))}
                       >
                         <span className='text-sm'>
                           {highlightMatch(p.project_id, debouncedInput)}
@@ -152,10 +159,10 @@ export const SearchBar: FC = () => {
                   {runs.map((r: SequencingRunPublic) => (
                     <SearchItem
                       key={r.barcode}
-                      onClick={() => navigate({
+                      onClick={() => handleResultClick(() => navigate({
                         to: '/runs/$run_barcode',
                         params: { run_barcode: r.barcode || "" }
-                      })}
+                      }))}
                     >
                       <span className='text-sm'>
                         {highlightMatch(r.barcode || '', debouncedInput)}
