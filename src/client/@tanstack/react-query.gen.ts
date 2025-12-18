@@ -40,7 +40,8 @@ import {
   searchRuns,
   updateRun,
   updateSampleInProject,
-  updateVendor
+  updateVendor,
+  uploadManifest
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
 import type {DefaultError, InfiniteData, UseMutationOptions} from '@tanstack/react-query';
@@ -110,6 +111,9 @@ import type {
   UpdateVendorData,
   UpdateVendorError,
   UpdateVendorResponse,
+  UploadManifestData,
+  UploadManifestError,
+  UploadManifestResponse,
 } from '../types.gen'
 import type { AxiosError } from 'axios'
 
@@ -1516,4 +1520,68 @@ export const getLatestManifestOptions = (
     },
     queryKey: getLatestManifestQueryKey(options),
   })
+}
+
+export const uploadManifestQueryKey = (options: Options<UploadManifestData>) =>
+  createQueryKey('uploadManifest', options)
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifestOptions = (options: Options<UploadManifestData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadManifestQueryKey(options),
+  })
+}
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifestMutation = (
+  options?: Partial<Options<UploadManifestData>>,
+): UseMutationOptions<
+  UploadManifestResponse,
+  AxiosError<UploadManifestError>,
+  Options<UploadManifestData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadManifestResponse,
+    AxiosError<UploadManifestError>,
+    Options<UploadManifestData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadManifest({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }

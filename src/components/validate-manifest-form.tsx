@@ -1,12 +1,14 @@
 import { Check, Folder } from 'lucide-react'
 import { useCallback, useEffect, useReducer } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import type React from 'react'
 import type { JSX } from 'react'
-import type { VendorPublic } from '@/client/types.gen'
+import type { ManifestUploadResponse, VendorPublic } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
 import { getLatestManifest, getVendors } from '@/client'
+import { getLatestManifestQueryKey, uploadManifestMutation } from '@/client/@tanstack/react-query.gen'
 import { ComboBox } from '@/components/combobox'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
@@ -168,14 +170,47 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     }
   }, [state.manifestOption, state.selectedVendor.value, projectId, state.latestManifestPath, state.isLoadingManifest]);
 
+  const queryClient = useQueryClient();
+
+  // Manifest upload mutation
+  const { mutate } = useMutation({
+    ...uploadManifestMutation(),
+    onSuccess: (response) => {
+      // Invalidate the getLatestManifest query to refresh the data
+      queryClient.invalidateQueries({
+        queryKey: getLatestManifestQueryKey({
+          query: {
+            s3_path: `${state.selectedVendor.value}/${projectId}/`
+          }
+        })
+      });
+      dispatch({ type: 'SET_UPLOADED_FILE', value: response.path });
+      toast.success('Manifest uploaded successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error uploading manifest: ${error.message || 'Unknown error'}`);
+      console.error(error);
+    }
+  });
+
   // Handle file upload
   const onDrop = useCallback((acceptedFiles: Array<File>) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      dispatch({ type: 'SET_UPLOADED_FILE', value: file.name });
-      // toast.success(`File "${file.name}" uploaded successfully`);
+      const s3Path = `${state.selectedVendor.value}/${projectId}/${file.name}`;
+      
+      mutate({
+        query: {
+          s3_path: s3Path
+        },
+        body: {
+          file: file
+        }
+      });
+      
+      
     }
-  }, []);
+  }, [state.selectedVendor.value, projectId, mutate]);
 
   // Handle cancel - reset form state
   const handleCancel = () => {

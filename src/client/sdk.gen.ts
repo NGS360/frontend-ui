@@ -98,6 +98,9 @@ import type {
   UpdateVendorData,
   UpdateVendorErrors,
   UpdateVendorResponses,
+  UploadManifestData,
+  UploadManifestErrors,
+  UploadManifestResponses,
 } from './types.gen'
 
 export type Options<
@@ -746,5 +749,35 @@ export const getLatestManifest = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     url: '/api/v1/manifest',
     ...options,
+  })
+}
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifest = <ThrowOnError extends boolean = false>(
+  options: Options<UploadManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    UploadManifestResponses,
+    UploadManifestErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/manifest',
+    ...options,
+    headers: {
+      'Content-Type': null,
+      ...options.headers,
+    },
   })
 }

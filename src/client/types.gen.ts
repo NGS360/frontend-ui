@@ -26,6 +26,17 @@ export type BodyPostRunSamplesheet = {
 }
 
 /**
+ * Body_upload_manifest
+ */
+export type BodyUploadManifest = {
+  /**
+   * File
+   * Manifest CSV file to upload
+   */
+  file: Blob | File
+}
+
+/**
  * ConversionResult
  */
 export type ConversionResult = {
@@ -239,6 +250,33 @@ export type IndexMetric = {
  * InputType
  */
 export type InputType = 'Enum' | 'String' | 'Integer' | 'Boolean'
+
+/**
+ * ManifestUploadResponse
+ * Response model for manifest file upload
+ */
+export type ManifestUploadResponse = {
+  /**
+   * Status
+   * Status of the upload operation
+   */
+  status: string
+  /**
+   * Message
+   * Human-readable message about the upload
+   */
+  message: string
+  /**
+   * Path
+   * Full S3 path where the file was uploaded
+   */
+  path: string
+  /**
+   * Filename
+   * Name of the uploaded file
+   */
+  filename: string
+}
 
 /**
  * ProjectCreate
@@ -1779,6 +1817,39 @@ export type GetLatestManifestResponses = {
 
 export type GetLatestManifestResponse =
   GetLatestManifestResponses[keyof GetLatestManifestResponses]
+
+export type UploadManifestData = {
+  body: BodyUploadManifest
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 path where the manifest file should be uploaded
+     */
+    s3_path: string
+  }
+  url: '/api/v1/manifest'
+}
+
+export type UploadManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UploadManifestError =
+  UploadManifestErrors[keyof UploadManifestErrors]
+
+export type UploadManifestResponses = {
+  /**
+   * Successful Response
+   */
+  201: ManifestUploadResponse
+}
+
+export type UploadManifestResponse =
+  UploadManifestResponses[keyof UploadManifestResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})
