@@ -1,12 +1,12 @@
 import { Check, Folder } from 'lucide-react'
-import { useCallback, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import type React from 'react'
 import type { JSX } from 'react'
 import type { VendorPublic } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
-import { getVendors } from '@/client'
+import { getLatestManifest, getVendors } from '@/client'
 import { ComboBox } from '@/components/combobox'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
@@ -39,6 +39,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     activeStep: number;
     manifestOption: 'existing' | 'upload';
     uploadedFile: string;
+    latestManifestPath: string | null;
+    isLoadingManifest: boolean;
   };
   type Action =
     | { type: 'SET_VENDOR'; value: string; label?: string }
@@ -46,7 +48,9 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     | { type: 'SET_VALID_MANIFEST'; value: boolean }
     | { type: 'SET_ACTIVE_STEP'; value: number }
     | { type: 'SET_MANIFEST_OPTION'; value: 'existing' | 'upload' }
-    | { type: 'SET_UPLOADED_FILE'; value: string };
+    | { type: 'SET_UPLOADED_FILE'; value: string }
+    | { type: 'SET_LATEST_MANIFEST_PATH'; value: string | null }
+    | { type: 'SET_IS_LOADING_MANIFEST'; value: boolean };
 
   const initialState: State = {
     selectedVendor: { value: '', label: '' },
@@ -55,6 +59,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     activeStep: 0,
     manifestOption: 'existing',
     uploadedFile: '',
+    latestManifestPath: null,
+    isLoadingManifest: false,
   };
 
   function stepperReducer(state: State, action: Action): State {
@@ -66,6 +72,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           selectedFile: '',
           validManifest: false,
           activeStep: action.value ? 1 : 0,
+          latestManifestPath: null,
+          uploadedFile: '',
         };
       }
       case 'SET_FILE': {
@@ -93,7 +101,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
         return {
           ...state,
           manifestOption: action.value,
-          uploadedFile: '', // Reset uploaded file when switching options
+          uploadedFile: '',
+          latestManifestPath: null,
         };
       }
       case 'SET_UPLOADED_FILE': {
@@ -102,12 +111,48 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           uploadedFile: action.value,
         };
       }
+      case 'SET_LATEST_MANIFEST_PATH': {
+        return {
+          ...state,
+          latestManifestPath: action.value,
+        };
+      }
+      case 'SET_IS_LOADING_MANIFEST': {
+        return {
+          ...state,
+          isLoadingManifest: action.value,
+        };
+      }
       default:
         return state;
     }
   }
 
   const [state, dispatch] = useReducer(stepperReducer, initialState);
+
+  // Effect to fetch latest manifest when "existing" option is selected
+  useEffect(() => {
+    if (state.manifestOption === 'existing' && state.selectedVendor.value && !state.latestManifestPath && !state.isLoadingManifest) {
+      dispatch({ type: 'SET_IS_LOADING_MANIFEST', value: true });
+      
+      getLatestManifest({
+        query: {
+          s3_path: `${state.selectedVendor.value}/${projectId}/`
+        }
+      }).then((response) => {
+        // Check if response has status 204 (no content)
+        if (response.status === 204) {
+          dispatch({ type: 'SET_LATEST_MANIFEST_PATH', value: 'There is no matching manifest file associated with this vendor' });
+        } else if (response.data) {
+          dispatch({ type: 'SET_LATEST_MANIFEST_PATH', value: response.data });
+        }
+        dispatch({ type: 'SET_IS_LOADING_MANIFEST', value: false });
+      }).catch((error) => {
+        alert(`Error fetching latest manifest: ${error.message || 'Unknown error'}`);
+        dispatch({ type: 'SET_IS_LOADING_MANIFEST', value: false });
+      });
+    }
+  }, [state.manifestOption, state.selectedVendor.value, projectId, state.latestManifestPath, state.isLoadingManifest]);
 
   // Handle file upload
   const onDrop = useCallback((acceptedFiles: Array<File>) => {
@@ -256,10 +301,19 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
 
                           {state.manifestOption === 'existing' ? (
                             <div className='flex flex-col gap-2'>
-                              <Input
-                                readOnly
-                                value={`${state.selectedVendor.value}/path/to/manifest.csv`}
-                              />
+                              {state.isLoadingManifest ? (
+                                <Input
+                                  readOnly
+                                  disabled
+                                  value="Loading latest manifest..."
+                                  placeholder="Fetching manifest..."
+                                />
+                              ) : (
+                                <Input
+                                  readOnly
+                                  value={state.latestManifestPath || `${state.selectedVendor.value}/path/to/manifest.csv`}
+                                />
+                              )}
                             </div>
                           ) : (
                             <div className="flex flex-col gap-2">
@@ -293,12 +347,16 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           </div>
         </SheetHeader>
         <SheetFooter>
-          {state.activeStep === 1 && (state.manifestOption === 'existing' || state.uploadedFile) && (
+          {state.activeStep === 1 && (
             <Button
-              disabled={false} // {!state.validManifest}
+              disabled={
+                state.isLoadingManifest || 
+                (state.manifestOption === 'existing' && !state.latestManifestPath) ||
+                (state.manifestOption === 'upload' && !state.uploadedFile)
+              }
               onClick={() => {
                 const fileName = state.manifestOption === 'existing' 
-                  ? `${state.selectedVendor.value}/path/to/manifest.csv`
+                  ? state.latestManifestPath
                   : state.uploadedFile;
                 toast.success(`Successfully validated "${fileName}" for project ${projectId}`);
               }}

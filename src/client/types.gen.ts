@@ -1746,6 +1746,40 @@ export type UpdateVendorResponses = {
 export type UpdateVendorResponse =
   UpdateVendorResponses[keyof UpdateVendorResponses]
 
+export type GetLatestManifestData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 bucket path to search for manifest files
+     */
+    s3_path: string
+  }
+  url: '/api/v1/manifest'
+}
+
+export type GetLatestManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetLatestManifestError =
+  GetLatestManifestErrors[keyof GetLatestManifestErrors]
+
+export type GetLatestManifestResponses = {
+  /**
+   * Response Get Latest Manifest
+   * Successful Response
+   */
+  200: string
+}
+
+export type GetLatestManifestResponse =
+  GetLatestManifestResponses[keyof GetLatestManifestResponses]
+
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})
 }

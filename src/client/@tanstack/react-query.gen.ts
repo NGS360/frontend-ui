@@ -15,6 +15,7 @@ import {
   createProject,
   deleteVendor,
   demultiplexRun,
+  getLatestManifest,
   getMultiplexWorkflows,
   getProjectByProjectId,
   getProjects,
@@ -63,6 +64,7 @@ import type {
   DemultiplexRunData,
   DemultiplexRunError,
   DemultiplexRunResponse,
+  GetLatestManifestData,
   GetMultiplexWorkflowsData,
   GetProjectByProjectIdData,
   GetProjectsData,
@@ -1477,4 +1479,41 @@ export const updateVendorMutation = (
     },
   }
   return mutationOptions
+}
+
+export const getLatestManifestQueryKey = (
+  options: Options<GetLatestManifestData>,
+) => createQueryKey('getLatestManifest', options)
+
+/**
+ * Get Latest Manifest
+ * Retrieve the latest manifest file path from the specified S3 bucket.
+ *
+ * Searches recursively through the bucket/prefix for files that:
+ * - Contain "manifest" (case-insensitive)
+ * - End with ".csv"
+ *
+ * Returns the full S3 path of the most recent matching file.
+ *
+ * Args:
+ * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
+ *
+ * Returns:
+ * Full S3 path to the latest manifest file
+ */
+export const getLatestManifestOptions = (
+  options: Options<GetLatestManifestData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getLatestManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getLatestManifestQueryKey(options),
+  })
 }

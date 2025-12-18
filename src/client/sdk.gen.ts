@@ -27,6 +27,9 @@ import type {
   DemultiplexRunData,
   DemultiplexRunErrors,
   DemultiplexRunResponses,
+  GetLatestManifestData,
+  GetLatestManifestErrors,
+  GetLatestManifestResponses,
   GetMultiplexWorkflowsData,
   GetMultiplexWorkflowsResponses,
   GetProjectByProjectIdData,
@@ -713,5 +716,35 @@ export const updateVendor = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Get Latest Manifest
+ * Retrieve the latest manifest file path from the specified S3 bucket.
+ *
+ * Searches recursively through the bucket/prefix for files that:
+ * - Contain "manifest" (case-insensitive)
+ * - End with ".csv"
+ *
+ * Returns the full S3 path of the most recent matching file.
+ *
+ * Args:
+ * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
+ *
+ * Returns:
+ * Full S3 path to the latest manifest file
+ */
+export const getLatestManifest = <ThrowOnError extends boolean = false>(
+  options: Options<GetLatestManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetLatestManifestResponses,
+    GetLatestManifestErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/manifest',
+    ...options,
   })
 }
