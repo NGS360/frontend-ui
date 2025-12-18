@@ -853,6 +853,35 @@ export type ListFilesResponses = {
 
 export type ListFilesResponse = ListFilesResponses[keyof ListFilesResponses]
 
+export type DownloadFileData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Path
+     * S3 URI of the file to download (e.g., s3://bucket/path/file.txt)
+     */
+    path: string
+  }
+  url: '/api/v1/files/download'
+}
+
+export type DownloadFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DownloadFileError = DownloadFileErrors[keyof DownloadFileErrors]
+
+export type DownloadFileResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
 export type GetProjectsData = {
   body?: never
   path?: never

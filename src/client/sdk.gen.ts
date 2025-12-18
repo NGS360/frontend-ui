@@ -27,6 +27,9 @@ import type {
   DemultiplexRunData,
   DemultiplexRunErrors,
   DemultiplexRunResponses,
+  DownloadFileData,
+  DownloadFileErrors,
+  DownloadFileResponses,
   GetMultiplexWorkflowsData,
   GetMultiplexWorkflowsResponses,
   GetProjectByProjectIdData,
@@ -166,6 +169,32 @@ export const listFiles = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/files/list',
+    ...options,
+  })
+}
+
+/**
+ * Download File
+ * Download a file from S3.
+ *
+ * Returns the file as a streaming download with appropriate content type and filename.
+ *
+ * Args:
+ * path: Full S3 URI to the file (e.g., s3://bucket/folder/file.txt)
+ *
+ * Returns:
+ * StreamingResponse with the file content
+ */
+export const downloadFile = <ThrowOnError extends boolean = false>(
+  options: Options<DownloadFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    DownloadFileResponses,
+    DownloadFileErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/files/download',
     ...options,
   })
 }

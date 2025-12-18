@@ -15,6 +15,7 @@ import {
   createProject,
   deleteVendor,
   demultiplexRun,
+  downloadFile,
   getMultiplexWorkflows,
   getProjectByProjectId,
   getProjects,
@@ -63,6 +64,7 @@ import type {
   DemultiplexRunData,
   DemultiplexRunError,
   DemultiplexRunResponse,
+  DownloadFileData,
   GetMultiplexWorkflowsData,
   GetProjectByProjectIdData,
   GetProjectsData,
@@ -210,6 +212,36 @@ export const listFilesOptions = (options: Options<ListFilesData>) => {
       return data
     },
     queryKey: listFilesQueryKey(options),
+  })
+}
+
+export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
+  createQueryKey('downloadFile', options)
+
+/**
+ * Download File
+ * Download a file from S3.
+ *
+ * Returns the file as a streaming download with appropriate content type and filename.
+ *
+ * Args:
+ * path: Full S3 URI to the file (e.g., s3://bucket/folder/file.txt)
+ *
+ * Returns:
+ * StreamingResponse with the file content
+ */
+export const downloadFileOptions = (options: Options<DownloadFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await downloadFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: downloadFileQueryKey(options),
   })
 }
 
