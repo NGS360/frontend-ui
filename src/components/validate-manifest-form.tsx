@@ -41,6 +41,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     uploadedFile: string;
     latestManifestPath: string | null;
     isLoadingManifest: boolean;
+    manifestError: boolean;
   };
   type Action =
     | { type: 'SET_VENDOR'; value: string; label?: string }
@@ -50,7 +51,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     | { type: 'SET_MANIFEST_OPTION'; value: 'existing' | 'upload' }
     | { type: 'SET_UPLOADED_FILE'; value: string }
     | { type: 'SET_LATEST_MANIFEST_PATH'; value: string | null }
-    | { type: 'SET_IS_LOADING_MANIFEST'; value: boolean };
+    | { type: 'SET_IS_LOADING_MANIFEST'; value: boolean }
+    | { type: 'SET_MANIFEST_ERROR'; value: boolean };
 
   const initialState: State = {
     selectedVendor: { value: '', label: '' },
@@ -61,6 +63,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     uploadedFile: '',
     latestManifestPath: null,
     isLoadingManifest: false,
+    manifestError: false,
   };
 
   function stepperReducer(state: State, action: Action): State {
@@ -74,6 +77,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           activeStep: action.value ? 1 : 0,
           latestManifestPath: null,
           uploadedFile: '',
+          manifestError: false,
         };
       }
       case 'SET_FILE': {
@@ -103,6 +107,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           manifestOption: action.value,
           uploadedFile: '',
           latestManifestPath: null,
+          manifestError: false,
         };
       }
       case 'SET_UPLOADED_FILE': {
@@ -121,6 +126,12 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
         return {
           ...state,
           isLoadingManifest: action.value,
+        };
+      }
+      case 'SET_MANIFEST_ERROR': {
+        return {
+          ...state,
+          manifestError: action.value,
         };
       }
       default:
@@ -143,12 +154,15 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
         // Check if response has status 204 (no content)
         if (response.status === 204) {
           dispatch({ type: 'SET_LATEST_MANIFEST_PATH', value: 'There is no matching manifest file associated with this vendor' });
+          dispatch({ type: 'SET_MANIFEST_ERROR', value: true });
         } else if (response.data) {
           dispatch({ type: 'SET_LATEST_MANIFEST_PATH', value: response.data });
+          dispatch({ type: 'SET_MANIFEST_ERROR', value: false });
         }
         dispatch({ type: 'SET_IS_LOADING_MANIFEST', value: false });
       }).catch((error) => {
         alert(`Error fetching latest manifest: ${error.message || 'Unknown error'}`);
+        dispatch({ type: 'SET_MANIFEST_ERROR', value: true });
         dispatch({ type: 'SET_IS_LOADING_MANIFEST', value: false });
       });
     }
@@ -351,7 +365,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
             <Button
               disabled={
                 state.isLoadingManifest || 
-                (state.manifestOption === 'existing' && !state.latestManifestPath) ||
+                (state.manifestOption === 'existing' && state.manifestError) ||
                 (state.manifestOption === 'upload' && !state.uploadedFile)
               }
               onClick={() => {
