@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { ManifestValidationResponseDisplay } from './manifest-validation-response'
 import type React from 'react'
 import type { JSX } from 'react'
-import type { VendorPublic } from '@/client/types.gen'
+import type { ManifestValidationResponse, VendorPublic } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
 import { getLatestManifest, getVendors } from '@/client'
 import { getLatestManifestQueryKey, uploadManifestMutation, validateManifestMutation } from '@/client/@tanstack/react-query.gen'
@@ -45,6 +45,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     latestManifestPath: string | null;
     isLoadingManifest: boolean;
     manifestError: boolean;
+    validationResponse: ManifestValidationResponse | null
   };
   type Action =
     | { type: 'SET_VENDOR'; value: string; label?: string }
@@ -55,7 +56,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     | { type: 'SET_UPLOADED_FILE'; value: string }
     | { type: 'SET_LATEST_MANIFEST_PATH'; value: string | null }
     | { type: 'SET_IS_LOADING_MANIFEST'; value: boolean }
-    | { type: 'SET_MANIFEST_ERROR'; value: boolean };
+    | { type: 'SET_MANIFEST_ERROR'; value: boolean }
+    | { type: 'SET_VALIDATION_RESPONSE'; value: ManifestValidationResponse };
 
   const initialState: State = {
     selectedVendor: { value: '', label: '' },
@@ -67,6 +69,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     latestManifestPath: null,
     isLoadingManifest: false,
     manifestError: false,
+    validationResponse: null,
   };
 
   function stepperReducer(state: State, action: Action): State {
@@ -81,6 +84,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           latestManifestPath: null,
           uploadedFile: '',
           manifestError: false,
+          validationResponse: null,
         };
       }
       case 'SET_FILE': {
@@ -111,6 +115,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           uploadedFile: '',
           latestManifestPath: null,
           manifestError: false,
+          validationResponse: null,
         };
       }
       case 'SET_UPLOADED_FILE': {
@@ -135,6 +140,12 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
         return {
           ...state,
           manifestError: action.value,
+        };
+      }
+      case 'SET_VALIDATION_RESPONSE': {
+        return {
+          ...state,
+          validationResponse: action.value,
         };
       }
       default:
@@ -216,8 +227,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
   // Manifest validate mutation
   const { mutate: validateManifest } = useMutation({
     ...validateManifestMutation(),
-    onSuccess: () => {
-      toast.success('Validation successful');
+    onSuccess: (response) => {
+      dispatch({ type: 'SET_VALIDATION_RESPONSE', value: response });
     },
     onError: (error) => {
       toast.error(`Error uploading manifest: ${error.message || 'Unknown error'}`);
@@ -410,9 +421,10 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                 {
                   label: "Validate",
                   description: "Review validation results",
+                  status: state.validationResponse?.valid ? 'completed' : 'error',
                   content: (
                     <>
-                      {state.activeStep === 2 && <ManifestValidationResponseDisplay />}
+                      {state.activeStep >= 2 && <ManifestValidationResponseDisplay response={state.validationResponse} />}
                     </>
                   ),
                 },
@@ -435,7 +447,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                     valid: false
                   }
                 })
-                dispatch({ type: 'SET_ACTIVE_STEP', value: 2 });
+                dispatch({ type: 'SET_ACTIVE_STEP', value: 3 });
               }}
               className='w-full md:w-auto'
             >
@@ -445,11 +457,11 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
 
           <SheetClose asChild>
             <Button
-              variant="secondary"
+              variant={state.validationResponse?.valid ? "default" : "secondary"}
               className='w-full md:w-auto'
               onClick={handleCancel}
             >
-              Cancel
+              {state.validationResponse?.valid ? 'Done' : 'Cancel'}
             </Button>
           </SheetClose>
         </SheetFooter>
