@@ -101,6 +101,9 @@ import type {
   UploadManifestData,
   UploadManifestErrors,
   UploadManifestResponses,
+  ValidateManifestData,
+  ValidateManifestErrors,
+  ValidateManifestResponses,
 } from './types.gen'
 
 export type Options<
@@ -779,5 +782,35 @@ export const uploadManifest = <ThrowOnError extends boolean = false>(
       'Content-Type': null,
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifest = <ThrowOnError extends boolean = false>(
+  options: Options<ValidateManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ValidateManifestResponses,
+    ValidateManifestErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/manifest/validate',
+    ...options,
   })
 }

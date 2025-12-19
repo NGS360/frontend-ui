@@ -3,12 +3,13 @@ import { useCallback, useEffect, useReducer } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import { ManifestValidationResponseDisplay } from './manifest-validation-response'
 import type React from 'react'
 import type { JSX } from 'react'
-import type { ManifestUploadResponse, VendorPublic } from '@/client/types.gen'
+import type { VendorPublic } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
 import { getLatestManifest, getVendors } from '@/client'
-import { getLatestManifestQueryKey, uploadManifestMutation } from '@/client/@tanstack/react-query.gen'
+import { getLatestManifestQueryKey, uploadManifestMutation, validateManifestMutation } from '@/client/@tanstack/react-query.gen'
 import { ComboBox } from '@/components/combobox'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
@@ -147,7 +148,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
   useEffect(() => {
     if (state.manifestOption === 'existing' && state.selectedVendor.value && !state.latestManifestPath && !state.isLoadingManifest) {
       dispatch({ type: 'SET_IS_LOADING_MANIFEST', value: true });
-      
+
       getLatestManifest({
         query: {
           s3_path: `${state.selectedVendor.value}/${projectId}/`
@@ -198,7 +199,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       const s3Path = `${state.selectedVendor.value}/${projectId}/${file.name}`;
-      
+
       mutate({
         query: {
           s3_path: s3Path
@@ -207,10 +208,22 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           file: file
         }
       });
-      
-      
+
+
     }
   }, [state.selectedVendor.value, projectId, mutate]);
+
+  // Manifest validate mutation
+  const { mutate: validateManifest } = useMutation({
+    ...validateManifestMutation(),
+    onSuccess: () => {
+      toast.success('Validation successful');
+    },
+    onError: (error) => {
+      toast.error(`Error uploading manifest: ${error.message || 'Unknown error'}`);
+      console.error(error);
+    }
+  });
 
   // Handle cancel - reset form state
   const handleCancel = () => {
@@ -312,11 +325,14 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                   description: "Choose or upload a manifest file to validate",
                   content: (
                     <>
-                      {(state.activeStep === 1) && (
+                      {(state.activeStep >= 1) && (
                         <div className='flex flex-col gap-4'>
                           <RadioGroup
                             value={state.manifestOption}
-                            onValueChange={(value) => dispatch({ type: 'SET_MANIFEST_OPTION', value: value as 'existing' | 'upload' })}
+                            onValueChange={(value) => {
+                              dispatch({ type: 'SET_MANIFEST_OPTION', value: value as 'existing' | 'upload' });
+                              dispatch({ type: 'SET_ACTIVE_STEP', value: 1 });
+                            }}
                             className='flex flex-col gap-4'
                           >
                             <Card className={`relative cursor-pointer ${state.manifestOption === 'existing' ? 'border-primary ring-2 ring-primary ring-offset-2' : ''}`}>
@@ -360,7 +376,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                               ) : (
                                 <Input
                                   readOnly
-                                  value={state.latestManifestPath || `${state.selectedVendor.value}/path/to/manifest.csv`}
+                                  value={state.latestManifestPath || ''}
                                 />
                               )}
                             </div>
@@ -390,7 +406,16 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                       )}
                     </>
                   )
-                }
+                },
+                {
+                  label: "Validate",
+                  description: "Review validation results",
+                  content: (
+                    <>
+                      {state.activeStep === 2 && <ManifestValidationResponseDisplay />}
+                    </>
+                  ),
+                },
               ]}
             />
           </div>
@@ -399,22 +424,25 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           {state.activeStep === 1 && (
             <Button
               disabled={
-                state.isLoadingManifest || 
+                state.isLoadingManifest ||
                 (state.manifestOption === 'existing' && state.manifestError) ||
                 (state.manifestOption === 'upload' && !state.uploadedFile)
               }
               onClick={() => {
-                const fileName = state.manifestOption === 'existing' 
-                  ? state.latestManifestPath
-                  : state.uploadedFile;
-                toast.success(`Successfully validated "${fileName}" for project ${projectId}`);
+                validateManifest({
+                  query: {
+                    s3_path: state.manifestOption === 'existing' ? (state.latestManifestPath as string) : state.uploadedFile,
+                    valid: false
+                  }
+                })
+                dispatch({ type: 'SET_ACTIVE_STEP', value: 2 });
               }}
               className='w-full md:w-auto'
             >
               <Check /> Validate
             </Button>
           )}
-          
+
           <SheetClose asChild>
             <Button
               variant="secondary"

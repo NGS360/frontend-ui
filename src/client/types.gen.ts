@@ -279,6 +279,39 @@ export type ManifestUploadResponse = {
 }
 
 /**
+ * ManifestValidationResponse
+ * Response model for manifest validation
+ */
+export type ManifestValidationResponse = {
+  /**
+   * Valid
+   * Whether the manifest is valid
+   */
+  valid: boolean
+  /**
+   * Message
+   * Informational messages about the validation
+   */
+  message?: {
+    [key: string]: string
+  }
+  /**
+   * Error
+   * Validation errors grouped by category
+   */
+  error?: {
+    [key: string]: Array<string>
+  }
+  /**
+   * Warning
+   * Validation warnings grouped by category
+   */
+  warning?: {
+    [key: string]: Array<string>
+  }
+}
+
+/**
  * ProjectCreate
  */
 export type ProjectCreate = {
@@ -1850,6 +1883,44 @@ export type UploadManifestResponses = {
 
 export type UploadManifestResponse =
   UploadManifestResponses[keyof UploadManifestResponses]
+
+export type ValidateManifestData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 path to the manifest CSV file to validate
+     */
+    s3_path: string
+    /**
+     * Valid
+     * Mock validation result for testing (True=valid, False=invalid)
+     */
+    valid?: boolean
+  }
+  url: '/api/v1/manifest/validate'
+}
+
+export type ValidateManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ValidateManifestError =
+  ValidateManifestErrors[keyof ValidateManifestErrors]
+
+export type ValidateManifestResponses = {
+  /**
+   * Successful Response
+   */
+  200: ManifestValidationResponse
+}
+
+export type ValidateManifestResponse =
+  ValidateManifestResponses[keyof ValidateManifestResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})

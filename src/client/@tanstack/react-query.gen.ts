@@ -41,7 +41,8 @@ import {
   updateRun,
   updateSampleInProject,
   updateVendor,
-  uploadManifest
+  uploadManifest,
+  validateManifest
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
 import type {DefaultError, InfiniteData, UseMutationOptions} from '@tanstack/react-query';
@@ -114,6 +115,9 @@ import type {
   UploadManifestData,
   UploadManifestError,
   UploadManifestResponse,
+  ValidateManifestData,
+  ValidateManifestError,
+  ValidateManifestResponse,
 } from '../types.gen'
 import type { AxiosError } from 'axios'
 
@@ -1576,6 +1580,83 @@ export const uploadManifestMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await uploadManifest({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const validateManifestQueryKey = (
+  options: Options<ValidateManifestData>,
+) => createQueryKey('validateManifest', options)
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifestOptions = (
+  options: Options<ValidateManifestData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await validateManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: validateManifestQueryKey(options),
+  })
+}
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifestMutation = (
+  options?: Partial<Options<ValidateManifestData>>,
+): UseMutationOptions<
+  ValidateManifestResponse,
+  AxiosError<ValidateManifestError>,
+  Options<ValidateManifestData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ValidateManifestResponse,
+    AxiosError<ValidateManifestError>,
+    Options<ValidateManifestData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await validateManifest({
         ...options,
         ...localOptions,
         throwOnError: true,
