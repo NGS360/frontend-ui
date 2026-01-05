@@ -73,6 +73,8 @@ import type {
   DemultiplexRunData,
   DemultiplexRunError,
   DemultiplexRunResponse,
+  DownloadFileData,
+  GetLatestManifestData,
   GetMultiplexWorkflowsData,
   GetProjectByProjectIdData,
   GetProjectsData,
@@ -1527,4 +1529,332 @@ export const updateVendorMutation = (
     },
   }
   return mutationOptions
+}
+
+export const getLatestManifestQueryKey = (
+  options: Options<GetLatestManifestData>,
+) => createQueryKey('getLatestManifest', options)
+
+/**
+ * Get Latest Manifest
+ * Retrieve the latest manifest file path from the specified S3 bucket.
+ *
+ * Searches recursively through the bucket/prefix for files that:
+ * - Contain "manifest" (case-insensitive)
+ * - End with ".csv"
+ *
+ * Returns the full S3 path of the most recent matching file.
+ *
+ * Args:
+ * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
+ *
+ * Returns:
+ * Full S3 path to the latest manifest file
+ */
+export const getLatestManifestOptions = (
+  options: Options<GetLatestManifestData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getLatestManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getLatestManifestQueryKey(options),
+  })
+}
+
+export const uploadManifestQueryKey = (options: Options<UploadManifestData>) =>
+  createQueryKey('uploadManifest', options)
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifestOptions = (options: Options<UploadManifestData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadManifestQueryKey(options),
+  })
+}
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifestMutation = (
+  options?: Partial<Options<UploadManifestData>>,
+): UseMutationOptions<
+  UploadManifestResponse,
+  AxiosError<UploadManifestError>,
+  Options<UploadManifestData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadManifestResponse,
+    AxiosError<UploadManifestError>,
+    Options<UploadManifestData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadManifest({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const validateManifestQueryKey = (
+  options: Options<ValidateManifestData>,
+) => createQueryKey('validateManifest', options)
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifestOptions = (
+  options: Options<ValidateManifestData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await validateManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: validateManifestQueryKey(options),
+  })
+}
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifestMutation = (
+  options?: Partial<Options<ValidateManifestData>>,
+): UseMutationOptions<
+  ValidateManifestResponse,
+  AxiosError<ValidateManifestError>,
+  Options<ValidateManifestData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ValidateManifestResponse,
+    AxiosError<ValidateManifestError>,
+    Options<ValidateManifestData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await validateManifest({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getWorkflowsQueryKey = (options?: Options<GetWorkflowsData>) =>
+  createQueryKey('getWorkflows', options)
+
+/**
+ * Get Workflows
+ * Returns a paginated list of workflows.
+ */
+export const getWorkflowsOptions = (options?: Options<GetWorkflowsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflows({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowsQueryKey(options),
+  })
+}
+
+export const getWorkflowsInfiniteQueryKey = (
+  options?: Options<GetWorkflowsData>,
+): QueryKey<Options<GetWorkflowsData>> =>
+  createQueryKey('getWorkflows', options, true)
+
+/**
+ * Get Workflows
+ * Returns a paginated list of workflows.
+ */
+export const getWorkflowsInfiniteOptions = (
+  options?: Options<GetWorkflowsData>,
+) => {
+  return infiniteQueryOptions<
+    GetWorkflowsResponse,
+    AxiosError<GetWorkflowsError>,
+    InfiniteData<GetWorkflowsResponse>,
+    QueryKey<Options<GetWorkflowsData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetWorkflowsData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetWorkflowsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await getWorkflows({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: getWorkflowsInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const createWorkflowQueryKey = (options: Options<CreateWorkflowData>) =>
+  createQueryKey('createWorkflow', options)
+
+/**
+ * Create Workflow
+ * Create a new workflow with optional attributes.
+ */
+export const createWorkflowOptions = (options: Options<CreateWorkflowData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createWorkflow({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createWorkflowQueryKey(options),
+  })
+}
+
+/**
+ * Create Workflow
+ * Create a new workflow with optional attributes.
+ */
+export const createWorkflowMutation = (
+  options?: Partial<Options<CreateWorkflowData>>,
+): UseMutationOptions<
+  CreateWorkflowResponse,
+  AxiosError<CreateWorkflowError>,
+  Options<CreateWorkflowData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateWorkflowResponse,
+    AxiosError<CreateWorkflowError>,
+    Options<CreateWorkflowData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await createWorkflow({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getWorkflowByWorkflowIdQueryKey = (
+  options: Options<GetWorkflowByWorkflowIdData>,
+) => createQueryKey('getWorkflowByWorkflowId', options)
+
+/**
+ * Get Workflow By Workflow Id
+ * Returns a single workflow by its workflow_id.
+ * Note: This is different from its internal "id".
+ */
+export const getWorkflowByWorkflowIdOptions = (
+  options: Options<GetWorkflowByWorkflowIdData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflowByWorkflowId({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowByWorkflowIdQueryKey(options),
+  })
 }

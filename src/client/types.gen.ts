@@ -1894,6 +1894,111 @@ export type UpdateVendorResponses = {
 export type UpdateVendorResponse =
   UpdateVendorResponses[keyof UpdateVendorResponses]
 
+export type GetLatestManifestData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 bucket path to search for manifest files
+     */
+    s3_path: string
+  }
+  url: '/api/v1/manifest'
+}
+
+export type GetLatestManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetLatestManifestError =
+  GetLatestManifestErrors[keyof GetLatestManifestErrors]
+
+export type GetLatestManifestResponses = {
+  /**
+   * Response Get Latest Manifest
+   * Successful Response
+   */
+  200: string
+}
+
+export type GetLatestManifestResponse =
+  GetLatestManifestResponses[keyof GetLatestManifestResponses]
+
+export type UploadManifestData = {
+  body: BodyUploadManifest
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 path where the manifest file should be uploaded
+     */
+    s3_path: string
+  }
+  url: '/api/v1/manifest'
+}
+
+export type UploadManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UploadManifestError =
+  UploadManifestErrors[keyof UploadManifestErrors]
+
+export type UploadManifestResponses = {
+  /**
+   * Successful Response
+   */
+  201: ManifestUploadResponse
+}
+
+export type UploadManifestResponse =
+  UploadManifestResponses[keyof UploadManifestResponses]
+
+export type ValidateManifestData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 path to the manifest CSV file to validate
+     */
+    s3_path: string
+    /**
+     * Valid
+     * Mock validation result for testing (True=valid, False=invalid)
+     */
+    valid?: boolean
+  }
+  url: '/api/v1/manifest/validate'
+}
+
+export type ValidateManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ValidateManifestError =
+  ValidateManifestErrors[keyof ValidateManifestErrors]
+
+export type ValidateManifestResponses = {
+  /**
+   * Successful Response
+   */
+  200: ManifestValidationResponse
+}
+
+export type ValidateManifestResponse =
+  ValidateManifestResponses[keyof ValidateManifestResponses]
+
 export type GetWorkflowsData = {
   body?: never
   path?: never
@@ -2000,111 +2105,6 @@ export type GetWorkflowByWorkflowIdResponses = {
 
 export type GetWorkflowByWorkflowIdResponse =
   GetWorkflowByWorkflowIdResponses[keyof GetWorkflowByWorkflowIdResponses]
-
-export type GetLatestManifestData = {
-  body?: never
-  path?: never
-  query: {
-    /**
-     * S3 Path
-     * S3 bucket path to search for manifest files
-     */
-    s3_path: string
-  }
-  url: '/api/v1/manifest'
-}
-
-export type GetLatestManifestErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type GetLatestManifestError =
-  GetLatestManifestErrors[keyof GetLatestManifestErrors]
-
-export type GetLatestManifestResponses = {
-  /**
-   * Response Get Latest Manifest
-   * Successful Response
-   */
-  200: string
-}
-
-export type GetLatestManifestResponse =
-  GetLatestManifestResponses[keyof GetLatestManifestResponses]
-
-export type UploadManifestData = {
-  body: BodyUploadManifest
-  path?: never
-  query: {
-    /**
-     * S3 Path
-     * S3 path where the manifest file should be uploaded
-     */
-    s3_path: string
-  }
-  url: '/api/v1/manifest'
-}
-
-export type UploadManifestErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type UploadManifestError =
-  UploadManifestErrors[keyof UploadManifestErrors]
-
-export type UploadManifestResponses = {
-  /**
-   * Successful Response
-   */
-  201: ManifestUploadResponse
-}
-
-export type UploadManifestResponse =
-  UploadManifestResponses[keyof UploadManifestResponses]
-
-export type ValidateManifestData = {
-  body?: never
-  path?: never
-  query: {
-    /**
-     * S3 Path
-     * S3 path to the manifest CSV file to validate
-     */
-    s3_path: string
-    /**
-     * Valid
-     * Mock validation result for testing (True=valid, False=invalid)
-     */
-    valid?: boolean
-  }
-  url: '/api/v1/manifest/validate'
-}
-
-export type ValidateManifestErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type ValidateManifestError =
-  ValidateManifestErrors[keyof ValidateManifestErrors]
-
-export type ValidateManifestResponses = {
-  /**
-   * Successful Response
-   */
-  200: ManifestValidationResponse
-}
-
-export type ValidateManifestResponse =
-  ValidateManifestResponses[keyof ValidateManifestResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})
