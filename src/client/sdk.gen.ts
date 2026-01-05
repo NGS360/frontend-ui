@@ -762,3 +762,152 @@ export const updateVendor = <ThrowOnError extends boolean = false>(
     },
   })
 }
+
+/**
+ * Get Workflows
+ * Returns a paginated list of workflows.
+ */
+export const getWorkflows = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkflowsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkflowsResponses,
+    GetWorkflowsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows',
+    ...options,
+  })
+}
+
+/**
+ * Create Workflow
+ * Create a new workflow with optional attributes.
+ */
+export const createWorkflow = <ThrowOnError extends boolean = false>(
+  options: Options<CreateWorkflowData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateWorkflowResponses,
+    CreateWorkflowErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Workflow By Workflow Id
+ * Returns a single workflow by its workflow_id.
+ * Note: This is different from its internal "id".
+ */
+export const getWorkflowByWorkflowId = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowByWorkflowIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowByWorkflowIdResponses,
+    GetWorkflowByWorkflowIdErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows/{workflow_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Latest Manifest
+ * Retrieve the latest manifest file path from the specified S3 bucket.
+ *
+ * Searches recursively through the bucket/prefix for files that:
+ * - Contain "manifest" (case-insensitive)
+ * - End with ".csv"
+ *
+ * Returns the full S3 path of the most recent matching file.
+ *
+ * Args:
+ * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
+ *
+ * Returns:
+ * Full S3 path to the latest manifest file
+ */
+export const getLatestManifest = <ThrowOnError extends boolean = false>(
+  options: Options<GetLatestManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetLatestManifestResponses,
+    GetLatestManifestErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/manifest',
+    ...options,
+  })
+}
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifest = <ThrowOnError extends boolean = false>(
+  options: Options<UploadManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    UploadManifestResponses,
+    UploadManifestErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/manifest',
+    ...options,
+    headers: {
+      'Content-Type': null,
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifest = <ThrowOnError extends boolean = false>(
+  options: Options<ValidateManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ValidateManifestResponses,
+    ValidateManifestErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/manifest/validate',
+    ...options,
+  })
+}
