@@ -21,12 +21,18 @@ import type {
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
+  CreateWorkflowData,
+  CreateWorkflowErrors,
+  CreateWorkflowResponses,
   DeleteVendorData,
   DeleteVendorErrors,
   DeleteVendorResponses,
   DemultiplexRunData,
   DemultiplexRunErrors,
   DemultiplexRunResponses,
+  DownloadFileData,
+  DownloadFileErrors,
+  DownloadFileResponses,
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
@@ -62,6 +68,12 @@ import type {
   GetVendorsData,
   GetVendorsErrors,
   GetVendorsResponses,
+  GetWorkflowByWorkflowIdData,
+  GetWorkflowByWorkflowIdErrors,
+  GetWorkflowByWorkflowIdResponses,
+  GetWorkflowsData,
+  GetWorkflowsErrors,
+  GetWorkflowsResponses,
   HealthCheckData,
   HealthCheckResponses,
   ListAvailableToolsData,
@@ -175,6 +187,32 @@ export const listFiles = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/files/list',
+    ...options,
+  })
+}
+
+/**
+ * Download File
+ * Download a file from S3.
+ *
+ * Returns the file as a streaming download with appropriate content type and filename.
+ *
+ * Args:
+ * path: Full S3 URI to the file (e.g., s3://bucket/folder/file.txt)
+ *
+ * Returns:
+ * StreamingResponse with the file content
+ */
+export const downloadFile = <ThrowOnError extends boolean = false>(
+  options: Options<DownloadFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    DownloadFileResponses,
+    DownloadFileErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/files/download',
     ...options,
   })
 }
@@ -722,95 +760,5 @@ export const updateVendor = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  })
-}
-
-/**
- * Get Latest Manifest
- * Retrieve the latest manifest file path from the specified S3 bucket.
- *
- * Searches recursively through the bucket/prefix for files that:
- * - Contain "manifest" (case-insensitive)
- * - End with ".csv"
- *
- * Returns the full S3 path of the most recent matching file.
- *
- * Args:
- * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
- *
- * Returns:
- * Full S3 path to the latest manifest file
- */
-export const getLatestManifest = <ThrowOnError extends boolean = false>(
-  options: Options<GetLatestManifestData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetLatestManifestResponses,
-    GetLatestManifestErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/manifest',
-    ...options,
-  })
-}
-
-/**
- * Upload Manifest
- * Upload a manifest CSV file to the specified S3 path.
- *
- * Args:
- * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
- * file: The manifest CSV file to upload
- *
- * Returns:
- * ManifestUploadResponse with the uploaded file path and status
- */
-export const uploadManifest = <ThrowOnError extends boolean = false>(
-  options: Options<UploadManifestData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    UploadManifestResponses,
-    UploadManifestErrors,
-    ThrowOnError
-  >({
-    ...formDataBodySerializer,
-    responseType: 'json',
-    url: '/api/v1/manifest',
-    ...options,
-    headers: {
-      'Content-Type': null,
-      ...options.headers,
-    },
-  })
-}
-
-/**
- * Validate Manifest
- * Validate a manifest CSV file from S3.
- *
- * Checks the manifest file for:
- * - Required fields
- * - Data format compliance
- * - Value constraints
- *
- * Args:
- * s3_path: S3 path to the manifest CSV file to validate
- * valid: Mock parameter to simulate valid or invalid responses for testing
- *
- * Returns:
- * ManifestValidationResponse with validation status and any errors found
- */
-export const validateManifest = <ThrowOnError extends boolean = false>(
-  options: Options<ValidateManifestData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    ValidateManifestResponses,
-    ValidateManifestErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/manifest/validate',
-    ...options,
   })
 }

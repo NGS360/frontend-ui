@@ -42,6 +42,7 @@ function normalizeFileName(fullPath: string, currentPath: string) {
 // Define column structure
 interface FileBrowserColumns {
   name: string,
+  fullPath: string,
   date: string,
   size?: number,
   dir: boolean
@@ -97,11 +98,13 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   const tableData: Array<FileBrowserColumns> = [
     ...(data?.folders.map((d) => ({
       name: normalizeFileName(d.name, currentDirectoryPath),
+      fullPath: d.name,
       date: d.date,
       dir: true,
     })) || []),
     ...(data?.files.map((d) => ({
       name: normalizeFileName(d.name, currentDirectoryPath),
+      fullPath: d.name,
       date: d.date,
       size: d.size,
       dir: false,
@@ -127,9 +130,31 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     const stemPart = parts.slice(0, 2).join('//')
     const endParts = parts.slice(2)
     endParts.pop()
-    const end = endParts.join('/')
+    const end = endParts.join('/')  
     const newPath = end ? [stemPart, end].join('/') : stemPart;
     handleDirectoryChange(newPath.endsWith('/') ? newPath : newPath + '/');
+  };
+
+  // File download handler
+  const handleFileDownload = (fileName: string) => {
+    try {
+      // Construct the full S3 path from currentDirectoryPath + fileName
+      const fullPath = currentDirectoryPath.endsWith('/') 
+        ? `${currentDirectoryPath}${fileName}`
+        : `${currentDirectoryPath}/${fileName}`;
+
+      // Build the download URL
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+      const url = `${cleanBaseUrl}/api/v1/files/download?path=${encodeURIComponent(fullPath)}`;
+      
+      // Open in new tab to trigger download
+      window.open(url, '_blank');
+    } catch (downloadError) {
+      // Display error in alert box
+      const errorMessage = downloadError instanceof Error ? downloadError.message : 'Failed to download file';
+      alert(`Download error: ${errorMessage}`);
+    }
   };
 
   // Define columns for file display component
@@ -143,7 +168,13 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
         return (
           <span
             className="flex gap-2 items-center hover:underline hover:cursor-pointer text-primary"
-            onClick={() => dir && downDirClickHandler(name)}
+            onClick={() => {
+              if (dir) {
+                downDirClickHandler(name);
+              } else {
+                handleFileDownload(name);
+              }
+            }}
           >
             <Folder className={`size-4 ${dir ? 'opacity-100' : 'opacity-0'}`} />
             {dir ? name.replace('/', '') : name}

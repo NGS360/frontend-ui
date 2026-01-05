@@ -13,8 +13,10 @@ import {
   addSampleToProject,
   addVendor,
   createProject,
+  createWorkflow,
   deleteVendor,
   demultiplexRun,
+  downloadFile,
   getLatestManifest,
   getMultiplexWorkflows,
   getProjectByProjectId,
@@ -27,6 +29,8 @@ import {
   getToolConfig,
   getVendor,
   getVendors,
+  getWorkflowByWorkflowId,
+  getWorkflows,
   healthCheck,
   listAvailableTools,
   listFiles,
@@ -60,13 +64,15 @@ import type {
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
+  CreateWorkflowData,
+  CreateWorkflowError,
+  CreateWorkflowResponse,
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
   DemultiplexRunData,
   DemultiplexRunError,
   DemultiplexRunResponse,
-  GetLatestManifestData,
   GetMultiplexWorkflowsData,
   GetProjectByProjectIdData,
   GetProjectsData,
@@ -86,6 +92,10 @@ import type {
   GetVendorsData,
   GetVendorsError,
   GetVendorsResponse,
+  GetWorkflowByWorkflowIdData,
+  GetWorkflowsData,
+  GetWorkflowsError,
+  GetWorkflowsResponse,
   HealthCheckData,
   ListAvailableToolsData,
   ListFilesData,
@@ -220,6 +230,36 @@ export const listFilesOptions = (options: Options<ListFilesData>) => {
       return data
     },
     queryKey: listFilesQueryKey(options),
+  })
+}
+
+export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
+  createQueryKey('downloadFile', options)
+
+/**
+ * Download File
+ * Download a file from S3.
+ *
+ * Returns the file as a streaming download with appropriate content type and filename.
+ *
+ * Args:
+ * path: Full S3 URI to the file (e.g., s3://bucket/folder/file.txt)
+ *
+ * Returns:
+ * StreamingResponse with the file content
+ */
+export const downloadFileOptions = (options: Options<DownloadFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await downloadFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: downloadFileQueryKey(options),
   })
 }
 
@@ -1479,184 +1519,6 @@ export const updateVendorMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await updateVendor({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      })
-      return data
-    },
-  }
-  return mutationOptions
-}
-
-export const getLatestManifestQueryKey = (
-  options: Options<GetLatestManifestData>,
-) => createQueryKey('getLatestManifest', options)
-
-/**
- * Get Latest Manifest
- * Retrieve the latest manifest file path from the specified S3 bucket.
- *
- * Searches recursively through the bucket/prefix for files that:
- * - Contain "manifest" (case-insensitive)
- * - End with ".csv"
- *
- * Returns the full S3 path of the most recent matching file.
- *
- * Args:
- * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
- *
- * Returns:
- * Full S3 path to the latest manifest file
- */
-export const getLatestManifestOptions = (
-  options: Options<GetLatestManifestData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getLatestManifest({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getLatestManifestQueryKey(options),
-  })
-}
-
-export const uploadManifestQueryKey = (options: Options<UploadManifestData>) =>
-  createQueryKey('uploadManifest', options)
-
-/**
- * Upload Manifest
- * Upload a manifest CSV file to the specified S3 path.
- *
- * Args:
- * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
- * file: The manifest CSV file to upload
- *
- * Returns:
- * ManifestUploadResponse with the uploaded file path and status
- */
-export const uploadManifestOptions = (options: Options<UploadManifestData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await uploadManifest({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: uploadManifestQueryKey(options),
-  })
-}
-
-/**
- * Upload Manifest
- * Upload a manifest CSV file to the specified S3 path.
- *
- * Args:
- * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
- * file: The manifest CSV file to upload
- *
- * Returns:
- * ManifestUploadResponse with the uploaded file path and status
- */
-export const uploadManifestMutation = (
-  options?: Partial<Options<UploadManifestData>>,
-): UseMutationOptions<
-  UploadManifestResponse,
-  AxiosError<UploadManifestError>,
-  Options<UploadManifestData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    UploadManifestResponse,
-    AxiosError<UploadManifestError>,
-    Options<UploadManifestData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await uploadManifest({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      })
-      return data
-    },
-  }
-  return mutationOptions
-}
-
-export const validateManifestQueryKey = (
-  options: Options<ValidateManifestData>,
-) => createQueryKey('validateManifest', options)
-
-/**
- * Validate Manifest
- * Validate a manifest CSV file from S3.
- *
- * Checks the manifest file for:
- * - Required fields
- * - Data format compliance
- * - Value constraints
- *
- * Args:
- * s3_path: S3 path to the manifest CSV file to validate
- * valid: Mock parameter to simulate valid or invalid responses for testing
- *
- * Returns:
- * ManifestValidationResponse with validation status and any errors found
- */
-export const validateManifestOptions = (
-  options: Options<ValidateManifestData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await validateManifest({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: validateManifestQueryKey(options),
-  })
-}
-
-/**
- * Validate Manifest
- * Validate a manifest CSV file from S3.
- *
- * Checks the manifest file for:
- * - Required fields
- * - Data format compliance
- * - Value constraints
- *
- * Args:
- * s3_path: S3 path to the manifest CSV file to validate
- * valid: Mock parameter to simulate valid or invalid responses for testing
- *
- * Returns:
- * ManifestValidationResponse with validation status and any errors found
- */
-export const validateManifestMutation = (
-  options?: Partial<Options<ValidateManifestData>>,
-): UseMutationOptions<
-  ValidateManifestResponse,
-  AxiosError<ValidateManifestError>,
-  Options<ValidateManifestData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    ValidateManifestResponse,
-    AxiosError<ValidateManifestError>,
-    Options<ValidateManifestData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await validateManifest({
         ...options,
         ...localOptions,
         throwOnError: true,
