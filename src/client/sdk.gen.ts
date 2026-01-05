@@ -21,6 +21,9 @@ import type {
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
+  CreateWorkflowData,
+  CreateWorkflowErrors,
+  CreateWorkflowResponses,
   DeleteVendorData,
   DeleteVendorErrors,
   DeleteVendorResponses,
@@ -62,6 +65,12 @@ import type {
   GetVendorsData,
   GetVendorsErrors,
   GetVendorsResponses,
+  GetWorkflowByWorkflowIdData,
+  GetWorkflowByWorkflowIdErrors,
+  GetWorkflowByWorkflowIdResponses,
+  GetWorkflowsData,
+  GetWorkflowsErrors,
+  GetWorkflowsResponses,
   HealthCheckData,
   HealthCheckResponses,
   ListAvailableToolsData,
@@ -742,5 +751,64 @@ export const updateVendor = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Get Workflows
+ * Returns a paginated list of workflows.
+ */
+export const getWorkflows = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkflowsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkflowsResponses,
+    GetWorkflowsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows',
+    ...options,
+  })
+}
+
+/**
+ * Create Workflow
+ * Create a new workflow with optional attributes.
+ */
+export const createWorkflow = <ThrowOnError extends boolean = false>(
+  options: Options<CreateWorkflowData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateWorkflowResponses,
+    CreateWorkflowErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Workflow By Workflow Id
+ * Returns a single workflow by its workflow_id.
+ * Note: This is different from its internal "id".
+ */
+export const getWorkflowByWorkflowId = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowByWorkflowIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowByWorkflowIdResponses,
+    GetWorkflowByWorkflowIdErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows/{workflow_id}',
+    ...options,
   })
 }

@@ -13,6 +13,7 @@ import {
   addSampleToProject,
   addVendor,
   createProject,
+  createWorkflow,
   deleteVendor,
   demultiplexRun,
   downloadFile,
@@ -27,6 +28,8 @@ import {
   getToolConfig,
   getVendor,
   getVendors,
+  getWorkflowByWorkflowId,
+  getWorkflows,
   healthCheck,
   listAvailableTools,
   listFiles,
@@ -58,6 +61,9 @@ import type {
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
+  CreateWorkflowData,
+  CreateWorkflowError,
+  CreateWorkflowResponse,
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
@@ -84,6 +90,10 @@ import type {
   GetVendorsData,
   GetVendorsError,
   GetVendorsResponse,
+  GetWorkflowByWorkflowIdData,
+  GetWorkflowsData,
+  GetWorkflowsError,
+  GetWorkflowsResponse,
   HealthCheckData,
   ListAvailableToolsData,
   ListFilesData,
@@ -1509,4 +1519,154 @@ export const updateVendorMutation = (
     },
   }
   return mutationOptions
+}
+
+export const getWorkflowsQueryKey = (options?: Options<GetWorkflowsData>) =>
+  createQueryKey('getWorkflows', options)
+
+/**
+ * Get Workflows
+ * Returns a paginated list of workflows.
+ */
+export const getWorkflowsOptions = (options?: Options<GetWorkflowsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflows({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowsQueryKey(options),
+  })
+}
+
+export const getWorkflowsInfiniteQueryKey = (
+  options?: Options<GetWorkflowsData>,
+): QueryKey<Options<GetWorkflowsData>> =>
+  createQueryKey('getWorkflows', options, true)
+
+/**
+ * Get Workflows
+ * Returns a paginated list of workflows.
+ */
+export const getWorkflowsInfiniteOptions = (
+  options?: Options<GetWorkflowsData>,
+) => {
+  return infiniteQueryOptions<
+    GetWorkflowsResponse,
+    AxiosError<GetWorkflowsError>,
+    InfiniteData<GetWorkflowsResponse>,
+    QueryKey<Options<GetWorkflowsData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetWorkflowsData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetWorkflowsData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await getWorkflows({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: getWorkflowsInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const createWorkflowQueryKey = (options: Options<CreateWorkflowData>) =>
+  createQueryKey('createWorkflow', options)
+
+/**
+ * Create Workflow
+ * Create a new workflow with optional attributes.
+ */
+export const createWorkflowOptions = (options: Options<CreateWorkflowData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createWorkflow({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createWorkflowQueryKey(options),
+  })
+}
+
+/**
+ * Create Workflow
+ * Create a new workflow with optional attributes.
+ */
+export const createWorkflowMutation = (
+  options?: Partial<Options<CreateWorkflowData>>,
+): UseMutationOptions<
+  CreateWorkflowResponse,
+  AxiosError<CreateWorkflowError>,
+  Options<CreateWorkflowData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateWorkflowResponse,
+    AxiosError<CreateWorkflowError>,
+    Options<CreateWorkflowData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await createWorkflow({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getWorkflowByWorkflowIdQueryKey = (
+  options: Options<GetWorkflowByWorkflowIdData>,
+) => createQueryKey('getWorkflowByWorkflowId', options)
+
+/**
+ * Get Workflow By Workflow Id
+ * Returns a single workflow by its workflow_id.
+ * Note: This is different from its internal "id".
+ */
+export const getWorkflowByWorkflowIdOptions = (
+  options: Options<GetWorkflowByWorkflowIdData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflowByWorkflowId({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowByWorkflowIdQueryKey(options),
+  })
 }

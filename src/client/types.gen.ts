@@ -794,6 +794,54 @@ export type VendorsPublic = {
   has_prev: boolean
 }
 
+/**
+ * WorkflowCreate
+ */
+export type WorkflowCreate = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Definition Uri
+   */
+  definition_uri: string
+  /**
+   * Engine
+   */
+  engine: string
+  /**
+   * Attributes
+   */
+  attributes?: Array<Attribute> | null
+}
+
+/**
+ * WorkflowPublic
+ */
+export type WorkflowPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Engine
+   */
+  engine: string | null
+  /**
+   * Engine Id
+   */
+  engine_id: string | null
+  /**
+   * Attributes
+   */
+  attributes: Array<Attribute> | null
+}
+
 export type RootData = {
   body?: never
   path?: never
@@ -1774,6 +1822,113 @@ export type UpdateVendorResponses = {
 
 export type UpdateVendorResponse =
   UpdateVendorResponses[keyof UpdateVendorResponses]
+
+export type GetWorkflowsData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: string
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: 'asc' | 'desc'
+  }
+  url: '/api/v1/workflows'
+}
+
+export type GetWorkflowsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetWorkflowsError = GetWorkflowsErrors[keyof GetWorkflowsErrors]
+
+export type GetWorkflowsResponses = {
+  /**
+   * Response Get Workflows
+   * Successful Response
+   */
+  200: Array<WorkflowPublic>
+}
+
+export type GetWorkflowsResponse =
+  GetWorkflowsResponses[keyof GetWorkflowsResponses]
+
+export type CreateWorkflowData = {
+  body: WorkflowCreate
+  path?: never
+  query?: never
+  url: '/api/v1/workflows'
+}
+
+export type CreateWorkflowErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateWorkflowError =
+  CreateWorkflowErrors[keyof CreateWorkflowErrors]
+
+export type CreateWorkflowResponses = {
+  /**
+   * Successful Response
+   */
+  201: WorkflowPublic
+}
+
+export type CreateWorkflowResponse =
+  CreateWorkflowResponses[keyof CreateWorkflowResponses]
+
+export type GetWorkflowByWorkflowIdData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}'
+}
+
+export type GetWorkflowByWorkflowIdErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetWorkflowByWorkflowIdError =
+  GetWorkflowByWorkflowIdErrors[keyof GetWorkflowByWorkflowIdErrors]
+
+export type GetWorkflowByWorkflowIdResponses = {
+  /**
+   * Successful Response
+   */
+  200: WorkflowPublic
+}
+
+export type GetWorkflowByWorkflowIdResponse =
+  GetWorkflowByWorkflowIdResponses[keyof GetWorkflowByWorkflowIdResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})
