@@ -117,8 +117,9 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
             defaults[input.name] = false;
             break;
           case "String":
-          case "Enum":
             defaults[input.name] = "";
+            break;
+          case "Enum":
             break;
           case "Integer":
             defaults[input.name] = undefined;
