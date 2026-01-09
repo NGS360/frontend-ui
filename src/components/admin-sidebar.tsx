@@ -1,4 +1,4 @@
-import { Handshake, LayoutDashboard } from "lucide-react"
+import { Cloud, Cog, Database, Folder, Handshake, LayoutDashboard } from "lucide-react"
 import { Link, useRouterState } from "@tanstack/react-router"
 import {
   Sidebar,
@@ -20,6 +20,9 @@ export const AdminSidebar = () => {
   const menuItems = [
     { title: "Admin Dashboard", icon: LayoutDashboard, url: "/admin" },
     { title: "Vendors", icon: Handshake, url: "/admin/vendors" },
+    { title: "Project Settings", icon: Folder, url: "/admin/project-settings" },
+    { title: "Illumina Run Settings", icon: Database, url: "/admin/run-settings" },
+    { title: "Cloud Configuration", icon: Cloud, url: "/admin/cloud-config" },
   ]
 
   return (

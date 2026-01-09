@@ -56,6 +56,12 @@ import type {
   GetSamplesData,
   GetSamplesErrors,
   GetSamplesResponses,
+  GetSettingData,
+  GetSettingErrors,
+  GetSettingResponses,
+  GetSettingsByTagData,
+  GetSettingsByTagErrors,
+  GetSettingsByTagResponses,
   GetToolConfigData,
   GetToolConfigErrors,
   GetToolConfigResponses,
@@ -104,6 +110,9 @@ import type {
   UpdateSampleInProjectData,
   UpdateSampleInProjectErrors,
   UpdateSampleInProjectResponses,
+  UpdateSettingData,
+  UpdateSettingErrors,
+  UpdateSettingResponses,
   UpdateVendorData,
   UpdateVendorErrors,
   UpdateVendorResponses,
@@ -610,6 +619,66 @@ export const search = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     url: '/api/v1/search',
     ...options,
+  })
+}
+
+/**
+ * Get Settings By Tag
+ * Retrieve all settings that have a specific tag key-value pair.
+ * For example: tag_key="category" and tag_value="storage"
+ */
+export const getSettingsByTag = <ThrowOnError extends boolean = false>(
+  options: Options<GetSettingsByTagData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetSettingsByTagResponses,
+    GetSettingsByTagErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/settings',
+    ...options,
+  })
+}
+
+/**
+ * Get Setting
+ * Retrieve a specific setting by key.
+ */
+export const getSetting = <ThrowOnError extends boolean = false>(
+  options: Options<GetSettingData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetSettingResponses,
+    GetSettingErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/settings/{key}',
+    ...options,
+  })
+}
+
+/**
+ * Update Setting
+ * Update a specific setting. Only the value, name, description, and tags can be updated.
+ * The key cannot be changed as it's the primary identifier.
+ */
+export const updateSetting = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateSettingData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    UpdateSettingResponses,
+    UpdateSettingErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/settings/{key}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }
 
