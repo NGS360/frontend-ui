@@ -1661,7 +1661,8 @@ export const uploadManifestQueryKey = (options: Options<UploadManifestData>) =>
  * Upload a manifest CSV file to the specified S3 path.
  *
  * Args:
- * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * s3_path: S3 path where the file should be uploaded
+ * (e.g., "s3://bucket-name/path/to/manifest.csv")
  * file: The manifest CSV file to upload
  *
  * Returns:
@@ -1687,7 +1688,8 @@ export const uploadManifestOptions = (options: Options<UploadManifestData>) => {
  * Upload a manifest CSV file to the specified S3 path.
  *
  * Args:
- * s3_path: S3 path where the file should be uploaded (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * s3_path: S3 path where the file should be uploaded
+ * (e.g., "s3://bucket-name/path/to/manifest.csv")
  * file: The manifest CSV file to upload
  *
  * Returns:

@@ -1,4 +1,4 @@
-import { Cloud, Cog, Database, Folder, Handshake, LayoutDashboard } from "lucide-react"
+import { Cloud, Database, Folder, Handshake, LayoutDashboard } from "lucide-react"
 import { Link, useRouterState } from "@tanstack/react-router"
 import {
   Sidebar,
