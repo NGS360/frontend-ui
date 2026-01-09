@@ -643,6 +643,70 @@ export type SequencingRunsPublic = {
 }
 
 /**
+ * Setting
+ * Represents an application setting with a fixed key.
+ * Keys are used as primary identifiers and cannot be changed.
+ */
+export type Setting = {
+  /**
+   * Key
+   */
+  key: string
+  /**
+   * Value
+   */
+  value: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Description
+   */
+  description?: string | null
+  /**
+   * Tags
+   */
+  tags?: Array<{
+    [key: string]: string
+  }> | null
+  /**
+   * Created At
+   */
+  created_at?: string | null
+  /**
+   * Updated At
+   */
+  updated_at?: string | null
+}
+
+/**
+ * SettingUpdate
+ * Represents the data needed to update a setting.
+ * Note: key cannot be updated as it's the primary key.
+ */
+export type SettingUpdate = {
+  /**
+   * Value
+   */
+  value?: string | null
+  /**
+   * Name
+   */
+  name?: string | null
+  /**
+   * Description
+   */
+  description?: string | null
+  /**
+   * Tags
+   */
+  tags?: Array<{
+    [key: string]: string
+  }> | null
+}
+
+/**
  * ToolConfig
  */
 export type ToolConfig = {
@@ -1681,6 +1745,106 @@ export type SearchResponses = {
 }
 
 export type SearchResponse2 = SearchResponses[keyof SearchResponses]
+
+export type GetSettingsByTagData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Tag Key
+     * Tag key to filter by
+     */
+    tag_key: string
+    /**
+     * Tag Value
+     * Tag value to filter by
+     */
+    tag_value: string
+  }
+  url: '/api/v1/settings'
+}
+
+export type GetSettingsByTagErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetSettingsByTagError =
+  GetSettingsByTagErrors[keyof GetSettingsByTagErrors]
+
+export type GetSettingsByTagResponses = {
+  /**
+   * Response Get Settings By Tag
+   * Successful Response
+   */
+  200: Array<Setting>
+}
+
+export type GetSettingsByTagResponse =
+  GetSettingsByTagResponses[keyof GetSettingsByTagResponses]
+
+export type GetSettingData = {
+  body?: never
+  path: {
+    /**
+     * Key
+     */
+    key: string
+  }
+  query?: never
+  url: '/api/v1/settings/{key}'
+}
+
+export type GetSettingErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetSettingError = GetSettingErrors[keyof GetSettingErrors]
+
+export type GetSettingResponses = {
+  /**
+   * Successful Response
+   */
+  200: Setting
+}
+
+export type GetSettingResponse = GetSettingResponses[keyof GetSettingResponses]
+
+export type UpdateSettingData = {
+  body: SettingUpdate
+  path: {
+    /**
+     * Key
+     */
+    key: string
+  }
+  query?: never
+  url: '/api/v1/settings/{key}'
+}
+
+export type UpdateSettingErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateSettingError = UpdateSettingErrors[keyof UpdateSettingErrors]
+
+export type UpdateSettingResponses = {
+  /**
+   * Successful Response
+   */
+  200: Setting
+}
+
+export type UpdateSettingResponse =
+  UpdateSettingResponses[keyof UpdateSettingResponses]
 
 export type ListAvailableToolsData = {
   body?: never

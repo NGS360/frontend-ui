@@ -26,6 +26,8 @@ import {
   getRunSamplesheet,
   getRuns,
   getSamples,
+  getSetting,
+  getSettingsByTag,
   getToolConfig,
   getVendor,
   getVendors,
@@ -44,6 +46,7 @@ import {
   searchRuns,
   updateRun,
   updateSampleInProject,
+  updateSetting,
   updateVendor,
   uploadManifest,
   validateManifest
@@ -89,6 +92,8 @@ import type {
   GetSamplesData,
   GetSamplesError,
   GetSamplesResponse,
+  GetSettingData,
+  GetSettingsByTagData,
   GetToolConfigData,
   GetVendorData,
   GetVendorsData,
@@ -121,6 +126,9 @@ import type {
   UpdateSampleInProjectData,
   UpdateSampleInProjectError,
   UpdateSampleInProjectResponse,
+  UpdateSettingData,
+  UpdateSettingError,
+  UpdateSettingResponse,
   UpdateVendorData,
   UpdateVendorError,
   UpdateVendorResponse,
@@ -1272,6 +1280,83 @@ export const searchOptions = (options: Options<SearchData>) => {
     },
     queryKey: searchQueryKey(options),
   })
+}
+
+export const getSettingsByTagQueryKey = (
+  options: Options<GetSettingsByTagData>,
+) => createQueryKey('getSettingsByTag', options)
+
+/**
+ * Get Settings By Tag
+ * Retrieve all settings that have a specific tag key-value pair.
+ * For example: tag_key="category" and tag_value="storage"
+ */
+export const getSettingsByTagOptions = (
+  options: Options<GetSettingsByTagData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getSettingsByTag({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getSettingsByTagQueryKey(options),
+  })
+}
+
+export const getSettingQueryKey = (options: Options<GetSettingData>) =>
+  createQueryKey('getSetting', options)
+
+/**
+ * Get Setting
+ * Retrieve a specific setting by key.
+ */
+export const getSettingOptions = (options: Options<GetSettingData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getSetting({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getSettingQueryKey(options),
+  })
+}
+
+/**
+ * Update Setting
+ * Update a specific setting. Only the value, name, description, and tags can be updated.
+ * The key cannot be changed as it's the primary identifier.
+ */
+export const updateSettingMutation = (
+  options?: Partial<Options<UpdateSettingData>>,
+): UseMutationOptions<
+  UpdateSettingResponse,
+  AxiosError<UpdateSettingError>,
+  Options<UpdateSettingData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateSettingResponse,
+    AxiosError<UpdateSettingError>,
+    Options<UpdateSettingData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateSetting({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const listAvailableToolsQueryKey = (
