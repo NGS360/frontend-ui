@@ -15,10 +15,9 @@ import {
   createProject,
   createWorkflow,
   deleteVendor,
-  demultiplexRun,
   downloadFile,
+  getDemultiplexWorkflowConfig,
   getLatestManifest,
-  getMultiplexWorkflows,
   getProjectByProjectId,
   getProjects,
   getRun,
@@ -28,13 +27,12 @@ import {
   getSamples,
   getSetting,
   getSettingsByTag,
-  getToolConfig,
   getVendor,
   getVendors,
   getWorkflowByWorkflowId,
   getWorkflows,
   healthCheck,
-  listAvailableTools,
+  listDemultiplexWorkflows,
   listFiles,
   postRunSamplesheet,
   reindexProjects,
@@ -44,7 +42,7 @@ import {
   search,
   searchProjects,
   searchRuns,
-  submitJob,
+  submitDemultiplexWorkflowJob,
   updateRun,
   updateSampleInProject,
   updateSetting,
@@ -74,12 +72,9 @@ import type {
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
-  DemultiplexRunData,
-  DemultiplexRunError,
-  DemultiplexRunResponse,
   DownloadFileData,
+  GetDemultiplexWorkflowConfigData,
   GetLatestManifestData,
-  GetMultiplexWorkflowsData,
   GetProjectByProjectIdData,
   GetProjectsData,
   GetProjectsError,
@@ -95,7 +90,6 @@ import type {
   GetSamplesResponse,
   GetSettingData,
   GetSettingsByTagData,
-  GetToolConfigData,
   GetVendorData,
   GetVendorsData,
   GetVendorsError,
@@ -105,7 +99,7 @@ import type {
   GetWorkflowsError,
   GetWorkflowsResponse,
   HealthCheckData,
-  ListAvailableToolsData,
+  ListDemultiplexWorkflowsData,
   ListFilesData,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
@@ -121,9 +115,9 @@ import type {
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
-  SubmitJobData,
-  SubmitJobError,
-  SubmitJobResponse,
+  SubmitDemultiplexWorkflowJobData,
+  SubmitDemultiplexWorkflowJobError,
+  SubmitDemultiplexWorkflowJobResponse,
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
@@ -986,20 +980,22 @@ export const reindexRunsMutation = (
   return mutationOptions
 }
 
-export const getMultiplexWorkflowsQueryKey = (
-  options?: Options<GetMultiplexWorkflowsData>,
-) => createQueryKey('getMultiplexWorkflows', options)
+export const listDemultiplexWorkflowsQueryKey = (
+  options?: Options<ListDemultiplexWorkflowsData>,
+) => createQueryKey('listDemultiplexWorkflows', options)
 
 /**
- * Get Multiplex Workflows
- * Placeholder endpoint for getting available demultiplex workflows.
+ * List Demultiplex Workflows
+ * List all available demultiplex workflows from S3.
+ *
+ * Returns a list of workflow IDs (config filenames without extensions).
  */
-export const getMultiplexWorkflowsOptions = (
-  options?: Options<GetMultiplexWorkflowsData>,
+export const listDemultiplexWorkflowsOptions = (
+  options?: Options<ListDemultiplexWorkflowsData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getMultiplexWorkflows({
+      const { data } = await listDemultiplexWorkflows({
         ...options,
         ...queryKey[0],
         signal,
@@ -1007,21 +1003,31 @@ export const getMultiplexWorkflowsOptions = (
       })
       return data
     },
-    queryKey: getMultiplexWorkflowsQueryKey(options),
+    queryKey: listDemultiplexWorkflowsQueryKey(options),
   })
 }
 
-export const demultiplexRunQueryKey = (options: Options<DemultiplexRunData>) =>
-  createQueryKey('demultiplexRun', options)
+export const submitDemultiplexWorkflowJobQueryKey = (
+  options: Options<SubmitDemultiplexWorkflowJobData>,
+) => createQueryKey('submitDemultiplexWorkflowJob', options)
 
 /**
- * Demultiplex Run
- * Submit a demultiplex job for a specific run.
+ * Submit Demultiplex Workflow Job
+ * Submit a job for the specified demultiplex workflow.
+ * Args:
+ * session: Database session
+ * workflow_body: The demultiplex workflow execution request containing
+ * workflow_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing workflow configs
+ * Returns:
+ * A dictionary containing job submission details.
  */
-export const demultiplexRunOptions = (options: Options<DemultiplexRunData>) => {
+export const submitDemultiplexWorkflowJobOptions = (
+  options: Options<SubmitDemultiplexWorkflowJobData>,
+) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await demultiplexRun({
+      const { data } = await submitDemultiplexWorkflowJob({
         ...options,
         ...queryKey[0],
         signal,
@@ -1029,28 +1035,35 @@ export const demultiplexRunOptions = (options: Options<DemultiplexRunData>) => {
       })
       return data
     },
-    queryKey: demultiplexRunQueryKey(options),
+    queryKey: submitDemultiplexWorkflowJobQueryKey(options),
   })
 }
 
 /**
- * Demultiplex Run
- * Submit a demultiplex job for a specific run.
+ * Submit Demultiplex Workflow Job
+ * Submit a job for the specified demultiplex workflow.
+ * Args:
+ * session: Database session
+ * workflow_body: The demultiplex workflow execution request containing
+ * workflow_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing workflow configs
+ * Returns:
+ * A dictionary containing job submission details.
  */
-export const demultiplexRunMutation = (
-  options?: Partial<Options<DemultiplexRunData>>,
+export const submitDemultiplexWorkflowJobMutation = (
+  options?: Partial<Options<SubmitDemultiplexWorkflowJobData>>,
 ): UseMutationOptions<
-  DemultiplexRunResponse,
-  AxiosError<DemultiplexRunError>,
-  Options<DemultiplexRunData>
+  SubmitDemultiplexWorkflowJobResponse,
+  AxiosError<SubmitDemultiplexWorkflowJobError>,
+  Options<SubmitDemultiplexWorkflowJobData>
 > => {
   const mutationOptions: UseMutationOptions<
-    DemultiplexRunResponse,
-    AxiosError<DemultiplexRunError>,
-    Options<DemultiplexRunData>
+    SubmitDemultiplexWorkflowJobResponse,
+    AxiosError<SubmitDemultiplexWorkflowJobError>,
+    Options<SubmitDemultiplexWorkflowJobData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await demultiplexRun({
+      const { data } = await submitDemultiplexWorkflowJob({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -1059,6 +1072,37 @@ export const demultiplexRunMutation = (
     },
   }
   return mutationOptions
+}
+
+export const getDemultiplexWorkflowConfigQueryKey = (
+  options: Options<GetDemultiplexWorkflowConfigData>,
+) => createQueryKey('getDemultiplexWorkflowConfig', options)
+
+/**
+ * Get Demultiplex Workflow Config
+ * Retrieve a specific demultiplex workflow configuration.
+ *
+ * Args:
+ * workflow_id: The workflow identifier (filename without extension)
+ *
+ * Returns:
+ * Complete workflow configuration
+ */
+export const getDemultiplexWorkflowConfigOptions = (
+  options: Options<GetDemultiplexWorkflowConfigData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDemultiplexWorkflowConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getDemultiplexWorkflowConfigQueryKey(options),
+  })
 }
 
 export const getRunQueryKey = (options: Options<GetRunData>) =>
@@ -1361,123 +1405,6 @@ export const updateSettingMutation = (
     },
   }
   return mutationOptions
-}
-
-export const listAvailableToolsQueryKey = (
-  options?: Options<ListAvailableToolsData>,
-) => createQueryKey('listAvailableTools', options)
-
-/**
- * List Available Tools
- * List all available tool configurations from S3.
- *
- * Returns a list of tool IDs (config filenames without extensions).
- */
-export const listAvailableToolsOptions = (
-  options?: Options<ListAvailableToolsData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listAvailableTools({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: listAvailableToolsQueryKey(options),
-  })
-}
-
-export const submitJobQueryKey = (options: Options<SubmitJobData>) =>
-  createQueryKey('submitJob', options)
-
-/**
- * Submit Job
- * Submit a job for the specified tool.
- * Args:
- * session: Database session
- * tool_body: The tool execution request containing tool_id, run_barcode, and inputs
- * s3_client: S3 client for accessing tool configs
- * Returns:
- * A dictionary containing job submission details.
- */
-export const submitJobOptions = (options: Options<SubmitJobData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await submitJob({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: submitJobQueryKey(options),
-  })
-}
-
-/**
- * Submit Job
- * Submit a job for the specified tool.
- * Args:
- * session: Database session
- * tool_body: The tool execution request containing tool_id, run_barcode, and inputs
- * s3_client: S3 client for accessing tool configs
- * Returns:
- * A dictionary containing job submission details.
- */
-export const submitJobMutation = (
-  options?: Partial<Options<SubmitJobData>>,
-): UseMutationOptions<
-  SubmitJobResponse,
-  AxiosError<SubmitJobError>,
-  Options<SubmitJobData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    SubmitJobResponse,
-    AxiosError<SubmitJobError>,
-    Options<SubmitJobData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await submitJob({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      })
-      return data
-    },
-  }
-  return mutationOptions
-}
-
-export const getToolConfigQueryKey = (options: Options<GetToolConfigData>) =>
-  createQueryKey('getToolConfig', options)
-
-/**
- * Get Tool Config
- * Retrieve a specific tool configuration.
- *
- * Args:
- * tool_id: The tool identifier (filename without extension)
- *
- * Returns:
- * Complete tool configuration
- */
-export const getToolConfigOptions = (options: Options<GetToolConfigData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getToolConfig({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getToolConfigQueryKey(options),
-  })
 }
 
 export const getVendorsQueryKey = (options?: Options<GetVendorsData>) =>

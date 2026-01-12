@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import type { SubmitHandler } from "react-hook-form";
-import type { ToolConfig } from "@/client";
+import type { DemuxWorkflowConfig } from "@/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -29,9 +29,9 @@ import {
 
 // Component props
 interface ExecuteToolFormProps {
-  /** The tool configuration to render as a form */
-  toolConfig: ToolConfig;
-  /** The run barcode to execute the tool against */
+  /** The workflow configuration to render as a form */
+  toolConfig: DemuxWorkflowConfig;
+  /** The run barcode to execute the workflow against */
   runBarcode: string;
   /** Whether the dialog is open */
   isOpen: boolean;
@@ -47,7 +47,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Dynamically build the Zod schema based on tool config
+  // Dynamically build the Zod schema based on workflow config
   const buildSchema = () => {
     const schemaFields: Record<string, z.ZodTypeAny> = {};
 
@@ -157,7 +157,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
     try {
       // TODO: Replace this with actual API call when endpoint is available
       const payload = {
-        tool_id: toolConfig.tool_id,
+        workflow_id: toolConfig.workflow_id,
         run_barcode: runBarcode,
         inputs: data,
       };
@@ -166,7 +166,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Show success toast with submitted data
-      toast.success("Tool execution submitted successfully", {
+      toast.success("Workflow execution submitted successfully", {
         description: (
           <pre className="mt-2 w-full rounded-md p-4 max-h-[200px] overflow-auto whitespace-pre-wrap break-words">
             <code className="text-foreground text-xs">
@@ -180,8 +180,8 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
       handleOnOpenChange(false);
       reset(getDefaultValues());
     } catch (error) {
-      console.error("Error submitting tool execution:", error);
-      toast.error("Failed to execute tool");
+      console.error("Error submitting workflow execution:", error);
+      toast.error("Failed to execute workflow");
     } finally {
       setIsSubmitting(false);
     }
@@ -191,8 +191,8 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{toolConfig.tool_name}</DialogTitle>
-          <DialogDescription>{toolConfig.tool_description}</DialogDescription>
+          <DialogTitle>{toolConfig.workflow_name}</DialogTitle>
+          <DialogDescription>{toolConfig.workflow_description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-6 py-4">
@@ -304,7 +304,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                   Executing...
                 </>
               ) : (
-                "Execute Tool"
+                "Execute Workflow"
               )}
             </Button>
           </DialogFooter>

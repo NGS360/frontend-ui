@@ -27,17 +27,15 @@ import type {
   DeleteVendorData,
   DeleteVendorErrors,
   DeleteVendorResponses,
-  DemultiplexRunData,
-  DemultiplexRunErrors,
-  DemultiplexRunResponses,
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
+  GetDemultiplexWorkflowConfigData,
+  GetDemultiplexWorkflowConfigErrors,
+  GetDemultiplexWorkflowConfigResponses,
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
-  GetMultiplexWorkflowsData,
-  GetMultiplexWorkflowsResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
@@ -65,9 +63,6 @@ import type {
   GetSettingsByTagData,
   GetSettingsByTagErrors,
   GetSettingsByTagResponses,
-  GetToolConfigData,
-  GetToolConfigErrors,
-  GetToolConfigResponses,
   GetVendorData,
   GetVendorErrors,
   GetVendorResponses,
@@ -82,8 +77,8 @@ import type {
   GetWorkflowsResponses,
   HealthCheckData,
   HealthCheckResponses,
-  ListAvailableToolsData,
-  ListAvailableToolsResponses,
+  ListDemultiplexWorkflowsData,
+  ListDemultiplexWorkflowsResponses,
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
@@ -107,9 +102,9 @@ import type {
   SearchRunsData,
   SearchRunsErrors,
   SearchRunsResponses,
-  SubmitJobData,
-  SubmitJobErrors,
-  SubmitJobResponses,
+  SubmitDemultiplexWorkflowJobData,
+  SubmitDemultiplexWorkflowJobErrors,
+  SubmitDemultiplexWorkflowJobResponses,
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
@@ -463,14 +458,16 @@ export const reindexRuns = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Multiplex Workflows
- * Placeholder endpoint for getting available demultiplex workflows.
+ * List Demultiplex Workflows
+ * List all available demultiplex workflows from S3.
+ *
+ * Returns a list of workflow IDs (config filenames without extensions).
  */
-export const getMultiplexWorkflows = <ThrowOnError extends boolean = false>(
-  options?: Options<GetMultiplexWorkflowsData, ThrowOnError>,
+export const listDemultiplexWorkflows = <ThrowOnError extends boolean = false>(
+  options?: Options<ListDemultiplexWorkflowsData, ThrowOnError>,
 ) => {
   return (options?.client ?? _heyApiClient).get<
-    GetMultiplexWorkflowsResponses,
+    ListDemultiplexWorkflowsResponses,
     unknown,
     ThrowOnError
   >({
@@ -481,19 +478,58 @@ export const getMultiplexWorkflows = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Demultiplex Run
- * Submit a demultiplex job for a specific run.
+ * Submit Demultiplex Workflow Job
+ * Submit a job for the specified demultiplex workflow.
+ * Args:
+ * session: Database session
+ * workflow_body: The demultiplex workflow execution request containing
+ * workflow_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing workflow configs
+ * Returns:
+ * A dictionary containing job submission details.
  */
-export const demultiplexRun = <ThrowOnError extends boolean = false>(
-  options: Options<DemultiplexRunData, ThrowOnError>,
+export const submitDemultiplexWorkflowJob = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<SubmitDemultiplexWorkflowJobData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).post<
-    DemultiplexRunResponses,
-    DemultiplexRunErrors,
+    SubmitDemultiplexWorkflowJobResponses,
+    SubmitDemultiplexWorkflowJobErrors,
     ThrowOnError
   >({
     responseType: 'json',
     url: '/api/v1/runs/demultiplex',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Demultiplex Workflow Config
+ * Retrieve a specific demultiplex workflow configuration.
+ *
+ * Args:
+ * workflow_id: The workflow identifier (filename without extension)
+ *
+ * Returns:
+ * Complete workflow configuration
+ */
+export const getDemultiplexWorkflowConfig = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<GetDemultiplexWorkflowConfigData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetDemultiplexWorkflowConfigResponses,
+    GetDemultiplexWorkflowConfigErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs/demultiplex/{workflow_id}',
     ...options,
   })
 }
@@ -691,78 +727,6 @@ export const updateSetting = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  })
-}
-
-/**
- * List Available Tools
- * List all available tool configurations from S3.
- *
- * Returns a list of tool IDs (config filenames without extensions).
- */
-export const listAvailableTools = <ThrowOnError extends boolean = false>(
-  options?: Options<ListAvailableToolsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListAvailableToolsResponses,
-    unknown,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/tools/',
-    ...options,
-  })
-}
-
-/**
- * Submit Job
- * Submit a job for the specified tool.
- * Args:
- * session: Database session
- * tool_body: The tool execution request containing tool_id, run_barcode, and inputs
- * s3_client: S3 client for accessing tool configs
- * Returns:
- * A dictionary containing job submission details.
- */
-export const submitJob = <ThrowOnError extends boolean = false>(
-  options: Options<SubmitJobData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    SubmitJobResponses,
-    SubmitJobErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/tools/submit',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
-
-/**
- * Get Tool Config
- * Retrieve a specific tool configuration.
- *
- * Args:
- * tool_id: The tool identifier (filename without extension)
- *
- * Returns:
- * Complete tool configuration
- */
-export const getToolConfig = <ThrowOnError extends boolean = false>(
-  options: Options<GetToolConfigData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetToolConfigResponses,
-    GetToolConfigErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/tools/{tool_id}',
-    ...options,
   })
 }
 

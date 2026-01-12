@@ -104,16 +104,6 @@ export type ConversionResult = {
 }
 
 /**
- * DemultiplexAnalysisAvailable
- */
-export type DemultiplexAnalysisAvailable = {
-  /**
-   * Demux Analysis Name
-   */
-  demux_analysis_name?: Array<string> | null
-}
-
-/**
  * DemuxResult
  */
 export type DemuxResult = {
@@ -141,6 +131,98 @@ export type DemuxResult = {
    * Readmetrics
    */
   ReadMetrics?: Array<ReadMetricsType>
+}
+
+/**
+ * DemuxWorkflowConfig
+ */
+export type DemuxWorkflowConfig = {
+  /**
+   * Version
+   */
+  version: number
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Workflow Name
+   */
+  workflow_name: string
+  /**
+   * Workflow Description
+   */
+  workflow_description: string
+  /**
+   * Inputs
+   */
+  inputs: Array<DemuxWorkflowConfigInput>
+  /**
+   * Help
+   */
+  help: string
+  /**
+   * Tags
+   */
+  tags: Array<DemuxWorkflowTag>
+  aws_batch?: AwsBatchConfig | null
+}
+
+/**
+ * DemuxWorkflowConfigInput
+ */
+export type DemuxWorkflowConfigInput = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Desc
+   */
+  desc: string
+  type: InputType
+  /**
+   * Required
+   */
+  required?: boolean
+  /**
+   * Default
+   */
+  default?: unknown | null
+  /**
+   * Options
+   */
+  options?: Array<string> | null
+}
+
+/**
+ * DemuxWorkflowSubmitBody
+ */
+export type DemuxWorkflowSubmitBody = {
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Run Barcode
+   */
+  run_barcode: string
+  /**
+   * Inputs
+   */
+  inputs: {
+    [key: string]: unknown
+  }
+}
+
+/**
+ * DemuxWorkflowTag
+ */
+export type DemuxWorkflowTag = {
+  /**
+   * Name
+   */
+  name: string
 }
 
 /**
@@ -744,98 +826,6 @@ export type SettingUpdate = {
   tags?: Array<{
     [key: string]: string
   }> | null
-}
-
-/**
- * ToolConfig
- */
-export type ToolConfig = {
-  /**
-   * Version
-   */
-  version: number
-  /**
-   * Tool Id
-   */
-  tool_id: string
-  /**
-   * Tool Name
-   */
-  tool_name: string
-  /**
-   * Tool Description
-   */
-  tool_description: string
-  /**
-   * Inputs
-   */
-  inputs: Array<ToolConfigInput>
-  /**
-   * Help
-   */
-  help: string
-  /**
-   * Tags
-   */
-  tags: Array<ToolConfigTag>
-  aws_batch?: AwsBatchConfig | null
-}
-
-/**
- * ToolConfigInput
- */
-export type ToolConfigInput = {
-  /**
-   * Name
-   */
-  name: string
-  /**
-   * Desc
-   */
-  desc: string
-  type: InputType
-  /**
-   * Required
-   */
-  required?: boolean
-  /**
-   * Default
-   */
-  default?: unknown | null
-  /**
-   * Options
-   */
-  options?: Array<string> | null
-}
-
-/**
- * ToolConfigTag
- */
-export type ToolConfigTag = {
-  /**
-   * Name
-   */
-  name: string
-}
-
-/**
- * ToolSubmitBody
- */
-export type ToolSubmitBody = {
-  /**
-   * Tool Id
-   */
-  tool_id: string
-  /**
-   * Run Barcode
-   */
-  run_barcode: string
-  /**
-   * Inputs
-   */
-  inputs: {
-    [key: string]: unknown
-  }
 }
 
 /**
@@ -1553,54 +1543,85 @@ export type ReindexRunsResponses = {
   201: unknown
 }
 
-export type GetMultiplexWorkflowsData = {
+export type ListDemultiplexWorkflowsData = {
   body?: never
   path?: never
   query?: never
   url: '/api/v1/runs/demultiplex'
 }
 
-export type GetMultiplexWorkflowsResponses = {
+export type ListDemultiplexWorkflowsResponses = {
   /**
+   * Response List Demultiplex Workflows
    * Successful Response
    */
-  200: DemultiplexAnalysisAvailable
+  200: Array<string>
 }
 
-export type GetMultiplexWorkflowsResponse =
-  GetMultiplexWorkflowsResponses[keyof GetMultiplexWorkflowsResponses]
+export type ListDemultiplexWorkflowsResponse =
+  ListDemultiplexWorkflowsResponses[keyof ListDemultiplexWorkflowsResponses]
 
-export type DemultiplexRunData = {
-  body?: never
+export type SubmitDemultiplexWorkflowJobData = {
+  body: DemuxWorkflowSubmitBody
   path?: never
-  query: {
-    /**
-     * Run Barcode
-     */
-    run_barcode: string
-  }
+  query?: never
   url: '/api/v1/runs/demultiplex'
 }
 
-export type DemultiplexRunErrors = {
+export type SubmitDemultiplexWorkflowJobErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type DemultiplexRunError =
-  DemultiplexRunErrors[keyof DemultiplexRunErrors]
+export type SubmitDemultiplexWorkflowJobError =
+  SubmitDemultiplexWorkflowJobErrors[keyof SubmitDemultiplexWorkflowJobErrors]
 
-export type DemultiplexRunResponses = {
+export type SubmitDemultiplexWorkflowJobResponses = {
+  /**
+   * Response Submit Demultiplex Workflow Job
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type SubmitDemultiplexWorkflowJobResponse =
+  SubmitDemultiplexWorkflowJobResponses[keyof SubmitDemultiplexWorkflowJobResponses]
+
+export type GetDemultiplexWorkflowConfigData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: never
+  url: '/api/v1/runs/demultiplex/{workflow_id}'
+}
+
+export type GetDemultiplexWorkflowConfigErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetDemultiplexWorkflowConfigError =
+  GetDemultiplexWorkflowConfigErrors[keyof GetDemultiplexWorkflowConfigErrors]
+
+export type GetDemultiplexWorkflowConfigResponses = {
   /**
    * Successful Response
    */
-  202: SequencingRunPublic
+  200: DemuxWorkflowConfig
 }
 
-export type DemultiplexRunResponse =
-  DemultiplexRunResponses[keyof DemultiplexRunResponses]
+export type GetDemultiplexWorkflowConfigResponse =
+  GetDemultiplexWorkflowConfigResponses[keyof GetDemultiplexWorkflowConfigResponses]
 
 export type GetRunData = {
   body?: never
@@ -1906,83 +1927,6 @@ export type UpdateSettingResponses = {
 
 export type UpdateSettingResponse =
   UpdateSettingResponses[keyof UpdateSettingResponses]
-
-export type ListAvailableToolsData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/v1/tools/'
-}
-
-export type ListAvailableToolsResponses = {
-  /**
-   * Response List Available Tools
-   * Successful Response
-   */
-  200: Array<string>
-}
-
-export type ListAvailableToolsResponse =
-  ListAvailableToolsResponses[keyof ListAvailableToolsResponses]
-
-export type SubmitJobData = {
-  body: ToolSubmitBody
-  path?: never
-  query?: never
-  url: '/api/v1/tools/submit'
-}
-
-export type SubmitJobErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type SubmitJobError = SubmitJobErrors[keyof SubmitJobErrors]
-
-export type SubmitJobResponses = {
-  /**
-   * Response Submit Job
-   * Successful Response
-   */
-  200: {
-    [key: string]: unknown
-  }
-}
-
-export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses]
-
-export type GetToolConfigData = {
-  body?: never
-  path: {
-    /**
-     * Tool Id
-     */
-    tool_id: string
-  }
-  query?: never
-  url: '/api/v1/tools/{tool_id}'
-}
-
-export type GetToolConfigErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type GetToolConfigError = GetToolConfigErrors[keyof GetToolConfigErrors]
-
-export type GetToolConfigResponses = {
-  /**
-   * Successful Response
-   */
-  200: ToolConfig
-}
-
-export type GetToolConfigResponse =
-  GetToolConfigResponses[keyof GetToolConfigResponses]
 
 export type GetVendorsData = {
   body?: never
