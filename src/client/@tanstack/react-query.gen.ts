@@ -44,6 +44,7 @@ import {
   search,
   searchProjects,
   searchRuns,
+  submitJob,
   updateRun,
   updateSampleInProject,
   updateSetting,
@@ -120,6 +121,9 @@ import type {
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
+  SubmitJobData,
+  SubmitJobError,
+  SubmitJobResponse,
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
@@ -1384,6 +1388,68 @@ export const listAvailableToolsOptions = (
     },
     queryKey: listAvailableToolsQueryKey(options),
   })
+}
+
+export const submitJobQueryKey = (options: Options<SubmitJobData>) =>
+  createQueryKey('submitJob', options)
+
+/**
+ * Submit Job
+ * Submit a job for the specified tool.
+ * Args:
+ * session: Database session
+ * tool_body: The tool execution request containing tool_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing tool configs
+ * Returns:
+ * A dictionary containing job submission details.
+ */
+export const submitJobOptions = (options: Options<SubmitJobData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await submitJob({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: submitJobQueryKey(options),
+  })
+}
+
+/**
+ * Submit Job
+ * Submit a job for the specified tool.
+ * Args:
+ * session: Database session
+ * tool_body: The tool execution request containing tool_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing tool configs
+ * Returns:
+ * A dictionary containing job submission details.
+ */
+export const submitJobMutation = (
+  options?: Partial<Options<SubmitJobData>>,
+): UseMutationOptions<
+  SubmitJobResponse,
+  AxiosError<SubmitJobError>,
+  Options<SubmitJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SubmitJobResponse,
+    AxiosError<SubmitJobError>,
+    Options<SubmitJobData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await submitJob({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getToolConfigQueryKey = (options: Options<GetToolConfigData>) =>

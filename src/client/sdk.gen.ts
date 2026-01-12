@@ -107,6 +107,9 @@ import type {
   SearchRunsData,
   SearchRunsErrors,
   SearchRunsResponses,
+  SubmitJobData,
+  SubmitJobErrors,
+  SubmitJobResponses,
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
@@ -708,6 +711,34 @@ export const listAvailableTools = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     url: '/api/v1/tools/',
     ...options,
+  })
+}
+
+/**
+ * Submit Job
+ * Submit a job for the specified tool.
+ * Args:
+ * session: Database session
+ * tool_body: The tool execution request containing tool_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing tool configs
+ * Returns:
+ * A dictionary containing job submission details.
+ */
+export const submitJob = <ThrowOnError extends boolean = false>(
+  options: Options<SubmitJobData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    SubmitJobResponses,
+    SubmitJobErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/tools/submit',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }
 

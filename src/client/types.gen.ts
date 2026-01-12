@@ -15,6 +15,46 @@ export type Attribute = {
 }
 
 /**
+ * AwsBatchConfig
+ */
+export type AwsBatchConfig = {
+  /**
+   * Job Name
+   */
+  job_name: string
+  /**
+   * Job Definition
+   */
+  job_definition: string
+  /**
+   * Job Queue
+   */
+  job_queue: string
+  /**
+   * Command
+   */
+  command: string
+  /**
+   * Environment
+   */
+  environment?: Array<AwsBatchEnvironment> | null
+}
+
+/**
+ * AwsBatchEnvironment
+ */
+export type AwsBatchEnvironment = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Value
+   */
+  value: string
+}
+
+/**
  * Body_post_run_samplesheet
  */
 export type BodyPostRunSamplesheet = {
@@ -738,6 +778,7 @@ export type ToolConfig = {
    * Tags
    */
   tags: Array<ToolConfigTag>
+  aws_batch?: AwsBatchConfig | null
 }
 
 /**
@@ -775,6 +816,26 @@ export type ToolConfigTag = {
    * Name
    */
   name: string
+}
+
+/**
+ * ToolSubmitBody
+ */
+export type ToolSubmitBody = {
+  /**
+   * Tool Id
+   */
+  tool_id: string
+  /**
+   * Run Barcode
+   */
+  run_barcode: string
+  /**
+   * Inputs
+   */
+  inputs: {
+    [key: string]: unknown
+  }
 }
 
 /**
@@ -1863,6 +1924,34 @@ export type ListAvailableToolsResponses = {
 
 export type ListAvailableToolsResponse =
   ListAvailableToolsResponses[keyof ListAvailableToolsResponses]
+
+export type SubmitJobData = {
+  body: ToolSubmitBody
+  path?: never
+  query?: never
+  url: '/api/v1/tools/submit'
+}
+
+export type SubmitJobErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SubmitJobError = SubmitJobErrors[keyof SubmitJobErrors]
+
+export type SubmitJobResponses = {
+  /**
+   * Response Submit Job
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses]
 
 export type GetToolConfigData = {
   body?: never
