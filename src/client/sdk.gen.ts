@@ -514,9 +514,10 @@ export const submitDemultiplexWorkflowJob = <
  *
  * Args:
  * workflow_id: The workflow identifier (filename without extension)
+ * run_barcode: Optional run barcode to prepopulate s3_run_folder_path from run's run_folder_uri
  *
  * Returns:
- * Complete workflow configuration
+ * Complete workflow configuration with prepopulated defaults if run_barcode is provided
  */
 export const getDemultiplexWorkflowConfig = <
   ThrowOnError extends boolean = false,

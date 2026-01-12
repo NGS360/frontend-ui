@@ -69,6 +69,9 @@ function RouteComponent() {
         path: {
           workflow_id: workflow
         },
+        query: {
+          run_barcode: run.barcode as string
+        },
         throwOnError: true
       })
       setSelectedToolConfig(result.data)

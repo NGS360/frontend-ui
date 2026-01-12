@@ -1599,7 +1599,13 @@ export type GetDemultiplexWorkflowConfigData = {
      */
     workflow_id: string
   }
-  query?: never
+  query?: {
+    /**
+     * Run Barcode
+     * Run barcode to prepopulate s3_run_folder_path
+     */
+    run_barcode?: string
+  }
   url: '/api/v1/runs/demultiplex/{workflow_id}'
 }
 
