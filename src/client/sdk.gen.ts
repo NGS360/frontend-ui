@@ -27,14 +27,15 @@ import type {
   DeleteVendorData,
   DeleteVendorErrors,
   DeleteVendorResponses,
-  DemultiplexRunData,
-  DemultiplexRunErrors,
-  DemultiplexRunResponses,
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
-  GetMultiplexWorkflowsData,
-  GetMultiplexWorkflowsResponses,
+  GetDemultiplexWorkflowConfigData,
+  GetDemultiplexWorkflowConfigErrors,
+  GetDemultiplexWorkflowConfigResponses,
+  GetLatestManifestData,
+  GetLatestManifestErrors,
+  GetLatestManifestResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
@@ -56,9 +57,12 @@ import type {
   GetSamplesData,
   GetSamplesErrors,
   GetSamplesResponses,
-  GetToolConfigData,
-  GetToolConfigErrors,
-  GetToolConfigResponses,
+  GetSettingData,
+  GetSettingErrors,
+  GetSettingResponses,
+  GetSettingsByTagData,
+  GetSettingsByTagErrors,
+  GetSettingsByTagResponses,
   GetVendorData,
   GetVendorErrors,
   GetVendorResponses,
@@ -73,8 +77,8 @@ import type {
   GetWorkflowsResponses,
   HealthCheckData,
   HealthCheckResponses,
-  ListAvailableToolsData,
-  ListAvailableToolsResponses,
+  ListDemultiplexWorkflowsData,
+  ListDemultiplexWorkflowsResponses,
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
@@ -98,15 +102,27 @@ import type {
   SearchRunsData,
   SearchRunsErrors,
   SearchRunsResponses,
+  SubmitDemultiplexWorkflowJobData,
+  SubmitDemultiplexWorkflowJobErrors,
+  SubmitDemultiplexWorkflowJobResponses,
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
   UpdateSampleInProjectData,
   UpdateSampleInProjectErrors,
   UpdateSampleInProjectResponses,
+  UpdateSettingData,
+  UpdateSettingErrors,
+  UpdateSettingResponses,
   UpdateVendorData,
   UpdateVendorErrors,
   UpdateVendorResponses,
+  UploadManifestData,
+  UploadManifestErrors,
+  UploadManifestResponses,
+  ValidateManifestData,
+  ValidateManifestErrors,
+  ValidateManifestResponses,
 } from './types.gen'
 
 export type Options<
@@ -442,14 +458,16 @@ export const reindexRuns = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Multiplex Workflows
- * Placeholder endpoint for getting available demultiplex workflows.
+ * List Demultiplex Workflows
+ * List all available demultiplex workflows from S3.
+ *
+ * Returns a list of workflow IDs (config filenames without extensions).
  */
-export const getMultiplexWorkflows = <ThrowOnError extends boolean = false>(
-  options?: Options<GetMultiplexWorkflowsData, ThrowOnError>,
+export const listDemultiplexWorkflows = <ThrowOnError extends boolean = false>(
+  options?: Options<ListDemultiplexWorkflowsData, ThrowOnError>,
 ) => {
   return (options?.client ?? _heyApiClient).get<
-    GetMultiplexWorkflowsResponses,
+    ListDemultiplexWorkflowsResponses,
     unknown,
     ThrowOnError
   >({
@@ -460,19 +478,59 @@ export const getMultiplexWorkflows = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Demultiplex Run
- * Submit a demultiplex job for a specific run.
+ * Submit Demultiplex Workflow Job
+ * Submit a job for the specified demultiplex workflow.
+ * Args:
+ * session: Database session
+ * workflow_body: The demultiplex workflow execution request containing
+ * workflow_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing workflow configs
+ * Returns:
+ * A dictionary containing job submission details.
  */
-export const demultiplexRun = <ThrowOnError extends boolean = false>(
-  options: Options<DemultiplexRunData, ThrowOnError>,
+export const submitDemultiplexWorkflowJob = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<SubmitDemultiplexWorkflowJobData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).post<
-    DemultiplexRunResponses,
-    DemultiplexRunErrors,
+    SubmitDemultiplexWorkflowJobResponses,
+    SubmitDemultiplexWorkflowJobErrors,
     ThrowOnError
   >({
     responseType: 'json',
     url: '/api/v1/runs/demultiplex',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Demultiplex Workflow Config
+ * Retrieve a specific demultiplex workflow configuration.
+ *
+ * Args:
+ * workflow_id: The workflow identifier (filename without extension)
+ * run_barcode: Optional run barcode to prepopulate s3_run_folder_path from run's run_folder_uri
+ *
+ * Returns:
+ * Complete workflow configuration with prepopulated defaults if run_barcode is provided
+ */
+export const getDemultiplexWorkflowConfig = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<GetDemultiplexWorkflowConfigData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetDemultiplexWorkflowConfigResponses,
+    GetDemultiplexWorkflowConfigErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs/demultiplex/{workflow_id}',
     ...options,
   })
 }
@@ -614,46 +672,62 @@ export const search = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * List Available Tools
- * List all available tool configurations from S3.
- *
- * Returns a list of tool IDs (config filenames without extensions).
+ * Get Settings By Tag
+ * Retrieve all settings that have a specific tag key-value pair.
+ * For example: tag_key="category" and tag_value="storage"
  */
-export const listAvailableTools = <ThrowOnError extends boolean = false>(
-  options?: Options<ListAvailableToolsData, ThrowOnError>,
+export const getSettingsByTag = <ThrowOnError extends boolean = false>(
+  options: Options<GetSettingsByTagData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListAvailableToolsResponses,
-    unknown,
+  return (options.client ?? _heyApiClient).get<
+    GetSettingsByTagResponses,
+    GetSettingsByTagErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/tools/',
+    url: '/api/v1/settings',
     ...options,
   })
 }
 
 /**
- * Get Tool Config
- * Retrieve a specific tool configuration.
- *
- * Args:
- * tool_id: The tool identifier (filename without extension)
- *
- * Returns:
- * Complete tool configuration
+ * Get Setting
+ * Retrieve a specific setting by key.
  */
-export const getToolConfig = <ThrowOnError extends boolean = false>(
-  options: Options<GetToolConfigData, ThrowOnError>,
+export const getSetting = <ThrowOnError extends boolean = false>(
+  options: Options<GetSettingData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<
-    GetToolConfigResponses,
-    GetToolConfigErrors,
+    GetSettingResponses,
+    GetSettingErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/tools/{tool_id}',
+    url: '/api/v1/settings/{key}',
     ...options,
+  })
+}
+
+/**
+ * Update Setting
+ * Update a specific setting. Only the value, name, description, and tags can be updated.
+ * The key cannot be changed as it's the primary identifier.
+ */
+export const updateSetting = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateSettingData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    UpdateSettingResponses,
+    UpdateSettingErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/settings/{key}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }
 
@@ -751,6 +825,97 @@ export const updateVendor = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Get Latest Manifest
+ * Retrieve the latest manifest file path from the specified S3 bucket.
+ *
+ * Searches recursively through the bucket/prefix for files that:
+ * - Contain "manifest" (case-insensitive)
+ * - End with ".csv"
+ *
+ * Returns the full S3 path of the most recent matching file.
+ *
+ * Args:
+ * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
+ *
+ * Returns:
+ * Full S3 path to the latest manifest file
+ */
+export const getLatestManifest = <ThrowOnError extends boolean = false>(
+  options: Options<GetLatestManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetLatestManifestResponses,
+    GetLatestManifestErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/manifest',
+    ...options,
+  })
+}
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded
+ * (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifest = <ThrowOnError extends boolean = false>(
+  options: Options<UploadManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    UploadManifestResponses,
+    UploadManifestErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/manifest',
+    ...options,
+    headers: {
+      'Content-Type': null,
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifest = <ThrowOnError extends boolean = false>(
+  options: Options<ValidateManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ValidateManifestResponses,
+    ValidateManifestErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/manifest/validate',
+    ...options,
   })
 }
 

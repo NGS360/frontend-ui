@@ -5,8 +5,8 @@ import { ChartBar, ChevronDown, FileSpreadsheet, FolderOpen, Loader2, PlayCircle
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { ChangeEvent } from 'react';
-import type { ToolConfig } from '@/client'
-import { getRun, getToolConfig, listAvailableTools } from '@/client'
+import type { DemuxWorkflowConfig } from '@/client'
+import { getDemultiplexWorkflowConfig, getRun, listDemultiplexWorkflows } from '@/client'
 import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from '@/client/@tanstack/react-query.gen'
 import { ExecuteToolForm } from '@/components/execute-tool-form'
 import { TabLink, TabNav } from '@/components/tab-nav'
@@ -50,32 +50,35 @@ function RouteComponent() {
   const { run } = routeApi.useLoaderData()
   const queryClient = useQueryClient()
 
-  // Fetch available tools
+  // Fetch available demultiplex workflows
   const toolsQuery = useQuery({
-    queryKey: ['listAvailableTools'],
+    queryKey: ['listDemultiplexWorkflows'],
     queryFn: async () => {
-      const result = await listAvailableTools({ throwOnError: true })
+      const result = await listDemultiplexWorkflows({ throwOnError: true })
       return result.data
     }
   })
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [selectedToolConfig, setSelectedToolConfig] = useState<ToolConfig | null>(null)
+  const [selectedToolConfig, setSelectedToolConfig] = useState<DemuxWorkflowConfig | null>(null)
   const [toolDialogOpen, setToolDialogOpen] = useState(false)
 
-  // Handle tool selection
-  const handleToolSelect = async (tool: string) => {
+  // Handle workflow selection
+  const handleToolSelect = async (workflow: string) => {
     try {
-      const result = await getToolConfig({
+      const result = await getDemultiplexWorkflowConfig({
         path: {
-          tool_id: tool
+          workflow_id: workflow
+        },
+        query: {
+          run_barcode: run.barcode as string
         },
         throwOnError: true
       })
       setSelectedToolConfig(result.data)
       setToolDialogOpen(true)
     } catch (error) {
-      console.error('Error fetching tool config:', error)
-      toast.error(`Failed to fetch config for tool: ${tool}`)
+      console.error('Error fetching workflow config:', error)
+      toast.error(`Failed to fetch config for workflow: ${workflow}`)
     }
     setDropdownOpen(false)
   }

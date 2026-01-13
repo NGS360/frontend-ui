@@ -5,14 +5,16 @@ import { toast } from 'sonner'
 import z from 'zod'
 import { Plus, SquarePen, Trash2 } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
-import type { VendorPublic } from '@/client'
-import { deleteVendorMutation, getVendorsOptions, getVendorsQueryKey } from '@/client/@tanstack/react-query.gen'
+import type { AxiosError } from 'axios'
+import type { HttpValidationError, Setting, VendorPublic } from '@/client'
+import { deleteVendorMutation, getSettingsByTagOptions, getSettingsByTagQueryKey, getVendorsOptions, getVendorsQueryKey, updateSettingMutation } from '@/client/@tanstack/react-query.gen'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { FullscreenSpinner } from '@/components/spinner'
 import { AddVendorForm } from '@/components/add-vendor-form'
 import { UpdateVendorForm } from '@/components/update-vendor-form'
+import { SettingCard } from '@/components/app-setting-card'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -116,7 +118,50 @@ function RouteComponent() {
     placeholderData: keepPreviousData
   })
 
+  // Query vendor settings
+  const { data: vendorSettings, error: settingsError } = useQuery(
+    getSettingsByTagOptions({
+      query: {
+        tag_key: 'category',
+        tag_value: 'vendor settings',
+      },
+    })
+  )
+
+  // Mutation for updating settings
+  const { mutate: updateSetting, isPending: isSettingPending } = useMutation({
+    ...updateSettingMutation(),
+    onError: (mutationError: AxiosError<HttpValidationError>) => {
+      const message = mutationError.response?.data.detail?.toString()
+        || "An unknown error occurred."
+      toast.error(`Failed to update setting: ${message}`)
+    },
+    onSuccess: (data: Setting) => {
+      queryClient.invalidateQueries({ 
+        queryKey: getSettingsByTagQueryKey({
+          query: {
+            tag_key: 'category',
+            tag_value: 'vendor settings',
+          },
+        })
+      })
+      toast.success(`Successfully updated ${data.name}`)
+    }
+  })
+
+  const handleSaveSetting = (key: string, value: string) => {
+    updateSetting({
+      path: {
+        key,
+      },
+      body: {
+        value,
+      },
+    })
+  }
+
   if (error) return 'An error has occurred: ' + error.message
+  if (settingsError) return 'An error has occurred loading settings: ' + settingsError.message
   if (!data) return <FullscreenSpinner variant='ellipsis' />
 
   // Define columns
@@ -247,6 +292,24 @@ function RouteComponent() {
         sorting={sorting}
         onSortingChange={setSorting}
       />
+
+      <hr />
+
+      {/* Vendor Settings Section */}
+      {vendorSettings && vendorSettings.length > 0 && (
+        <div className='flex flex-col gap-4'>
+          <div className='grid gap-4'>
+            {vendorSettings.map((setting) => (
+              <SettingCard 
+                key={setting.key} 
+                setting={setting} 
+                isPending={isSettingPending}
+                onSave={handleSaveSetting}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

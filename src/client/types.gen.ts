@@ -15,12 +15,63 @@ export type Attribute = {
 }
 
 /**
+ * AwsBatchConfig
+ */
+export type AwsBatchConfig = {
+  /**
+   * Job Name
+   */
+  job_name: string
+  /**
+   * Job Definition
+   */
+  job_definition: string
+  /**
+   * Job Queue
+   */
+  job_queue: string
+  /**
+   * Command
+   */
+  command: string
+  /**
+   * Environment
+   */
+  environment?: Array<AwsBatchEnvironment> | null
+}
+
+/**
+ * AwsBatchEnvironment
+ */
+export type AwsBatchEnvironment = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Value
+   */
+  value: string
+}
+
+/**
  * Body_post_run_samplesheet
  */
 export type BodyPostRunSamplesheet = {
   /**
    * File
    * File to upload
+   */
+  file: Blob | File
+}
+
+/**
+ * Body_upload_manifest
+ */
+export type BodyUploadManifest = {
+  /**
+   * File
+   * Manifest CSV file to upload
    */
   file: Blob | File
 }
@@ -53,16 +104,6 @@ export type ConversionResult = {
 }
 
 /**
- * DemultiplexAnalysisAvailable
- */
-export type DemultiplexAnalysisAvailable = {
-  /**
-   * Demux Analysis Name
-   */
-  demux_analysis_name?: Array<string> | null
-}
-
-/**
  * DemuxResult
  */
 export type DemuxResult = {
@@ -90,6 +131,98 @@ export type DemuxResult = {
    * Readmetrics
    */
   ReadMetrics?: Array<ReadMetricsType>
+}
+
+/**
+ * DemuxWorkflowConfig
+ */
+export type DemuxWorkflowConfig = {
+  /**
+   * Version
+   */
+  version: number
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Workflow Name
+   */
+  workflow_name: string
+  /**
+   * Workflow Description
+   */
+  workflow_description: string
+  /**
+   * Inputs
+   */
+  inputs: Array<DemuxWorkflowConfigInput>
+  /**
+   * Help
+   */
+  help: string
+  /**
+   * Tags
+   */
+  tags: Array<DemuxWorkflowTag>
+  aws_batch?: AwsBatchConfig | null
+}
+
+/**
+ * DemuxWorkflowConfigInput
+ */
+export type DemuxWorkflowConfigInput = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Desc
+   */
+  desc: string
+  type: InputType
+  /**
+   * Required
+   */
+  required?: boolean
+  /**
+   * Default
+   */
+  default?: unknown | null
+  /**
+   * Options
+   */
+  options?: Array<string> | null
+}
+
+/**
+ * DemuxWorkflowSubmitBody
+ */
+export type DemuxWorkflowSubmitBody = {
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Run Barcode
+   */
+  run_barcode: string
+  /**
+   * Inputs
+   */
+  inputs: {
+    [key: string]: unknown
+  }
+}
+
+/**
+ * DemuxWorkflowTag
+ */
+export type DemuxWorkflowTag = {
+  /**
+   * Name
+   */
+  name: string
 }
 
 /**
@@ -239,6 +372,66 @@ export type IndexMetric = {
  * InputType
  */
 export type InputType = 'Enum' | 'String' | 'Integer' | 'Boolean'
+
+/**
+ * ManifestUploadResponse
+ * Response model for manifest file upload
+ */
+export type ManifestUploadResponse = {
+  /**
+   * Status
+   * Status of the upload operation
+   */
+  status: string
+  /**
+   * Message
+   * Human-readable message about the upload
+   */
+  message: string
+  /**
+   * Path
+   * Full S3 path where the file was uploaded
+   */
+  path: string
+  /**
+   * Filename
+   * Name of the uploaded file
+   */
+  filename: string
+}
+
+/**
+ * ManifestValidationResponse
+ * Response model for manifest validation
+ */
+export type ManifestValidationResponse = {
+  /**
+   * Valid
+   * Whether the manifest is valid
+   */
+  valid: boolean
+  /**
+   * Message
+   * Informational messages about the validation
+   */
+  message?: {
+    [key: string]: string
+  }
+  /**
+   * Error
+   * Validation errors grouped by category
+   */
+  error?: {
+    [key: string]: Array<string>
+  }
+  /**
+   * Warning
+   * Validation warnings grouped by category
+   */
+  warning?: {
+    [key: string]: Array<string>
+  }
+}
 
 /**
  * ProjectCreate
@@ -572,74 +765,67 @@ export type SequencingRunsPublic = {
 }
 
 /**
- * ToolConfig
+ * Setting
+ * Represents an application setting with a fixed key.
+ * Keys are used as primary identifiers and cannot be changed.
  */
-export type ToolConfig = {
+export type Setting = {
   /**
-   * Version
+   * Key
    */
-  version: number
+  key: string
   /**
-   * Tool Id
+   * Value
    */
-  tool_id: string
+  value: string
   /**
-   * Tool Name
+   * Name
    */
-  tool_name: string
+  name: string
   /**
-   * Tool Description
+   * Description
    */
-  tool_description: string
-  /**
-   * Inputs
-   */
-  inputs: Array<ToolConfigInput>
-  /**
-   * Help
-   */
-  help: string
+  description?: string | null
   /**
    * Tags
    */
-  tags: Array<ToolConfigTag>
+  tags?: Array<{
+    [key: string]: string
+  }> | null
+  /**
+   * Created At
+   */
+  created_at?: string | null
+  /**
+   * Updated At
+   */
+  updated_at?: string | null
 }
 
 /**
- * ToolConfigInput
+ * SettingUpdate
+ * Represents the data needed to update a setting.
+ * Note: key cannot be updated as it's the primary key.
  */
-export type ToolConfigInput = {
+export type SettingUpdate = {
+  /**
+   * Value
+   */
+  value?: string | null
   /**
    * Name
    */
-  name: string
+  name?: string | null
   /**
-   * Desc
+   * Description
    */
-  desc: string
-  type: InputType
+  description?: string | null
   /**
-   * Required
+   * Tags
    */
-  required?: boolean
-  /**
-   * Default
-   */
-  default?: unknown | null
-  /**
-   * Options
-   */
-  options?: Array<string> | null
-}
-
-/**
- * ToolConfigTag
- */
-export type ToolConfigTag = {
-  /**
-   * Name
-   */
-  name: string
+  tags?: Array<{
+    [key: string]: string
+  }> | null
 }
 
 /**
@@ -1357,54 +1543,91 @@ export type ReindexRunsResponses = {
   201: unknown
 }
 
-export type GetMultiplexWorkflowsData = {
+export type ListDemultiplexWorkflowsData = {
   body?: never
   path?: never
   query?: never
   url: '/api/v1/runs/demultiplex'
 }
 
-export type GetMultiplexWorkflowsResponses = {
+export type ListDemultiplexWorkflowsResponses = {
   /**
+   * Response List Demultiplex Workflows
    * Successful Response
    */
-  200: DemultiplexAnalysisAvailable
+  200: Array<string>
 }
 
-export type GetMultiplexWorkflowsResponse =
-  GetMultiplexWorkflowsResponses[keyof GetMultiplexWorkflowsResponses]
+export type ListDemultiplexWorkflowsResponse =
+  ListDemultiplexWorkflowsResponses[keyof ListDemultiplexWorkflowsResponses]
 
-export type DemultiplexRunData = {
-  body?: never
+export type SubmitDemultiplexWorkflowJobData = {
+  body: DemuxWorkflowSubmitBody
   path?: never
-  query: {
-    /**
-     * Run Barcode
-     */
-    run_barcode: string
-  }
+  query?: never
   url: '/api/v1/runs/demultiplex'
 }
 
-export type DemultiplexRunErrors = {
+export type SubmitDemultiplexWorkflowJobErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type DemultiplexRunError =
-  DemultiplexRunErrors[keyof DemultiplexRunErrors]
+export type SubmitDemultiplexWorkflowJobError =
+  SubmitDemultiplexWorkflowJobErrors[keyof SubmitDemultiplexWorkflowJobErrors]
 
-export type DemultiplexRunResponses = {
+export type SubmitDemultiplexWorkflowJobResponses = {
+  /**
+   * Response Submit Demultiplex Workflow Job
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type SubmitDemultiplexWorkflowJobResponse =
+  SubmitDemultiplexWorkflowJobResponses[keyof SubmitDemultiplexWorkflowJobResponses]
+
+export type GetDemultiplexWorkflowConfigData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: {
+    /**
+     * Run Barcode
+     * Run barcode to prepopulate s3_run_folder_path
+     */
+    run_barcode?: string
+  }
+  url: '/api/v1/runs/demultiplex/{workflow_id}'
+}
+
+export type GetDemultiplexWorkflowConfigErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetDemultiplexWorkflowConfigError =
+  GetDemultiplexWorkflowConfigErrors[keyof GetDemultiplexWorkflowConfigErrors]
+
+export type GetDemultiplexWorkflowConfigResponses = {
   /**
    * Successful Response
    */
-  202: SequencingRunPublic
+  200: DemuxWorkflowConfig
 }
 
-export type DemultiplexRunResponse =
-  DemultiplexRunResponses[keyof DemultiplexRunResponses]
+export type GetDemultiplexWorkflowConfigResponse =
+  GetDemultiplexWorkflowConfigResponses[keyof GetDemultiplexWorkflowConfigResponses]
 
 export type GetRunData = {
   body?: never
@@ -1611,54 +1834,105 @@ export type SearchResponses = {
 
 export type SearchResponse2 = SearchResponses[keyof SearchResponses]
 
-export type ListAvailableToolsData = {
+export type GetSettingsByTagData = {
   body?: never
   path?: never
-  query?: never
-  url: '/api/v1/tools/'
-}
-
-export type ListAvailableToolsResponses = {
-  /**
-   * Response List Available Tools
-   * Successful Response
-   */
-  200: Array<string>
-}
-
-export type ListAvailableToolsResponse =
-  ListAvailableToolsResponses[keyof ListAvailableToolsResponses]
-
-export type GetToolConfigData = {
-  body?: never
-  path: {
+  query: {
     /**
-     * Tool Id
+     * Tag Key
+     * Tag key to filter by
      */
-    tool_id: string
+    tag_key: string
+    /**
+     * Tag Value
+     * Tag value to filter by
+     */
+    tag_value: string
   }
-  query?: never
-  url: '/api/v1/tools/{tool_id}'
+  url: '/api/v1/settings'
 }
 
-export type GetToolConfigErrors = {
+export type GetSettingsByTagErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetToolConfigError = GetToolConfigErrors[keyof GetToolConfigErrors]
+export type GetSettingsByTagError =
+  GetSettingsByTagErrors[keyof GetSettingsByTagErrors]
 
-export type GetToolConfigResponses = {
+export type GetSettingsByTagResponses = {
+  /**
+   * Response Get Settings By Tag
+   * Successful Response
+   */
+  200: Array<Setting>
+}
+
+export type GetSettingsByTagResponse =
+  GetSettingsByTagResponses[keyof GetSettingsByTagResponses]
+
+export type GetSettingData = {
+  body?: never
+  path: {
+    /**
+     * Key
+     */
+    key: string
+  }
+  query?: never
+  url: '/api/v1/settings/{key}'
+}
+
+export type GetSettingErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetSettingError = GetSettingErrors[keyof GetSettingErrors]
+
+export type GetSettingResponses = {
   /**
    * Successful Response
    */
-  200: ToolConfig
+  200: Setting
 }
 
-export type GetToolConfigResponse =
-  GetToolConfigResponses[keyof GetToolConfigResponses]
+export type GetSettingResponse = GetSettingResponses[keyof GetSettingResponses]
+
+export type UpdateSettingData = {
+  body: SettingUpdate
+  path: {
+    /**
+     * Key
+     */
+    key: string
+  }
+  query?: never
+  url: '/api/v1/settings/{key}'
+}
+
+export type UpdateSettingErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateSettingError = UpdateSettingErrors[keyof UpdateSettingErrors]
+
+export type UpdateSettingResponses = {
+  /**
+   * Successful Response
+   */
+  200: Setting
+}
+
+export type UpdateSettingResponse =
+  UpdateSettingResponses[keyof UpdateSettingResponses]
 
 export type GetVendorsData = {
   body?: never
@@ -1822,6 +2096,111 @@ export type UpdateVendorResponses = {
 
 export type UpdateVendorResponse =
   UpdateVendorResponses[keyof UpdateVendorResponses]
+
+export type GetLatestManifestData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 bucket path to search for manifest files
+     */
+    s3_path: string
+  }
+  url: '/api/v1/manifest'
+}
+
+export type GetLatestManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetLatestManifestError =
+  GetLatestManifestErrors[keyof GetLatestManifestErrors]
+
+export type GetLatestManifestResponses = {
+  /**
+   * Response Get Latest Manifest
+   * Successful Response
+   */
+  200: string
+}
+
+export type GetLatestManifestResponse =
+  GetLatestManifestResponses[keyof GetLatestManifestResponses]
+
+export type UploadManifestData = {
+  body: BodyUploadManifest
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 path where the manifest file should be uploaded
+     */
+    s3_path: string
+  }
+  url: '/api/v1/manifest'
+}
+
+export type UploadManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UploadManifestError =
+  UploadManifestErrors[keyof UploadManifestErrors]
+
+export type UploadManifestResponses = {
+  /**
+   * Successful Response
+   */
+  201: ManifestUploadResponse
+}
+
+export type UploadManifestResponse =
+  UploadManifestResponses[keyof UploadManifestResponses]
+
+export type ValidateManifestData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 path to the manifest CSV file to validate
+     */
+    s3_path: string
+    /**
+     * Valid
+     * Mock validation result for testing (True=valid, False=invalid)
+     */
+    valid?: boolean
+  }
+  url: '/api/v1/manifest/validate'
+}
+
+export type ValidateManifestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ValidateManifestError =
+  ValidateManifestErrors[keyof ValidateManifestErrors]
+
+export type ValidateManifestResponses = {
+  /**
+   * Successful Response
+   */
+  200: ManifestValidationResponse
+}
+
+export type ValidateManifestResponse =
+  ValidateManifestResponses[keyof ValidateManifestResponses]
 
 export type GetWorkflowsData = {
   body?: never

@@ -1,10 +1,11 @@
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import React from "react";
 
 export interface Step {
   label: string;
   description?: string;
   content?: React.ReactNode;
+  status?: "completed" | "error";
 }
 
 interface StepperProps {
@@ -42,18 +43,26 @@ export const Stepper: React.FC<StepperProps> = ({
               >
                 <span
                   className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors duration-200
-                    ${idx === activeStep
+                    ${activeStep >= idx && step.status === 'error'
+                      ? 'bg-red-100 border-red-500 text-red-500'
+                      : activeStep >= idx && step.status === 'completed'
+                      ? 'bg-primary-2 border-primary-2 text-primary-2'
+                      : idx === activeStep
                       ? 'bg-primary border-primary text-foreground shadow-lg'
                       : idx < activeStep
                         ? 'bg-primary-2 border-primary-2 text-primary-2'
                         : 'bg-background border-muted-foreground text-muted-foreground'}
                   `}
                 >
-                  {idx === activeStep ? (
+                  {activeStep >= idx && step.status === 'error' ? (
+                    <X className="text-red-500" size={20} />
+                  ) : activeStep >= idx && step.status === 'completed' ? (
+                    <Check className="text-white" size={20} />
+                  ) : idx === activeStep ? (
                     <span className="w-3 h-3 rounded-full bg-background" />
                   ) : idx < activeStep 
                     ? (
-                      <Check className="text-white" />
+                      <Check className="text-white" size={20} />
                     ) : (
                       <span className = "font-bold">{idx + 1}</span>
                     )}
@@ -63,7 +72,11 @@ export const Stepper: React.FC<StepperProps> = ({
               {/* Step content */}
               <div className="flex-1">
                 <span className={`uppercase font-light text-primary
-                  ${idx === activeStep
+                  ${activeStep >= idx && step.status === 'error'
+                      ? 'text-red-500'
+                      : activeStep >= idx && step.status === 'completed'
+                      ? 'text-primary-2'
+                      : idx === activeStep
                       ? ''
                       : idx < activeStep
                         ? 'text-primary-2'

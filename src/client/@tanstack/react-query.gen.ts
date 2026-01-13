@@ -15,9 +15,9 @@ import {
   createProject,
   createWorkflow,
   deleteVendor,
-  demultiplexRun,
   downloadFile,
-  getMultiplexWorkflows,
+  getDemultiplexWorkflowConfig,
+  getLatestManifest,
   getProjectByProjectId,
   getProjects,
   getRun,
@@ -25,13 +25,14 @@ import {
   getRunSamplesheet,
   getRuns,
   getSamples,
-  getToolConfig,
+  getSetting,
+  getSettingsByTag,
   getVendor,
   getVendors,
   getWorkflowByWorkflowId,
   getWorkflows,
   healthCheck,
-  listAvailableTools,
+  listDemultiplexWorkflows,
   listFiles,
   postRunSamplesheet,
   reindexProjects,
@@ -41,9 +42,13 @@ import {
   search,
   searchProjects,
   searchRuns,
+  submitDemultiplexWorkflowJob,
   updateRun,
   updateSampleInProject,
-  updateVendor
+  updateSetting,
+  updateVendor,
+  uploadManifest,
+  validateManifest
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
 import type {DefaultError, InfiniteData, UseMutationOptions} from '@tanstack/react-query';
@@ -67,11 +72,9 @@ import type {
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
-  DemultiplexRunData,
-  DemultiplexRunError,
-  DemultiplexRunResponse,
   DownloadFileData,
-  GetMultiplexWorkflowsData,
+  GetDemultiplexWorkflowConfigData,
+  GetLatestManifestData,
   GetProjectByProjectIdData,
   GetProjectsData,
   GetProjectsError,
@@ -85,7 +88,8 @@ import type {
   GetSamplesData,
   GetSamplesError,
   GetSamplesResponse,
-  GetToolConfigData,
+  GetSettingData,
+  GetSettingsByTagData,
   GetVendorData,
   GetVendorsData,
   GetVendorsError,
@@ -95,7 +99,7 @@ import type {
   GetWorkflowsError,
   GetWorkflowsResponse,
   HealthCheckData,
-  ListAvailableToolsData,
+  ListDemultiplexWorkflowsData,
   ListFilesData,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
@@ -111,15 +115,27 @@ import type {
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
+  SubmitDemultiplexWorkflowJobData,
+  SubmitDemultiplexWorkflowJobError,
+  SubmitDemultiplexWorkflowJobResponse,
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
   UpdateSampleInProjectData,
   UpdateSampleInProjectError,
   UpdateSampleInProjectResponse,
+  UpdateSettingData,
+  UpdateSettingError,
+  UpdateSettingResponse,
   UpdateVendorData,
   UpdateVendorError,
   UpdateVendorResponse,
+  UploadManifestData,
+  UploadManifestError,
+  UploadManifestResponse,
+  ValidateManifestData,
+  ValidateManifestError,
+  ValidateManifestResponse,
 } from '../types.gen'
 import type { AxiosError } from 'axios'
 
@@ -964,20 +980,22 @@ export const reindexRunsMutation = (
   return mutationOptions
 }
 
-export const getMultiplexWorkflowsQueryKey = (
-  options?: Options<GetMultiplexWorkflowsData>,
-) => createQueryKey('getMultiplexWorkflows', options)
+export const listDemultiplexWorkflowsQueryKey = (
+  options?: Options<ListDemultiplexWorkflowsData>,
+) => createQueryKey('listDemultiplexWorkflows', options)
 
 /**
- * Get Multiplex Workflows
- * Placeholder endpoint for getting available demultiplex workflows.
+ * List Demultiplex Workflows
+ * List all available demultiplex workflows from S3.
+ *
+ * Returns a list of workflow IDs (config filenames without extensions).
  */
-export const getMultiplexWorkflowsOptions = (
-  options?: Options<GetMultiplexWorkflowsData>,
+export const listDemultiplexWorkflowsOptions = (
+  options?: Options<ListDemultiplexWorkflowsData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getMultiplexWorkflows({
+      const { data } = await listDemultiplexWorkflows({
         ...options,
         ...queryKey[0],
         signal,
@@ -985,21 +1003,31 @@ export const getMultiplexWorkflowsOptions = (
       })
       return data
     },
-    queryKey: getMultiplexWorkflowsQueryKey(options),
+    queryKey: listDemultiplexWorkflowsQueryKey(options),
   })
 }
 
-export const demultiplexRunQueryKey = (options: Options<DemultiplexRunData>) =>
-  createQueryKey('demultiplexRun', options)
+export const submitDemultiplexWorkflowJobQueryKey = (
+  options: Options<SubmitDemultiplexWorkflowJobData>,
+) => createQueryKey('submitDemultiplexWorkflowJob', options)
 
 /**
- * Demultiplex Run
- * Submit a demultiplex job for a specific run.
+ * Submit Demultiplex Workflow Job
+ * Submit a job for the specified demultiplex workflow.
+ * Args:
+ * session: Database session
+ * workflow_body: The demultiplex workflow execution request containing
+ * workflow_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing workflow configs
+ * Returns:
+ * A dictionary containing job submission details.
  */
-export const demultiplexRunOptions = (options: Options<DemultiplexRunData>) => {
+export const submitDemultiplexWorkflowJobOptions = (
+  options: Options<SubmitDemultiplexWorkflowJobData>,
+) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await demultiplexRun({
+      const { data } = await submitDemultiplexWorkflowJob({
         ...options,
         ...queryKey[0],
         signal,
@@ -1007,28 +1035,35 @@ export const demultiplexRunOptions = (options: Options<DemultiplexRunData>) => {
       })
       return data
     },
-    queryKey: demultiplexRunQueryKey(options),
+    queryKey: submitDemultiplexWorkflowJobQueryKey(options),
   })
 }
 
 /**
- * Demultiplex Run
- * Submit a demultiplex job for a specific run.
+ * Submit Demultiplex Workflow Job
+ * Submit a job for the specified demultiplex workflow.
+ * Args:
+ * session: Database session
+ * workflow_body: The demultiplex workflow execution request containing
+ * workflow_id, run_barcode, and inputs
+ * s3_client: S3 client for accessing workflow configs
+ * Returns:
+ * A dictionary containing job submission details.
  */
-export const demultiplexRunMutation = (
-  options?: Partial<Options<DemultiplexRunData>>,
+export const submitDemultiplexWorkflowJobMutation = (
+  options?: Partial<Options<SubmitDemultiplexWorkflowJobData>>,
 ): UseMutationOptions<
-  DemultiplexRunResponse,
-  AxiosError<DemultiplexRunError>,
-  Options<DemultiplexRunData>
+  SubmitDemultiplexWorkflowJobResponse,
+  AxiosError<SubmitDemultiplexWorkflowJobError>,
+  Options<SubmitDemultiplexWorkflowJobData>
 > => {
   const mutationOptions: UseMutationOptions<
-    DemultiplexRunResponse,
-    AxiosError<DemultiplexRunError>,
-    Options<DemultiplexRunData>
+    SubmitDemultiplexWorkflowJobResponse,
+    AxiosError<SubmitDemultiplexWorkflowJobError>,
+    Options<SubmitDemultiplexWorkflowJobData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await demultiplexRun({
+      const { data } = await submitDemultiplexWorkflowJob({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -1037,6 +1072,38 @@ export const demultiplexRunMutation = (
     },
   }
   return mutationOptions
+}
+
+export const getDemultiplexWorkflowConfigQueryKey = (
+  options: Options<GetDemultiplexWorkflowConfigData>,
+) => createQueryKey('getDemultiplexWorkflowConfig', options)
+
+/**
+ * Get Demultiplex Workflow Config
+ * Retrieve a specific demultiplex workflow configuration.
+ *
+ * Args:
+ * workflow_id: The workflow identifier (filename without extension)
+ * run_barcode: Optional run barcode to prepopulate s3_run_folder_path from run's run_folder_uri
+ *
+ * Returns:
+ * Complete workflow configuration with prepopulated defaults if run_barcode is provided
+ */
+export const getDemultiplexWorkflowConfigOptions = (
+  options: Options<GetDemultiplexWorkflowConfigData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDemultiplexWorkflowConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getDemultiplexWorkflowConfigQueryKey(options),
+  })
 }
 
 export const getRunQueryKey = (options: Options<GetRunData>) =>
@@ -1264,22 +1331,21 @@ export const searchOptions = (options: Options<SearchData>) => {
   })
 }
 
-export const listAvailableToolsQueryKey = (
-  options?: Options<ListAvailableToolsData>,
-) => createQueryKey('listAvailableTools', options)
+export const getSettingsByTagQueryKey = (
+  options: Options<GetSettingsByTagData>,
+) => createQueryKey('getSettingsByTag', options)
 
 /**
- * List Available Tools
- * List all available tool configurations from S3.
- *
- * Returns a list of tool IDs (config filenames without extensions).
+ * Get Settings By Tag
+ * Retrieve all settings that have a specific tag key-value pair.
+ * For example: tag_key="category" and tag_value="storage"
  */
-export const listAvailableToolsOptions = (
-  options?: Options<ListAvailableToolsData>,
+export const getSettingsByTagOptions = (
+  options: Options<GetSettingsByTagData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listAvailableTools({
+      const { data } = await getSettingsByTag({
         ...options,
         ...queryKey[0],
         signal,
@@ -1287,27 +1353,21 @@ export const listAvailableToolsOptions = (
       })
       return data
     },
-    queryKey: listAvailableToolsQueryKey(options),
+    queryKey: getSettingsByTagQueryKey(options),
   })
 }
 
-export const getToolConfigQueryKey = (options: Options<GetToolConfigData>) =>
-  createQueryKey('getToolConfig', options)
+export const getSettingQueryKey = (options: Options<GetSettingData>) =>
+  createQueryKey('getSetting', options)
 
 /**
- * Get Tool Config
- * Retrieve a specific tool configuration.
- *
- * Args:
- * tool_id: The tool identifier (filename without extension)
- *
- * Returns:
- * Complete tool configuration
+ * Get Setting
+ * Retrieve a specific setting by key.
  */
-export const getToolConfigOptions = (options: Options<GetToolConfigData>) => {
+export const getSettingOptions = (options: Options<GetSettingData>) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getToolConfig({
+      const { data } = await getSetting({
         ...options,
         ...queryKey[0],
         signal,
@@ -1315,8 +1375,37 @@ export const getToolConfigOptions = (options: Options<GetToolConfigData>) => {
       })
       return data
     },
-    queryKey: getToolConfigQueryKey(options),
+    queryKey: getSettingQueryKey(options),
   })
+}
+
+/**
+ * Update Setting
+ * Update a specific setting. Only the value, name, description, and tags can be updated.
+ * The key cannot be changed as it's the primary identifier.
+ */
+export const updateSettingMutation = (
+  options?: Partial<Options<UpdateSettingData>>,
+): UseMutationOptions<
+  UpdateSettingResponse,
+  AxiosError<UpdateSettingError>,
+  Options<UpdateSettingData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateSettingResponse,
+    AxiosError<UpdateSettingError>,
+    Options<UpdateSettingData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateSetting({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getVendorsQueryKey = (options?: Options<GetVendorsData>) =>
@@ -1511,6 +1600,186 @@ export const updateVendorMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await updateVendor({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getLatestManifestQueryKey = (
+  options: Options<GetLatestManifestData>,
+) => createQueryKey('getLatestManifest', options)
+
+/**
+ * Get Latest Manifest
+ * Retrieve the latest manifest file path from the specified S3 bucket.
+ *
+ * Searches recursively through the bucket/prefix for files that:
+ * - Contain "manifest" (case-insensitive)
+ * - End with ".csv"
+ *
+ * Returns the full S3 path of the most recent matching file.
+ *
+ * Args:
+ * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
+ *
+ * Returns:
+ * Full S3 path to the latest manifest file
+ */
+export const getLatestManifestOptions = (
+  options: Options<GetLatestManifestData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getLatestManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getLatestManifestQueryKey(options),
+  })
+}
+
+export const uploadManifestQueryKey = (options: Options<UploadManifestData>) =>
+  createQueryKey('uploadManifest', options)
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded
+ * (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifestOptions = (options: Options<UploadManifestData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadManifestQueryKey(options),
+  })
+}
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded
+ * (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifestMutation = (
+  options?: Partial<Options<UploadManifestData>>,
+): UseMutationOptions<
+  UploadManifestResponse,
+  AxiosError<UploadManifestError>,
+  Options<UploadManifestData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadManifestResponse,
+    AxiosError<UploadManifestError>,
+    Options<UploadManifestData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadManifest({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const validateManifestQueryKey = (
+  options: Options<ValidateManifestData>,
+) => createQueryKey('validateManifest', options)
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifestOptions = (
+  options: Options<ValidateManifestData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await validateManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: validateManifestQueryKey(options),
+  })
+}
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3.
+ *
+ * Checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * valid: Mock parameter to simulate valid or invalid responses for testing
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifestMutation = (
+  options?: Partial<Options<ValidateManifestData>>,
+): UseMutationOptions<
+  ValidateManifestResponse,
+  AxiosError<ValidateManifestError>,
+  Options<ValidateManifestData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ValidateManifestResponse,
+    AxiosError<ValidateManifestError>,
+    Options<ValidateManifestData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await validateManifest({
         ...options,
         ...localOptions,
         throwOnError: true,
