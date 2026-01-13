@@ -22,7 +22,6 @@ export const AdminSidebar = () => {
     { title: "Vendors", icon: Handshake, url: "/admin/vendors" },
     { title: "Project Settings", icon: Folder, url: "/admin/project-settings" },
     { title: "Illumina Run Settings", icon: Database, url: "/admin/run-settings" },
-    { title: "Cloud Configuration", icon: Cloud, url: "/admin/cloud-config" },
   ]
 
   return (

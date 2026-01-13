@@ -23,13 +23,11 @@ import { Route as ProjectsProjectidRouteImport } from './routes/projects.$projec
 import { Route as AdminVendorsRouteImport } from './routes/admin.vendors.route'
 import { Route as AdminRunSettingsRouteImport } from './routes/admin.run-settings.route'
 import { Route as AdminProjectSettingsRouteImport } from './routes/admin.project-settings.route'
-import { Route as AdminCloudConfigRouteImport } from './routes/admin.cloud-config.route'
 import { Route as RunsRunbarcodeIndexImport } from './routes/runs.$run_barcode.index'
 import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
 import { Route as AdminVendorsIndexImport } from './routes/admin.vendors.index'
 import { Route as AdminRunSettingsIndexImport } from './routes/admin.run-settings.index'
 import { Route as AdminProjectSettingsIndexImport } from './routes/admin.project-settings.index'
-import { Route as AdminCloudConfigIndexImport } from './routes/admin.cloud-config.index'
 import { Route as RunsRunbarcodeSamplesheetRouteImport } from './routes/runs.$run_barcode.samplesheet.route'
 import { Route as RunsRunbarcodeIndexqcRouteImport } from './routes/runs.$run_barcode.indexqc.route'
 import { Route as RunsRunbarcodeSamplesheetIndexImport } from './routes/runs.$run_barcode.samplesheet.index'
@@ -109,12 +107,6 @@ const AdminProjectSettingsRouteRoute = AdminProjectSettingsRouteImport.update({
   getParentRoute: () => AdminRouteRoute,
 } as any)
 
-const AdminCloudConfigRouteRoute = AdminCloudConfigRouteImport.update({
-  id: '/cloud-config',
-  path: '/cloud-config',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-
 const RunsRunbarcodeIndexRoute = RunsRunbarcodeIndexImport.update({
   id: '/',
   path: '/',
@@ -143,12 +135,6 @@ const AdminProjectSettingsIndexRoute = AdminProjectSettingsIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminProjectSettingsRouteRoute,
-} as any)
-
-const AdminCloudConfigIndexRoute = AdminCloudConfigIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminCloudConfigRouteRoute,
 } as any)
 
 const RunsRunbarcodeSamplesheetRouteRoute =
@@ -212,13 +198,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs'
       preLoaderRoute: typeof RunsRouteImport
       parentRoute: typeof rootRoute
-    }
-    '/admin/cloud-config': {
-      id: '/admin/cloud-config'
-      path: '/cloud-config'
-      fullPath: '/admin/cloud-config'
-      preLoaderRoute: typeof AdminCloudConfigRouteImport
-      parentRoute: typeof AdminRouteImport
     }
     '/admin/project-settings': {
       id: '/admin/project-settings'
@@ -290,13 +269,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunsRunbarcodeSamplesheetRouteImport
       parentRoute: typeof RunsRunbarcodeRouteImport
     }
-    '/admin/cloud-config/': {
-      id: '/admin/cloud-config/'
-      path: '/'
-      fullPath: '/admin/cloud-config/'
-      preLoaderRoute: typeof AdminCloudConfigIndexImport
-      parentRoute: typeof AdminCloudConfigRouteImport
-    }
     '/admin/project-settings/': {
       id: '/admin/project-settings/'
       path: '/'
@@ -351,19 +323,6 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-interface AdminCloudConfigRouteRouteChildren {
-  AdminCloudConfigIndexRoute: typeof AdminCloudConfigIndexRoute
-}
-
-const AdminCloudConfigRouteRouteChildren: AdminCloudConfigRouteRouteChildren = {
-  AdminCloudConfigIndexRoute: AdminCloudConfigIndexRoute,
-}
-
-const AdminCloudConfigRouteRouteWithChildren =
-  AdminCloudConfigRouteRoute._addFileChildren(
-    AdminCloudConfigRouteRouteChildren,
-  )
-
 interface AdminProjectSettingsRouteRouteChildren {
   AdminProjectSettingsIndexRoute: typeof AdminProjectSettingsIndexRoute
 }
@@ -403,7 +362,6 @@ const AdminVendorsRouteRouteWithChildren =
   AdminVendorsRouteRoute._addFileChildren(AdminVendorsRouteRouteChildren)
 
 interface AdminRouteRouteChildren {
-  AdminCloudConfigRouteRoute: typeof AdminCloudConfigRouteRouteWithChildren
   AdminProjectSettingsRouteRoute: typeof AdminProjectSettingsRouteRouteWithChildren
   AdminRunSettingsRouteRoute: typeof AdminRunSettingsRouteRouteWithChildren
   AdminVendorsRouteRoute: typeof AdminVendorsRouteRouteWithChildren
@@ -411,7 +369,6 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
-  AdminCloudConfigRouteRoute: AdminCloudConfigRouteRouteWithChildren,
   AdminProjectSettingsRouteRoute: AdminProjectSettingsRouteRouteWithChildren,
   AdminRunSettingsRouteRoute: AdminRunSettingsRouteRouteWithChildren,
   AdminVendorsRouteRoute: AdminVendorsRouteRouteWithChildren,
@@ -513,7 +470,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/projects': typeof ProjectsRouteRouteWithChildren
   '/runs': typeof RunsRouteRouteWithChildren
-  '/admin/cloud-config': typeof AdminCloudConfigRouteRouteWithChildren
   '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
   '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
   '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
@@ -524,7 +480,6 @@ export interface FileRoutesByFullPath {
   '/runs/': typeof RunsIndexRoute
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
-  '/admin/cloud-config/': typeof AdminCloudConfigIndexRoute
   '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
   '/admin/vendors/': typeof AdminVendorsIndexRoute
@@ -539,7 +494,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/runs': typeof RunsIndexRoute
-  '/admin/cloud-config': typeof AdminCloudConfigIndexRoute
   '/admin/project-settings': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings': typeof AdminRunSettingsIndexRoute
   '/admin/vendors': typeof AdminVendorsIndexRoute
@@ -555,7 +509,6 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteRouteWithChildren
   '/projects': typeof ProjectsRouteRouteWithChildren
   '/runs': typeof RunsRouteRouteWithChildren
-  '/admin/cloud-config': typeof AdminCloudConfigRouteRouteWithChildren
   '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
   '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
   '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
@@ -566,7 +519,6 @@ export interface FileRoutesById {
   '/runs/': typeof RunsIndexRoute
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
-  '/admin/cloud-config/': typeof AdminCloudConfigIndexRoute
   '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
   '/admin/vendors/': typeof AdminVendorsIndexRoute
@@ -583,7 +535,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/projects'
     | '/runs'
-    | '/admin/cloud-config'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
@@ -594,7 +545,6 @@ export interface FileRouteTypes {
     | '/runs/'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
-    | '/admin/cloud-config/'
     | '/admin/project-settings/'
     | '/admin/run-settings/'
     | '/admin/vendors/'
@@ -608,7 +558,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/projects'
     | '/runs'
-    | '/admin/cloud-config'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
@@ -622,7 +571,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/projects'
     | '/runs'
-    | '/admin/cloud-config'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
@@ -633,7 +581,6 @@ export interface FileRouteTypes {
     | '/runs/'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
-    | '/admin/cloud-config/'
     | '/admin/project-settings/'
     | '/admin/run-settings/'
     | '/admin/vendors/'
@@ -680,7 +627,6 @@ export const routeTree = rootRoute
     "/admin": {
       "filePath": "admin.route.tsx",
       "children": [
-        "/admin/cloud-config",
         "/admin/project-settings",
         "/admin/run-settings",
         "/admin/vendors",
@@ -699,13 +645,6 @@ export const routeTree = rootRoute
       "children": [
         "/runs/$run_barcode",
         "/runs/"
-      ]
-    },
-    "/admin/cloud-config": {
-      "filePath": "admin.cloud-config.route.tsx",
-      "parent": "/admin",
-      "children": [
-        "/admin/cloud-config/"
       ]
     },
     "/admin/project-settings": {
@@ -770,10 +709,6 @@ export const routeTree = rootRoute
       "children": [
         "/runs/$run_barcode/samplesheet/"
       ]
-    },
-    "/admin/cloud-config/": {
-      "filePath": "admin.cloud-config.index.tsx",
-      "parent": "/admin/cloud-config"
     },
     "/admin/project-settings/": {
       "filePath": "admin.project-settings.index.tsx",
