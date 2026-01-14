@@ -118,7 +118,6 @@ function RouteComponent() {
 
   // Status options for filter
   const statusOptions = [
-    { label: 'Queued', value: 'Queued' },
     { label: 'Submitted', value: 'Submitted' },
     { label: 'Pending', value: 'Pending' },
     { label: 'Runnable', value: 'Runnable' },
