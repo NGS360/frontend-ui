@@ -179,8 +179,8 @@ function RouteComponent() {
       header: ({ column }) => <SortableHeader column={column} name="Submitted" />,
       cell: ({ cell }) => {
         const submitted = cell.getValue() as string
-        const date = new Date(submitted)
-        return <span className='text-sm text-muted-foreground'>{date.toLocaleString()}</span>
+        const date = new Date(submitted.replace(' ', 'T') + 'Z')
+        return <span className='text-sm text-muted-foreground'>{date.toLocaleString(undefined, { timeZoneName: 'short' })}</span>
       }
     },
     {
