@@ -1,4 +1,5 @@
 import { X } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -23,10 +24,17 @@ export function TextFilter({
   onChange,
   placeholder = "Enter text...",
 }: TextFilterProps) {
+  const [open, setOpen] = useState(false)
   const hasValue = !!value
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setOpen(false)
+    }
+  }
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" size="default" className="gap-2">
           <Icon className="h-4 w-4" />
@@ -49,6 +57,7 @@ export function TextFilter({
               placeholder={placeholder}
               value={value || ""}
               onChange={(e) => onChange(e.target.value || null)}
+              onKeyDown={handleKeyDown}
               className="h-9"
             />
           </div>
