@@ -17,6 +17,8 @@ import {
   deleteVendor,
   downloadFile,
   getDemultiplexWorkflowConfig,
+  getJob,
+  getJobs,
   getLatestManifest,
   getProjectByProjectId,
   getProjects,
@@ -43,6 +45,8 @@ import {
   searchProjects,
   searchRuns,
   submitDemultiplexWorkflowJob,
+  submitJob,
+  updateJob,
   updateRun,
   updateSampleInProject,
   updateSetting,
@@ -74,6 +78,8 @@ import type {
   DeleteVendorResponse,
   DownloadFileData,
   GetDemultiplexWorkflowConfigData,
+  GetJobData,
+  GetJobsData,
   GetLatestManifestData,
   GetProjectByProjectIdData,
   GetProjectsData,
@@ -118,6 +124,12 @@ import type {
   SubmitDemultiplexWorkflowJobData,
   SubmitDemultiplexWorkflowJobError,
   SubmitDemultiplexWorkflowJobResponse,
+  SubmitJobData,
+  SubmitJobError,
+  SubmitJobResponse,
+  UpdateJobData,
+  UpdateJobError,
+  UpdateJobResponse,
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
@@ -269,6 +281,177 @@ export const downloadFileOptions = (options: Options<DownloadFileData>) => {
     },
     queryKey: downloadFileQueryKey(options),
   })
+}
+
+export const getJobsQueryKey = (options?: Options<GetJobsData>) =>
+  createQueryKey('getJobs', options)
+
+/**
+ * Get Jobs
+ * Retrieve a list of batch jobs with optional filtering and sorting.
+ *
+ * Args:
+ * session: Database session
+ * skip: Number of records to skip
+ * limit: Maximum number of records to return
+ * user: Optional user filter
+ * status_filter: Optional status filter
+ * sort_by: Field to sort by (defaults to 'submitted_on')
+ * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
+ *
+ * Returns:
+ * List of jobs and total count
+ */
+export const getJobsOptions = (options?: Options<GetJobsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getJobs({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getJobsQueryKey(options),
+  })
+}
+
+export const submitJobQueryKey = (options: Options<SubmitJobData>) =>
+  createQueryKey('submitJob', options)
+
+/**
+ * Submit Job
+ * Submit a new batch job to AWS Batch and create a database record.
+ *
+ * This endpoint submits a job directly to AWS Batch and creates a tracking
+ * record in the database. The job will be queued in AWS Batch and its status
+ * can be monitored using the GET endpoints.
+ *
+ * Args:
+ * session: Database session
+ * job_in: Job submission data including AWS Batch parameters
+ *
+ * Returns:
+ * Created job information with AWS job ID
+ */
+export const submitJobOptions = (options: Options<SubmitJobData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await submitJob({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: submitJobQueryKey(options),
+  })
+}
+
+/**
+ * Submit Job
+ * Submit a new batch job to AWS Batch and create a database record.
+ *
+ * This endpoint submits a job directly to AWS Batch and creates a tracking
+ * record in the database. The job will be queued in AWS Batch and its status
+ * can be monitored using the GET endpoints.
+ *
+ * Args:
+ * session: Database session
+ * job_in: Job submission data including AWS Batch parameters
+ *
+ * Returns:
+ * Created job information with AWS job ID
+ */
+export const submitJobMutation = (
+  options?: Partial<Options<SubmitJobData>>,
+): UseMutationOptions<
+  SubmitJobResponse,
+  AxiosError<SubmitJobError>,
+  Options<SubmitJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SubmitJobResponse,
+    AxiosError<SubmitJobError>,
+    Options<SubmitJobData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await submitJob({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getJobQueryKey = (options: Options<GetJobData>) =>
+  createQueryKey('getJob', options)
+
+/**
+ * Get Job
+ * Retrieve information about a specific batch job.
+ *
+ * Args:
+ * session: Database session
+ * job_id: Job UUID
+ *
+ * Returns:
+ * Job information
+ */
+export const getJobOptions = (options: Options<GetJobData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getJob({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getJobQueryKey(options),
+  })
+}
+
+/**
+ * Update Job
+ * Update a batch job.
+ *
+ * Args:
+ * session: Database session
+ * job_id: Job UUID
+ * job_update: Job update data
+ *
+ * Returns:
+ * Updated job information
+ */
+export const updateJobMutation = (
+  options?: Partial<Options<UpdateJobData>>,
+): UseMutationOptions<
+  UpdateJobResponse,
+  AxiosError<UpdateJobError>,
+  Options<UpdateJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateJobResponse,
+    AxiosError<UpdateJobError>,
+    Options<UpdateJobData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateJob({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getProjectsQueryKey = (options?: Options<GetProjectsData>) =>
@@ -1020,7 +1203,7 @@ export const submitDemultiplexWorkflowJobQueryKey = (
  * workflow_id, run_barcode, and inputs
  * s3_client: S3 client for accessing workflow configs
  * Returns:
- * A dictionary containing job submission details.
+ * BatchJobPublic: The created batch job with AWS job information.
  */
 export const submitDemultiplexWorkflowJobOptions = (
   options: Options<SubmitDemultiplexWorkflowJobData>,
@@ -1048,7 +1231,7 @@ export const submitDemultiplexWorkflowJobOptions = (
  * workflow_id, run_barcode, and inputs
  * s3_client: S3 client for accessing workflow configs
  * Returns:
- * A dictionary containing job submission details.
+ * BatchJobPublic: The created batch job with AWS job information.
  */
 export const submitDemultiplexWorkflowJobMutation = (
   options?: Partial<Options<SubmitDemultiplexWorkflowJobData>>,

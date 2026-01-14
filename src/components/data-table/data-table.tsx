@@ -40,7 +40,8 @@ interface DataTableProps<TData> {
   isLoading?: boolean,
   loadingComponent?: JSX.Element,
   showSearch?: boolean,
-  enableColumnFilters?: boolean
+  enableColumnFilters?: boolean,
+  filterComponents?: React.ReactNode
 }
 
 export function DataTable<TData>({
@@ -53,7 +54,8 @@ export function DataTable<TData>({
   isLoading = false,
   loadingComponent = <ContainedSpinner variant='ellipsis' />,
   showSearch = true,
-  enableColumnFilters = false
+  enableColumnFilters = false,
+  filterComponents
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -180,7 +182,10 @@ export function DataTable<TData>({
               className="w-full md:w-full lg:w-1/3"
             />
           )}
-          <DataTableColumnToggle table={table} />
+          <div className="flex flex-wrap justify-end items-center gap-2">
+            {filterComponents}
+            <DataTableColumnToggle table={table} />
+          </div>
         </div>
         <div className="flex">
           <ScrollArea className="flex-1 w-full rounded-md border">
@@ -212,7 +217,10 @@ interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
   sorting: SortingState,
   onSortingChange: OnChangeFn<SortingState>,
 
-  // Column visibility
+  // Column visibility,
+
+  // Custom filter components
+  filterComponents?: React.ReactNode
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
 }
 
@@ -236,6 +244,9 @@ export function ServerDataTable<TData, TValue>({
 
   // Sorting
   sorting,
+
+  // Custom filter components
+  filterComponents,
   onSortingChange: setSorting,
 
   // Column visibility
@@ -288,6 +299,7 @@ export function ServerDataTable<TData, TValue>({
   return (
     <DataTable
       table={table}
+      filterComponents={filterComponents}
       totalItems={totalItems}
       notFoundComponent={notFoundComponent}
       isLoading={isLoading}

@@ -1,11 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import type { SubmitHandler } from "react-hook-form";
-import type { DemuxWorkflowConfig } from "@/client";
+import type { BatchJobPublic, DemuxWorkflowConfig, HttpValidationError } from "@/client";
+import type { AxiosError } from "axios";
+import { submitDemultiplexWorkflowJobMutation } from "@/client/@tanstack/react-query.gen";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -45,7 +47,30 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   isOpen,
   onOpenChange,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Mutation
+  const { mutate, isPending } = useMutation({
+    ...submitDemultiplexWorkflowJobMutation(),
+    onError: (error: AxiosError<HttpValidationError>) => {
+      console.error("Error submitting workflow execution:", error);
+      toast.error("Failed to execute workflow");
+    },
+    onSuccess: (data: BatchJobPublic) => {
+      // Show success toast with job information
+      toast.success("Workflow execution submitted successfully", {
+        description: (
+          <pre className="mt-2 w-full rounded-md p-4 max-h-[200px] overflow-auto whitespace-pre-wrap break-words">
+            <code className="text-foreground text-xs">
+              {JSON.stringify(data, null, 2)}
+            </code>
+          </pre>
+        ),
+      });
+      
+      // Close dialog and reset form
+      handleOnOpenChange(false);
+      reset(getDefaultValues());
+    }
+  });
 
   // Dynamically build the Zod schema based on workflow config
   const buildSchema = () => {
@@ -152,39 +177,14 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   };
 
   // Form submission
-  const onSubmit: SubmitHandler<FormFields> = async (data) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: Replace this with actual API call when endpoint is available
-      const payload = {
+  const onSubmit: SubmitHandler<FormFields> = (data) => {
+    mutate({
+      body: {
         workflow_id: toolConfig.workflow_id,
         run_barcode: runBarcode,
         inputs: data,
-      };
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Show success toast with submitted data
-      toast.success("Workflow execution submitted successfully", {
-        description: (
-          <pre className="mt-2 w-full rounded-md p-4 max-h-[200px] overflow-auto whitespace-pre-wrap break-words">
-            <code className="text-foreground text-xs">
-              {JSON.stringify(payload, null, 2)}
-            </code>
-          </pre>
-        ),
-      });
-
-      // Close dialog and reset form
-      handleOnOpenChange(false);
-      reset(getDefaultValues());
-    } catch (error) {
-      console.error("Error submitting workflow execution:", error);
-      toast.error("Failed to execute workflow");
-    } finally {
-      setIsSubmitting(false);
-    }
+      }
+    });
   };
 
   return (
@@ -297,8 +297,8 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                 Cancel
               </Button>
             </DialogClose>
-            <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? (
+            <Button disabled={isPending} type="submit">
+              {isPending ? (
                 <>
                   <LoaderCircle className="animate-spin h-4 w-4 mr-2" />
                   Executing...

@@ -16,6 +16,7 @@ export type Attribute = {
 
 /**
  * AwsBatchConfig
+ * Base schema for AWS Batch job configuration
  */
 export type AwsBatchConfig = {
   /**
@@ -42,6 +43,7 @@ export type AwsBatchConfig = {
 
 /**
  * AwsBatchEnvironment
+ * Schema for AWS Batch environment variable
  */
 export type AwsBatchEnvironment = {
   /**
@@ -52,6 +54,120 @@ export type AwsBatchEnvironment = {
    * Value
    */
   value: string
+}
+
+/**
+ * BatchJobPublic
+ * Schema for returning a batch job
+ */
+export type BatchJobPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Command
+   */
+  command: string
+  /**
+   * User
+   */
+  user: string
+  /**
+   * Submitted On
+   */
+  submitted_on: string
+  /**
+   * Aws Job Id
+   */
+  aws_job_id: string | null
+  /**
+   * Log Stream Name
+   */
+  log_stream_name: string | null
+  status: JobStatus
+  /**
+   * Viewed
+   */
+  viewed: boolean
+}
+
+/**
+ * BatchJobSubmit
+ * Schema for submitting a new batch job to AWS Batch (extends AwsBatchConfig)
+ */
+export type BatchJobSubmit = {
+  /**
+   * Job Name
+   */
+  job_name: string
+  /**
+   * Job Definition
+   */
+  job_definition: string
+  /**
+   * Job Queue
+   */
+  job_queue: string
+  /**
+   * Command
+   */
+  command: string
+  /**
+   * Environment
+   */
+  environment?: Array<AwsBatchEnvironment> | null
+  /**
+   * User
+   */
+  user: string
+}
+
+/**
+ * BatchJobUpdate
+ * Schema for updating a batch job
+ */
+export type BatchJobUpdate = {
+  /**
+   * Name
+   */
+  name?: string | null
+  /**
+   * Command
+   */
+  command?: string | null
+  /**
+   * Aws Job Id
+   */
+  aws_job_id?: string | null
+  /**
+   * Log Stream Name
+   */
+  log_stream_name?: string | null
+  status?: JobStatus | null
+  /**
+   * Viewed
+   */
+  viewed?: boolean | null
+}
+
+/**
+ * BatchJobsPublic
+ * Schema for returning multiple batch jobs
+ */
+export type BatchJobsPublic = {
+  /**
+   * Data
+   */
+  data: Array<BatchJobPublic>
+  /**
+   * Count
+   */
+  count: number
 }
 
 /**
@@ -372,6 +488,19 @@ export type IndexMetric = {
  * InputType
  */
 export type InputType = 'Enum' | 'String' | 'Integer' | 'Boolean'
+
+/**
+ * JobStatus
+ * Enumeration of valid batch job statuses
+ */
+export type JobStatus =
+  | 'Submitted'
+  | 'Pending'
+  | 'Runnable'
+  | 'Starting'
+  | 'Running'
+  | 'Succeeded'
+  | 'Failed'
 
 /**
  * ManifestUploadResponse
@@ -1116,6 +1245,145 @@ export type DownloadFileResponses = {
   200: unknown
 }
 
+export type GetJobsData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Skip
+     */
+    skip?: number
+    /**
+     * Limit
+     */
+    limit?: number
+    /**
+     * User
+     * Filter by user
+     */
+    user?: string | null
+    /**
+     * Status Filter
+     * Filter by status
+     */
+    status_filter?: JobStatus | null
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: string
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: 'asc' | 'desc'
+  }
+  url: '/api/v1/jobs'
+}
+
+export type GetJobsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetJobsError = GetJobsErrors[keyof GetJobsErrors]
+
+export type GetJobsResponses = {
+  /**
+   * Successful Response
+   */
+  200: BatchJobsPublic
+}
+
+export type GetJobsResponse = GetJobsResponses[keyof GetJobsResponses]
+
+export type SubmitJobData = {
+  body: BatchJobSubmit
+  path?: never
+  query?: never
+  url: '/api/v1/jobs'
+}
+
+export type SubmitJobErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SubmitJobError = SubmitJobErrors[keyof SubmitJobErrors]
+
+export type SubmitJobResponses = {
+  /**
+   * Successful Response
+   */
+  201: BatchJobPublic
+}
+
+export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses]
+
+export type GetJobData = {
+  body?: never
+  path: {
+    /**
+     * Job Id
+     */
+    job_id: string
+  }
+  query?: never
+  url: '/api/v1/jobs/{job_id}'
+}
+
+export type GetJobErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetJobError = GetJobErrors[keyof GetJobErrors]
+
+export type GetJobResponses = {
+  /**
+   * Successful Response
+   */
+  200: BatchJobPublic
+}
+
+export type GetJobResponse = GetJobResponses[keyof GetJobResponses]
+
+export type UpdateJobData = {
+  body: BatchJobUpdate
+  path: {
+    /**
+     * Job Id
+     */
+    job_id: string
+  }
+  query?: never
+  url: '/api/v1/jobs/{job_id}'
+}
+
+export type UpdateJobErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateJobError = UpdateJobErrors[keyof UpdateJobErrors]
+
+export type UpdateJobResponses = {
+  /**
+   * Successful Response
+   */
+  200: BatchJobPublic
+}
+
+export type UpdateJobResponse = UpdateJobResponses[keyof UpdateJobResponses]
+
 export type GetProjectsData = {
   body?: never
   path?: never
@@ -1580,12 +1848,9 @@ export type SubmitDemultiplexWorkflowJobError =
 
 export type SubmitDemultiplexWorkflowJobResponses = {
   /**
-   * Response Submit Demultiplex Workflow Job
    * Successful Response
    */
-  200: {
-    [key: string]: unknown
-  }
+  200: BatchJobPublic
 }
 
 export type SubmitDemultiplexWorkflowJobResponse =
