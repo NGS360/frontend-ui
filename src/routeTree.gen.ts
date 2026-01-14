@@ -23,11 +23,13 @@ import { Route as ProjectsProjectidRouteImport } from './routes/projects.$projec
 import { Route as AdminVendorsRouteImport } from './routes/admin.vendors.route'
 import { Route as AdminRunSettingsRouteImport } from './routes/admin.run-settings.route'
 import { Route as AdminProjectSettingsRouteImport } from './routes/admin.project-settings.route'
+import { Route as AdminJobsRouteImport } from './routes/admin.jobs.route'
 import { Route as RunsRunbarcodeIndexImport } from './routes/runs.$run_barcode.index'
 import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
 import { Route as AdminVendorsIndexImport } from './routes/admin.vendors.index'
 import { Route as AdminRunSettingsIndexImport } from './routes/admin.run-settings.index'
 import { Route as AdminProjectSettingsIndexImport } from './routes/admin.project-settings.index'
+import { Route as AdminJobsIndexImport } from './routes/admin.jobs.index'
 import { Route as RunsRunbarcodeSamplesheetRouteImport } from './routes/runs.$run_barcode.samplesheet.route'
 import { Route as RunsRunbarcodeIndexqcRouteImport } from './routes/runs.$run_barcode.indexqc.route'
 import { Route as RunsRunbarcodeSamplesheetIndexImport } from './routes/runs.$run_barcode.samplesheet.index'
@@ -107,6 +109,12 @@ const AdminProjectSettingsRouteRoute = AdminProjectSettingsRouteImport.update({
   getParentRoute: () => AdminRouteRoute,
 } as any)
 
+const AdminJobsRouteRoute = AdminJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+
 const RunsRunbarcodeIndexRoute = RunsRunbarcodeIndexImport.update({
   id: '/',
   path: '/',
@@ -135,6 +143,12 @@ const AdminProjectSettingsIndexRoute = AdminProjectSettingsIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminProjectSettingsRouteRoute,
+} as any)
+
+const AdminJobsIndexRoute = AdminJobsIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminJobsRouteRoute,
 } as any)
 
 const RunsRunbarcodeSamplesheetRouteRoute =
@@ -198,6 +212,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs'
       preLoaderRoute: typeof RunsRouteImport
       parentRoute: typeof rootRoute
+    }
+    '/admin/jobs': {
+      id: '/admin/jobs'
+      path: '/jobs'
+      fullPath: '/admin/jobs'
+      preLoaderRoute: typeof AdminJobsRouteImport
+      parentRoute: typeof AdminRouteImport
     }
     '/admin/project-settings': {
       id: '/admin/project-settings'
@@ -269,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunsRunbarcodeSamplesheetRouteImport
       parentRoute: typeof RunsRunbarcodeRouteImport
     }
+    '/admin/jobs/': {
+      id: '/admin/jobs/'
+      path: '/'
+      fullPath: '/admin/jobs/'
+      preLoaderRoute: typeof AdminJobsIndexImport
+      parentRoute: typeof AdminJobsRouteImport
+    }
     '/admin/project-settings/': {
       id: '/admin/project-settings/'
       path: '/'
@@ -323,6 +351,18 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
+interface AdminJobsRouteRouteChildren {
+  AdminJobsIndexRoute: typeof AdminJobsIndexRoute
+}
+
+const AdminJobsRouteRouteChildren: AdminJobsRouteRouteChildren = {
+  AdminJobsIndexRoute: AdminJobsIndexRoute,
+}
+
+const AdminJobsRouteRouteWithChildren = AdminJobsRouteRoute._addFileChildren(
+  AdminJobsRouteRouteChildren,
+)
+
 interface AdminProjectSettingsRouteRouteChildren {
   AdminProjectSettingsIndexRoute: typeof AdminProjectSettingsIndexRoute
 }
@@ -362,6 +402,7 @@ const AdminVendorsRouteRouteWithChildren =
   AdminVendorsRouteRoute._addFileChildren(AdminVendorsRouteRouteChildren)
 
 interface AdminRouteRouteChildren {
+  AdminJobsRouteRoute: typeof AdminJobsRouteRouteWithChildren
   AdminProjectSettingsRouteRoute: typeof AdminProjectSettingsRouteRouteWithChildren
   AdminRunSettingsRouteRoute: typeof AdminRunSettingsRouteRouteWithChildren
   AdminVendorsRouteRoute: typeof AdminVendorsRouteRouteWithChildren
@@ -369,6 +410,7 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminJobsRouteRoute: AdminJobsRouteRouteWithChildren,
   AdminProjectSettingsRouteRoute: AdminProjectSettingsRouteRouteWithChildren,
   AdminRunSettingsRouteRoute: AdminRunSettingsRouteRouteWithChildren,
   AdminVendorsRouteRoute: AdminVendorsRouteRouteWithChildren,
@@ -470,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/projects': typeof ProjectsRouteRouteWithChildren
   '/runs': typeof RunsRouteRouteWithChildren
+  '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
   '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
   '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
   '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
@@ -480,6 +523,7 @@ export interface FileRoutesByFullPath {
   '/runs/': typeof RunsIndexRoute
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/admin/jobs/': typeof AdminJobsIndexRoute
   '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
   '/admin/vendors/': typeof AdminVendorsIndexRoute
@@ -494,6 +538,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/runs': typeof RunsIndexRoute
+  '/admin/jobs': typeof AdminJobsIndexRoute
   '/admin/project-settings': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings': typeof AdminRunSettingsIndexRoute
   '/admin/vendors': typeof AdminVendorsIndexRoute
@@ -509,6 +554,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteRouteWithChildren
   '/projects': typeof ProjectsRouteRouteWithChildren
   '/runs': typeof RunsRouteRouteWithChildren
+  '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
   '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
   '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
   '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
@@ -519,6 +565,7 @@ export interface FileRoutesById {
   '/runs/': typeof RunsIndexRoute
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/admin/jobs/': typeof AdminJobsIndexRoute
   '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
   '/admin/vendors/': typeof AdminVendorsIndexRoute
@@ -535,6 +582,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/projects'
     | '/runs'
+    | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
@@ -545,6 +593,7 @@ export interface FileRouteTypes {
     | '/runs/'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
+    | '/admin/jobs/'
     | '/admin/project-settings/'
     | '/admin/run-settings/'
     | '/admin/vendors/'
@@ -558,6 +607,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/projects'
     | '/runs'
+    | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
@@ -571,6 +621,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/projects'
     | '/runs'
+    | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
@@ -581,6 +632,7 @@ export interface FileRouteTypes {
     | '/runs/'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
+    | '/admin/jobs/'
     | '/admin/project-settings/'
     | '/admin/run-settings/'
     | '/admin/vendors/'
@@ -627,6 +679,7 @@ export const routeTree = rootRoute
     "/admin": {
       "filePath": "admin.route.tsx",
       "children": [
+        "/admin/jobs",
         "/admin/project-settings",
         "/admin/run-settings",
         "/admin/vendors",
@@ -645,6 +698,13 @@ export const routeTree = rootRoute
       "children": [
         "/runs/$run_barcode",
         "/runs/"
+      ]
+    },
+    "/admin/jobs": {
+      "filePath": "admin.jobs.route.tsx",
+      "parent": "/admin",
+      "children": [
+        "/admin/jobs/"
       ]
     },
     "/admin/project-settings": {
@@ -709,6 +769,10 @@ export const routeTree = rootRoute
       "children": [
         "/runs/$run_barcode/samplesheet/"
       ]
+    },
+    "/admin/jobs/": {
+      "filePath": "admin.jobs.index.tsx",
+      "parent": "/admin/jobs"
     },
     "/admin/project-settings/": {
       "filePath": "admin.project-settings.index.tsx",
