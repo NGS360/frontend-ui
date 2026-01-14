@@ -1268,6 +1268,16 @@ export type GetJobsData = {
      * Filter by status
      */
     status_filter?: JobStatus | null
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: string
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: 'asc' | 'desc'
   }
   url: '/api/v1/jobs'
 }

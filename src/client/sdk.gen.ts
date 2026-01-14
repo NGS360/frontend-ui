@@ -238,7 +238,7 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
 
 /**
  * Get Jobs
- * Retrieve a list of batch jobs with optional filtering.
+ * Retrieve a list of batch jobs with optional filtering and sorting.
  *
  * Args:
  * session: Database session
@@ -246,6 +246,8 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
  * limit: Maximum number of records to return
  * user: Optional user filter
  * status_filter: Optional status filter
+ * sort_by: Field to sort by (defaults to 'submitted_on')
+ * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
  *
  * Returns:
  * List of jobs and total count
