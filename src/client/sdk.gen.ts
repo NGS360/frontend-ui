@@ -33,6 +33,12 @@ import type {
   GetDemultiplexWorkflowConfigData,
   GetDemultiplexWorkflowConfigErrors,
   GetDemultiplexWorkflowConfigResponses,
+  GetJobData,
+  GetJobErrors,
+  GetJobResponses,
+  GetJobsData,
+  GetJobsErrors,
+  GetJobsResponses,
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
@@ -105,6 +111,12 @@ import type {
   SubmitDemultiplexWorkflowJobData,
   SubmitDemultiplexWorkflowJobErrors,
   SubmitDemultiplexWorkflowJobResponses,
+  SubmitJobData,
+  SubmitJobErrors,
+  SubmitJobResponses,
+  UpdateJobData,
+  UpdateJobErrors,
+  UpdateJobResponses,
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
@@ -221,6 +233,122 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     url: '/api/v1/files/download',
     ...options,
+  })
+}
+
+/**
+ * Get Jobs
+ * Retrieve a list of batch jobs with optional filtering.
+ *
+ * Args:
+ * session: Database session
+ * skip: Number of records to skip
+ * limit: Maximum number of records to return
+ * user: Optional user filter
+ * status_filter: Optional status filter
+ *
+ * Returns:
+ * List of jobs and total count
+ */
+export const getJobs = <ThrowOnError extends boolean = false>(
+  options?: Options<GetJobsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetJobsResponses,
+    GetJobsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/jobs',
+    ...options,
+  })
+}
+
+/**
+ * Submit Job
+ * Submit a new batch job to AWS Batch and create a database record.
+ *
+ * This endpoint submits a job directly to AWS Batch and creates a tracking
+ * record in the database. The job will be queued in AWS Batch and its status
+ * can be monitored using the GET endpoints.
+ *
+ * Args:
+ * session: Database session
+ * job_in: Job submission data including AWS Batch parameters
+ *
+ * Returns:
+ * Created job information with AWS job ID
+ */
+export const submitJob = <ThrowOnError extends boolean = false>(
+  options: Options<SubmitJobData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    SubmitJobResponses,
+    SubmitJobErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/jobs',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Job
+ * Retrieve information about a specific batch job.
+ *
+ * Args:
+ * session: Database session
+ * job_id: Job UUID
+ *
+ * Returns:
+ * Job information
+ */
+export const getJob = <ThrowOnError extends boolean = false>(
+  options: Options<GetJobData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetJobResponses,
+    GetJobErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/jobs/{job_id}',
+    ...options,
+  })
+}
+
+/**
+ * Update Job
+ * Update a batch job.
+ *
+ * Args:
+ * session: Database session
+ * job_id: Job UUID
+ * job_update: Job update data
+ *
+ * Returns:
+ * Updated job information
+ */
+export const updateJob = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateJobData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    UpdateJobResponses,
+    UpdateJobErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/jobs/{job_id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }
 
@@ -486,7 +614,7 @@ export const listDemultiplexWorkflows = <ThrowOnError extends boolean = false>(
  * workflow_id, run_barcode, and inputs
  * s3_client: S3 client for accessing workflow configs
  * Returns:
- * A dictionary containing job submission details.
+ * BatchJobPublic: The created batch job with AWS job information.
  */
 export const submitDemultiplexWorkflowJob = <
   ThrowOnError extends boolean = false,

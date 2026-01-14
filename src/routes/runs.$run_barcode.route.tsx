@@ -8,7 +8,7 @@ import type { ChangeEvent } from 'react';
 import type { DemuxWorkflowConfig } from '@/client'
 import { getDemultiplexWorkflowConfig, getRun, listDemultiplexWorkflows } from '@/client'
 import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from '@/client/@tanstack/react-query.gen'
-import { ExecuteToolForm } from '@/components/execute-tool-form'
+import { ExecuteToolForm } from '@/components/execute-demux-job-form'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
