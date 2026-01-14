@@ -494,7 +494,6 @@ export type InputType = 'Enum' | 'String' | 'Integer' | 'Boolean'
  * Enumeration of valid batch job statuses
  */
 export type JobStatus =
-  | 'Queued'
   | 'Submitted'
   | 'Pending'
   | 'Runnable'

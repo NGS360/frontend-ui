@@ -1,8 +1,7 @@
-import {  cva } from "class-variance-authority"
+import { cva } from "class-variance-authority"
 import {
   CheckCircle,
   Clock,
-  ListChecks,
   Loader2,
   PlayCircle,
   Send,
@@ -18,7 +17,6 @@ const jobStatusVariants = cva(
   {
     variants: {
       status: {
-        Queued: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700",
         Submitted: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 border-blue-200 dark:border-blue-800",
         Pending: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 border-amber-200 dark:border-amber-800",
         Runnable: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-200 border-cyan-200 dark:border-cyan-800",
@@ -38,8 +36,6 @@ const getStatusIcon = (status: JobStatus) => {
   const iconClass = "w-3.5 h-3.5"
   
   switch (status) {
-    case "Queued":
-      return <ListChecks className={iconClass} />
     case "Submitted":
       return <Send className={iconClass} />
     case "Pending":
