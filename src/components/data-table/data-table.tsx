@@ -231,6 +231,7 @@ export function ServerDataTable<TData, TValue>({
   columnVisibility = {},
   isLoading,
   loadingComponent,
+  rowClickCallback,
 
   // Search/filter
   globalFilter,
@@ -306,6 +307,7 @@ export function ServerDataTable<TData, TValue>({
       loadingComponent={loadingComponent}
       showSearch={showSearch}
       enableColumnFilters={false}
+      rowClickCallback={rowClickCallback}
     />
   )
 }

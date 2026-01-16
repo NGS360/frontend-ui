@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { sha256 } from 'js-sha256'
 import type { ClassValue } from 'clsx'
 import type { ReactNode } from 'react'
 
@@ -35,4 +36,17 @@ export function highlightMatch(text: string, query: string): ReactNode {
       ? createElement('strong', { key: index, className: 'text-foreground' }, part)
       : part
   )
+}
+
+// Trim ws & convert to lower for correct hash string
+// Create a SHA256 hash of the final string
+function hashEmail(email: string): string {
+  const address = String(email).trim().toLowerCase()
+  return sha256(address)
+}
+
+// Get URL for a user's Gravatar
+export function getGravatarUrl(email: string): string {
+  const hash = hashEmail(email)
+  return `https://www.gravatar.com/avatar/${hash}?size=800&d=identicon`
 }
