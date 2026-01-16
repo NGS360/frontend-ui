@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios'
-import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { getJob } from '@/client'
 
 export const Route = createFileRoute('/jobs/$job_id')({
