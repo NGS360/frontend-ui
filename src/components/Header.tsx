@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Button } from './ui/button'
 import { CreateProjectForm } from './create-project-form'
 import { SearchBar } from './search-bar'
+import { NotificationsDropdown } from './notifications-dropdown'
+import { UserAvatar } from './user-avatar'
 import circosLogo from '@/img/circos_color.svg'
 import {
   NavigationMenu,
@@ -108,9 +110,19 @@ export default function Header() {
         <div className="hidden md:block">
           <CreateProjectForm
             trigger={(
-              <Button>Create ProjectID</Button>
+              <Button>Create Project</Button>
             )}
           />
+        </div>
+
+        {/* Notifications Dropdown */}
+        <div className="hidden md:block">
+          <NotificationsDropdown />
+        </div>
+
+        {/* Avatar */}
+        <div className="hidden md:block">
+          <UserAvatar />
         </div>
 
         {/* Mobile menu button */}

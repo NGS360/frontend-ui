@@ -13,19 +13,25 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as RunsRouteImport } from './routes/runs.route'
 import { Route as ProjectsRouteImport } from './routes/projects.route'
+import { Route as ProfileRouteImport } from './routes/profile.route'
+import { Route as JobsRouteImport } from './routes/jobs.route'
 import { Route as AdminRouteImport } from './routes/admin.route'
 import { Route as IndexImport } from './routes/index'
 import { Route as RunsIndexImport } from './routes/runs.index'
 import { Route as ProjectsIndexImport } from './routes/projects.index'
+import { Route as ProfileIndexImport } from './routes/profile.index'
+import { Route as JobsIndexImport } from './routes/jobs.index'
 import { Route as AdminIndexImport } from './routes/admin.index'
 import { Route as RunsRunbarcodeRouteImport } from './routes/runs.$run_barcode.route'
 import { Route as ProjectsProjectidRouteImport } from './routes/projects.$project_id.route'
+import { Route as JobsJobidRouteImport } from './routes/jobs.$job_id.route'
 import { Route as AdminVendorsRouteImport } from './routes/admin.vendors.route'
 import { Route as AdminRunSettingsRouteImport } from './routes/admin.run-settings.route'
 import { Route as AdminProjectSettingsRouteImport } from './routes/admin.project-settings.route'
 import { Route as AdminJobsRouteImport } from './routes/admin.jobs.route'
 import { Route as RunsRunbarcodeIndexImport } from './routes/runs.$run_barcode.index'
 import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
+import { Route as JobsJobidIndexImport } from './routes/jobs.$job_id.index'
 import { Route as AdminVendorsIndexImport } from './routes/admin.vendors.index'
 import { Route as AdminRunSettingsIndexImport } from './routes/admin.run-settings.index'
 import { Route as AdminProjectSettingsIndexImport } from './routes/admin.project-settings.index'
@@ -46,6 +52,18 @@ const RunsRouteRoute = RunsRouteImport.update({
 const ProjectsRouteRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ProfileRouteRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const JobsRouteRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -73,6 +91,18 @@ const ProjectsIndexRoute = ProjectsIndexImport.update({
   getParentRoute: () => ProjectsRouteRoute,
 } as any)
 
+const ProfileIndexRoute = ProfileIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileRouteRoute,
+} as any)
+
+const JobsIndexRoute = JobsIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => JobsRouteRoute,
+} as any)
+
 const AdminIndexRoute = AdminIndexImport.update({
   id: '/',
   path: '/',
@@ -89,6 +119,12 @@ const ProjectsProjectidRouteRoute = ProjectsProjectidRouteImport.update({
   id: '/$project_id',
   path: '/$project_id',
   getParentRoute: () => ProjectsRouteRoute,
+} as any)
+
+const JobsJobidRouteRoute = JobsJobidRouteImport.update({
+  id: '/$job_id',
+  path: '/$job_id',
+  getParentRoute: () => JobsRouteRoute,
 } as any)
 
 const AdminVendorsRouteRoute = AdminVendorsRouteImport.update({
@@ -125,6 +161,12 @@ const ProjectsProjectidIndexRoute = ProjectsProjectidIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProjectsProjectidRouteRoute,
+} as any)
+
+const JobsJobidIndexRoute = JobsJobidIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => JobsJobidRouteRoute,
 } as any)
 
 const AdminVendorsIndexRoute = AdminVendorsIndexImport.update({
@@ -199,6 +241,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRoute
     }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRoute
+    }
     '/projects': {
       id: '/projects'
       path: '/projects'
@@ -241,6 +297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVendorsRouteImport
       parentRoute: typeof AdminRouteImport
     }
+    '/jobs/$job_id': {
+      id: '/jobs/$job_id'
+      path: '/$job_id'
+      fullPath: '/jobs/$job_id'
+      preLoaderRoute: typeof JobsJobidRouteImport
+      parentRoute: typeof JobsRouteImport
+    }
     '/projects/$project_id': {
       id: '/projects/$project_id'
       path: '/$project_id'
@@ -261,6 +324,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexImport
       parentRoute: typeof AdminRouteImport
+    }
+    '/jobs/': {
+      id: '/jobs/'
+      path: '/'
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof JobsIndexImport
+      parentRoute: typeof JobsRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexImport
+      parentRoute: typeof ProfileRouteImport
     }
     '/projects/': {
       id: '/projects/'
@@ -317,6 +394,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/vendors/'
       preLoaderRoute: typeof AdminVendorsIndexImport
       parentRoute: typeof AdminVendorsRouteImport
+    }
+    '/jobs/$job_id/': {
+      id: '/jobs/$job_id/'
+      path: '/'
+      fullPath: '/jobs/$job_id/'
+      preLoaderRoute: typeof JobsJobidIndexImport
+      parentRoute: typeof JobsJobidRouteImport
     }
     '/projects/$project_id/': {
       id: '/projects/$project_id/'
@@ -421,6 +505,44 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface JobsJobidRouteRouteChildren {
+  JobsJobidIndexRoute: typeof JobsJobidIndexRoute
+}
+
+const JobsJobidRouteRouteChildren: JobsJobidRouteRouteChildren = {
+  JobsJobidIndexRoute: JobsJobidIndexRoute,
+}
+
+const JobsJobidRouteRouteWithChildren = JobsJobidRouteRoute._addFileChildren(
+  JobsJobidRouteRouteChildren,
+)
+
+interface JobsRouteRouteChildren {
+  JobsJobidRouteRoute: typeof JobsJobidRouteRouteWithChildren
+  JobsIndexRoute: typeof JobsIndexRoute
+}
+
+const JobsRouteRouteChildren: JobsRouteRouteChildren = {
+  JobsJobidRouteRoute: JobsJobidRouteRouteWithChildren,
+  JobsIndexRoute: JobsIndexRoute,
+}
+
+const JobsRouteRouteWithChildren = JobsRouteRoute._addFileChildren(
+  JobsRouteRouteChildren,
+)
+
+interface ProfileRouteRouteChildren {
+  ProfileIndexRoute: typeof ProfileIndexRoute
+}
+
+const ProfileRouteRouteChildren: ProfileRouteRouteChildren = {
+  ProfileIndexRoute: ProfileIndexRoute,
+}
+
+const ProfileRouteRouteWithChildren = ProfileRouteRoute._addFileChildren(
+  ProfileRouteRouteChildren,
+)
+
 interface ProjectsProjectidRouteRouteChildren {
   ProjectsProjectidIndexRoute: typeof ProjectsProjectidIndexRoute
 }
@@ -510,15 +632,20 @@ const RunsRouteRouteWithChildren = RunsRouteRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/jobs': typeof JobsRouteRouteWithChildren
+  '/profile': typeof ProfileRouteRouteWithChildren
   '/projects': typeof ProjectsRouteRouteWithChildren
   '/runs': typeof RunsRouteRouteWithChildren
   '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
   '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
   '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
   '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
+  '/jobs/$job_id': typeof JobsJobidRouteRouteWithChildren
   '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
   '/runs/$run_barcode': typeof RunsRunbarcodeRouteRouteWithChildren
   '/admin/': typeof AdminIndexRoute
+  '/jobs/': typeof JobsIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/runs/': typeof RunsIndexRoute
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
@@ -527,6 +654,7 @@ export interface FileRoutesByFullPath {
   '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
   '/admin/vendors/': typeof AdminVendorsIndexRoute
+  '/jobs/$job_id/': typeof JobsJobidIndexRoute
   '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
   '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
   '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
@@ -536,12 +664,15 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminIndexRoute
+  '/jobs': typeof JobsIndexRoute
+  '/profile': typeof ProfileIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/runs': typeof RunsIndexRoute
   '/admin/jobs': typeof AdminJobsIndexRoute
   '/admin/project-settings': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings': typeof AdminRunSettingsIndexRoute
   '/admin/vendors': typeof AdminVendorsIndexRoute
+  '/jobs/$job_id': typeof JobsJobidIndexRoute
   '/projects/$project_id': typeof ProjectsProjectidIndexRoute
   '/runs/$run_barcode': typeof RunsRunbarcodeIndexRoute
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcIndexRoute
@@ -552,15 +683,20 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/jobs': typeof JobsRouteRouteWithChildren
+  '/profile': typeof ProfileRouteRouteWithChildren
   '/projects': typeof ProjectsRouteRouteWithChildren
   '/runs': typeof RunsRouteRouteWithChildren
   '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
   '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
   '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
   '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
+  '/jobs/$job_id': typeof JobsJobidRouteRouteWithChildren
   '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
   '/runs/$run_barcode': typeof RunsRunbarcodeRouteRouteWithChildren
   '/admin/': typeof AdminIndexRoute
+  '/jobs/': typeof JobsIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/runs/': typeof RunsIndexRoute
   '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
@@ -569,6 +705,7 @@ export interface FileRoutesById {
   '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
   '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
   '/admin/vendors/': typeof AdminVendorsIndexRoute
+  '/jobs/$job_id/': typeof JobsJobidIndexRoute
   '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
   '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
   '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
@@ -580,15 +717,20 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/jobs'
+    | '/profile'
     | '/projects'
     | '/runs'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
+    | '/jobs/$job_id'
     | '/projects/$project_id'
     | '/runs/$run_barcode'
     | '/admin/'
+    | '/jobs/'
+    | '/profile/'
     | '/projects/'
     | '/runs/'
     | '/runs/$run_barcode/indexqc'
@@ -597,6 +739,7 @@ export interface FileRouteTypes {
     | '/admin/project-settings/'
     | '/admin/run-settings/'
     | '/admin/vendors/'
+    | '/jobs/$job_id/'
     | '/projects/$project_id/'
     | '/runs/$run_barcode/'
     | '/runs/$run_barcode/indexqc/'
@@ -605,12 +748,15 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/jobs'
+    | '/profile'
     | '/projects'
     | '/runs'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
+    | '/jobs/$job_id'
     | '/projects/$project_id'
     | '/runs/$run_barcode'
     | '/runs/$run_barcode/indexqc'
@@ -619,15 +765,20 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/jobs'
+    | '/profile'
     | '/projects'
     | '/runs'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
+    | '/jobs/$job_id'
     | '/projects/$project_id'
     | '/runs/$run_barcode'
     | '/admin/'
+    | '/jobs/'
+    | '/profile/'
     | '/projects/'
     | '/runs/'
     | '/runs/$run_barcode/indexqc'
@@ -636,6 +787,7 @@ export interface FileRouteTypes {
     | '/admin/project-settings/'
     | '/admin/run-settings/'
     | '/admin/vendors/'
+    | '/jobs/$job_id/'
     | '/projects/$project_id/'
     | '/runs/$run_barcode/'
     | '/runs/$run_barcode/indexqc/'
@@ -646,6 +798,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  JobsRouteRoute: typeof JobsRouteRouteWithChildren
+  ProfileRouteRoute: typeof ProfileRouteRouteWithChildren
   ProjectsRouteRoute: typeof ProjectsRouteRouteWithChildren
   RunsRouteRoute: typeof RunsRouteRouteWithChildren
 }
@@ -653,6 +807,8 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
+  JobsRouteRoute: JobsRouteRouteWithChildren,
+  ProfileRouteRoute: ProfileRouteRouteWithChildren,
   ProjectsRouteRoute: ProjectsRouteRouteWithChildren,
   RunsRouteRoute: RunsRouteRouteWithChildren,
 }
@@ -669,6 +825,8 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/admin",
+        "/jobs",
+        "/profile",
         "/projects",
         "/runs"
       ]
@@ -684,6 +842,19 @@ export const routeTree = rootRoute
         "/admin/run-settings",
         "/admin/vendors",
         "/admin/"
+      ]
+    },
+    "/jobs": {
+      "filePath": "jobs.route.tsx",
+      "children": [
+        "/jobs/$job_id",
+        "/jobs/"
+      ]
+    },
+    "/profile": {
+      "filePath": "profile.route.tsx",
+      "children": [
+        "/profile/"
       ]
     },
     "/projects": {
@@ -728,6 +899,13 @@ export const routeTree = rootRoute
         "/admin/vendors/"
       ]
     },
+    "/jobs/$job_id": {
+      "filePath": "jobs.$job_id.route.tsx",
+      "parent": "/jobs",
+      "children": [
+        "/jobs/$job_id/"
+      ]
+    },
     "/projects/$project_id": {
       "filePath": "projects.$project_id.route.tsx",
       "parent": "/projects",
@@ -747,6 +925,14 @@ export const routeTree = rootRoute
     "/admin/": {
       "filePath": "admin.index.tsx",
       "parent": "/admin"
+    },
+    "/jobs/": {
+      "filePath": "jobs.index.tsx",
+      "parent": "/jobs"
+    },
+    "/profile/": {
+      "filePath": "profile.index.tsx",
+      "parent": "/profile"
     },
     "/projects/": {
       "filePath": "projects.index.tsx",
@@ -785,6 +971,10 @@ export const routeTree = rootRoute
     "/admin/vendors/": {
       "filePath": "admin.vendors.index.tsx",
       "parent": "/admin/vendors"
+    },
+    "/jobs/$job_id/": {
+      "filePath": "jobs.$job_id.index.tsx",
+      "parent": "/jobs/$job_id"
     },
     "/projects/$project_id/": {
       "filePath": "projects.$project_id.index.tsx",

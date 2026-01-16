@@ -112,6 +112,11 @@ function RouteComponent() {
     placeholderData: keepPreviousData
   })
 
+  // Handle job row click - navigate without updating view status (admin only)
+  const handleJobClick = (jobId: string) => {
+    navigate({ to: '/jobs/$job_id', params: { job_id: jobId } })
+  }
+
   if (error) return 'An error has occurred: ' + error.message
   if (!data) return <FullscreenSpinner variant='ellipsis' />
 
@@ -238,6 +243,7 @@ function RouteComponent() {
         onSortingChange={setSorting}
         filterComponents={filterComponents}
         columnVisibility={{ id: false }}
+        rowClickCallback={(row) => handleJobClick(row.original.id)}
       />
     </div>
   )

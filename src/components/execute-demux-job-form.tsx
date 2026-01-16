@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -7,7 +7,11 @@ import { z } from "zod";
 import type { SubmitHandler } from "react-hook-form";
 import type { BatchJobPublic, DemuxWorkflowConfig, HttpValidationError } from "@/client";
 import type { AxiosError } from "axios";
-import { submitDemultiplexWorkflowJobMutation } from "@/client/@tanstack/react-query.gen";
+import { 
+  getJobsQueryKey,
+  submitDemultiplexWorkflowJobMutation,
+} from "@/client/@tanstack/react-query.gen";
+import { DEFAULT_JOBS_QUERY_OPTIONS, useViewJob } from "@/hooks/use-job-queries";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -47,7 +51,12 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   isOpen,
   onOpenChange,
 }) => {
-  // Mutation
+  const { viewJob } = useViewJob();
+  const queryClient = useQueryClient();
+
+  const queryKey = getJobsQueryKey(DEFAULT_JOBS_QUERY_OPTIONS);
+
+  // Mutation for submitting workflow
   const { mutate, isPending } = useMutation({
     ...submitDemultiplexWorkflowJobMutation(),
     onError: (error: AxiosError<HttpValidationError>) => {
@@ -55,14 +64,31 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
       toast.error("Failed to execute workflow");
     },
     onSuccess: (data: BatchJobPublic) => {
-      // Show success toast with job information
-      toast.success("Workflow execution submitted successfully", {
+      // Invalidate jobs list query to show the new job
+      queryClient.invalidateQueries({ queryKey, refetchType: 'all' });
+      
+      // Show success toast with a button to view the job
+      toast.success("Demux workflow submitted successfully", {
         description: (
-          <pre className="mt-2 w-full rounded-md p-4 max-h-[200px] overflow-auto whitespace-pre-wrap break-words">
-            <code className="text-foreground text-xs">
-              {JSON.stringify(data, null, 2)}
-            </code>
-          </pre>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                className="flex-1"
+                onClick={() => viewJob(data.id)}
+              >
+                View Job
+              </Button>
+              <Button 
+                size="sm" 
+                variant="secondary"
+                className="flex-1"
+                onClick={() => toast.dismiss()}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
         ),
       });
       
