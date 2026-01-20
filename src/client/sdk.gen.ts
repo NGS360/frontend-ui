@@ -137,6 +137,9 @@ import type {
   UpdateJobData,
   UpdateJobErrors,
   UpdateJobResponses,
+  UpdateProjectData,
+  UpdateProjectErrors,
+  UpdateProjectResponses,
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
@@ -661,6 +664,28 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     url: '/api/v1/projects/{project_id}',
     ...options,
+  })
+}
+
+/**
+ * Update Project
+ * Update information about a specific project.
+ */
+export const updateProject = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateProjectData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    UpdateProjectResponses,
+    UpdateProjectErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/{project_id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { Building2, Cog, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Zap } from 'lucide-react'
-import { createFileRoute, getRouteApi } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import type { SamplePublic } from '@/client/types.gen'
 import type { ColumnDef } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
@@ -10,6 +11,7 @@ import { ExecuteWorkflowForm } from '@/components/execute-workflow-form'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
+import { UpdateProjectForm } from '@/components/update-project-form'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,15 +21,21 @@ import { getSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
+import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
 
 export const Route = createFileRoute('/projects/$project_id/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  // Load project data
-  const routeApi = getRouteApi('/projects/$project_id')
-  const { project } = routeApi.useLoaderData()
+  const { project_id } = Route.useParams()
+  
+  // Load project data using React Query for automatic refetching
+  const { data: project } = useSuspenseQuery(
+    getProjectByProjectIdOptions({
+      path: { project_id }
+    })
+  )
 
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
@@ -166,19 +174,26 @@ function RouteComponent() {
                   </Card>
                 ))}
               </div>
-              <Button variant='outline' className='w-full md:w-fit'>
-                {!project.attributes || project.attributes.length === 0 ? (
-                  <>
-                    <Plus />
-                    <span>Add attributes</span>
-                  </>
-                ) : (
-                  <>
-                    <Pencil />
-                    <span>Edit attributes</span>
-                  </>
-                )}
-              </Button>
+              <UpdateProjectForm
+                projectId={project.project_id}
+                projectName={project.name}
+                projectAttributes={project.attributes}
+                trigger={
+                  <Button variant='outline' className='w-full md:w-fit'>
+                    {!project.attributes || project.attributes.length === 0 ? (
+                      <>
+                        <Plus />
+                        <span>Add attributes</span>
+                      </>
+                    ) : (
+                      <>
+                        <Pencil />
+                        <span>Edit attributes</span>
+                      </>
+                    )}
+                  </Button>
+                }
+              />
             </AccordionContent>
           </AccordionItem>
         </Accordion>

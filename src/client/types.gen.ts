@@ -824,6 +824,21 @@ export type ProjectPublic = {
 }
 
 /**
+ * ProjectUpdate
+ * Represents the data that can be updated for a project
+ */
+export type ProjectUpdate = {
+  /**
+   * Name
+   */
+  name?: string | null
+  /**
+   * Attributes
+   */
+  attributes?: Array<Attribute> | null
+}
+
+/**
  * ProjectsPublic
  */
 export type ProjectsPublic = {
@@ -1981,6 +1996,37 @@ export type GetProjectByProjectIdResponses = {
 
 export type GetProjectByProjectIdResponse =
   GetProjectByProjectIdResponses[keyof GetProjectByProjectIdResponses]
+
+export type UpdateProjectData = {
+  body: ProjectUpdate
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}'
+}
+
+export type UpdateProjectErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateProjectError = UpdateProjectErrors[keyof UpdateProjectErrors]
+
+export type UpdateProjectResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProjectPublic
+}
+
+export type UpdateProjectResponse =
+  UpdateProjectResponses[keyof UpdateProjectResponses]
 
 export type GetSamplesData = {
   body?: never

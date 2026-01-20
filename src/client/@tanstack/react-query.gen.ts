@@ -55,6 +55,7 @@ import {
   submitDemultiplexWorkflowJob,
   submitJob,
   updateJob,
+  updateProject,
   updateRun,
   updateSampleInProject,
   updateSetting,
@@ -148,6 +149,9 @@ import type {
   UpdateJobData,
   UpdateJobError,
   UpdateJobResponse,
+  UpdateProjectData,
+  UpdateProjectError,
+  UpdateProjectResponse,
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
@@ -1073,6 +1077,34 @@ export const getProjectByProjectIdOptions = (
     },
     queryKey: getProjectByProjectIdQueryKey(options),
   })
+}
+
+/**
+ * Update Project
+ * Update information about a specific project.
+ */
+export const updateProjectMutation = (
+  options?: Partial<Options<UpdateProjectData>>,
+): UseMutationOptions<
+  UpdateProjectResponse,
+  AxiosError<UpdateProjectError>,
+  Options<UpdateProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateProjectResponse,
+    AxiosError<UpdateProjectError>,
+    Options<UpdateProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getSamplesQueryKey = (options: Options<GetSamplesData>) =>
