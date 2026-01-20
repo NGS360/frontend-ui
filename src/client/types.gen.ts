@@ -171,6 +171,45 @@ export type BatchJobsPublic = {
 }
 
 /**
+ * Body_create_file
+ */
+export type BodyCreateFile = {
+  /**
+   * Filename
+   */
+  filename: string
+  entity_type: EntityType
+  /**
+   * Entity Id
+   */
+  entity_id: string
+  /**
+   * Relative Path
+   */
+  relative_path?: string | null
+  /**
+   * Overwrite
+   */
+  overwrite?: boolean
+  /**
+   * Description
+   */
+  description?: string | null
+  /**
+   * Is Public
+   */
+  is_public?: boolean
+  /**
+   * Created By
+   */
+  created_by?: string | null
+  /**
+   * Content
+   */
+  content?: (Blob | File) | null
+}
+
+/**
  * Body_post_run_samplesheet
  */
 export type BodyPostRunSamplesheet = {
@@ -342,6 +381,12 @@ export type DemuxWorkflowTag = {
 }
 
 /**
+ * EntityType
+ * Entity types that can have files
+ */
+export type EntityType = 'project' | 'run'
+
+/**
  * FileBrowserData
  * File browser data structure with separate folders and files
  */
@@ -388,6 +433,71 @@ export type FileBrowserFolder = {
    * Date
    */
   date: string
+}
+
+/**
+ * FilePublic
+ * Public file representation
+ */
+export type FilePublic = {
+  /**
+   * File Id
+   */
+  file_id: string
+  /**
+   * Filename
+   */
+  filename: string
+  /**
+   * Original Filename
+   */
+  original_filename: string
+  /**
+   * File Size
+   */
+  file_size: number | null
+  /**
+   * Mime Type
+   */
+  mime_type: string | null
+  /**
+   * Description
+   */
+  description: string | null
+  /**
+   * Upload Date
+   */
+  upload_date: string
+  /**
+   * Created By
+   */
+  created_by: string | null
+  entity_type: EntityType
+  /**
+   * Entity Id
+   */
+  entity_id: string
+  /**
+   * Is Public
+   */
+  is_public: boolean
+  /**
+   * Is Archived
+   */
+  is_archived: boolean
+  storage_backend: StorageBackend
+  /**
+   * File Path
+   */
+  file_path?: string | null
+  /**
+   * Checksum
+   */
+  checksum?: string | null
+  /**
+   * Relative Path
+   */
+  relative_path?: string | null
 }
 
 /**
@@ -563,6 +673,98 @@ export type ManifestValidationResponse = {
 }
 
 /**
+ * PipelineConfig
+ * Model for pipeline workflow configuration.
+ */
+export type PipelineConfig = {
+  /**
+   * Workflow Id
+   */
+  workflow_id?: string | null
+  /**
+   * Project Type
+   */
+  project_type: string
+  /**
+   * Project Admins
+   */
+  project_admins: Array<string>
+  /**
+   * Inputs
+   */
+  inputs?: Array<PipelineInput> | null
+  /**
+   * Platforms
+   */
+  platforms: {
+    [key: string]: PlatformConfig
+  }
+  /**
+   * Export Command
+   */
+  export_command?: string | null
+}
+
+/**
+ * PipelineConfigsResponse
+ * Response model for list of pipeline workflow configurations.
+ */
+export type PipelineConfigsResponse = {
+  /**
+   * Configs
+   */
+  configs: Array<PipelineConfig>
+  /**
+   * Total
+   */
+  total: number
+}
+
+/**
+ * PipelineInput
+ * Model for pipeline input configuration.
+ */
+export type PipelineInput = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Desc
+   */
+  desc: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Default
+   */
+  default?: unknown
+}
+
+/**
+ * PlatformConfig
+ * Model for platform-specific configuration (Arvados, SevenBridges, etc).
+ */
+export type PlatformConfig = {
+  /**
+   * Launchers
+   */
+  launchers?: string | Array<string> | null
+  /**
+   * Exports
+   */
+  exports?: Array<{
+    [key: string]: string
+  }> | null
+  /**
+   * Export Command
+   */
+  export_command?: string | null
+}
+
+/**
  * ProjectCreate
  */
 export type ProjectCreate = {
@@ -574,6 +776,25 @@ export type ProjectCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+}
+
+/**
+ * ProjectOption
+ * Model for project option
+ */
+export type ProjectOption = {
+  /**
+   * Label
+   */
+  label: string
+  /**
+   * Value
+   */
+  value: string
+  /**
+   * Description
+   */
+  description: string
 }
 
 /**
@@ -958,6 +1179,12 @@ export type SettingUpdate = {
 }
 
 /**
+ * StorageBackend
+ * Storage backend types
+ */
+export type StorageBackend = 'local' | 's3' | 'azure' | 'gcs'
+
+/**
  * UndeterminedType
  */
 export type UndeterminedType = {
@@ -1185,6 +1412,31 @@ export type HealthCheckResponses = {
   200: unknown
 }
 
+export type CreateFileData = {
+  body: BodyCreateFile
+  path?: never
+  query?: never
+  url: '/api/v1/files'
+}
+
+export type CreateFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateFileError = CreateFileErrors[keyof CreateFileErrors]
+
+export type CreateFileResponses = {
+  /**
+   * Successful Response
+   */
+  201: FilePublic
+}
+
+export type CreateFileResponse = CreateFileResponses[keyof CreateFileResponses]
+
 export type ListFilesData = {
   body?: never
   path?: never
@@ -1244,6 +1496,36 @@ export type DownloadFileResponses = {
    */
   200: unknown
 }
+
+export type GetFileData = {
+  body?: never
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}'
+}
+
+export type GetFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetFileError = GetFileErrors[keyof GetFileErrors]
+
+export type GetFileResponses = {
+  /**
+   * Successful Response
+   */
+  200: FilePublic
+}
+
+export type GetFileResponse = GetFileResponses[keyof GetFileResponses]
 
 export type GetJobsData = {
   body?: never
@@ -1523,6 +1805,150 @@ export type ReindexProjectsResponses = {
    */
   201: unknown
 }
+
+export type ListWorkflowConfigsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/workflows'
+}
+
+export type ListWorkflowConfigsResponses = {
+  /**
+   * Response List Workflow Configs
+   * Successful Response
+   */
+  200: Array<string>
+}
+
+export type ListWorkflowConfigsResponse =
+  ListWorkflowConfigsResponses[keyof ListWorkflowConfigsResponses]
+
+export type GetAllWorkflowConfigsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/workflows/configs'
+}
+
+export type GetAllWorkflowConfigsResponses = {
+  /**
+   * Successful Response
+   */
+  200: PipelineConfigsResponse
+}
+
+export type GetAllWorkflowConfigsResponse =
+  GetAllWorkflowConfigsResponses[keyof GetAllWorkflowConfigsResponses]
+
+export type GetWorkflowConfigData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/workflows/{workflow_id}'
+}
+
+export type GetWorkflowConfigErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetWorkflowConfigError =
+  GetWorkflowConfigErrors[keyof GetWorkflowConfigErrors]
+
+export type GetWorkflowConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: PipelineConfig
+}
+
+export type GetWorkflowConfigResponse =
+  GetWorkflowConfigResponses[keyof GetWorkflowConfigResponses]
+
+export type GetProjectActionsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/actions'
+}
+
+export type GetProjectActionsResponses = {
+  /**
+   * Response Get Project Actions
+   * Successful Response
+   */
+  200: Array<ProjectOption>
+}
+
+export type GetProjectActionsResponse =
+  GetProjectActionsResponses[keyof GetProjectActionsResponses]
+
+export type GetProjectPlatformsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/platforms'
+}
+
+export type GetProjectPlatformsResponses = {
+  /**
+   * Response Get Project Platforms
+   * Successful Response
+   */
+  200: Array<ProjectOption>
+}
+
+export type GetProjectPlatformsResponse =
+  GetProjectPlatformsResponses[keyof GetProjectPlatformsResponses]
+
+export type GetProjectTypesData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Action
+     * Project action
+     */
+    action: 'create-project' | 'export-project-results'
+    /**
+     * Platform
+     * Project platform
+     */
+    platform: 'arvados' | 'sevenbridges'
+  }
+  url: '/api/v1/projects/types'
+}
+
+export type GetProjectTypesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetProjectTypesError =
+  GetProjectTypesErrors[keyof GetProjectTypesErrors]
+
+export type GetProjectTypesResponses = {
+  /**
+   * Response Get Project Types
+   * Successful Response
+   */
+  200: Array<{
+    [key: string]: unknown
+  }>
+}
+
+export type GetProjectTypesResponse =
+  GetProjectTypesResponses[keyof GetProjectTypesResponses]
 
 export type GetProjectByProjectIdData = {
   body?: never

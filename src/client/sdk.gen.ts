@@ -18,6 +18,9 @@ import type {
   AddVendorData,
   AddVendorErrors,
   AddVendorResponses,
+  CreateFileData,
+  CreateFileErrors,
+  CreateFileResponses,
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
@@ -30,9 +33,14 @@ import type {
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
+  GetAllWorkflowConfigsData,
+  GetAllWorkflowConfigsResponses,
   GetDemultiplexWorkflowConfigData,
   GetDemultiplexWorkflowConfigErrors,
   GetDemultiplexWorkflowConfigResponses,
+  GetFileData,
+  GetFileErrors,
+  GetFileResponses,
   GetJobData,
   GetJobErrors,
   GetJobResponses,
@@ -42,9 +50,16 @@ import type {
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
+  GetProjectActionsData,
+  GetProjectActionsResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
+  GetProjectPlatformsData,
+  GetProjectPlatformsResponses,
+  GetProjectTypesData,
+  GetProjectTypesErrors,
+  GetProjectTypesResponses,
   GetProjectsData,
   GetProjectsErrors,
   GetProjectsResponses,
@@ -78,6 +93,9 @@ import type {
   GetWorkflowByWorkflowIdData,
   GetWorkflowByWorkflowIdErrors,
   GetWorkflowByWorkflowIdResponses,
+  GetWorkflowConfigData,
+  GetWorkflowConfigErrors,
+  GetWorkflowConfigResponses,
   GetWorkflowsData,
   GetWorkflowsErrors,
   GetWorkflowsResponses,
@@ -88,6 +106,8 @@ import type {
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
+  ListWorkflowConfigsData,
+  ListWorkflowConfigsResponses,
   PostRunSamplesheetData,
   PostRunSamplesheetErrors,
   PostRunSamplesheetResponses,
@@ -189,6 +209,51 @@ export const healthCheck = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Create a new file record
+ * Create a new file record with optional file content upload.
+ * - **filename**: Name of the file
+ * - **description**: Optional description of the file
+ * - **file_type**: Type of file (fastq, bam, vcf, etc.)
+ * - **entity_type**: Whether this file belongs to a project or run
+ * - **entity_id**: ID of the project or run this file belongs to
+ * - **relative_path**: Optional subdirectory path within the entity folder
+ * (e.g., "raw_data/sample1" or "results/qc")
+ * - **overwrite**: If True, replace existing file with same name/location (default: False)
+ * - **is_public**: Whether the file is publicly accessible
+ * - **created_by**: User who created the file
+ *
+ * Returns:
+ * FilePublic with metadata including the assigned file_id
+ *
+ * Raises:
+ * 409 Conflict: If file already exists and overwrite=False
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-20260109-0001/abc123_file.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ */
+export const createFile = <ThrowOnError extends boolean = false>(
+  options: Options<CreateFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateFileResponses,
+    CreateFileErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/files',
+    ...options,
+    headers: {
+      'Content-Type': null,
+      ...options.headers,
+    },
+  })
+}
+
+/**
  * List Files
  * Browse files and folders at the specified URI.
  *
@@ -232,6 +297,24 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/files/download',
+    ...options,
+  })
+}
+
+/**
+ * Get File
+ * Retrieve file metadata by file ID.
+ */
+export const getFile = <ThrowOnError extends boolean = false>(
+  options: Options<GetFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetFileResponses,
+    GetFileErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/files/{file_id}',
     ...options,
   })
 }
@@ -426,6 +509,138 @@ export const reindexProjects = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/projects/search',
+    ...options,
+  })
+}
+
+/**
+ * List Workflow Configs
+ * List all available project workflow configs from S3.
+ *
+ * Returns a list of workflow IDs (config filenames without extensions).
+ */
+export const listWorkflowConfigs = <ThrowOnError extends boolean = false>(
+  options?: Options<ListWorkflowConfigsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListWorkflowConfigsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/workflows',
+    ...options,
+  })
+}
+
+/**
+ * Get All Workflow Configs
+ * Retrieve and parse all project workflow configurations from S3.
+ *
+ * Returns:
+ * PipelineConfigsResponse containing all parsed workflow configurations
+ */
+export const getAllWorkflowConfigs = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAllWorkflowConfigsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAllWorkflowConfigsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/workflows/configs',
+    ...options,
+  })
+}
+
+/**
+ * Get Workflow Config
+ * Retrieve a specific workflow configuration.
+ *
+ * Args:
+ * workflow_id: The workflow identifier (filename without extension)
+ *
+ * Returns:
+ * Complete workflow configuration
+ */
+export const getWorkflowConfig = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowConfigData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowConfigResponses,
+    GetWorkflowConfigErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/workflows/{workflow_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Project Actions
+ * Get available project actions.
+ *
+ * Returns:
+ * List of available project actions with labels, values, and descriptions
+ */
+export const getProjectActions = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProjectActionsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProjectActionsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/actions',
+    ...options,
+  })
+}
+
+/**
+ * Get Project Platforms
+ * Get available project platforms.
+ *
+ * Returns:
+ * List of available platforms with labels, values, and descriptions
+ */
+export const getProjectPlatforms = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProjectPlatformsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProjectPlatformsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/platforms',
+    ...options,
+  })
+}
+
+/**
+ * Get Project Types
+ * Get available project types based on action and platform.
+ *
+ * Args:
+ * action: The project action
+ * platform: The platform
+ *
+ * Returns:
+ * List of project types with label, value, and project_type
+ */
+export const getProjectTypes = <ThrowOnError extends boolean = false>(
+  options: Options<GetProjectTypesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetProjectTypesResponses,
+    GetProjectTypesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/types',
     ...options,
   })
 }

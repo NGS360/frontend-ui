@@ -12,15 +12,21 @@ import {
   addRun,
   addSampleToProject,
   addVendor,
+  createFile,
   createProject,
   createWorkflow,
   deleteVendor,
   downloadFile,
+  getAllWorkflowConfigs,
   getDemultiplexWorkflowConfig,
+  getFile,
   getJob,
   getJobs,
   getLatestManifest,
+  getProjectActions,
   getProjectByProjectId,
+  getProjectPlatforms,
+  getProjectTypes,
   getProjects,
   getRun,
   getRunMetrics,
@@ -32,10 +38,12 @@ import {
   getVendor,
   getVendors,
   getWorkflowByWorkflowId,
+  getWorkflowConfig,
   getWorkflows,
   healthCheck,
   listDemultiplexWorkflows,
   listFiles,
+  listWorkflowConfigs,
   postRunSamplesheet,
   reindexProjects,
   reindexRuns,
@@ -67,6 +75,9 @@ import type {
   AddVendorData,
   AddVendorError,
   AddVendorResponse,
+  CreateFileData,
+  CreateFileError,
+  CreateFileResponse,
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
@@ -77,11 +88,16 @@ import type {
   DeleteVendorError,
   DeleteVendorResponse,
   DownloadFileData,
+  GetAllWorkflowConfigsData,
   GetDemultiplexWorkflowConfigData,
+  GetFileData,
   GetJobData,
   GetJobsData,
   GetLatestManifestData,
+  GetProjectActionsData,
   GetProjectByProjectIdData,
+  GetProjectPlatformsData,
+  GetProjectTypesData,
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
@@ -101,12 +117,14 @@ import type {
   GetVendorsError,
   GetVendorsResponse,
   GetWorkflowByWorkflowIdData,
+  GetWorkflowConfigData,
   GetWorkflowsData,
   GetWorkflowsError,
   GetWorkflowsResponse,
   HealthCheckData,
   ListDemultiplexWorkflowsData,
   ListFilesData,
+  ListWorkflowConfigsData,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
   PostRunSamplesheetResponse,
@@ -227,6 +245,100 @@ export const healthCheckOptions = (options?: Options<HealthCheckData>) => {
   })
 }
 
+export const createFileQueryKey = (options: Options<CreateFileData>) =>
+  createQueryKey('createFile', options)
+
+/**
+ * Create a new file record
+ * Create a new file record with optional file content upload.
+ * - **filename**: Name of the file
+ * - **description**: Optional description of the file
+ * - **file_type**: Type of file (fastq, bam, vcf, etc.)
+ * - **entity_type**: Whether this file belongs to a project or run
+ * - **entity_id**: ID of the project or run this file belongs to
+ * - **relative_path**: Optional subdirectory path within the entity folder
+ * (e.g., "raw_data/sample1" or "results/qc")
+ * - **overwrite**: If True, replace existing file with same name/location (default: False)
+ * - **is_public**: Whether the file is publicly accessible
+ * - **created_by**: User who created the file
+ *
+ * Returns:
+ * FilePublic with metadata including the assigned file_id
+ *
+ * Raises:
+ * 409 Conflict: If file already exists and overwrite=False
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-20260109-0001/abc123_file.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ */
+export const createFileOptions = (options: Options<CreateFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createFileQueryKey(options),
+  })
+}
+
+/**
+ * Create a new file record
+ * Create a new file record with optional file content upload.
+ * - **filename**: Name of the file
+ * - **description**: Optional description of the file
+ * - **file_type**: Type of file (fastq, bam, vcf, etc.)
+ * - **entity_type**: Whether this file belongs to a project or run
+ * - **entity_id**: ID of the project or run this file belongs to
+ * - **relative_path**: Optional subdirectory path within the entity folder
+ * (e.g., "raw_data/sample1" or "results/qc")
+ * - **overwrite**: If True, replace existing file with same name/location (default: False)
+ * - **is_public**: Whether the file is publicly accessible
+ * - **created_by**: User who created the file
+ *
+ * Returns:
+ * FilePublic with metadata including the assigned file_id
+ *
+ * Raises:
+ * 409 Conflict: If file already exists and overwrite=False
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-20260109-0001/abc123_file.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ */
+export const createFileMutation = (
+  options?: Partial<Options<CreateFileData>>,
+): UseMutationOptions<
+  CreateFileResponse,
+  AxiosError<CreateFileError>,
+  Options<CreateFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateFileResponse,
+    AxiosError<CreateFileError>,
+    Options<CreateFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await createFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const listFilesQueryKey = (options: Options<ListFilesData>) =>
   createQueryKey('listFiles', options)
 
@@ -280,6 +392,28 @@ export const downloadFileOptions = (options: Options<DownloadFileData>) => {
       return data
     },
     queryKey: downloadFileQueryKey(options),
+  })
+}
+
+export const getFileQueryKey = (options: Options<GetFileData>) =>
+  createQueryKey('getFile', options)
+
+/**
+ * Get File
+ * Retrieve file metadata by file ID.
+ */
+export const getFileOptions = (options: Options<GetFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getFileQueryKey(options),
   })
 }
 
@@ -739,6 +873,180 @@ export const reindexProjectsMutation = (
     },
   }
   return mutationOptions
+}
+
+export const listWorkflowConfigsQueryKey = (
+  options?: Options<ListWorkflowConfigsData>,
+) => createQueryKey('listWorkflowConfigs', options)
+
+/**
+ * List Workflow Configs
+ * List all available project workflow configs from S3.
+ *
+ * Returns a list of workflow IDs (config filenames without extensions).
+ */
+export const listWorkflowConfigsOptions = (
+  options?: Options<ListWorkflowConfigsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listWorkflowConfigs({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listWorkflowConfigsQueryKey(options),
+  })
+}
+
+export const getAllWorkflowConfigsQueryKey = (
+  options?: Options<GetAllWorkflowConfigsData>,
+) => createQueryKey('getAllWorkflowConfigs', options)
+
+/**
+ * Get All Workflow Configs
+ * Retrieve and parse all project workflow configurations from S3.
+ *
+ * Returns:
+ * PipelineConfigsResponse containing all parsed workflow configurations
+ */
+export const getAllWorkflowConfigsOptions = (
+  options?: Options<GetAllWorkflowConfigsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAllWorkflowConfigs({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getAllWorkflowConfigsQueryKey(options),
+  })
+}
+
+export const getWorkflowConfigQueryKey = (
+  options: Options<GetWorkflowConfigData>,
+) => createQueryKey('getWorkflowConfig', options)
+
+/**
+ * Get Workflow Config
+ * Retrieve a specific workflow configuration.
+ *
+ * Args:
+ * workflow_id: The workflow identifier (filename without extension)
+ *
+ * Returns:
+ * Complete workflow configuration
+ */
+export const getWorkflowConfigOptions = (
+  options: Options<GetWorkflowConfigData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflowConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowConfigQueryKey(options),
+  })
+}
+
+export const getProjectActionsQueryKey = (
+  options?: Options<GetProjectActionsData>,
+) => createQueryKey('getProjectActions', options)
+
+/**
+ * Get Project Actions
+ * Get available project actions.
+ *
+ * Returns:
+ * List of available project actions with labels, values, and descriptions
+ */
+export const getProjectActionsOptions = (
+  options?: Options<GetProjectActionsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectActions({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectActionsQueryKey(options),
+  })
+}
+
+export const getProjectPlatformsQueryKey = (
+  options?: Options<GetProjectPlatformsData>,
+) => createQueryKey('getProjectPlatforms', options)
+
+/**
+ * Get Project Platforms
+ * Get available project platforms.
+ *
+ * Returns:
+ * List of available platforms with labels, values, and descriptions
+ */
+export const getProjectPlatformsOptions = (
+  options?: Options<GetProjectPlatformsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectPlatforms({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectPlatformsQueryKey(options),
+  })
+}
+
+export const getProjectTypesQueryKey = (
+  options: Options<GetProjectTypesData>,
+) => createQueryKey('getProjectTypes', options)
+
+/**
+ * Get Project Types
+ * Get available project types based on action and platform.
+ *
+ * Args:
+ * action: The project action
+ * platform: The platform
+ *
+ * Returns:
+ * List of project types with label, value, and project_type
+ */
+export const getProjectTypesOptions = (
+  options: Options<GetProjectTypesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectTypes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectTypesQueryKey(options),
+  })
 }
 
 export const getProjectByProjectIdQueryKey = (
