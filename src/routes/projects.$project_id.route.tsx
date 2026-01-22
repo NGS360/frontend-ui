@@ -1,10 +1,12 @@
 import { AxiosError } from 'axios'
-import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { getProjectByProjectId } from '@/client'
+import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
 
 export const Route = createFileRoute('/projects/$project_id')({
   component: RouteComponent,
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const projectData = await getProjectByProjectId({
       path: {
         project_id: params.project_id
@@ -14,18 +16,30 @@ export const Route = createFileRoute('/projects/$project_id')({
       alert("An error occurred: " + projectData.error?.detail || "An unknown error occurred.")
       throw redirect({ to: '/projects' })
     }
+    
+    // Prefetch the query data
+    await context.queryClient.prefetchQuery(
+      getProjectByProjectIdOptions({
+        path: { project_id: params.project_id }
+      })
+    )
+    
     return ({
-      crumb: projectData.data.project_id,
+      crumb: projectData.data.name || projectData.data.project_id,
       includeCrumbLink: false,
-      project: projectData.data
     })
   }
 })
 
 function RouteComponent() {
-  // Load project data
-  const routeApi = getRouteApi('/projects/$project_id')
-  const { project } = routeApi.useLoaderData()
+  const { project_id } = Route.useParams()
+  
+  // Use React Query hook instead of loader data for automatic refetching
+  const { data: project } = useSuspenseQuery(
+    getProjectByProjectIdOptions({
+      path: { project_id }
+    })
+  )
 
   return (
     <>

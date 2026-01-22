@@ -1,14 +1,17 @@
 import { Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { useEffect, useReducer, useState } from 'react'
+import { useMemo, useReducer } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type React from 'react'
 import type { JSX } from 'react'
+import type { ProjectOption } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
 import { ComboBox } from '@/components/combobox'
+import { Spinner } from '@/components/spinner'
 import { Stepper } from '@/components/stepper'
-import { useTypeOptionsLookup } from '@/components/type-options-lookup'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { getProjectActionsOptions, getProjectPlatformsOptions, getProjectTypesOptions } from '@/client/@tanstack/react-query.gen'
 
 interface ExecuteWorkflowFormProps {
   /** Trigger for the Sheet component */
@@ -87,50 +90,42 @@ export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
   };
 
   // Project action options
-  const [projectActionOptions, setProjectActionOptions] = useState<Array<ComboBoxOption>>();
-  useEffect(() => {
-    const fetchProjectActionOptions = async () => {
-      const res = await fetch('/data/example_options_project_actions.json')
-      if (!res.ok) {
-        throw new Error('Unable to fetch project action options')
-      }
-      const options = await res.json()
-      setProjectActionOptions(options)
-    }
-    fetchProjectActionOptions()
-  }, [])
+  const { data: projectActionsData } = useQuery(getProjectActionsOptions());
+  const projectActionOptions = useMemo<Array<ComboBoxOption>>(() => {
+    return (projectActionsData as Array<ProjectOption> | undefined)?.map(option => ({
+      value: option.value,
+      label: option.label,
+      description: option.description,
+    })) ?? [];
+  }, [projectActionsData]);
 
   // Project platform options
-  const [projectPlatformOptions, setProjectPlatformOptions] = useState<Array<ComboBoxOption>>();
-  useEffect(() => {
-    const fetchProjectPlatformOptions = async () => {
-      const res = await fetch('/data/example_options_project_platforms.json')
-      if (!res.ok) {
-        throw new Error('Unable to fetch project platform options')
-      }
-      const options = await res.json()
-      setProjectPlatformOptions(options)
-    }
-    fetchProjectPlatformOptions()
-  }, [])
+  const { data: projectPlatformsData } = useQuery(getProjectPlatformsOptions());
+  const projectPlatformOptions = useMemo<Array<ComboBoxOption>>(() => {
+    return (projectPlatformsData as Array<ProjectOption> | undefined)?.map(option => ({
+      value: option.value,
+      label: option.label,
+      description: option.description,
+    })) ?? [];
+  }, [projectPlatformsData]);
 
   // Project type options
-  const [projectTypeData, setProjectTypeData] = useState<Array<any>>();
-  useEffect(() => {
-    const fetchProjectTypeData = async () => {
-      const res = await fetch('/data/example_options_project_type_data.json')
-      if (!res.ok) {
-        throw new Error('Unable to fetch project type options')
-      }
-      const entries = await res.json()
-      setProjectTypeData(entries)
-    }
-    fetchProjectTypeData()
-  }, [])
-
-  // Memoize lookup function, always call hooks unconditionally
-  const typeOptionsLookup = useTypeOptionsLookup(projectTypeData ?? []);
-  const projectTypeOptions = projectTypeData ? (typeOptionsLookup.lookup(state.projectAction.value, state.projectPlatform.value) ?? []) : [];
+  const { data: projectTypesData, isFetching: isLoadingProjectTypes } = useQuery({
+    ...getProjectTypesOptions({
+      query: {
+        action: state.projectAction.value as 'create-project' | 'export-project-results',
+        platform: state.projectPlatform.value as 'arvados' | 'sevenbridges',
+      },
+    }),
+    enabled: !!state.projectAction.value && !!state.projectPlatform.value,
+  });
+  const projectTypeOptions = useMemo<Array<ComboBoxOption>>(() => {
+    return (projectTypesData as Array<ProjectOption> | undefined)?.map(option => ({
+      value: option.value,
+      label: option.label,
+      description: option.description,
+    })) ?? [];
+  }, [projectTypesData]);
 
   return (
     <Sheet onOpenChange={handleOpenChange}>
@@ -154,7 +149,7 @@ export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
                     <div className='flex flex-col flex-1'>
                       <ComboBox
                         id="projectAction"
-                        options={projectActionOptions ?? []}
+                        options={projectActionOptions}
                         placeholder="Select project action"
                         value={state.projectAction.value}
                         onChange={(value: string, label?: string) => dispatch({ type: 'SET_ACTION', value, label })}
@@ -171,7 +166,7 @@ export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
                     <div className='flex flex-col flex-1'>
                       <ComboBox
                         id="projectPlatform"
-                        options={projectPlatformOptions ?? []}
+                        options={projectPlatformOptions}
                         placeholder="Select project platform"
                         value={state.projectPlatform.value}
                         disabled={!state.projectAction.value}
@@ -187,14 +182,21 @@ export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
                 content: (
                   <>
                     <div className='flex flex-col flex-1 gap-4'>
-                      <ComboBox
-                        id="projectType"
-                        options={projectTypeOptions}
-                        placeholder="Select project type"
-                        value={state.projectType.value}
-                        disabled={!state.projectPlatform.value}
-                        onChange={(value: string, label?: string) => dispatch({ type: 'SET_TYPE', value, label })}
-                      />
+                      {isLoadingProjectTypes ? (
+                        <div className="flex items-center gap-2 border rounded-md py-2 px-2 text-sm text-muted-foreground">
+                          <Spinner variant="circle" size={16} />
+                          <span>Loading project types...</span>
+                        </div>
+                      ) : (
+                        <ComboBox
+                          id="projectType"
+                          options={projectTypeOptions}
+                          placeholder="Select project type"
+                          value={state.projectType.value}
+                          disabled={!state.projectPlatform.value}
+                          onChange={(value: string, label?: string) => dispatch({ type: 'SET_TYPE', value, label })}
+                        />
+                      )}
                     </div>  
                   </>
                 )
