@@ -32,7 +32,7 @@ export default function Header() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const apiDocsUrl = `${import.meta.env.VITE_API_URL}docs`
+  const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
 
   const navItems: Array<NavItemType> = [
     { to: '/runs', label: 'Illumina Runs', icon: <Database className="inline mr-1" /> },
