@@ -20,6 +20,7 @@ import { Route as HomeProfileRouteImport } from './routes/_home.profile.route'
 import { Route as HomeJobsRouteImport } from './routes/_home.jobs.route'
 import { Route as HomeAdminRouteImport } from './routes/_home.admin.route'
 import { Route as UserRegisterIndexImport } from './routes/_user.register.index'
+import { Route as UserPasswordResetIndexImport } from './routes/_user.password-reset.index'
 import { Route as UserLoginIndexImport } from './routes/_user.login.index'
 import { Route as HomeRunsIndexImport } from './routes/_home.runs.index'
 import { Route as HomeProjectsIndexImport } from './routes/_home.projects.index'
@@ -96,6 +97,12 @@ const HomeAdminRouteRoute = HomeAdminRouteImport.update({
 const UserRegisterIndexRoute = UserRegisterIndexImport.update({
   id: '/register/',
   path: '/register/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const UserPasswordResetIndexRoute = UserPasswordResetIndexImport.update({
+  id: '/password-reset/',
+  path: '/password-reset/',
   getParentRoute: () => UserRouteRoute,
 } as any)
 
@@ -402,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof UserLoginIndexImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_user/password-reset/': {
+      id: '/_user/password-reset/'
+      path: '/password-reset'
+      fullPath: '/password-reset'
+      preLoaderRoute: typeof UserPasswordResetIndexImport
       parentRoute: typeof UserRouteImport
     }
     '/_user/register/': {
@@ -716,11 +730,13 @@ const HomeRouteRouteWithChildren = HomeRouteRoute._addFileChildren(
 
 interface UserRouteRouteChildren {
   UserLoginIndexRoute: typeof UserLoginIndexRoute
+  UserPasswordResetIndexRoute: typeof UserPasswordResetIndexRoute
   UserRegisterIndexRoute: typeof UserRegisterIndexRoute
 }
 
 const UserRouteRouteChildren: UserRouteRouteChildren = {
   UserLoginIndexRoute: UserLoginIndexRoute,
+  UserPasswordResetIndexRoute: UserPasswordResetIndexRoute,
   UserRegisterIndexRoute: UserRegisterIndexRoute,
 }
 
@@ -749,6 +765,7 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof HomeProjectsIndexRoute
   '/runs/': typeof HomeRunsIndexRoute
   '/login': typeof UserLoginIndexRoute
+  '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
   '/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
@@ -772,6 +789,7 @@ export interface FileRoutesByTo {
   '/projects': typeof HomeProjectsIndexRoute
   '/runs': typeof HomeRunsIndexRoute
   '/login': typeof UserLoginIndexRoute
+  '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
   '/admin/jobs': typeof HomeAdminJobsIndexRoute
   '/admin/project-settings': typeof HomeAdminProjectSettingsIndexRoute
@@ -807,6 +825,7 @@ export interface FileRoutesById {
   '/_home/projects/': typeof HomeProjectsIndexRoute
   '/_home/runs/': typeof HomeRunsIndexRoute
   '/_user/login/': typeof UserLoginIndexRoute
+  '/_user/password-reset/': typeof UserPasswordResetIndexRoute
   '/_user/register/': typeof UserRegisterIndexRoute
   '/_home/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/_home/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
@@ -844,6 +863,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/runs/'
     | '/login'
+    | '/password-reset'
     | '/register'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
@@ -866,6 +886,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/runs'
     | '/login'
+    | '/password-reset'
     | '/register'
     | '/admin/jobs'
     | '/admin/project-settings'
@@ -899,6 +920,7 @@ export interface FileRouteTypes {
     | '/_home/projects/'
     | '/_home/runs/'
     | '/_user/login/'
+    | '/_user/password-reset/'
     | '/_user/register/'
     | '/_home/runs/$run_barcode/indexqc'
     | '/_home/runs/$run_barcode/samplesheet'
@@ -953,6 +975,7 @@ export const routeTree = rootRoute
       "filePath": "_user.route.tsx",
       "children": [
         "/_user/login/",
+        "/_user/password-reset/",
         "/_user/register/"
       ]
     },
@@ -1075,6 +1098,10 @@ export const routeTree = rootRoute
     },
     "/_user/login/": {
       "filePath": "_user.login.index.tsx",
+      "parent": "/_user"
+    },
+    "/_user/password-reset/": {
+      "filePath": "_user.password-reset.index.tsx",
       "parent": "/_user"
     },
     "/_user/register/": {
