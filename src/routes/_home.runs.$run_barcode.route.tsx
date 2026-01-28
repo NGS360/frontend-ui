@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-export const Route = createFileRoute('/runs/$run_barcode')({
+export const Route = createFileRoute('/_home/runs/$run_barcode')({
   component: RouteComponent,
   loader: async ({ params }) => {
     // Get run data
@@ -46,7 +46,7 @@ export const Route = createFileRoute('/runs/$run_barcode')({
 
 function RouteComponent() {
   // Load run data
-  const routeApi = getRouteApi('/runs/$run_barcode')
+  const routeApi = getRouteApi('/_home/runs/$run_barcode')
   const { run } = routeApi.useLoaderData()
   const queryClient = useQueryClient()
 

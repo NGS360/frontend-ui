@@ -4,7 +4,7 @@ import { SearchBar } from '@/components/search-bar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Footer from '@/components/Footer'
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute('/_home/')({
   component: App,
 })
 

@@ -14,7 +14,7 @@ import { getRunSamplesheetOptions, getRunSamplesheetQueryKey, postRunSamplesheet
 import { FullscreenSpinner } from '@/components/spinner'
 import { highlightMatch } from '@/lib/utils'
 
-export const Route = createFileRoute('/runs/$run_barcode/samplesheet/')({
+export const Route = createFileRoute('/_home/runs/$run_barcode/samplesheet/')({
   component: RouteComponent,
   pendingComponent: () => <FullscreenSpinner variant='ellipsis' />,
   pendingMs: 200
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/runs/$run_barcode/samplesheet/')({
 
 function RouteComponent() {
   // Get route params
-  const routeApi = getRouteApi('/runs/$run_barcode/samplesheet/')
+  const routeApi = getRouteApi('/_home/runs/$run_barcode/samplesheet/')
   const { run_barcode } = routeApi.useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient();

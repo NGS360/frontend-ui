@@ -13,7 +13,7 @@ import { Sidebar,
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getGravatarUrl } from '@/lib/utils'
 
-export const Route = createFileRoute('/profile')({
+export const Route = createFileRoute('/_home/profile')({
   component: RouteComponent,
   loader: () => ({
     crumb: 'Profile',

@@ -4,7 +4,8 @@ import {
   
   
   
-  formDataBodySerializer
+  formDataBodySerializer,
+  urlSearchParamsBodySerializer
 } from './client'
 import { client as _heyApiClient } from './client.gen'
 import type {Client, Options as ClientOptions, TDataShape} from './client';
@@ -18,6 +19,15 @@ import type {
   AddVendorData,
   AddVendorErrors,
   AddVendorResponses,
+  ChangePasswordData,
+  ChangePasswordErrors,
+  ChangePasswordResponses,
+  ConfirmPasswordResetData,
+  ConfirmPasswordResetErrors,
+  ConfirmPasswordResetResponses,
+  CreateFileData,
+  CreateFileErrors,
+  CreateFileResponses,
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
@@ -30,9 +40,14 @@ import type {
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
+  GetCurrentUserInfoData,
+  GetCurrentUserInfoResponses,
   GetDemultiplexWorkflowConfigData,
   GetDemultiplexWorkflowConfigErrors,
   GetDemultiplexWorkflowConfigResponses,
+  GetFileData,
+  GetFileErrors,
+  GetFileResponses,
   GetJobData,
   GetJobErrors,
   GetJobResponses,
@@ -83,20 +98,47 @@ import type {
   GetWorkflowsResponses,
   HealthCheckData,
   HealthCheckResponses,
+  LinkOauthProviderData,
+  LinkOauthProviderErrors,
+  LinkOauthProviderResponses,
   ListDemultiplexWorkflowsData,
   ListDemultiplexWorkflowsResponses,
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
+  LoginData,
+  LoginErrors,
+  LoginResponses,
+  LogoutData,
+  LogoutErrors,
+  LogoutResponses,
+  OauthAuthorizeData,
+  OauthAuthorizeErrors,
+  OauthAuthorizeResponses,
+  OauthCallbackData,
+  OauthCallbackErrors,
+  OauthCallbackResponses,
   PostRunSamplesheetData,
   PostRunSamplesheetErrors,
   PostRunSamplesheetResponses,
+  RefreshTokenData,
+  RefreshTokenErrors,
+  RefreshTokenResponses,
+  RegisterData,
+  RegisterErrors,
+  RegisterResponses,
   ReindexProjectsData,
   ReindexProjectsResponses,
   ReindexRunsData,
   ReindexRunsResponses,
   ReindexSamplesData,
   ReindexSamplesResponses,
+  RequestPasswordResetData,
+  RequestPasswordResetErrors,
+  RequestPasswordResetResponses,
+  ResendVerificationData,
+  ResendVerificationErrors,
+  ResendVerificationResponses,
   RootData,
   RootResponses,
   SearchData,
@@ -114,6 +156,9 @@ import type {
   SubmitJobData,
   SubmitJobErrors,
   SubmitJobResponses,
+  UnlinkOauthProviderData,
+  UnlinkOauthProviderErrors,
+  UnlinkOauthProviderResponses,
   UpdateJobData,
   UpdateJobErrors,
   UpdateJobResponses,
@@ -135,6 +180,9 @@ import type {
   ValidateManifestData,
   ValidateManifestErrors,
   ValidateManifestResponses,
+  VerifyEmailData,
+  VerifyEmailErrors,
+  VerifyEmailResponses,
 } from './types.gen'
 
 export type Options<
@@ -189,6 +237,555 @@ export const healthCheck = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Register
+ * Register a new user account
+ *
+ * Creates a new user with email/password authentication.
+ * Sends verification email to confirm email address.
+ *
+ * Args:
+ * session: Database session
+ * user_data: User registration data
+ *
+ * Returns:
+ * Created user information
+ *
+ * Raises:
+ * 409: Email or username already exists
+ * 400: Invalid password strength
+ */
+export const register = <ThrowOnError extends boolean = false>(
+  options: Options<RegisterData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    RegisterResponses,
+    RegisterErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/register',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Login
+ * Login with email and password
+ *
+ * Authenticates user and returns access and refresh tokens.
+ * Username field should contain the email address.
+ *
+ * Args:
+ * session: Database session
+ * request: HTTP request (for device info)
+ * form_data: OAuth2 form with username (email) and password
+ *
+ * Returns:
+ * Access token and refresh token
+ *
+ * Raises:
+ * 401: Invalid credentials
+ * 423: Account locked due to failed attempts
+ */
+export const login = <ThrowOnError extends boolean = false>(
+  options: Options<LoginData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    LoginResponses,
+    LoginErrors,
+    ThrowOnError
+  >({
+    ...urlSearchParamsBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/auth/login',
+    ...options,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Refresh Token
+ * Refresh access token
+ *
+ * Uses refresh token to obtain new access and refresh tokens.
+ * Old refresh token is revoked (token rotation).
+ *
+ * Args:
+ * session: Database session
+ * token_data: Refresh token
+ *
+ * Returns:
+ * New access token and refresh token
+ *
+ * Raises:
+ * 401: Invalid or expired refresh token
+ */
+export const refreshToken = <ThrowOnError extends boolean = false>(
+  options: Options<RefreshTokenData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    RefreshTokenResponses,
+    RefreshTokenErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/refresh',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Logout
+ * Logout user
+ *
+ * Revokes the refresh token to prevent further token refreshes.
+ * Access token will remain valid until expiration.
+ *
+ * Args:
+ * session: Database session
+ * token_data: Refresh token to revoke
+ *
+ * Returns:
+ * Success message
+ */
+export const logout = <ThrowOnError extends boolean = false>(
+  options: Options<LogoutData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    LogoutResponses,
+    LogoutErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/logout',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Current User Info
+ * Get current user profile
+ *
+ * Returns information about the authenticated user.
+ *
+ * Args:
+ * current_user: Current authenticated user
+ *
+ * Returns:
+ * User profile information
+ *
+ * Raises:
+ * 401: Not authenticated
+ */
+export const getCurrentUserInfo = <ThrowOnError extends boolean = false>(
+  options?: Options<GetCurrentUserInfoData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetCurrentUserInfoResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/auth/me',
+    ...options,
+  })
+}
+
+/**
+ * Request Password Reset
+ * Request password reset
+ *
+ * Sends password reset email if account exists.
+ * Always returns success to prevent email enumeration.
+ *
+ * Args:
+ * session: Database session
+ * reset_request: Email address
+ *
+ * Returns:
+ * Success message
+ */
+export const requestPasswordReset = <ThrowOnError extends boolean = false>(
+  options: Options<RequestPasswordResetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    RequestPasswordResetResponses,
+    RequestPasswordResetErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/password-reset/request',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Confirm Password Reset
+ * Confirm password reset
+ *
+ * Resets password using the token from email.
+ *
+ * Args:
+ * session: Database session
+ * reset_data: Reset token and new password
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid or expired token
+ */
+export const confirmPasswordReset = <ThrowOnError extends boolean = false>(
+  options: Options<ConfirmPasswordResetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ConfirmPasswordResetResponses,
+    ConfirmPasswordResetErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/password-reset/confirm',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Change Password
+ * Change password
+ *
+ * Changes password for authenticated user.
+ * Requires current password for verification.
+ *
+ * Args:
+ * session: Database session
+ * current_user: Current authenticated user
+ * password_data: Current and new password
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid current password or weak new password
+ * 401: Not authenticated
+ */
+export const changePassword = <ThrowOnError extends boolean = false>(
+  options: Options<ChangePasswordData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ChangePasswordResponses,
+    ChangePasswordErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/auth/password/change',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Verify Email
+ * Verify email address
+ *
+ * Verifies user email using token from verification email.
+ *
+ * Args:
+ * session: Database session
+ * verification_data: Verification token
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid or expired token
+ */
+export const verifyEmail = <ThrowOnError extends boolean = false>(
+  options: Options<VerifyEmailData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    VerifyEmailResponses,
+    VerifyEmailErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/verify-email',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Resend Verification
+ * Resend verification email
+ *
+ * Sends a new verification email to the user.
+ *
+ * Args:
+ * session: Database session
+ * resend_request: Email address
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 404: User not found
+ * 400: Email already verified
+ */
+export const resendVerification = <ThrowOnError extends boolean = false>(
+  options: Options<ResendVerificationData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ResendVerificationResponses,
+    ResendVerificationErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/resend-verification',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Oauth Authorize
+ * Initiate OAuth2 authorization flow
+ *
+ * Redirects user to OAuth provider's authorization page.
+ *
+ * Args:
+ * provider: OAuth provider (google, github, microsoft)
+ * redirect_uri: Optional custom redirect URI
+ *
+ * Returns:
+ * Redirect to provider authorization page
+ *
+ * Raises:
+ * 501: Provider not configured
+ * 400: Invalid provider
+ */
+export const oauthAuthorize = <ThrowOnError extends boolean = false>(
+  options: Options<OauthAuthorizeData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    OauthAuthorizeResponses,
+    OauthAuthorizeErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/oauth/{provider}/authorize',
+    ...options,
+  })
+}
+
+/**
+ * Oauth Callback
+ * OAuth2 callback handler
+ *
+ * Handles the callback from OAuth provider after user authorization.
+ * Exchanges code for tokens and creates/updates user account.
+ *
+ * Args:
+ * session: Database session
+ * provider: OAuth provider name
+ * code: Authorization code from provider
+ * state: State parameter for CSRF protection
+ * redirect_uri: Redirect URI (must match authorization request)
+ *
+ * Returns:
+ * Access and refresh tokens
+ *
+ * Raises:
+ * 400: Invalid code or failed to get user info
+ * 501: Provider not configured
+ */
+export const oauthCallback = <ThrowOnError extends boolean = false>(
+  options: Options<OauthCallbackData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    OauthCallbackResponses,
+    OauthCallbackErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/oauth/{provider}/callback',
+    ...options,
+  })
+}
+
+/**
+ * Link Oauth Provider
+ * Link OAuth provider to existing account
+ *
+ * Links an OAuth provider account to the currently authenticated user.
+ *
+ * Args:
+ * session: Database session
+ * current_user: Current authenticated user
+ * provider: OAuth provider name
+ * link_request: OAuth authorization code
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Failed to link account
+ * 409: Provider already linked
+ * 401: Not authenticated
+ */
+export const linkOauthProvider = <ThrowOnError extends boolean = false>(
+  options: Options<LinkOauthProviderData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    LinkOauthProviderResponses,
+    LinkOauthProviderErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/auth/oauth/{provider}/link',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Unlink Oauth Provider
+ * Unlink OAuth provider from account
+ *
+ * Removes the OAuth provider link from the user's account.
+ * Cannot unlink if it's the only authentication method.
+ *
+ * Args:
+ * session: Database session
+ * current_user: Current authenticated user
+ * provider: OAuth provider name
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Cannot unlink last auth method
+ * 404: Provider not linked
+ * 401: Not authenticated
+ */
+export const unlinkOauthProvider = <ThrowOnError extends boolean = false>(
+  options: Options<UnlinkOauthProviderData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    UnlinkOauthProviderResponses,
+    UnlinkOauthProviderErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/auth/oauth/{provider}/unlink',
+    ...options,
+  })
+}
+
+/**
+ * Create a new file record
+ * Create a new file record with optional file content upload.
+ * - **filename**: Name of the file
+ * - **description**: Optional description of the file
+ * - **file_type**: Type of file (fastq, bam, vcf, etc.)
+ * - **entity_type**: Whether this file belongs to a project or run
+ * - **entity_id**: ID of the project or run this file belongs to
+ * - **relative_path**: Optional subdirectory path within the entity folder
+ * (e.g., "raw_data/sample1" or "results/qc")
+ * - **overwrite**: If True, replace existing file with same name/location (default: False)
+ * - **is_public**: Whether the file is publicly accessible
+ * - **created_by**: User who created the file
+ *
+ * Returns:
+ * FilePublic with metadata including the assigned file_id
+ *
+ * Raises:
+ * 409 Conflict: If file already exists and overwrite=False
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-20260109-0001/abc123_file.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ */
+export const createFile = <ThrowOnError extends boolean = false>(
+  options: Options<CreateFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateFileResponses,
+    CreateFileErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/files',
+    ...options,
+    headers: {
+      'Content-Type': null,
+      ...options.headers,
+    },
+  })
+}
+
+/**
  * List Files
  * Browse files and folders at the specified URI.
  *
@@ -232,6 +829,24 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/files/download',
+    ...options,
+  })
+}
+
+/**
+ * Get File
+ * Retrieve file metadata by file ID.
+ */
+export const getFile = <ThrowOnError extends boolean = false>(
+  options: Options<GetFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetFileResponses,
+    GetFileErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/files/{file_id}',
     ...options,
   })
 }
@@ -1030,7 +1645,6 @@ export const uploadManifest = <ThrowOnError extends boolean = false>(
  *
  * Args:
  * s3_path: S3 path to the manifest CSV file to validate
- * valid: Mock parameter to simulate valid or invalid responses for testing
  *
  * Returns:
  * ManifestValidationResponse with validation status and any errors found

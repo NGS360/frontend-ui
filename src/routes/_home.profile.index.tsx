@@ -12,7 +12,7 @@ import { JobStatusBadge } from '@/components/job-status-badge'
 import { FullscreenSpinner } from '@/components/spinner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-export const Route = createFileRoute('/profile/')({
+export const Route = createFileRoute('/_home/profile/')({
   component: RouteComponent,
 })
 

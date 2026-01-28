@@ -6,10 +6,11 @@ export const RouteComponent = () => (
   </>
 )
 
-export const Route = createFileRoute('/admin/project-settings')({
+export const Route = createFileRoute('/_home/admin/vendors')({
   component: RouteComponent,
   loader: () => ({
-    crumb: 'Project Settings',
+    crumb: 'Vendors',
     includeCrumbLink: true,
   }),
 })
+

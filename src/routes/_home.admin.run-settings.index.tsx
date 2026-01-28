@@ -6,7 +6,7 @@ import type { HttpValidationError, Setting } from '@/client'
 import { getSettingsByTagOptions, getSettingsByTagQueryKey, updateSettingMutation } from '@/client/@tanstack/react-query.gen'
 import { SettingCard } from '@/components/app-setting-card'
 
-export const Route = createFileRoute('/admin/run-settings/')({
+export const Route = createFileRoute('/_home/admin/run-settings/')({
   component: RouteComponent,
 })
 

@@ -12,7 +12,7 @@ import { NotFoundComponent } from '@/components/indexqc-not-found-component';
 import { getRunMetrics } from '@/client';
 import { FullscreenSpinner } from '@/components/spinner';
 
-export const Route = createFileRoute('/runs/$run_barcode/indexqc/')({
+export const Route = createFileRoute('/_home/runs/$run_barcode/indexqc/')({
   component: RouteComponent,
   loader: async ({ params }) => {
 
@@ -52,7 +52,7 @@ interface ReadCountData {
 
 function RouteComponent() {
   // Load run data
-  const routeApi = getRouteApi('/runs/$run_barcode/indexqc/')
+  const routeApi = getRouteApi('/_home/runs/$run_barcode/indexqc/')
   const { runMetrics } = routeApi.useLoaderData()
 
   // Get mobile state
@@ -72,7 +72,7 @@ function RouteComponent() {
 
     // Compute the barchart data
     d.DemuxResults?.forEach(res => {
-      const pct = (res.NumberReads || 0 / d.TotalClustersPF) * 100
+      const pct = ((res.NumberReads || 0) / d.TotalClustersPF) * 100
       barChartData.push({
         lane: d.LaneNumber,
         sampleId: res.SampleId,

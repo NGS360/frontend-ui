@@ -11,716 +11,826 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as RunsRouteImport } from './routes/runs.route'
-import { Route as ProjectsRouteImport } from './routes/projects.route'
-import { Route as ProfileRouteImport } from './routes/profile.route'
-import { Route as JobsRouteImport } from './routes/jobs.route'
-import { Route as AdminRouteImport } from './routes/admin.route'
-import { Route as IndexImport } from './routes/index'
-import { Route as RunsIndexImport } from './routes/runs.index'
-import { Route as ProjectsIndexImport } from './routes/projects.index'
-import { Route as ProfileIndexImport } from './routes/profile.index'
-import { Route as JobsIndexImport } from './routes/jobs.index'
-import { Route as AdminIndexImport } from './routes/admin.index'
-import { Route as RunsRunbarcodeRouteImport } from './routes/runs.$run_barcode.route'
-import { Route as ProjectsProjectidRouteImport } from './routes/projects.$project_id.route'
-import { Route as JobsJobidRouteImport } from './routes/jobs.$job_id.route'
-import { Route as AdminVendorsRouteImport } from './routes/admin.vendors.route'
-import { Route as AdminRunSettingsRouteImport } from './routes/admin.run-settings.route'
-import { Route as AdminProjectSettingsRouteImport } from './routes/admin.project-settings.route'
-import { Route as AdminJobsRouteImport } from './routes/admin.jobs.route'
-import { Route as RunsRunbarcodeIndexImport } from './routes/runs.$run_barcode.index'
-import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
-import { Route as JobsJobidIndexImport } from './routes/jobs.$job_id.index'
-import { Route as AdminVendorsIndexImport } from './routes/admin.vendors.index'
-import { Route as AdminRunSettingsIndexImport } from './routes/admin.run-settings.index'
-import { Route as AdminProjectSettingsIndexImport } from './routes/admin.project-settings.index'
-import { Route as AdminJobsIndexImport } from './routes/admin.jobs.index'
-import { Route as RunsRunbarcodeSamplesheetRouteImport } from './routes/runs.$run_barcode.samplesheet.route'
-import { Route as RunsRunbarcodeIndexqcRouteImport } from './routes/runs.$run_barcode.indexqc.route'
-import { Route as RunsRunbarcodeSamplesheetIndexImport } from './routes/runs.$run_barcode.samplesheet.index'
-import { Route as RunsRunbarcodeIndexqcIndexImport } from './routes/runs.$run_barcode.indexqc.index'
+import { Route as UserRouteImport } from './routes/_user.route'
+import { Route as HomeRouteImport } from './routes/_home.route'
+import { Route as HomeIndexImport } from './routes/_home.index'
+import { Route as HomeRunsRouteImport } from './routes/_home.runs.route'
+import { Route as HomeProjectsRouteImport } from './routes/_home.projects.route'
+import { Route as HomeProfileRouteImport } from './routes/_home.profile.route'
+import { Route as HomeJobsRouteImport } from './routes/_home.jobs.route'
+import { Route as HomeAdminRouteImport } from './routes/_home.admin.route'
+import { Route as UserRegisterIndexImport } from './routes/_user.register.index'
+import { Route as UserLoginIndexImport } from './routes/_user.login.index'
+import { Route as HomeRunsIndexImport } from './routes/_home.runs.index'
+import { Route as HomeProjectsIndexImport } from './routes/_home.projects.index'
+import { Route as HomeProfileIndexImport } from './routes/_home.profile.index'
+import { Route as HomeJobsIndexImport } from './routes/_home.jobs.index'
+import { Route as HomeAdminIndexImport } from './routes/_home.admin.index'
+import { Route as HomeRunsRunbarcodeRouteImport } from './routes/_home.runs.$run_barcode.route'
+import { Route as HomeProjectsProjectidRouteImport } from './routes/_home.projects.$project_id.route'
+import { Route as HomeJobsJobidRouteImport } from './routes/_home.jobs.$job_id.route'
+import { Route as HomeAdminVendorsRouteImport } from './routes/_home.admin.vendors.route'
+import { Route as HomeAdminRunSettingsRouteImport } from './routes/_home.admin.run-settings.route'
+import { Route as HomeAdminProjectSettingsRouteImport } from './routes/_home.admin.project-settings.route'
+import { Route as HomeAdminJobsRouteImport } from './routes/_home.admin.jobs.route'
+import { Route as HomeRunsRunbarcodeIndexImport } from './routes/_home.runs.$run_barcode.index'
+import { Route as HomeProjectsProjectidIndexImport } from './routes/_home.projects.$project_id.index'
+import { Route as HomeJobsJobidIndexImport } from './routes/_home.jobs.$job_id.index'
+import { Route as HomeAdminVendorsIndexImport } from './routes/_home.admin.vendors.index'
+import { Route as HomeAdminRunSettingsIndexImport } from './routes/_home.admin.run-settings.index'
+import { Route as HomeAdminProjectSettingsIndexImport } from './routes/_home.admin.project-settings.index'
+import { Route as HomeAdminJobsIndexImport } from './routes/_home.admin.jobs.index'
+import { Route as HomeRunsRunbarcodeSamplesheetRouteImport } from './routes/_home.runs.$run_barcode.samplesheet.route'
+import { Route as HomeRunsRunbarcodeIndexqcRouteImport } from './routes/_home.runs.$run_barcode.indexqc.route'
+import { Route as HomeRunsRunbarcodeSamplesheetIndexImport } from './routes/_home.runs.$run_barcode.samplesheet.index'
+import { Route as HomeRunsRunbarcodeIndexqcIndexImport } from './routes/_home.runs.$run_barcode.indexqc.index'
 
 // Create/Update Routes
 
-const RunsRouteRoute = RunsRouteImport.update({
+const UserRouteRoute = UserRouteImport.update({
+  id: '/_user',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const HomeRouteRoute = HomeRouteImport.update({
+  id: '/_home',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const HomeIndexRoute = HomeIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HomeRouteRoute,
+} as any)
+
+const HomeRunsRouteRoute = HomeRunsRouteImport.update({
   id: '/runs',
   path: '/runs',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 
-const ProjectsRouteRoute = ProjectsRouteImport.update({
+const HomeProjectsRouteRoute = HomeProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 
-const ProfileRouteRoute = ProfileRouteImport.update({
+const HomeProfileRouteRoute = HomeProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 
-const JobsRouteRoute = JobsRouteImport.update({
+const HomeJobsRouteRoute = HomeJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 
-const AdminRouteRoute = AdminRouteImport.update({
+const HomeAdminRouteRoute = HomeAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 
-const IndexRoute = IndexImport.update({
+const UserRegisterIndexRoute = UserRegisterIndexImport.update({
+  id: '/register/',
+  path: '/register/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const UserLoginIndexRoute = UserLoginIndexImport.update({
+  id: '/login/',
+  path: '/login/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const HomeRunsIndexRoute = HomeRunsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => HomeRunsRouteRoute,
 } as any)
 
-const RunsIndexRoute = RunsIndexImport.update({
+const HomeProjectsIndexRoute = HomeProjectsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => RunsRouteRoute,
+  getParentRoute: () => HomeProjectsRouteRoute,
 } as any)
 
-const ProjectsIndexRoute = ProjectsIndexImport.update({
+const HomeProfileIndexRoute = HomeProfileIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProjectsRouteRoute,
+  getParentRoute: () => HomeProfileRouteRoute,
 } as any)
 
-const ProfileIndexRoute = ProfileIndexImport.update({
+const HomeJobsIndexRoute = HomeJobsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProfileRouteRoute,
+  getParentRoute: () => HomeJobsRouteRoute,
 } as any)
 
-const JobsIndexRoute = JobsIndexImport.update({
+const HomeAdminIndexRoute = HomeAdminIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => JobsRouteRoute,
+  getParentRoute: () => HomeAdminRouteRoute,
 } as any)
 
-const AdminIndexRoute = AdminIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-
-const RunsRunbarcodeRouteRoute = RunsRunbarcodeRouteImport.update({
+const HomeRunsRunbarcodeRouteRoute = HomeRunsRunbarcodeRouteImport.update({
   id: '/$run_barcode',
   path: '/$run_barcode',
-  getParentRoute: () => RunsRouteRoute,
+  getParentRoute: () => HomeRunsRouteRoute,
 } as any)
 
-const ProjectsProjectidRouteRoute = ProjectsProjectidRouteImport.update({
-  id: '/$project_id',
-  path: '/$project_id',
-  getParentRoute: () => ProjectsRouteRoute,
-} as any)
+const HomeProjectsProjectidRouteRoute = HomeProjectsProjectidRouteImport.update(
+  {
+    id: '/$project_id',
+    path: '/$project_id',
+    getParentRoute: () => HomeProjectsRouteRoute,
+  } as any,
+)
 
-const JobsJobidRouteRoute = JobsJobidRouteImport.update({
+const HomeJobsJobidRouteRoute = HomeJobsJobidRouteImport.update({
   id: '/$job_id',
   path: '/$job_id',
-  getParentRoute: () => JobsRouteRoute,
+  getParentRoute: () => HomeJobsRouteRoute,
 } as any)
 
-const AdminVendorsRouteRoute = AdminVendorsRouteImport.update({
+const HomeAdminVendorsRouteRoute = HomeAdminVendorsRouteImport.update({
   id: '/vendors',
   path: '/vendors',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => HomeAdminRouteRoute,
 } as any)
 
-const AdminRunSettingsRouteRoute = AdminRunSettingsRouteImport.update({
+const HomeAdminRunSettingsRouteRoute = HomeAdminRunSettingsRouteImport.update({
   id: '/run-settings',
   path: '/run-settings',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => HomeAdminRouteRoute,
 } as any)
 
-const AdminProjectSettingsRouteRoute = AdminProjectSettingsRouteImport.update({
-  id: '/project-settings',
-  path: '/project-settings',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
+const HomeAdminProjectSettingsRouteRoute =
+  HomeAdminProjectSettingsRouteImport.update({
+    id: '/project-settings',
+    path: '/project-settings',
+    getParentRoute: () => HomeAdminRouteRoute,
+  } as any)
 
-const AdminJobsRouteRoute = AdminJobsRouteImport.update({
+const HomeAdminJobsRouteRoute = HomeAdminJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => HomeAdminRouteRoute,
 } as any)
 
-const RunsRunbarcodeIndexRoute = RunsRunbarcodeIndexImport.update({
+const HomeRunsRunbarcodeIndexRoute = HomeRunsRunbarcodeIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => RunsRunbarcodeRouteRoute,
+  getParentRoute: () => HomeRunsRunbarcodeRouteRoute,
 } as any)
 
-const ProjectsProjectidIndexRoute = ProjectsProjectidIndexImport.update({
+const HomeProjectsProjectidIndexRoute = HomeProjectsProjectidIndexImport.update(
+  {
+    id: '/',
+    path: '/',
+    getParentRoute: () => HomeProjectsProjectidRouteRoute,
+  } as any,
+)
+
+const HomeJobsJobidIndexRoute = HomeJobsJobidIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProjectsProjectidRouteRoute,
+  getParentRoute: () => HomeJobsJobidRouteRoute,
 } as any)
 
-const JobsJobidIndexRoute = JobsJobidIndexImport.update({
+const HomeAdminVendorsIndexRoute = HomeAdminVendorsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => JobsJobidRouteRoute,
+  getParentRoute: () => HomeAdminVendorsRouteRoute,
 } as any)
 
-const AdminVendorsIndexRoute = AdminVendorsIndexImport.update({
+const HomeAdminRunSettingsIndexRoute = HomeAdminRunSettingsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminVendorsRouteRoute,
+  getParentRoute: () => HomeAdminRunSettingsRouteRoute,
 } as any)
 
-const AdminRunSettingsIndexRoute = AdminRunSettingsIndexImport.update({
+const HomeAdminProjectSettingsIndexRoute =
+  HomeAdminProjectSettingsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => HomeAdminProjectSettingsRouteRoute,
+  } as any)
+
+const HomeAdminJobsIndexRoute = HomeAdminJobsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRunSettingsRouteRoute,
+  getParentRoute: () => HomeAdminJobsRouteRoute,
 } as any)
 
-const AdminProjectSettingsIndexRoute = AdminProjectSettingsIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminProjectSettingsRouteRoute,
-} as any)
-
-const AdminJobsIndexRoute = AdminJobsIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminJobsRouteRoute,
-} as any)
-
-const RunsRunbarcodeSamplesheetRouteRoute =
-  RunsRunbarcodeSamplesheetRouteImport.update({
+const HomeRunsRunbarcodeSamplesheetRouteRoute =
+  HomeRunsRunbarcodeSamplesheetRouteImport.update({
     id: '/samplesheet',
     path: '/samplesheet',
-    getParentRoute: () => RunsRunbarcodeRouteRoute,
+    getParentRoute: () => HomeRunsRunbarcodeRouteRoute,
   } as any)
 
-const RunsRunbarcodeIndexqcRouteRoute = RunsRunbarcodeIndexqcRouteImport.update(
-  {
+const HomeRunsRunbarcodeIndexqcRouteRoute =
+  HomeRunsRunbarcodeIndexqcRouteImport.update({
     id: '/indexqc',
     path: '/indexqc',
-    getParentRoute: () => RunsRunbarcodeRouteRoute,
-  } as any,
-)
-
-const RunsRunbarcodeSamplesheetIndexRoute =
-  RunsRunbarcodeSamplesheetIndexImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => RunsRunbarcodeSamplesheetRouteRoute,
+    getParentRoute: () => HomeRunsRunbarcodeRouteRoute,
   } as any)
 
-const RunsRunbarcodeIndexqcIndexRoute = RunsRunbarcodeIndexqcIndexImport.update(
-  {
+const HomeRunsRunbarcodeSamplesheetIndexRoute =
+  HomeRunsRunbarcodeSamplesheetIndexImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => RunsRunbarcodeIndexqcRouteRoute,
-  } as any,
-)
+    getParentRoute: () => HomeRunsRunbarcodeSamplesheetRouteRoute,
+  } as any)
+
+const HomeRunsRunbarcodeIndexqcIndexRoute =
+  HomeRunsRunbarcodeIndexqcIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => HomeRunsRunbarcodeIndexqcRouteRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
+    '/_home': {
+      id: '/_home'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRoute
     }
-    '/admin': {
-      id: '/admin'
+    '/_user': {
+      id: '/_user'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof UserRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/_home/admin': {
+      id: '/_home/admin'
       path: '/admin'
       fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof HomeAdminRouteImport
+      parentRoute: typeof HomeRouteImport
     }
-    '/jobs': {
-      id: '/jobs'
+    '/_home/jobs': {
+      id: '/_home/jobs'
       path: '/jobs'
       fullPath: '/jobs'
-      preLoaderRoute: typeof JobsRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof HomeJobsRouteImport
+      parentRoute: typeof HomeRouteImport
     }
-    '/profile': {
-      id: '/profile'
+    '/_home/profile': {
+      id: '/_home/profile'
       path: '/profile'
       fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof HomeProfileRouteImport
+      parentRoute: typeof HomeRouteImport
     }
-    '/projects': {
-      id: '/projects'
+    '/_home/projects': {
+      id: '/_home/projects'
       path: '/projects'
       fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof HomeProjectsRouteImport
+      parentRoute: typeof HomeRouteImport
     }
-    '/runs': {
-      id: '/runs'
+    '/_home/runs': {
+      id: '/_home/runs'
       path: '/runs'
       fullPath: '/runs'
-      preLoaderRoute: typeof RunsRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof HomeRunsRouteImport
+      parentRoute: typeof HomeRouteImport
     }
-    '/admin/jobs': {
-      id: '/admin/jobs'
+    '/_home/': {
+      id: '/_home/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof HomeIndexImport
+      parentRoute: typeof HomeRouteImport
+    }
+    '/_home/admin/jobs': {
+      id: '/_home/admin/jobs'
       path: '/jobs'
       fullPath: '/admin/jobs'
-      preLoaderRoute: typeof AdminJobsRouteImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof HomeAdminJobsRouteImport
+      parentRoute: typeof HomeAdminRouteImport
     }
-    '/admin/project-settings': {
-      id: '/admin/project-settings'
+    '/_home/admin/project-settings': {
+      id: '/_home/admin/project-settings'
       path: '/project-settings'
       fullPath: '/admin/project-settings'
-      preLoaderRoute: typeof AdminProjectSettingsRouteImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof HomeAdminProjectSettingsRouteImport
+      parentRoute: typeof HomeAdminRouteImport
     }
-    '/admin/run-settings': {
-      id: '/admin/run-settings'
+    '/_home/admin/run-settings': {
+      id: '/_home/admin/run-settings'
       path: '/run-settings'
       fullPath: '/admin/run-settings'
-      preLoaderRoute: typeof AdminRunSettingsRouteImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof HomeAdminRunSettingsRouteImport
+      parentRoute: typeof HomeAdminRouteImport
     }
-    '/admin/vendors': {
-      id: '/admin/vendors'
+    '/_home/admin/vendors': {
+      id: '/_home/admin/vendors'
       path: '/vendors'
       fullPath: '/admin/vendors'
-      preLoaderRoute: typeof AdminVendorsRouteImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof HomeAdminVendorsRouteImport
+      parentRoute: typeof HomeAdminRouteImport
     }
-    '/jobs/$job_id': {
-      id: '/jobs/$job_id'
+    '/_home/jobs/$job_id': {
+      id: '/_home/jobs/$job_id'
       path: '/$job_id'
       fullPath: '/jobs/$job_id'
-      preLoaderRoute: typeof JobsJobidRouteImport
-      parentRoute: typeof JobsRouteImport
+      preLoaderRoute: typeof HomeJobsJobidRouteImport
+      parentRoute: typeof HomeJobsRouteImport
     }
-    '/projects/$project_id': {
-      id: '/projects/$project_id'
+    '/_home/projects/$project_id': {
+      id: '/_home/projects/$project_id'
       path: '/$project_id'
       fullPath: '/projects/$project_id'
-      preLoaderRoute: typeof ProjectsProjectidRouteImport
-      parentRoute: typeof ProjectsRouteImport
+      preLoaderRoute: typeof HomeProjectsProjectidRouteImport
+      parentRoute: typeof HomeProjectsRouteImport
     }
-    '/runs/$run_barcode': {
-      id: '/runs/$run_barcode'
+    '/_home/runs/$run_barcode': {
+      id: '/_home/runs/$run_barcode'
       path: '/$run_barcode'
       fullPath: '/runs/$run_barcode'
-      preLoaderRoute: typeof RunsRunbarcodeRouteImport
-      parentRoute: typeof RunsRouteImport
+      preLoaderRoute: typeof HomeRunsRunbarcodeRouteImport
+      parentRoute: typeof HomeRunsRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
+    '/_home/admin/': {
+      id: '/_home/admin/'
       path: '/'
       fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof HomeAdminIndexImport
+      parentRoute: typeof HomeAdminRouteImport
     }
-    '/jobs/': {
-      id: '/jobs/'
+    '/_home/jobs/': {
+      id: '/_home/jobs/'
       path: '/'
       fullPath: '/jobs/'
-      preLoaderRoute: typeof JobsIndexImport
-      parentRoute: typeof JobsRouteImport
+      preLoaderRoute: typeof HomeJobsIndexImport
+      parentRoute: typeof HomeJobsRouteImport
     }
-    '/profile/': {
-      id: '/profile/'
+    '/_home/profile/': {
+      id: '/_home/profile/'
       path: '/'
       fullPath: '/profile/'
-      preLoaderRoute: typeof ProfileIndexImport
-      parentRoute: typeof ProfileRouteImport
+      preLoaderRoute: typeof HomeProfileIndexImport
+      parentRoute: typeof HomeProfileRouteImport
     }
-    '/projects/': {
-      id: '/projects/'
+    '/_home/projects/': {
+      id: '/_home/projects/'
       path: '/'
       fullPath: '/projects/'
-      preLoaderRoute: typeof ProjectsIndexImport
-      parentRoute: typeof ProjectsRouteImport
+      preLoaderRoute: typeof HomeProjectsIndexImport
+      parentRoute: typeof HomeProjectsRouteImport
     }
-    '/runs/': {
-      id: '/runs/'
+    '/_home/runs/': {
+      id: '/_home/runs/'
       path: '/'
       fullPath: '/runs/'
-      preLoaderRoute: typeof RunsIndexImport
-      parentRoute: typeof RunsRouteImport
+      preLoaderRoute: typeof HomeRunsIndexImport
+      parentRoute: typeof HomeRunsRouteImport
     }
-    '/runs/$run_barcode/indexqc': {
-      id: '/runs/$run_barcode/indexqc'
+    '/_user/login/': {
+      id: '/_user/login/'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof UserLoginIndexImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_user/register/': {
+      id: '/_user/register/'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof UserRegisterIndexImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_home/runs/$run_barcode/indexqc': {
+      id: '/_home/runs/$run_barcode/indexqc'
       path: '/indexqc'
       fullPath: '/runs/$run_barcode/indexqc'
-      preLoaderRoute: typeof RunsRunbarcodeIndexqcRouteImport
-      parentRoute: typeof RunsRunbarcodeRouteImport
+      preLoaderRoute: typeof HomeRunsRunbarcodeIndexqcRouteImport
+      parentRoute: typeof HomeRunsRunbarcodeRouteImport
     }
-    '/runs/$run_barcode/samplesheet': {
-      id: '/runs/$run_barcode/samplesheet'
+    '/_home/runs/$run_barcode/samplesheet': {
+      id: '/_home/runs/$run_barcode/samplesheet'
       path: '/samplesheet'
       fullPath: '/runs/$run_barcode/samplesheet'
-      preLoaderRoute: typeof RunsRunbarcodeSamplesheetRouteImport
-      parentRoute: typeof RunsRunbarcodeRouteImport
+      preLoaderRoute: typeof HomeRunsRunbarcodeSamplesheetRouteImport
+      parentRoute: typeof HomeRunsRunbarcodeRouteImport
     }
-    '/admin/jobs/': {
-      id: '/admin/jobs/'
+    '/_home/admin/jobs/': {
+      id: '/_home/admin/jobs/'
       path: '/'
       fullPath: '/admin/jobs/'
-      preLoaderRoute: typeof AdminJobsIndexImport
-      parentRoute: typeof AdminJobsRouteImport
+      preLoaderRoute: typeof HomeAdminJobsIndexImport
+      parentRoute: typeof HomeAdminJobsRouteImport
     }
-    '/admin/project-settings/': {
-      id: '/admin/project-settings/'
+    '/_home/admin/project-settings/': {
+      id: '/_home/admin/project-settings/'
       path: '/'
       fullPath: '/admin/project-settings/'
-      preLoaderRoute: typeof AdminProjectSettingsIndexImport
-      parentRoute: typeof AdminProjectSettingsRouteImport
+      preLoaderRoute: typeof HomeAdminProjectSettingsIndexImport
+      parentRoute: typeof HomeAdminProjectSettingsRouteImport
     }
-    '/admin/run-settings/': {
-      id: '/admin/run-settings/'
+    '/_home/admin/run-settings/': {
+      id: '/_home/admin/run-settings/'
       path: '/'
       fullPath: '/admin/run-settings/'
-      preLoaderRoute: typeof AdminRunSettingsIndexImport
-      parentRoute: typeof AdminRunSettingsRouteImport
+      preLoaderRoute: typeof HomeAdminRunSettingsIndexImport
+      parentRoute: typeof HomeAdminRunSettingsRouteImport
     }
-    '/admin/vendors/': {
-      id: '/admin/vendors/'
+    '/_home/admin/vendors/': {
+      id: '/_home/admin/vendors/'
       path: '/'
       fullPath: '/admin/vendors/'
-      preLoaderRoute: typeof AdminVendorsIndexImport
-      parentRoute: typeof AdminVendorsRouteImport
+      preLoaderRoute: typeof HomeAdminVendorsIndexImport
+      parentRoute: typeof HomeAdminVendorsRouteImport
     }
-    '/jobs/$job_id/': {
-      id: '/jobs/$job_id/'
+    '/_home/jobs/$job_id/': {
+      id: '/_home/jobs/$job_id/'
       path: '/'
       fullPath: '/jobs/$job_id/'
-      preLoaderRoute: typeof JobsJobidIndexImport
-      parentRoute: typeof JobsJobidRouteImport
+      preLoaderRoute: typeof HomeJobsJobidIndexImport
+      parentRoute: typeof HomeJobsJobidRouteImport
     }
-    '/projects/$project_id/': {
-      id: '/projects/$project_id/'
+    '/_home/projects/$project_id/': {
+      id: '/_home/projects/$project_id/'
       path: '/'
       fullPath: '/projects/$project_id/'
-      preLoaderRoute: typeof ProjectsProjectidIndexImport
-      parentRoute: typeof ProjectsProjectidRouteImport
+      preLoaderRoute: typeof HomeProjectsProjectidIndexImport
+      parentRoute: typeof HomeProjectsProjectidRouteImport
     }
-    '/runs/$run_barcode/': {
-      id: '/runs/$run_barcode/'
+    '/_home/runs/$run_barcode/': {
+      id: '/_home/runs/$run_barcode/'
       path: '/'
       fullPath: '/runs/$run_barcode/'
-      preLoaderRoute: typeof RunsRunbarcodeIndexImport
-      parentRoute: typeof RunsRunbarcodeRouteImport
+      preLoaderRoute: typeof HomeRunsRunbarcodeIndexImport
+      parentRoute: typeof HomeRunsRunbarcodeRouteImport
     }
-    '/runs/$run_barcode/indexqc/': {
-      id: '/runs/$run_barcode/indexqc/'
+    '/_home/runs/$run_barcode/indexqc/': {
+      id: '/_home/runs/$run_barcode/indexqc/'
       path: '/'
       fullPath: '/runs/$run_barcode/indexqc/'
-      preLoaderRoute: typeof RunsRunbarcodeIndexqcIndexImport
-      parentRoute: typeof RunsRunbarcodeIndexqcRouteImport
+      preLoaderRoute: typeof HomeRunsRunbarcodeIndexqcIndexImport
+      parentRoute: typeof HomeRunsRunbarcodeIndexqcRouteImport
     }
-    '/runs/$run_barcode/samplesheet/': {
-      id: '/runs/$run_barcode/samplesheet/'
+    '/_home/runs/$run_barcode/samplesheet/': {
+      id: '/_home/runs/$run_barcode/samplesheet/'
       path: '/'
       fullPath: '/runs/$run_barcode/samplesheet/'
-      preLoaderRoute: typeof RunsRunbarcodeSamplesheetIndexImport
-      parentRoute: typeof RunsRunbarcodeSamplesheetRouteImport
+      preLoaderRoute: typeof HomeRunsRunbarcodeSamplesheetIndexImport
+      parentRoute: typeof HomeRunsRunbarcodeSamplesheetRouteImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface AdminJobsRouteRouteChildren {
-  AdminJobsIndexRoute: typeof AdminJobsIndexRoute
+interface HomeAdminJobsRouteRouteChildren {
+  HomeAdminJobsIndexRoute: typeof HomeAdminJobsIndexRoute
 }
 
-const AdminJobsRouteRouteChildren: AdminJobsRouteRouteChildren = {
-  AdminJobsIndexRoute: AdminJobsIndexRoute,
+const HomeAdminJobsRouteRouteChildren: HomeAdminJobsRouteRouteChildren = {
+  HomeAdminJobsIndexRoute: HomeAdminJobsIndexRoute,
 }
 
-const AdminJobsRouteRouteWithChildren = AdminJobsRouteRoute._addFileChildren(
-  AdminJobsRouteRouteChildren,
-)
+const HomeAdminJobsRouteRouteWithChildren =
+  HomeAdminJobsRouteRoute._addFileChildren(HomeAdminJobsRouteRouteChildren)
 
-interface AdminProjectSettingsRouteRouteChildren {
-  AdminProjectSettingsIndexRoute: typeof AdminProjectSettingsIndexRoute
+interface HomeAdminProjectSettingsRouteRouteChildren {
+  HomeAdminProjectSettingsIndexRoute: typeof HomeAdminProjectSettingsIndexRoute
 }
 
-const AdminProjectSettingsRouteRouteChildren: AdminProjectSettingsRouteRouteChildren =
+const HomeAdminProjectSettingsRouteRouteChildren: HomeAdminProjectSettingsRouteRouteChildren =
   {
-    AdminProjectSettingsIndexRoute: AdminProjectSettingsIndexRoute,
+    HomeAdminProjectSettingsIndexRoute: HomeAdminProjectSettingsIndexRoute,
   }
 
-const AdminProjectSettingsRouteRouteWithChildren =
-  AdminProjectSettingsRouteRoute._addFileChildren(
-    AdminProjectSettingsRouteRouteChildren,
+const HomeAdminProjectSettingsRouteRouteWithChildren =
+  HomeAdminProjectSettingsRouteRoute._addFileChildren(
+    HomeAdminProjectSettingsRouteRouteChildren,
   )
 
-interface AdminRunSettingsRouteRouteChildren {
-  AdminRunSettingsIndexRoute: typeof AdminRunSettingsIndexRoute
+interface HomeAdminRunSettingsRouteRouteChildren {
+  HomeAdminRunSettingsIndexRoute: typeof HomeAdminRunSettingsIndexRoute
 }
 
-const AdminRunSettingsRouteRouteChildren: AdminRunSettingsRouteRouteChildren = {
-  AdminRunSettingsIndexRoute: AdminRunSettingsIndexRoute,
-}
-
-const AdminRunSettingsRouteRouteWithChildren =
-  AdminRunSettingsRouteRoute._addFileChildren(
-    AdminRunSettingsRouteRouteChildren,
-  )
-
-interface AdminVendorsRouteRouteChildren {
-  AdminVendorsIndexRoute: typeof AdminVendorsIndexRoute
-}
-
-const AdminVendorsRouteRouteChildren: AdminVendorsRouteRouteChildren = {
-  AdminVendorsIndexRoute: AdminVendorsIndexRoute,
-}
-
-const AdminVendorsRouteRouteWithChildren =
-  AdminVendorsRouteRoute._addFileChildren(AdminVendorsRouteRouteChildren)
-
-interface AdminRouteRouteChildren {
-  AdminJobsRouteRoute: typeof AdminJobsRouteRouteWithChildren
-  AdminProjectSettingsRouteRoute: typeof AdminProjectSettingsRouteRouteWithChildren
-  AdminRunSettingsRouteRoute: typeof AdminRunSettingsRouteRouteWithChildren
-  AdminVendorsRouteRoute: typeof AdminVendorsRouteRouteWithChildren
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteRouteChildren: AdminRouteRouteChildren = {
-  AdminJobsRouteRoute: AdminJobsRouteRouteWithChildren,
-  AdminProjectSettingsRouteRoute: AdminProjectSettingsRouteRouteWithChildren,
-  AdminRunSettingsRouteRoute: AdminRunSettingsRouteRouteWithChildren,
-  AdminVendorsRouteRoute: AdminVendorsRouteRouteWithChildren,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
-  AdminRouteRouteChildren,
-)
-
-interface JobsJobidRouteRouteChildren {
-  JobsJobidIndexRoute: typeof JobsJobidIndexRoute
-}
-
-const JobsJobidRouteRouteChildren: JobsJobidRouteRouteChildren = {
-  JobsJobidIndexRoute: JobsJobidIndexRoute,
-}
-
-const JobsJobidRouteRouteWithChildren = JobsJobidRouteRoute._addFileChildren(
-  JobsJobidRouteRouteChildren,
-)
-
-interface JobsRouteRouteChildren {
-  JobsJobidRouteRoute: typeof JobsJobidRouteRouteWithChildren
-  JobsIndexRoute: typeof JobsIndexRoute
-}
-
-const JobsRouteRouteChildren: JobsRouteRouteChildren = {
-  JobsJobidRouteRoute: JobsJobidRouteRouteWithChildren,
-  JobsIndexRoute: JobsIndexRoute,
-}
-
-const JobsRouteRouteWithChildren = JobsRouteRoute._addFileChildren(
-  JobsRouteRouteChildren,
-)
-
-interface ProfileRouteRouteChildren {
-  ProfileIndexRoute: typeof ProfileIndexRoute
-}
-
-const ProfileRouteRouteChildren: ProfileRouteRouteChildren = {
-  ProfileIndexRoute: ProfileIndexRoute,
-}
-
-const ProfileRouteRouteWithChildren = ProfileRouteRoute._addFileChildren(
-  ProfileRouteRouteChildren,
-)
-
-interface ProjectsProjectidRouteRouteChildren {
-  ProjectsProjectidIndexRoute: typeof ProjectsProjectidIndexRoute
-}
-
-const ProjectsProjectidRouteRouteChildren: ProjectsProjectidRouteRouteChildren =
+const HomeAdminRunSettingsRouteRouteChildren: HomeAdminRunSettingsRouteRouteChildren =
   {
-    ProjectsProjectidIndexRoute: ProjectsProjectidIndexRoute,
+    HomeAdminRunSettingsIndexRoute: HomeAdminRunSettingsIndexRoute,
   }
 
-const ProjectsProjectidRouteRouteWithChildren =
-  ProjectsProjectidRouteRoute._addFileChildren(
-    ProjectsProjectidRouteRouteChildren,
+const HomeAdminRunSettingsRouteRouteWithChildren =
+  HomeAdminRunSettingsRouteRoute._addFileChildren(
+    HomeAdminRunSettingsRouteRouteChildren,
   )
 
-interface ProjectsRouteRouteChildren {
-  ProjectsProjectidRouteRoute: typeof ProjectsProjectidRouteRouteWithChildren
-  ProjectsIndexRoute: typeof ProjectsIndexRoute
+interface HomeAdminVendorsRouteRouteChildren {
+  HomeAdminVendorsIndexRoute: typeof HomeAdminVendorsIndexRoute
 }
 
-const ProjectsRouteRouteChildren: ProjectsRouteRouteChildren = {
-  ProjectsProjectidRouteRoute: ProjectsProjectidRouteRouteWithChildren,
-  ProjectsIndexRoute: ProjectsIndexRoute,
+const HomeAdminVendorsRouteRouteChildren: HomeAdminVendorsRouteRouteChildren = {
+  HomeAdminVendorsIndexRoute: HomeAdminVendorsIndexRoute,
 }
 
-const ProjectsRouteRouteWithChildren = ProjectsRouteRoute._addFileChildren(
-  ProjectsRouteRouteChildren,
+const HomeAdminVendorsRouteRouteWithChildren =
+  HomeAdminVendorsRouteRoute._addFileChildren(
+    HomeAdminVendorsRouteRouteChildren,
+  )
+
+interface HomeAdminRouteRouteChildren {
+  HomeAdminJobsRouteRoute: typeof HomeAdminJobsRouteRouteWithChildren
+  HomeAdminProjectSettingsRouteRoute: typeof HomeAdminProjectSettingsRouteRouteWithChildren
+  HomeAdminRunSettingsRouteRoute: typeof HomeAdminRunSettingsRouteRouteWithChildren
+  HomeAdminVendorsRouteRoute: typeof HomeAdminVendorsRouteRouteWithChildren
+  HomeAdminIndexRoute: typeof HomeAdminIndexRoute
+}
+
+const HomeAdminRouteRouteChildren: HomeAdminRouteRouteChildren = {
+  HomeAdminJobsRouteRoute: HomeAdminJobsRouteRouteWithChildren,
+  HomeAdminProjectSettingsRouteRoute:
+    HomeAdminProjectSettingsRouteRouteWithChildren,
+  HomeAdminRunSettingsRouteRoute: HomeAdminRunSettingsRouteRouteWithChildren,
+  HomeAdminVendorsRouteRoute: HomeAdminVendorsRouteRouteWithChildren,
+  HomeAdminIndexRoute: HomeAdminIndexRoute,
+}
+
+const HomeAdminRouteRouteWithChildren = HomeAdminRouteRoute._addFileChildren(
+  HomeAdminRouteRouteChildren,
 )
 
-interface RunsRunbarcodeIndexqcRouteRouteChildren {
-  RunsRunbarcodeIndexqcIndexRoute: typeof RunsRunbarcodeIndexqcIndexRoute
+interface HomeJobsJobidRouteRouteChildren {
+  HomeJobsJobidIndexRoute: typeof HomeJobsJobidIndexRoute
 }
 
-const RunsRunbarcodeIndexqcRouteRouteChildren: RunsRunbarcodeIndexqcRouteRouteChildren =
+const HomeJobsJobidRouteRouteChildren: HomeJobsJobidRouteRouteChildren = {
+  HomeJobsJobidIndexRoute: HomeJobsJobidIndexRoute,
+}
+
+const HomeJobsJobidRouteRouteWithChildren =
+  HomeJobsJobidRouteRoute._addFileChildren(HomeJobsJobidRouteRouteChildren)
+
+interface HomeJobsRouteRouteChildren {
+  HomeJobsJobidRouteRoute: typeof HomeJobsJobidRouteRouteWithChildren
+  HomeJobsIndexRoute: typeof HomeJobsIndexRoute
+}
+
+const HomeJobsRouteRouteChildren: HomeJobsRouteRouteChildren = {
+  HomeJobsJobidRouteRoute: HomeJobsJobidRouteRouteWithChildren,
+  HomeJobsIndexRoute: HomeJobsIndexRoute,
+}
+
+const HomeJobsRouteRouteWithChildren = HomeJobsRouteRoute._addFileChildren(
+  HomeJobsRouteRouteChildren,
+)
+
+interface HomeProfileRouteRouteChildren {
+  HomeProfileIndexRoute: typeof HomeProfileIndexRoute
+}
+
+const HomeProfileRouteRouteChildren: HomeProfileRouteRouteChildren = {
+  HomeProfileIndexRoute: HomeProfileIndexRoute,
+}
+
+const HomeProfileRouteRouteWithChildren =
+  HomeProfileRouteRoute._addFileChildren(HomeProfileRouteRouteChildren)
+
+interface HomeProjectsProjectidRouteRouteChildren {
+  HomeProjectsProjectidIndexRoute: typeof HomeProjectsProjectidIndexRoute
+}
+
+const HomeProjectsProjectidRouteRouteChildren: HomeProjectsProjectidRouteRouteChildren =
   {
-    RunsRunbarcodeIndexqcIndexRoute: RunsRunbarcodeIndexqcIndexRoute,
+    HomeProjectsProjectidIndexRoute: HomeProjectsProjectidIndexRoute,
   }
 
-const RunsRunbarcodeIndexqcRouteRouteWithChildren =
-  RunsRunbarcodeIndexqcRouteRoute._addFileChildren(
-    RunsRunbarcodeIndexqcRouteRouteChildren,
+const HomeProjectsProjectidRouteRouteWithChildren =
+  HomeProjectsProjectidRouteRoute._addFileChildren(
+    HomeProjectsProjectidRouteRouteChildren,
   )
 
-interface RunsRunbarcodeSamplesheetRouteRouteChildren {
-  RunsRunbarcodeSamplesheetIndexRoute: typeof RunsRunbarcodeSamplesheetIndexRoute
+interface HomeProjectsRouteRouteChildren {
+  HomeProjectsProjectidRouteRoute: typeof HomeProjectsProjectidRouteRouteWithChildren
+  HomeProjectsIndexRoute: typeof HomeProjectsIndexRoute
 }
 
-const RunsRunbarcodeSamplesheetRouteRouteChildren: RunsRunbarcodeSamplesheetRouteRouteChildren =
+const HomeProjectsRouteRouteChildren: HomeProjectsRouteRouteChildren = {
+  HomeProjectsProjectidRouteRoute: HomeProjectsProjectidRouteRouteWithChildren,
+  HomeProjectsIndexRoute: HomeProjectsIndexRoute,
+}
+
+const HomeProjectsRouteRouteWithChildren =
+  HomeProjectsRouteRoute._addFileChildren(HomeProjectsRouteRouteChildren)
+
+interface HomeRunsRunbarcodeIndexqcRouteRouteChildren {
+  HomeRunsRunbarcodeIndexqcIndexRoute: typeof HomeRunsRunbarcodeIndexqcIndexRoute
+}
+
+const HomeRunsRunbarcodeIndexqcRouteRouteChildren: HomeRunsRunbarcodeIndexqcRouteRouteChildren =
   {
-    RunsRunbarcodeSamplesheetIndexRoute: RunsRunbarcodeSamplesheetIndexRoute,
+    HomeRunsRunbarcodeIndexqcIndexRoute: HomeRunsRunbarcodeIndexqcIndexRoute,
   }
 
-const RunsRunbarcodeSamplesheetRouteRouteWithChildren =
-  RunsRunbarcodeSamplesheetRouteRoute._addFileChildren(
-    RunsRunbarcodeSamplesheetRouteRouteChildren,
+const HomeRunsRunbarcodeIndexqcRouteRouteWithChildren =
+  HomeRunsRunbarcodeIndexqcRouteRoute._addFileChildren(
+    HomeRunsRunbarcodeIndexqcRouteRouteChildren,
   )
 
-interface RunsRunbarcodeRouteRouteChildren {
-  RunsRunbarcodeIndexqcRouteRoute: typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
-  RunsRunbarcodeSamplesheetRouteRoute: typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
-  RunsRunbarcodeIndexRoute: typeof RunsRunbarcodeIndexRoute
+interface HomeRunsRunbarcodeSamplesheetRouteRouteChildren {
+  HomeRunsRunbarcodeSamplesheetIndexRoute: typeof HomeRunsRunbarcodeSamplesheetIndexRoute
 }
 
-const RunsRunbarcodeRouteRouteChildren: RunsRunbarcodeRouteRouteChildren = {
-  RunsRunbarcodeIndexqcRouteRoute: RunsRunbarcodeIndexqcRouteRouteWithChildren,
-  RunsRunbarcodeSamplesheetRouteRoute:
-    RunsRunbarcodeSamplesheetRouteRouteWithChildren,
-  RunsRunbarcodeIndexRoute: RunsRunbarcodeIndexRoute,
+const HomeRunsRunbarcodeSamplesheetRouteRouteChildren: HomeRunsRunbarcodeSamplesheetRouteRouteChildren =
+  {
+    HomeRunsRunbarcodeSamplesheetIndexRoute:
+      HomeRunsRunbarcodeSamplesheetIndexRoute,
+  }
+
+const HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren =
+  HomeRunsRunbarcodeSamplesheetRouteRoute._addFileChildren(
+    HomeRunsRunbarcodeSamplesheetRouteRouteChildren,
+  )
+
+interface HomeRunsRunbarcodeRouteRouteChildren {
+  HomeRunsRunbarcodeIndexqcRouteRoute: typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
+  HomeRunsRunbarcodeSamplesheetRouteRoute: typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  HomeRunsRunbarcodeIndexRoute: typeof HomeRunsRunbarcodeIndexRoute
 }
 
-const RunsRunbarcodeRouteRouteWithChildren =
-  RunsRunbarcodeRouteRoute._addFileChildren(RunsRunbarcodeRouteRouteChildren)
+const HomeRunsRunbarcodeRouteRouteChildren: HomeRunsRunbarcodeRouteRouteChildren =
+  {
+    HomeRunsRunbarcodeIndexqcRouteRoute:
+      HomeRunsRunbarcodeIndexqcRouteRouteWithChildren,
+    HomeRunsRunbarcodeSamplesheetRouteRoute:
+      HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren,
+    HomeRunsRunbarcodeIndexRoute: HomeRunsRunbarcodeIndexRoute,
+  }
 
-interface RunsRouteRouteChildren {
-  RunsRunbarcodeRouteRoute: typeof RunsRunbarcodeRouteRouteWithChildren
-  RunsIndexRoute: typeof RunsIndexRoute
+const HomeRunsRunbarcodeRouteRouteWithChildren =
+  HomeRunsRunbarcodeRouteRoute._addFileChildren(
+    HomeRunsRunbarcodeRouteRouteChildren,
+  )
+
+interface HomeRunsRouteRouteChildren {
+  HomeRunsRunbarcodeRouteRoute: typeof HomeRunsRunbarcodeRouteRouteWithChildren
+  HomeRunsIndexRoute: typeof HomeRunsIndexRoute
 }
 
-const RunsRouteRouteChildren: RunsRouteRouteChildren = {
-  RunsRunbarcodeRouteRoute: RunsRunbarcodeRouteRouteWithChildren,
-  RunsIndexRoute: RunsIndexRoute,
+const HomeRunsRouteRouteChildren: HomeRunsRouteRouteChildren = {
+  HomeRunsRunbarcodeRouteRoute: HomeRunsRunbarcodeRouteRouteWithChildren,
+  HomeRunsIndexRoute: HomeRunsIndexRoute,
 }
 
-const RunsRouteRouteWithChildren = RunsRouteRoute._addFileChildren(
-  RunsRouteRouteChildren,
+const HomeRunsRouteRouteWithChildren = HomeRunsRouteRoute._addFileChildren(
+  HomeRunsRouteRouteChildren,
+)
+
+interface HomeRouteRouteChildren {
+  HomeAdminRouteRoute: typeof HomeAdminRouteRouteWithChildren
+  HomeJobsRouteRoute: typeof HomeJobsRouteRouteWithChildren
+  HomeProfileRouteRoute: typeof HomeProfileRouteRouteWithChildren
+  HomeProjectsRouteRoute: typeof HomeProjectsRouteRouteWithChildren
+  HomeRunsRouteRoute: typeof HomeRunsRouteRouteWithChildren
+  HomeIndexRoute: typeof HomeIndexRoute
+}
+
+const HomeRouteRouteChildren: HomeRouteRouteChildren = {
+  HomeAdminRouteRoute: HomeAdminRouteRouteWithChildren,
+  HomeJobsRouteRoute: HomeJobsRouteRouteWithChildren,
+  HomeProfileRouteRoute: HomeProfileRouteRouteWithChildren,
+  HomeProjectsRouteRoute: HomeProjectsRouteRouteWithChildren,
+  HomeRunsRouteRoute: HomeRunsRouteRouteWithChildren,
+  HomeIndexRoute: HomeIndexRoute,
+}
+
+const HomeRouteRouteWithChildren = HomeRouteRoute._addFileChildren(
+  HomeRouteRouteChildren,
+)
+
+interface UserRouteRouteChildren {
+  UserLoginIndexRoute: typeof UserLoginIndexRoute
+  UserRegisterIndexRoute: typeof UserRegisterIndexRoute
+}
+
+const UserRouteRouteChildren: UserRouteRouteChildren = {
+  UserLoginIndexRoute: UserLoginIndexRoute,
+  UserRegisterIndexRoute: UserRegisterIndexRoute,
+}
+
+const UserRouteRouteWithChildren = UserRouteRoute._addFileChildren(
+  UserRouteRouteChildren,
 )
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRouteRouteWithChildren
-  '/jobs': typeof JobsRouteRouteWithChildren
-  '/profile': typeof ProfileRouteRouteWithChildren
-  '/projects': typeof ProjectsRouteRouteWithChildren
-  '/runs': typeof RunsRouteRouteWithChildren
-  '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
-  '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
-  '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
-  '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
-  '/jobs/$job_id': typeof JobsJobidRouteRouteWithChildren
-  '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
-  '/runs/$run_barcode': typeof RunsRunbarcodeRouteRouteWithChildren
-  '/admin/': typeof AdminIndexRoute
-  '/jobs/': typeof JobsIndexRoute
-  '/profile/': typeof ProfileIndexRoute
-  '/projects/': typeof ProjectsIndexRoute
-  '/runs/': typeof RunsIndexRoute
-  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
-  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
-  '/admin/jobs/': typeof AdminJobsIndexRoute
-  '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
-  '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
-  '/admin/vendors/': typeof AdminVendorsIndexRoute
-  '/jobs/$job_id/': typeof JobsJobidIndexRoute
-  '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
-  '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
-  '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
-  '/runs/$run_barcode/samplesheet/': typeof RunsRunbarcodeSamplesheetIndexRoute
+  '': typeof UserRouteRouteWithChildren
+  '/admin': typeof HomeAdminRouteRouteWithChildren
+  '/jobs': typeof HomeJobsRouteRouteWithChildren
+  '/profile': typeof HomeProfileRouteRouteWithChildren
+  '/projects': typeof HomeProjectsRouteRouteWithChildren
+  '/runs': typeof HomeRunsRouteRouteWithChildren
+  '/': typeof HomeIndexRoute
+  '/admin/jobs': typeof HomeAdminJobsRouteRouteWithChildren
+  '/admin/project-settings': typeof HomeAdminProjectSettingsRouteRouteWithChildren
+  '/admin/run-settings': typeof HomeAdminRunSettingsRouteRouteWithChildren
+  '/admin/vendors': typeof HomeAdminVendorsRouteRouteWithChildren
+  '/jobs/$job_id': typeof HomeJobsJobidRouteRouteWithChildren
+  '/projects/$project_id': typeof HomeProjectsProjectidRouteRouteWithChildren
+  '/runs/$run_barcode': typeof HomeRunsRunbarcodeRouteRouteWithChildren
+  '/admin/': typeof HomeAdminIndexRoute
+  '/jobs/': typeof HomeJobsIndexRoute
+  '/profile/': typeof HomeProfileIndexRoute
+  '/projects/': typeof HomeProjectsIndexRoute
+  '/runs/': typeof HomeRunsIndexRoute
+  '/login': typeof UserLoginIndexRoute
+  '/register': typeof UserRegisterIndexRoute
+  '/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
+  '/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/admin/jobs/': typeof HomeAdminJobsIndexRoute
+  '/admin/project-settings/': typeof HomeAdminProjectSettingsIndexRoute
+  '/admin/run-settings/': typeof HomeAdminRunSettingsIndexRoute
+  '/admin/vendors/': typeof HomeAdminVendorsIndexRoute
+  '/jobs/$job_id/': typeof HomeJobsJobidIndexRoute
+  '/projects/$project_id/': typeof HomeProjectsProjectidIndexRoute
+  '/runs/$run_barcode/': typeof HomeRunsRunbarcodeIndexRoute
+  '/runs/$run_barcode/indexqc/': typeof HomeRunsRunbarcodeIndexqcIndexRoute
+  '/runs/$run_barcode/samplesheet/': typeof HomeRunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminIndexRoute
-  '/jobs': typeof JobsIndexRoute
-  '/profile': typeof ProfileIndexRoute
-  '/projects': typeof ProjectsIndexRoute
-  '/runs': typeof RunsIndexRoute
-  '/admin/jobs': typeof AdminJobsIndexRoute
-  '/admin/project-settings': typeof AdminProjectSettingsIndexRoute
-  '/admin/run-settings': typeof AdminRunSettingsIndexRoute
-  '/admin/vendors': typeof AdminVendorsIndexRoute
-  '/jobs/$job_id': typeof JobsJobidIndexRoute
-  '/projects/$project_id': typeof ProjectsProjectidIndexRoute
-  '/runs/$run_barcode': typeof RunsRunbarcodeIndexRoute
-  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcIndexRoute
-  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetIndexRoute
+  '': typeof UserRouteRouteWithChildren
+  '/': typeof HomeIndexRoute
+  '/admin': typeof HomeAdminIndexRoute
+  '/jobs': typeof HomeJobsIndexRoute
+  '/profile': typeof HomeProfileIndexRoute
+  '/projects': typeof HomeProjectsIndexRoute
+  '/runs': typeof HomeRunsIndexRoute
+  '/login': typeof UserLoginIndexRoute
+  '/register': typeof UserRegisterIndexRoute
+  '/admin/jobs': typeof HomeAdminJobsIndexRoute
+  '/admin/project-settings': typeof HomeAdminProjectSettingsIndexRoute
+  '/admin/run-settings': typeof HomeAdminRunSettingsIndexRoute
+  '/admin/vendors': typeof HomeAdminVendorsIndexRoute
+  '/jobs/$job_id': typeof HomeJobsJobidIndexRoute
+  '/projects/$project_id': typeof HomeProjectsProjectidIndexRoute
+  '/runs/$run_barcode': typeof HomeRunsRunbarcodeIndexRoute
+  '/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcIndexRoute
+  '/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRouteRouteWithChildren
-  '/jobs': typeof JobsRouteRouteWithChildren
-  '/profile': typeof ProfileRouteRouteWithChildren
-  '/projects': typeof ProjectsRouteRouteWithChildren
-  '/runs': typeof RunsRouteRouteWithChildren
-  '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
-  '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
-  '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
-  '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
-  '/jobs/$job_id': typeof JobsJobidRouteRouteWithChildren
-  '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
-  '/runs/$run_barcode': typeof RunsRunbarcodeRouteRouteWithChildren
-  '/admin/': typeof AdminIndexRoute
-  '/jobs/': typeof JobsIndexRoute
-  '/profile/': typeof ProfileIndexRoute
-  '/projects/': typeof ProjectsIndexRoute
-  '/runs/': typeof RunsIndexRoute
-  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
-  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
-  '/admin/jobs/': typeof AdminJobsIndexRoute
-  '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
-  '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
-  '/admin/vendors/': typeof AdminVendorsIndexRoute
-  '/jobs/$job_id/': typeof JobsJobidIndexRoute
-  '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
-  '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
-  '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
-  '/runs/$run_barcode/samplesheet/': typeof RunsRunbarcodeSamplesheetIndexRoute
+  '/_home': typeof HomeRouteRouteWithChildren
+  '/_user': typeof UserRouteRouteWithChildren
+  '/_home/admin': typeof HomeAdminRouteRouteWithChildren
+  '/_home/jobs': typeof HomeJobsRouteRouteWithChildren
+  '/_home/profile': typeof HomeProfileRouteRouteWithChildren
+  '/_home/projects': typeof HomeProjectsRouteRouteWithChildren
+  '/_home/runs': typeof HomeRunsRouteRouteWithChildren
+  '/_home/': typeof HomeIndexRoute
+  '/_home/admin/jobs': typeof HomeAdminJobsRouteRouteWithChildren
+  '/_home/admin/project-settings': typeof HomeAdminProjectSettingsRouteRouteWithChildren
+  '/_home/admin/run-settings': typeof HomeAdminRunSettingsRouteRouteWithChildren
+  '/_home/admin/vendors': typeof HomeAdminVendorsRouteRouteWithChildren
+  '/_home/jobs/$job_id': typeof HomeJobsJobidRouteRouteWithChildren
+  '/_home/projects/$project_id': typeof HomeProjectsProjectidRouteRouteWithChildren
+  '/_home/runs/$run_barcode': typeof HomeRunsRunbarcodeRouteRouteWithChildren
+  '/_home/admin/': typeof HomeAdminIndexRoute
+  '/_home/jobs/': typeof HomeJobsIndexRoute
+  '/_home/profile/': typeof HomeProfileIndexRoute
+  '/_home/projects/': typeof HomeProjectsIndexRoute
+  '/_home/runs/': typeof HomeRunsIndexRoute
+  '/_user/login/': typeof UserLoginIndexRoute
+  '/_user/register/': typeof UserRegisterIndexRoute
+  '/_home/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
+  '/_home/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/_home/admin/jobs/': typeof HomeAdminJobsIndexRoute
+  '/_home/admin/project-settings/': typeof HomeAdminProjectSettingsIndexRoute
+  '/_home/admin/run-settings/': typeof HomeAdminRunSettingsIndexRoute
+  '/_home/admin/vendors/': typeof HomeAdminVendorsIndexRoute
+  '/_home/jobs/$job_id/': typeof HomeJobsJobidIndexRoute
+  '/_home/projects/$project_id/': typeof HomeProjectsProjectidIndexRoute
+  '/_home/runs/$run_barcode/': typeof HomeRunsRunbarcodeIndexRoute
+  '/_home/runs/$run_barcode/indexqc/': typeof HomeRunsRunbarcodeIndexqcIndexRoute
+  '/_home/runs/$run_barcode/samplesheet/': typeof HomeRunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
+    | ''
     | '/admin'
     | '/jobs'
     | '/profile'
     | '/projects'
     | '/runs'
+    | '/'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
@@ -733,6 +843,8 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/projects/'
     | '/runs/'
+    | '/login'
+    | '/register'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
     | '/admin/jobs/'
@@ -746,12 +858,15 @@ export interface FileRouteTypes {
     | '/runs/$run_barcode/samplesheet/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | ''
     | '/'
     | '/admin'
     | '/jobs'
     | '/profile'
     | '/projects'
     | '/runs'
+    | '/login'
+    | '/register'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
@@ -763,54 +878,50 @@ export interface FileRouteTypes {
     | '/runs/$run_barcode/samplesheet'
   id:
     | '__root__'
-    | '/'
-    | '/admin'
-    | '/jobs'
-    | '/profile'
-    | '/projects'
-    | '/runs'
-    | '/admin/jobs'
-    | '/admin/project-settings'
-    | '/admin/run-settings'
-    | '/admin/vendors'
-    | '/jobs/$job_id'
-    | '/projects/$project_id'
-    | '/runs/$run_barcode'
-    | '/admin/'
-    | '/jobs/'
-    | '/profile/'
-    | '/projects/'
-    | '/runs/'
-    | '/runs/$run_barcode/indexqc'
-    | '/runs/$run_barcode/samplesheet'
-    | '/admin/jobs/'
-    | '/admin/project-settings/'
-    | '/admin/run-settings/'
-    | '/admin/vendors/'
-    | '/jobs/$job_id/'
-    | '/projects/$project_id/'
-    | '/runs/$run_barcode/'
-    | '/runs/$run_barcode/indexqc/'
-    | '/runs/$run_barcode/samplesheet/'
+    | '/_home'
+    | '/_user'
+    | '/_home/admin'
+    | '/_home/jobs'
+    | '/_home/profile'
+    | '/_home/projects'
+    | '/_home/runs'
+    | '/_home/'
+    | '/_home/admin/jobs'
+    | '/_home/admin/project-settings'
+    | '/_home/admin/run-settings'
+    | '/_home/admin/vendors'
+    | '/_home/jobs/$job_id'
+    | '/_home/projects/$project_id'
+    | '/_home/runs/$run_barcode'
+    | '/_home/admin/'
+    | '/_home/jobs/'
+    | '/_home/profile/'
+    | '/_home/projects/'
+    | '/_home/runs/'
+    | '/_user/login/'
+    | '/_user/register/'
+    | '/_home/runs/$run_barcode/indexqc'
+    | '/_home/runs/$run_barcode/samplesheet'
+    | '/_home/admin/jobs/'
+    | '/_home/admin/project-settings/'
+    | '/_home/admin/run-settings/'
+    | '/_home/admin/vendors/'
+    | '/_home/jobs/$job_id/'
+    | '/_home/projects/$project_id/'
+    | '/_home/runs/$run_barcode/'
+    | '/_home/runs/$run_barcode/indexqc/'
+    | '/_home/runs/$run_barcode/samplesheet/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AdminRouteRoute: typeof AdminRouteRouteWithChildren
-  JobsRouteRoute: typeof JobsRouteRouteWithChildren
-  ProfileRouteRoute: typeof ProfileRouteRouteWithChildren
-  ProjectsRouteRoute: typeof ProjectsRouteRouteWithChildren
-  RunsRouteRoute: typeof RunsRouteRouteWithChildren
+  HomeRouteRoute: typeof HomeRouteRouteWithChildren
+  UserRouteRoute: typeof UserRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AdminRouteRoute: AdminRouteRouteWithChildren,
-  JobsRouteRoute: JobsRouteRouteWithChildren,
-  ProfileRouteRoute: ProfileRouteRouteWithChildren,
-  ProjectsRouteRoute: ProjectsRouteRouteWithChildren,
-  RunsRouteRoute: RunsRouteRouteWithChildren,
+  HomeRouteRoute: HomeRouteRouteWithChildren,
+  UserRouteRoute: UserRouteRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -823,174 +934,202 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/admin",
-        "/jobs",
-        "/profile",
-        "/projects",
-        "/runs"
+        "/_home",
+        "/_user"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/admin": {
-      "filePath": "admin.route.tsx",
+    "/_home": {
+      "filePath": "_home.route.tsx",
       "children": [
-        "/admin/jobs",
-        "/admin/project-settings",
-        "/admin/run-settings",
-        "/admin/vendors",
-        "/admin/"
+        "/_home/admin",
+        "/_home/jobs",
+        "/_home/profile",
+        "/_home/projects",
+        "/_home/runs",
+        "/_home/"
       ]
     },
-    "/jobs": {
-      "filePath": "jobs.route.tsx",
+    "/_user": {
+      "filePath": "_user.route.tsx",
       "children": [
-        "/jobs/$job_id",
-        "/jobs/"
+        "/_user/login/",
+        "/_user/register/"
       ]
     },
-    "/profile": {
-      "filePath": "profile.route.tsx",
+    "/_home/admin": {
+      "filePath": "_home.admin.route.tsx",
+      "parent": "/_home",
       "children": [
-        "/profile/"
+        "/_home/admin/jobs",
+        "/_home/admin/project-settings",
+        "/_home/admin/run-settings",
+        "/_home/admin/vendors",
+        "/_home/admin/"
       ]
     },
-    "/projects": {
-      "filePath": "projects.route.tsx",
+    "/_home/jobs": {
+      "filePath": "_home.jobs.route.tsx",
+      "parent": "/_home",
       "children": [
-        "/projects/$project_id",
-        "/projects/"
+        "/_home/jobs/$job_id",
+        "/_home/jobs/"
       ]
     },
-    "/runs": {
-      "filePath": "runs.route.tsx",
+    "/_home/profile": {
+      "filePath": "_home.profile.route.tsx",
+      "parent": "/_home",
       "children": [
-        "/runs/$run_barcode",
-        "/runs/"
+        "/_home/profile/"
       ]
     },
-    "/admin/jobs": {
-      "filePath": "admin.jobs.route.tsx",
-      "parent": "/admin",
+    "/_home/projects": {
+      "filePath": "_home.projects.route.tsx",
+      "parent": "/_home",
       "children": [
-        "/admin/jobs/"
+        "/_home/projects/$project_id",
+        "/_home/projects/"
       ]
     },
-    "/admin/project-settings": {
-      "filePath": "admin.project-settings.route.tsx",
-      "parent": "/admin",
+    "/_home/runs": {
+      "filePath": "_home.runs.route.tsx",
+      "parent": "/_home",
       "children": [
-        "/admin/project-settings/"
+        "/_home/runs/$run_barcode",
+        "/_home/runs/"
       ]
     },
-    "/admin/run-settings": {
-      "filePath": "admin.run-settings.route.tsx",
-      "parent": "/admin",
+    "/_home/": {
+      "filePath": "_home.index.tsx",
+      "parent": "/_home"
+    },
+    "/_home/admin/jobs": {
+      "filePath": "_home.admin.jobs.route.tsx",
+      "parent": "/_home/admin",
       "children": [
-        "/admin/run-settings/"
+        "/_home/admin/jobs/"
       ]
     },
-    "/admin/vendors": {
-      "filePath": "admin.vendors.route.tsx",
-      "parent": "/admin",
+    "/_home/admin/project-settings": {
+      "filePath": "_home.admin.project-settings.route.tsx",
+      "parent": "/_home/admin",
       "children": [
-        "/admin/vendors/"
+        "/_home/admin/project-settings/"
       ]
     },
-    "/jobs/$job_id": {
-      "filePath": "jobs.$job_id.route.tsx",
-      "parent": "/jobs",
+    "/_home/admin/run-settings": {
+      "filePath": "_home.admin.run-settings.route.tsx",
+      "parent": "/_home/admin",
       "children": [
-        "/jobs/$job_id/"
+        "/_home/admin/run-settings/"
       ]
     },
-    "/projects/$project_id": {
-      "filePath": "projects.$project_id.route.tsx",
-      "parent": "/projects",
+    "/_home/admin/vendors": {
+      "filePath": "_home.admin.vendors.route.tsx",
+      "parent": "/_home/admin",
       "children": [
-        "/projects/$project_id/"
+        "/_home/admin/vendors/"
       ]
     },
-    "/runs/$run_barcode": {
-      "filePath": "runs.$run_barcode.route.tsx",
-      "parent": "/runs",
+    "/_home/jobs/$job_id": {
+      "filePath": "_home.jobs.$job_id.route.tsx",
+      "parent": "/_home/jobs",
       "children": [
-        "/runs/$run_barcode/indexqc",
-        "/runs/$run_barcode/samplesheet",
-        "/runs/$run_barcode/"
+        "/_home/jobs/$job_id/"
       ]
     },
-    "/admin/": {
-      "filePath": "admin.index.tsx",
-      "parent": "/admin"
-    },
-    "/jobs/": {
-      "filePath": "jobs.index.tsx",
-      "parent": "/jobs"
-    },
-    "/profile/": {
-      "filePath": "profile.index.tsx",
-      "parent": "/profile"
-    },
-    "/projects/": {
-      "filePath": "projects.index.tsx",
-      "parent": "/projects"
-    },
-    "/runs/": {
-      "filePath": "runs.index.tsx",
-      "parent": "/runs"
-    },
-    "/runs/$run_barcode/indexqc": {
-      "filePath": "runs.$run_barcode.indexqc.route.tsx",
-      "parent": "/runs/$run_barcode",
+    "/_home/projects/$project_id": {
+      "filePath": "_home.projects.$project_id.route.tsx",
+      "parent": "/_home/projects",
       "children": [
-        "/runs/$run_barcode/indexqc/"
+        "/_home/projects/$project_id/"
       ]
     },
-    "/runs/$run_barcode/samplesheet": {
-      "filePath": "runs.$run_barcode.samplesheet.route.tsx",
-      "parent": "/runs/$run_barcode",
+    "/_home/runs/$run_barcode": {
+      "filePath": "_home.runs.$run_barcode.route.tsx",
+      "parent": "/_home/runs",
       "children": [
-        "/runs/$run_barcode/samplesheet/"
+        "/_home/runs/$run_barcode/indexqc",
+        "/_home/runs/$run_barcode/samplesheet",
+        "/_home/runs/$run_barcode/"
       ]
     },
-    "/admin/jobs/": {
-      "filePath": "admin.jobs.index.tsx",
-      "parent": "/admin/jobs"
+    "/_home/admin/": {
+      "filePath": "_home.admin.index.tsx",
+      "parent": "/_home/admin"
     },
-    "/admin/project-settings/": {
-      "filePath": "admin.project-settings.index.tsx",
-      "parent": "/admin/project-settings"
+    "/_home/jobs/": {
+      "filePath": "_home.jobs.index.tsx",
+      "parent": "/_home/jobs"
     },
-    "/admin/run-settings/": {
-      "filePath": "admin.run-settings.index.tsx",
-      "parent": "/admin/run-settings"
+    "/_home/profile/": {
+      "filePath": "_home.profile.index.tsx",
+      "parent": "/_home/profile"
     },
-    "/admin/vendors/": {
-      "filePath": "admin.vendors.index.tsx",
-      "parent": "/admin/vendors"
+    "/_home/projects/": {
+      "filePath": "_home.projects.index.tsx",
+      "parent": "/_home/projects"
     },
-    "/jobs/$job_id/": {
-      "filePath": "jobs.$job_id.index.tsx",
-      "parent": "/jobs/$job_id"
+    "/_home/runs/": {
+      "filePath": "_home.runs.index.tsx",
+      "parent": "/_home/runs"
     },
-    "/projects/$project_id/": {
-      "filePath": "projects.$project_id.index.tsx",
-      "parent": "/projects/$project_id"
+    "/_user/login/": {
+      "filePath": "_user.login.index.tsx",
+      "parent": "/_user"
     },
-    "/runs/$run_barcode/": {
-      "filePath": "runs.$run_barcode.index.tsx",
-      "parent": "/runs/$run_barcode"
+    "/_user/register/": {
+      "filePath": "_user.register.index.tsx",
+      "parent": "/_user"
     },
-    "/runs/$run_barcode/indexqc/": {
-      "filePath": "runs.$run_barcode.indexqc.index.tsx",
-      "parent": "/runs/$run_barcode/indexqc"
+    "/_home/runs/$run_barcode/indexqc": {
+      "filePath": "_home.runs.$run_barcode.indexqc.route.tsx",
+      "parent": "/_home/runs/$run_barcode",
+      "children": [
+        "/_home/runs/$run_barcode/indexqc/"
+      ]
     },
-    "/runs/$run_barcode/samplesheet/": {
-      "filePath": "runs.$run_barcode.samplesheet.index.tsx",
-      "parent": "/runs/$run_barcode/samplesheet"
+    "/_home/runs/$run_barcode/samplesheet": {
+      "filePath": "_home.runs.$run_barcode.samplesheet.route.tsx",
+      "parent": "/_home/runs/$run_barcode",
+      "children": [
+        "/_home/runs/$run_barcode/samplesheet/"
+      ]
+    },
+    "/_home/admin/jobs/": {
+      "filePath": "_home.admin.jobs.index.tsx",
+      "parent": "/_home/admin/jobs"
+    },
+    "/_home/admin/project-settings/": {
+      "filePath": "_home.admin.project-settings.index.tsx",
+      "parent": "/_home/admin/project-settings"
+    },
+    "/_home/admin/run-settings/": {
+      "filePath": "_home.admin.run-settings.index.tsx",
+      "parent": "/_home/admin/run-settings"
+    },
+    "/_home/admin/vendors/": {
+      "filePath": "_home.admin.vendors.index.tsx",
+      "parent": "/_home/admin/vendors"
+    },
+    "/_home/jobs/$job_id/": {
+      "filePath": "_home.jobs.$job_id.index.tsx",
+      "parent": "/_home/jobs/$job_id"
+    },
+    "/_home/projects/$project_id/": {
+      "filePath": "_home.projects.$project_id.index.tsx",
+      "parent": "/_home/projects/$project_id"
+    },
+    "/_home/runs/$run_barcode/": {
+      "filePath": "_home.runs.$run_barcode.index.tsx",
+      "parent": "/_home/runs/$run_barcode"
+    },
+    "/_home/runs/$run_barcode/indexqc/": {
+      "filePath": "_home.runs.$run_barcode.indexqc.index.tsx",
+      "parent": "/_home/runs/$run_barcode/indexqc"
+    },
+    "/_home/runs/$run_barcode/samplesheet/": {
+      "filePath": "_home.runs.$run_barcode.samplesheet.index.tsx",
+      "parent": "/_home/runs/$run_barcode/samplesheet"
     }
   }
 }
