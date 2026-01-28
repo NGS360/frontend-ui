@@ -22,7 +22,7 @@ export const Route = createFileRoute('/_home/profile')({
 })
 
 function RouteComponent() {
-  const userEmail = 'eric@vindhyadatascience.com'
+  const userEmail = 'user@bms.com'
   const avatarUrl = getGravatarUrl(userEmail)
   const [activeSection, setActiveSection] = useState('jobs')
   const location = useLocation()
