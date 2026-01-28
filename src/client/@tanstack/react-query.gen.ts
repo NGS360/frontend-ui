@@ -12,11 +12,16 @@ import {
   addRun,
   addSampleToProject,
   addVendor,
+  changePassword,
+  confirmPasswordReset,
+  createFile,
   createProject,
   createWorkflow,
   deleteVendor,
   downloadFile,
+  getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
+  getFile,
   getJob,
   getJobs,
   getLatestManifest,
@@ -34,25 +39,36 @@ import {
   getWorkflowByWorkflowId,
   getWorkflows,
   healthCheck,
+  linkOauthProvider,
   listDemultiplexWorkflows,
   listFiles,
+  login,
+  logout,
+  oauthAuthorize,
+  oauthCallback,
   postRunSamplesheet,
+  refreshToken,
+  register,
   reindexProjects,
   reindexRuns,
   reindexSamples,
+  requestPasswordReset,
+  resendVerification,
   root,
   search,
   searchProjects,
   searchRuns,
   submitDemultiplexWorkflowJob,
   submitJob,
+  unlinkOauthProvider,
   updateJob,
   updateRun,
   updateSampleInProject,
   updateSetting,
   updateVendor,
   uploadManifest,
-  validateManifest
+  validateManifest,
+  verifyEmail
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
 import type {DefaultError, InfiniteData, UseMutationOptions} from '@tanstack/react-query';
@@ -67,6 +83,15 @@ import type {
   AddVendorData,
   AddVendorError,
   AddVendorResponse,
+  ChangePasswordData,
+  ChangePasswordError,
+  ChangePasswordResponse,
+  ConfirmPasswordResetData,
+  ConfirmPasswordResetError,
+  ConfirmPasswordResetResponse,
+  CreateFileData,
+  CreateFileError,
+  CreateFileResponse,
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
@@ -77,7 +102,9 @@ import type {
   DeleteVendorError,
   DeleteVendorResponse,
   DownloadFileData,
+  GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
+  GetFileData,
   GetJobData,
   GetJobsData,
   GetLatestManifestData,
@@ -105,14 +132,37 @@ import type {
   GetWorkflowsError,
   GetWorkflowsResponse,
   HealthCheckData,
+  LinkOauthProviderData,
+  LinkOauthProviderError,
+  LinkOauthProviderResponse,
   ListDemultiplexWorkflowsData,
   ListFilesData,
+  LoginData,
+  LoginError,
+  LoginResponse,
+  LogoutData,
+  LogoutError,
+  LogoutResponse,
+  OauthAuthorizeData,
+  OauthCallbackData,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
   PostRunSamplesheetResponse,
+  RefreshTokenData,
+  RefreshTokenError,
+  RefreshTokenResponse,
+  RegisterData,
+  RegisterError,
+  RegisterResponse,
   ReindexProjectsData,
   ReindexRunsData,
   ReindexSamplesData,
+  RequestPasswordResetData,
+  RequestPasswordResetError,
+  RequestPasswordResetResponse,
+  ResendVerificationData,
+  ResendVerificationError,
+  ResendVerificationResponse,
   RootData,
   SearchData,
   SearchProjectsData,
@@ -127,6 +177,9 @@ import type {
   SubmitJobData,
   SubmitJobError,
   SubmitJobResponse,
+  UnlinkOauthProviderData,
+  UnlinkOauthProviderError,
+  UnlinkOauthProviderResponse,
   UpdateJobData,
   UpdateJobError,
   UpdateJobResponse,
@@ -148,6 +201,9 @@ import type {
   ValidateManifestData,
   ValidateManifestError,
   ValidateManifestResponse,
+  VerifyEmailData,
+  VerifyEmailError,
+  VerifyEmailResponse,
 } from '../types.gen'
 import type { AxiosError } from 'axios'
 
@@ -227,6 +283,1026 @@ export const healthCheckOptions = (options?: Options<HealthCheckData>) => {
   })
 }
 
+export const registerQueryKey = (options: Options<RegisterData>) =>
+  createQueryKey('register', options)
+
+/**
+ * Register
+ * Register a new user account
+ *
+ * Creates a new user with email/password authentication.
+ * Sends verification email to confirm email address.
+ *
+ * Args:
+ * session: Database session
+ * user_data: User registration data
+ *
+ * Returns:
+ * Created user information
+ *
+ * Raises:
+ * 409: Email or username already exists
+ * 400: Invalid password strength
+ */
+export const registerOptions = (options: Options<RegisterData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await register({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: registerQueryKey(options),
+  })
+}
+
+/**
+ * Register
+ * Register a new user account
+ *
+ * Creates a new user with email/password authentication.
+ * Sends verification email to confirm email address.
+ *
+ * Args:
+ * session: Database session
+ * user_data: User registration data
+ *
+ * Returns:
+ * Created user information
+ *
+ * Raises:
+ * 409: Email or username already exists
+ * 400: Invalid password strength
+ */
+export const registerMutation = (
+  options?: Partial<Options<RegisterData>>,
+): UseMutationOptions<
+  RegisterResponse,
+  AxiosError<RegisterError>,
+  Options<RegisterData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    RegisterResponse,
+    AxiosError<RegisterError>,
+    Options<RegisterData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await register({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const loginQueryKey = (options: Options<LoginData>) =>
+  createQueryKey('login', options)
+
+/**
+ * Login
+ * Login with email and password
+ *
+ * Authenticates user and returns access and refresh tokens.
+ * Username field should contain the email address.
+ *
+ * Args:
+ * session: Database session
+ * request: HTTP request (for device info)
+ * form_data: OAuth2 form with username (email) and password
+ *
+ * Returns:
+ * Access token and refresh token
+ *
+ * Raises:
+ * 401: Invalid credentials
+ * 423: Account locked due to failed attempts
+ */
+export const loginOptions = (options: Options<LoginData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await login({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: loginQueryKey(options),
+  })
+}
+
+/**
+ * Login
+ * Login with email and password
+ *
+ * Authenticates user and returns access and refresh tokens.
+ * Username field should contain the email address.
+ *
+ * Args:
+ * session: Database session
+ * request: HTTP request (for device info)
+ * form_data: OAuth2 form with username (email) and password
+ *
+ * Returns:
+ * Access token and refresh token
+ *
+ * Raises:
+ * 401: Invalid credentials
+ * 423: Account locked due to failed attempts
+ */
+export const loginMutation = (
+  options?: Partial<Options<LoginData>>,
+): UseMutationOptions<
+  LoginResponse,
+  AxiosError<LoginError>,
+  Options<LoginData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    LoginResponse,
+    AxiosError<LoginError>,
+    Options<LoginData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await login({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const refreshTokenQueryKey = (options: Options<RefreshTokenData>) =>
+  createQueryKey('refreshToken', options)
+
+/**
+ * Refresh Token
+ * Refresh access token
+ *
+ * Uses refresh token to obtain new access and refresh tokens.
+ * Old refresh token is revoked (token rotation).
+ *
+ * Args:
+ * session: Database session
+ * token_data: Refresh token
+ *
+ * Returns:
+ * New access token and refresh token
+ *
+ * Raises:
+ * 401: Invalid or expired refresh token
+ */
+export const refreshTokenOptions = (options: Options<RefreshTokenData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await refreshToken({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: refreshTokenQueryKey(options),
+  })
+}
+
+/**
+ * Refresh Token
+ * Refresh access token
+ *
+ * Uses refresh token to obtain new access and refresh tokens.
+ * Old refresh token is revoked (token rotation).
+ *
+ * Args:
+ * session: Database session
+ * token_data: Refresh token
+ *
+ * Returns:
+ * New access token and refresh token
+ *
+ * Raises:
+ * 401: Invalid or expired refresh token
+ */
+export const refreshTokenMutation = (
+  options?: Partial<Options<RefreshTokenData>>,
+): UseMutationOptions<
+  RefreshTokenResponse,
+  AxiosError<RefreshTokenError>,
+  Options<RefreshTokenData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    RefreshTokenResponse,
+    AxiosError<RefreshTokenError>,
+    Options<RefreshTokenData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await refreshToken({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const logoutQueryKey = (options: Options<LogoutData>) =>
+  createQueryKey('logout', options)
+
+/**
+ * Logout
+ * Logout user
+ *
+ * Revokes the refresh token to prevent further token refreshes.
+ * Access token will remain valid until expiration.
+ *
+ * Args:
+ * session: Database session
+ * token_data: Refresh token to revoke
+ *
+ * Returns:
+ * Success message
+ */
+export const logoutOptions = (options: Options<LogoutData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await logout({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: logoutQueryKey(options),
+  })
+}
+
+/**
+ * Logout
+ * Logout user
+ *
+ * Revokes the refresh token to prevent further token refreshes.
+ * Access token will remain valid until expiration.
+ *
+ * Args:
+ * session: Database session
+ * token_data: Refresh token to revoke
+ *
+ * Returns:
+ * Success message
+ */
+export const logoutMutation = (
+  options?: Partial<Options<LogoutData>>,
+): UseMutationOptions<
+  LogoutResponse,
+  AxiosError<LogoutError>,
+  Options<LogoutData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    LogoutResponse,
+    AxiosError<LogoutError>,
+    Options<LogoutData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await logout({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getCurrentUserInfoQueryKey = (
+  options?: Options<GetCurrentUserInfoData>,
+) => createQueryKey('getCurrentUserInfo', options)
+
+/**
+ * Get Current User Info
+ * Get current user profile
+ *
+ * Returns information about the authenticated user.
+ *
+ * Args:
+ * current_user: Current authenticated user
+ *
+ * Returns:
+ * User profile information
+ *
+ * Raises:
+ * 401: Not authenticated
+ */
+export const getCurrentUserInfoOptions = (
+  options?: Options<GetCurrentUserInfoData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getCurrentUserInfo({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getCurrentUserInfoQueryKey(options),
+  })
+}
+
+export const requestPasswordResetQueryKey = (
+  options: Options<RequestPasswordResetData>,
+) => createQueryKey('requestPasswordReset', options)
+
+/**
+ * Request Password Reset
+ * Request password reset
+ *
+ * Sends password reset email if account exists.
+ * Always returns success to prevent email enumeration.
+ *
+ * Args:
+ * session: Database session
+ * reset_request: Email address
+ *
+ * Returns:
+ * Success message
+ */
+export const requestPasswordResetOptions = (
+  options: Options<RequestPasswordResetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await requestPasswordReset({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: requestPasswordResetQueryKey(options),
+  })
+}
+
+/**
+ * Request Password Reset
+ * Request password reset
+ *
+ * Sends password reset email if account exists.
+ * Always returns success to prevent email enumeration.
+ *
+ * Args:
+ * session: Database session
+ * reset_request: Email address
+ *
+ * Returns:
+ * Success message
+ */
+export const requestPasswordResetMutation = (
+  options?: Partial<Options<RequestPasswordResetData>>,
+): UseMutationOptions<
+  RequestPasswordResetResponse,
+  AxiosError<RequestPasswordResetError>,
+  Options<RequestPasswordResetData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    RequestPasswordResetResponse,
+    AxiosError<RequestPasswordResetError>,
+    Options<RequestPasswordResetData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await requestPasswordReset({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const confirmPasswordResetQueryKey = (
+  options: Options<ConfirmPasswordResetData>,
+) => createQueryKey('confirmPasswordReset', options)
+
+/**
+ * Confirm Password Reset
+ * Confirm password reset
+ *
+ * Resets password using the token from email.
+ *
+ * Args:
+ * session: Database session
+ * reset_data: Reset token and new password
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid or expired token
+ */
+export const confirmPasswordResetOptions = (
+  options: Options<ConfirmPasswordResetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await confirmPasswordReset({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: confirmPasswordResetQueryKey(options),
+  })
+}
+
+/**
+ * Confirm Password Reset
+ * Confirm password reset
+ *
+ * Resets password using the token from email.
+ *
+ * Args:
+ * session: Database session
+ * reset_data: Reset token and new password
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid or expired token
+ */
+export const confirmPasswordResetMutation = (
+  options?: Partial<Options<ConfirmPasswordResetData>>,
+): UseMutationOptions<
+  ConfirmPasswordResetResponse,
+  AxiosError<ConfirmPasswordResetError>,
+  Options<ConfirmPasswordResetData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ConfirmPasswordResetResponse,
+    AxiosError<ConfirmPasswordResetError>,
+    Options<ConfirmPasswordResetData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await confirmPasswordReset({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const changePasswordQueryKey = (options: Options<ChangePasswordData>) =>
+  createQueryKey('changePassword', options)
+
+/**
+ * Change Password
+ * Change password
+ *
+ * Changes password for authenticated user.
+ * Requires current password for verification.
+ *
+ * Args:
+ * session: Database session
+ * current_user: Current authenticated user
+ * password_data: Current and new password
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid current password or weak new password
+ * 401: Not authenticated
+ */
+export const changePasswordOptions = (options: Options<ChangePasswordData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await changePassword({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: changePasswordQueryKey(options),
+  })
+}
+
+/**
+ * Change Password
+ * Change password
+ *
+ * Changes password for authenticated user.
+ * Requires current password for verification.
+ *
+ * Args:
+ * session: Database session
+ * current_user: Current authenticated user
+ * password_data: Current and new password
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid current password or weak new password
+ * 401: Not authenticated
+ */
+export const changePasswordMutation = (
+  options?: Partial<Options<ChangePasswordData>>,
+): UseMutationOptions<
+  ChangePasswordResponse,
+  AxiosError<ChangePasswordError>,
+  Options<ChangePasswordData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ChangePasswordResponse,
+    AxiosError<ChangePasswordError>,
+    Options<ChangePasswordData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await changePassword({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const verifyEmailQueryKey = (options: Options<VerifyEmailData>) =>
+  createQueryKey('verifyEmail', options)
+
+/**
+ * Verify Email
+ * Verify email address
+ *
+ * Verifies user email using token from verification email.
+ *
+ * Args:
+ * session: Database session
+ * verification_data: Verification token
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid or expired token
+ */
+export const verifyEmailOptions = (options: Options<VerifyEmailData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await verifyEmail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: verifyEmailQueryKey(options),
+  })
+}
+
+/**
+ * Verify Email
+ * Verify email address
+ *
+ * Verifies user email using token from verification email.
+ *
+ * Args:
+ * session: Database session
+ * verification_data: Verification token
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Invalid or expired token
+ */
+export const verifyEmailMutation = (
+  options?: Partial<Options<VerifyEmailData>>,
+): UseMutationOptions<
+  VerifyEmailResponse,
+  AxiosError<VerifyEmailError>,
+  Options<VerifyEmailData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    VerifyEmailResponse,
+    AxiosError<VerifyEmailError>,
+    Options<VerifyEmailData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await verifyEmail({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const resendVerificationQueryKey = (
+  options: Options<ResendVerificationData>,
+) => createQueryKey('resendVerification', options)
+
+/**
+ * Resend Verification
+ * Resend verification email
+ *
+ * Sends a new verification email to the user.
+ *
+ * Args:
+ * session: Database session
+ * resend_request: Email address
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 404: User not found
+ * 400: Email already verified
+ */
+export const resendVerificationOptions = (
+  options: Options<ResendVerificationData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await resendVerification({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: resendVerificationQueryKey(options),
+  })
+}
+
+/**
+ * Resend Verification
+ * Resend verification email
+ *
+ * Sends a new verification email to the user.
+ *
+ * Args:
+ * session: Database session
+ * resend_request: Email address
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 404: User not found
+ * 400: Email already verified
+ */
+export const resendVerificationMutation = (
+  options?: Partial<Options<ResendVerificationData>>,
+): UseMutationOptions<
+  ResendVerificationResponse,
+  AxiosError<ResendVerificationError>,
+  Options<ResendVerificationData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ResendVerificationResponse,
+    AxiosError<ResendVerificationError>,
+    Options<ResendVerificationData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await resendVerification({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const oauthAuthorizeQueryKey = (options: Options<OauthAuthorizeData>) =>
+  createQueryKey('oauthAuthorize', options)
+
+/**
+ * Oauth Authorize
+ * Initiate OAuth2 authorization flow
+ *
+ * Redirects user to OAuth provider's authorization page.
+ *
+ * Args:
+ * provider: OAuth provider (google, github, microsoft)
+ * redirect_uri: Optional custom redirect URI
+ *
+ * Returns:
+ * Redirect to provider authorization page
+ *
+ * Raises:
+ * 501: Provider not configured
+ * 400: Invalid provider
+ */
+export const oauthAuthorizeOptions = (options: Options<OauthAuthorizeData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await oauthAuthorize({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: oauthAuthorizeQueryKey(options),
+  })
+}
+
+export const oauthCallbackQueryKey = (options: Options<OauthCallbackData>) =>
+  createQueryKey('oauthCallback', options)
+
+/**
+ * Oauth Callback
+ * OAuth2 callback handler
+ *
+ * Handles the callback from OAuth provider after user authorization.
+ * Exchanges code for tokens and creates/updates user account.
+ *
+ * Args:
+ * session: Database session
+ * provider: OAuth provider name
+ * code: Authorization code from provider
+ * state: State parameter for CSRF protection
+ * redirect_uri: Redirect URI (must match authorization request)
+ *
+ * Returns:
+ * Access and refresh tokens
+ *
+ * Raises:
+ * 400: Invalid code or failed to get user info
+ * 501: Provider not configured
+ */
+export const oauthCallbackOptions = (options: Options<OauthCallbackData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await oauthCallback({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: oauthCallbackQueryKey(options),
+  })
+}
+
+export const linkOauthProviderQueryKey = (
+  options: Options<LinkOauthProviderData>,
+) => createQueryKey('linkOauthProvider', options)
+
+/**
+ * Link Oauth Provider
+ * Link OAuth provider to existing account
+ *
+ * Links an OAuth provider account to the currently authenticated user.
+ *
+ * Args:
+ * session: Database session
+ * current_user: Current authenticated user
+ * provider: OAuth provider name
+ * link_request: OAuth authorization code
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Failed to link account
+ * 409: Provider already linked
+ * 401: Not authenticated
+ */
+export const linkOauthProviderOptions = (
+  options: Options<LinkOauthProviderData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await linkOauthProvider({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: linkOauthProviderQueryKey(options),
+  })
+}
+
+/**
+ * Link Oauth Provider
+ * Link OAuth provider to existing account
+ *
+ * Links an OAuth provider account to the currently authenticated user.
+ *
+ * Args:
+ * session: Database session
+ * current_user: Current authenticated user
+ * provider: OAuth provider name
+ * link_request: OAuth authorization code
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Failed to link account
+ * 409: Provider already linked
+ * 401: Not authenticated
+ */
+export const linkOauthProviderMutation = (
+  options?: Partial<Options<LinkOauthProviderData>>,
+): UseMutationOptions<
+  LinkOauthProviderResponse,
+  AxiosError<LinkOauthProviderError>,
+  Options<LinkOauthProviderData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    LinkOauthProviderResponse,
+    AxiosError<LinkOauthProviderError>,
+    Options<LinkOauthProviderData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await linkOauthProvider({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Unlink Oauth Provider
+ * Unlink OAuth provider from account
+ *
+ * Removes the OAuth provider link from the user's account.
+ * Cannot unlink if it's the only authentication method.
+ *
+ * Args:
+ * session: Database session
+ * current_user: Current authenticated user
+ * provider: OAuth provider name
+ *
+ * Returns:
+ * Success message
+ *
+ * Raises:
+ * 400: Cannot unlink last auth method
+ * 404: Provider not linked
+ * 401: Not authenticated
+ */
+export const unlinkOauthProviderMutation = (
+  options?: Partial<Options<UnlinkOauthProviderData>>,
+): UseMutationOptions<
+  UnlinkOauthProviderResponse,
+  AxiosError<UnlinkOauthProviderError>,
+  Options<UnlinkOauthProviderData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UnlinkOauthProviderResponse,
+    AxiosError<UnlinkOauthProviderError>,
+    Options<UnlinkOauthProviderData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await unlinkOauthProvider({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const createFileQueryKey = (options: Options<CreateFileData>) =>
+  createQueryKey('createFile', options)
+
+/**
+ * Create a new file record
+ * Create a new file record with optional file content upload.
+ * - **filename**: Name of the file
+ * - **description**: Optional description of the file
+ * - **file_type**: Type of file (fastq, bam, vcf, etc.)
+ * - **entity_type**: Whether this file belongs to a project or run
+ * - **entity_id**: ID of the project or run this file belongs to
+ * - **relative_path**: Optional subdirectory path within the entity folder
+ * (e.g., "raw_data/sample1" or "results/qc")
+ * - **overwrite**: If True, replace existing file with same name/location (default: False)
+ * - **is_public**: Whether the file is publicly accessible
+ * - **created_by**: User who created the file
+ *
+ * Returns:
+ * FilePublic with metadata including the assigned file_id
+ *
+ * Raises:
+ * 409 Conflict: If file already exists and overwrite=False
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-20260109-0001/abc123_file.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ */
+export const createFileOptions = (options: Options<CreateFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createFileQueryKey(options),
+  })
+}
+
+/**
+ * Create a new file record
+ * Create a new file record with optional file content upload.
+ * - **filename**: Name of the file
+ * - **description**: Optional description of the file
+ * - **file_type**: Type of file (fastq, bam, vcf, etc.)
+ * - **entity_type**: Whether this file belongs to a project or run
+ * - **entity_id**: ID of the project or run this file belongs to
+ * - **relative_path**: Optional subdirectory path within the entity folder
+ * (e.g., "raw_data/sample1" or "results/qc")
+ * - **overwrite**: If True, replace existing file with same name/location (default: False)
+ * - **is_public**: Whether the file is publicly accessible
+ * - **created_by**: User who created the file
+ *
+ * Returns:
+ * FilePublic with metadata including the assigned file_id
+ *
+ * Raises:
+ * 409 Conflict: If file already exists and overwrite=False
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-20260109-0001/abc123_file.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ */
+export const createFileMutation = (
+  options?: Partial<Options<CreateFileData>>,
+): UseMutationOptions<
+  CreateFileResponse,
+  AxiosError<CreateFileError>,
+  Options<CreateFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateFileResponse,
+    AxiosError<CreateFileError>,
+    Options<CreateFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await createFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const listFilesQueryKey = (options: Options<ListFilesData>) =>
   createQueryKey('listFiles', options)
 
@@ -280,6 +1356,28 @@ export const downloadFileOptions = (options: Options<DownloadFileData>) => {
       return data
     },
     queryKey: downloadFileQueryKey(options),
+  })
+}
+
+export const getFileQueryKey = (options: Options<GetFileData>) =>
+  createQueryKey('getFile', options)
+
+/**
+ * Get File
+ * Retrieve file metadata by file ID.
+ */
+export const getFileOptions = (options: Options<GetFileData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getFileQueryKey(options),
   })
 }
 
@@ -1911,7 +3009,6 @@ export const validateManifestQueryKey = (
  *
  * Args:
  * s3_path: S3 path to the manifest CSV file to validate
- * valid: Mock parameter to simulate valid or invalid responses for testing
  *
  * Returns:
  * ManifestValidationResponse with validation status and any errors found
@@ -1944,7 +3041,6 @@ export const validateManifestOptions = (
  *
  * Args:
  * s3_path: S3 path to the manifest CSV file to validate
- * valid: Mock parameter to simulate valid or invalid responses for testing
  *
  * Returns:
  * ManifestValidationResponse with validation status and any errors found

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export function UserAvatar() {
-  const userEmail = 'eric.davis@bms.com'
+  const userEmail = 'user@bms.com'
   const avatarUrl = getGravatarUrl(userEmail)
 
   return (
