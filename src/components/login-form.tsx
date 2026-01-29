@@ -1,26 +1,25 @@
+import { useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
 import { LoaderCircle } from 'lucide-react'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import type { SubmitHandler } from 'react-hook-form'
 import type { ComponentPropsWithoutRef } from 'react'
-import type { SubmitHandler} from 'react-hook-form';
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { loginMutation } from '@/client/@tanstack/react-query.gen'
 import { NGS360Logo } from '@/components/ngs360-logo'
+import { useAuth } from '@/context/auth-context'
 
 // Define the schema for the form fields
 // This is used to perform client-side validation
 const schema = z.object({
   username: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters').max(50),
-  grant_type: z.string(),
 })
 
 type FormFields = z.infer<typeof schema>
@@ -30,36 +29,34 @@ export function LoginForm({
   ...props
 }: ComponentPropsWithoutRef<'form'>) {
   const navigate = useNavigate()
+  const { login } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
 
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FormFields>({
     defaultValues: {
       username: '',
       password: '',
-      grant_type: 'password',
     },
     resolver: zodResolver(schema),
   })
 
-  const { mutate, isPending } = useMutation({
-    ...loginMutation(),
-    onError: (error) => {
-      const message =
-        error.response?.data.detail?.toString() || 'An unknown error occurred.'
-      setError('root', { message })
-    },
-    onSuccess: () => {
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    setIsLoading(true)
+    try {
+      await login(data.username, data.password)
       toast.success('Login successful')
       navigate({ to: '/' })
-    },
-  })
-
-  const onSubmit: SubmitHandler<FormFields> = async (data) => {
-    mutate({ body: { ...data } })
+    } catch (error: any) {
+      const message = error?.message || 'An unknown error occurred.'
+      setError('root', { message })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -126,14 +123,14 @@ export function LoginForm({
               </div>
 
               <Button
-                disabled={isSubmitting || isPending}
+                disabled={isLoading}
                 type="submit"
                 className="flex items-center gap-2"
               >
-                {isSubmitting || isPending ? (
+                {isLoading ? (
                   <LoaderCircle className="animate-spin h-4 w-4 text-white" />
                 ) : null}
-                {isSubmitting || isPending ? 'Logging in...' : 'Login'}
+                {isLoading ? 'Logging in...' : 'Login'}
               </Button>
 
               {errors.root && (

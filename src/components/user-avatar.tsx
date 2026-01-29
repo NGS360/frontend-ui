@@ -8,9 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useAuth } from '@/context/auth-context'
 
 export function UserAvatar() {
-  const userEmail = 'user@bms.com'
+  const { user, logout } = useAuth(); 
+  const userEmail = user?.email || '';
   const avatarUrl = getGravatarUrl(userEmail)
 
   return (
@@ -28,7 +30,7 @@ export function UserAvatar() {
             <span>Profile</span>
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={logout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Logout</span>
         </DropdownMenuItem>

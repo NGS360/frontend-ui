@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as UserRouteImport } from './routes/_user.route'
 import { Route as HomeRouteImport } from './routes/_home.route'
 import { Route as HomeIndexImport } from './routes/_home.index'
@@ -18,7 +19,7 @@ import { Route as HomeRunsRouteImport } from './routes/_home.runs.route'
 import { Route as HomeProjectsRouteImport } from './routes/_home.projects.route'
 import { Route as HomeProfileRouteImport } from './routes/_home.profile.route'
 import { Route as HomeJobsRouteImport } from './routes/_home.jobs.route'
-import { Route as HomeAdminRouteImport } from './routes/_home.admin.route'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated._home.route'
 import { Route as UserRegisterIndexImport } from './routes/_user.register.index'
 import { Route as UserPasswordResetIndexImport } from './routes/_user.password-reset.index'
 import { Route as UserLoginIndexImport } from './routes/_user.login.index'
@@ -26,27 +27,33 @@ import { Route as HomeRunsIndexImport } from './routes/_home.runs.index'
 import { Route as HomeProjectsIndexImport } from './routes/_home.projects.index'
 import { Route as HomeProfileIndexImport } from './routes/_home.profile.index'
 import { Route as HomeJobsIndexImport } from './routes/_home.jobs.index'
-import { Route as HomeAdminIndexImport } from './routes/_home.admin.index'
 import { Route as HomeRunsRunbarcodeRouteImport } from './routes/_home.runs.$run_barcode.route'
 import { Route as HomeProjectsProjectidRouteImport } from './routes/_home.projects.$project_id.route'
 import { Route as HomeJobsJobidRouteImport } from './routes/_home.jobs.$job_id.route'
-import { Route as HomeAdminVendorsRouteImport } from './routes/_home.admin.vendors.route'
-import { Route as HomeAdminRunSettingsRouteImport } from './routes/_home.admin.run-settings.route'
-import { Route as HomeAdminProjectSettingsRouteImport } from './routes/_home.admin.project-settings.route'
-import { Route as HomeAdminJobsRouteImport } from './routes/_home.admin.jobs.route'
+import { Route as AuthenticatedHomeAdminRouteImport } from './routes/_authenticated._home.admin.route'
 import { Route as HomeRunsRunbarcodeIndexImport } from './routes/_home.runs.$run_barcode.index'
 import { Route as HomeProjectsProjectidIndexImport } from './routes/_home.projects.$project_id.index'
 import { Route as HomeJobsJobidIndexImport } from './routes/_home.jobs.$job_id.index'
-import { Route as HomeAdminVendorsIndexImport } from './routes/_home.admin.vendors.index'
-import { Route as HomeAdminRunSettingsIndexImport } from './routes/_home.admin.run-settings.index'
-import { Route as HomeAdminProjectSettingsIndexImport } from './routes/_home.admin.project-settings.index'
-import { Route as HomeAdminJobsIndexImport } from './routes/_home.admin.jobs.index'
+import { Route as AuthenticatedHomeAdminIndexImport } from './routes/_authenticated._home.admin.index'
 import { Route as HomeRunsRunbarcodeSamplesheetRouteImport } from './routes/_home.runs.$run_barcode.samplesheet.route'
 import { Route as HomeRunsRunbarcodeIndexqcRouteImport } from './routes/_home.runs.$run_barcode.indexqc.route'
+import { Route as AuthenticatedHomeAdminVendorsRouteImport } from './routes/_authenticated._home.admin.vendors.route'
+import { Route as AuthenticatedHomeAdminRunSettingsRouteImport } from './routes/_authenticated._home.admin.run-settings.route'
+import { Route as AuthenticatedHomeAdminProjectSettingsRouteImport } from './routes/_authenticated._home.admin.project-settings.route'
+import { Route as AuthenticatedHomeAdminJobsRouteImport } from './routes/_authenticated._home.admin.jobs.route'
 import { Route as HomeRunsRunbarcodeSamplesheetIndexImport } from './routes/_home.runs.$run_barcode.samplesheet.index'
 import { Route as HomeRunsRunbarcodeIndexqcIndexImport } from './routes/_home.runs.$run_barcode.indexqc.index'
+import { Route as AuthenticatedHomeAdminVendorsIndexImport } from './routes/_authenticated._home.admin.vendors.index'
+import { Route as AuthenticatedHomeAdminRunSettingsIndexImport } from './routes/_authenticated._home.admin.run-settings.index'
+import { Route as AuthenticatedHomeAdminProjectSettingsIndexImport } from './routes/_authenticated._home.admin.project-settings.index'
+import { Route as AuthenticatedHomeAdminJobsIndexImport } from './routes/_authenticated._home.admin.jobs.index'
 
 // Create/Update Routes
+
+const AuthenticatedRoute = AuthenticatedImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const UserRouteRoute = UserRouteImport.update({
   id: '/_user',
@@ -88,10 +95,9 @@ const HomeJobsRouteRoute = HomeJobsRouteImport.update({
   getParentRoute: () => HomeRouteRoute,
 } as any)
 
-const HomeAdminRouteRoute = HomeAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => HomeRouteRoute,
+const AuthenticatedHomeRouteRoute = AuthenticatedHomeRouteImport.update({
+  id: '/_home',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 const UserRegisterIndexRoute = UserRegisterIndexImport.update({
@@ -136,12 +142,6 @@ const HomeJobsIndexRoute = HomeJobsIndexImport.update({
   getParentRoute: () => HomeJobsRouteRoute,
 } as any)
 
-const HomeAdminIndexRoute = HomeAdminIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HomeAdminRouteRoute,
-} as any)
-
 const HomeRunsRunbarcodeRouteRoute = HomeRunsRunbarcodeRouteImport.update({
   id: '/$run_barcode',
   path: '/$run_barcode',
@@ -162,30 +162,12 @@ const HomeJobsJobidRouteRoute = HomeJobsJobidRouteImport.update({
   getParentRoute: () => HomeJobsRouteRoute,
 } as any)
 
-const HomeAdminVendorsRouteRoute = HomeAdminVendorsRouteImport.update({
-  id: '/vendors',
-  path: '/vendors',
-  getParentRoute: () => HomeAdminRouteRoute,
-} as any)
-
-const HomeAdminRunSettingsRouteRoute = HomeAdminRunSettingsRouteImport.update({
-  id: '/run-settings',
-  path: '/run-settings',
-  getParentRoute: () => HomeAdminRouteRoute,
-} as any)
-
-const HomeAdminProjectSettingsRouteRoute =
-  HomeAdminProjectSettingsRouteImport.update({
-    id: '/project-settings',
-    path: '/project-settings',
-    getParentRoute: () => HomeAdminRouteRoute,
+const AuthenticatedHomeAdminRouteRoute =
+  AuthenticatedHomeAdminRouteImport.update({
+    id: '/admin',
+    path: '/admin',
+    getParentRoute: () => AuthenticatedHomeRouteRoute,
   } as any)
-
-const HomeAdminJobsRouteRoute = HomeAdminJobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
-  getParentRoute: () => HomeAdminRouteRoute,
-} as any)
 
 const HomeRunsRunbarcodeIndexRoute = HomeRunsRunbarcodeIndexImport.update({
   id: '/',
@@ -207,30 +189,12 @@ const HomeJobsJobidIndexRoute = HomeJobsJobidIndexImport.update({
   getParentRoute: () => HomeJobsJobidRouteRoute,
 } as any)
 
-const HomeAdminVendorsIndexRoute = HomeAdminVendorsIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HomeAdminVendorsRouteRoute,
-} as any)
-
-const HomeAdminRunSettingsIndexRoute = HomeAdminRunSettingsIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HomeAdminRunSettingsRouteRoute,
-} as any)
-
-const HomeAdminProjectSettingsIndexRoute =
-  HomeAdminProjectSettingsIndexImport.update({
+const AuthenticatedHomeAdminIndexRoute =
+  AuthenticatedHomeAdminIndexImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => HomeAdminProjectSettingsRouteRoute,
+    getParentRoute: () => AuthenticatedHomeAdminRouteRoute,
   } as any)
-
-const HomeAdminJobsIndexRoute = HomeAdminJobsIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HomeAdminJobsRouteRoute,
-} as any)
 
 const HomeRunsRunbarcodeSamplesheetRouteRoute =
   HomeRunsRunbarcodeSamplesheetRouteImport.update({
@@ -246,6 +210,34 @@ const HomeRunsRunbarcodeIndexqcRouteRoute =
     getParentRoute: () => HomeRunsRunbarcodeRouteRoute,
   } as any)
 
+const AuthenticatedHomeAdminVendorsRouteRoute =
+  AuthenticatedHomeAdminVendorsRouteImport.update({
+    id: '/vendors',
+    path: '/vendors',
+    getParentRoute: () => AuthenticatedHomeAdminRouteRoute,
+  } as any)
+
+const AuthenticatedHomeAdminRunSettingsRouteRoute =
+  AuthenticatedHomeAdminRunSettingsRouteImport.update({
+    id: '/run-settings',
+    path: '/run-settings',
+    getParentRoute: () => AuthenticatedHomeAdminRouteRoute,
+  } as any)
+
+const AuthenticatedHomeAdminProjectSettingsRouteRoute =
+  AuthenticatedHomeAdminProjectSettingsRouteImport.update({
+    id: '/project-settings',
+    path: '/project-settings',
+    getParentRoute: () => AuthenticatedHomeAdminRouteRoute,
+  } as any)
+
+const AuthenticatedHomeAdminJobsRouteRoute =
+  AuthenticatedHomeAdminJobsRouteImport.update({
+    id: '/jobs',
+    path: '/jobs',
+    getParentRoute: () => AuthenticatedHomeAdminRouteRoute,
+  } as any)
+
 const HomeRunsRunbarcodeSamplesheetIndexRoute =
   HomeRunsRunbarcodeSamplesheetIndexImport.update({
     id: '/',
@@ -258,6 +250,34 @@ const HomeRunsRunbarcodeIndexqcIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => HomeRunsRunbarcodeIndexqcRouteRoute,
+  } as any)
+
+const AuthenticatedHomeAdminVendorsIndexRoute =
+  AuthenticatedHomeAdminVendorsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedHomeAdminVendorsRouteRoute,
+  } as any)
+
+const AuthenticatedHomeAdminRunSettingsIndexRoute =
+  AuthenticatedHomeAdminRunSettingsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedHomeAdminRunSettingsRouteRoute,
+  } as any)
+
+const AuthenticatedHomeAdminProjectSettingsIndexRoute =
+  AuthenticatedHomeAdminProjectSettingsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedHomeAdminProjectSettingsRouteRoute,
+  } as any)
+
+const AuthenticatedHomeAdminJobsIndexRoute =
+  AuthenticatedHomeAdminJobsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedHomeAdminJobsRouteRoute,
   } as any)
 
 // Populate the FileRoutesByPath interface
@@ -278,12 +298,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserRouteImport
       parentRoute: typeof rootRoute
     }
-    '/_home/admin': {
-      id: '/_home/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof HomeAdminRouteImport
-      parentRoute: typeof HomeRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedImport
+      parentRoute: typeof rootRoute
+    }
+    '/_authenticated/_home': {
+      id: '/_authenticated/_home'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedImport
     }
     '/_home/jobs': {
       id: '/_home/jobs'
@@ -320,33 +347,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeIndexImport
       parentRoute: typeof HomeRouteImport
     }
-    '/_home/admin/jobs': {
-      id: '/_home/admin/jobs'
-      path: '/jobs'
-      fullPath: '/admin/jobs'
-      preLoaderRoute: typeof HomeAdminJobsRouteImport
-      parentRoute: typeof HomeAdminRouteImport
-    }
-    '/_home/admin/project-settings': {
-      id: '/_home/admin/project-settings'
-      path: '/project-settings'
-      fullPath: '/admin/project-settings'
-      preLoaderRoute: typeof HomeAdminProjectSettingsRouteImport
-      parentRoute: typeof HomeAdminRouteImport
-    }
-    '/_home/admin/run-settings': {
-      id: '/_home/admin/run-settings'
-      path: '/run-settings'
-      fullPath: '/admin/run-settings'
-      preLoaderRoute: typeof HomeAdminRunSettingsRouteImport
-      parentRoute: typeof HomeAdminRouteImport
-    }
-    '/_home/admin/vendors': {
-      id: '/_home/admin/vendors'
-      path: '/vendors'
-      fullPath: '/admin/vendors'
-      preLoaderRoute: typeof HomeAdminVendorsRouteImport
-      parentRoute: typeof HomeAdminRouteImport
+    '/_authenticated/_home/admin': {
+      id: '/_authenticated/_home/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedHomeAdminRouteImport
+      parentRoute: typeof AuthenticatedHomeRouteImport
     }
     '/_home/jobs/$job_id': {
       id: '/_home/jobs/$job_id'
@@ -368,13 +374,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs/$run_barcode'
       preLoaderRoute: typeof HomeRunsRunbarcodeRouteImport
       parentRoute: typeof HomeRunsRouteImport
-    }
-    '/_home/admin/': {
-      id: '/_home/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof HomeAdminIndexImport
-      parentRoute: typeof HomeAdminRouteImport
     }
     '/_home/jobs/': {
       id: '/_home/jobs/'
@@ -425,6 +424,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserRegisterIndexImport
       parentRoute: typeof UserRouteImport
     }
+    '/_authenticated/_home/admin/jobs': {
+      id: '/_authenticated/_home/admin/jobs'
+      path: '/jobs'
+      fullPath: '/admin/jobs'
+      preLoaderRoute: typeof AuthenticatedHomeAdminJobsRouteImport
+      parentRoute: typeof AuthenticatedHomeAdminRouteImport
+    }
+    '/_authenticated/_home/admin/project-settings': {
+      id: '/_authenticated/_home/admin/project-settings'
+      path: '/project-settings'
+      fullPath: '/admin/project-settings'
+      preLoaderRoute: typeof AuthenticatedHomeAdminProjectSettingsRouteImport
+      parentRoute: typeof AuthenticatedHomeAdminRouteImport
+    }
+    '/_authenticated/_home/admin/run-settings': {
+      id: '/_authenticated/_home/admin/run-settings'
+      path: '/run-settings'
+      fullPath: '/admin/run-settings'
+      preLoaderRoute: typeof AuthenticatedHomeAdminRunSettingsRouteImport
+      parentRoute: typeof AuthenticatedHomeAdminRouteImport
+    }
+    '/_authenticated/_home/admin/vendors': {
+      id: '/_authenticated/_home/admin/vendors'
+      path: '/vendors'
+      fullPath: '/admin/vendors'
+      preLoaderRoute: typeof AuthenticatedHomeAdminVendorsRouteImport
+      parentRoute: typeof AuthenticatedHomeAdminRouteImport
+    }
     '/_home/runs/$run_barcode/indexqc': {
       id: '/_home/runs/$run_barcode/indexqc'
       path: '/indexqc'
@@ -439,33 +466,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRunsRunbarcodeSamplesheetRouteImport
       parentRoute: typeof HomeRunsRunbarcodeRouteImport
     }
-    '/_home/admin/jobs/': {
-      id: '/_home/admin/jobs/'
+    '/_authenticated/_home/admin/': {
+      id: '/_authenticated/_home/admin/'
       path: '/'
-      fullPath: '/admin/jobs/'
-      preLoaderRoute: typeof HomeAdminJobsIndexImport
-      parentRoute: typeof HomeAdminJobsRouteImport
-    }
-    '/_home/admin/project-settings/': {
-      id: '/_home/admin/project-settings/'
-      path: '/'
-      fullPath: '/admin/project-settings/'
-      preLoaderRoute: typeof HomeAdminProjectSettingsIndexImport
-      parentRoute: typeof HomeAdminProjectSettingsRouteImport
-    }
-    '/_home/admin/run-settings/': {
-      id: '/_home/admin/run-settings/'
-      path: '/'
-      fullPath: '/admin/run-settings/'
-      preLoaderRoute: typeof HomeAdminRunSettingsIndexImport
-      parentRoute: typeof HomeAdminRunSettingsRouteImport
-    }
-    '/_home/admin/vendors/': {
-      id: '/_home/admin/vendors/'
-      path: '/'
-      fullPath: '/admin/vendors/'
-      preLoaderRoute: typeof HomeAdminVendorsIndexImport
-      parentRoute: typeof HomeAdminVendorsRouteImport
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedHomeAdminIndexImport
+      parentRoute: typeof AuthenticatedHomeAdminRouteImport
     }
     '/_home/jobs/$job_id/': {
       id: '/_home/jobs/$job_id/'
@@ -488,6 +494,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRunsRunbarcodeIndexImport
       parentRoute: typeof HomeRunsRunbarcodeRouteImport
     }
+    '/_authenticated/_home/admin/jobs/': {
+      id: '/_authenticated/_home/admin/jobs/'
+      path: '/'
+      fullPath: '/admin/jobs/'
+      preLoaderRoute: typeof AuthenticatedHomeAdminJobsIndexImport
+      parentRoute: typeof AuthenticatedHomeAdminJobsRouteImport
+    }
+    '/_authenticated/_home/admin/project-settings/': {
+      id: '/_authenticated/_home/admin/project-settings/'
+      path: '/'
+      fullPath: '/admin/project-settings/'
+      preLoaderRoute: typeof AuthenticatedHomeAdminProjectSettingsIndexImport
+      parentRoute: typeof AuthenticatedHomeAdminProjectSettingsRouteImport
+    }
+    '/_authenticated/_home/admin/run-settings/': {
+      id: '/_authenticated/_home/admin/run-settings/'
+      path: '/'
+      fullPath: '/admin/run-settings/'
+      preLoaderRoute: typeof AuthenticatedHomeAdminRunSettingsIndexImport
+      parentRoute: typeof AuthenticatedHomeAdminRunSettingsRouteImport
+    }
+    '/_authenticated/_home/admin/vendors/': {
+      id: '/_authenticated/_home/admin/vendors/'
+      path: '/'
+      fullPath: '/admin/vendors/'
+      preLoaderRoute: typeof AuthenticatedHomeAdminVendorsIndexImport
+      parentRoute: typeof AuthenticatedHomeAdminVendorsRouteImport
+    }
     '/_home/runs/$run_barcode/indexqc/': {
       id: '/_home/runs/$run_barcode/indexqc/'
       path: '/'
@@ -506,79 +540,6 @@ declare module '@tanstack/react-router' {
 }
 
 // Create and export the route tree
-
-interface HomeAdminJobsRouteRouteChildren {
-  HomeAdminJobsIndexRoute: typeof HomeAdminJobsIndexRoute
-}
-
-const HomeAdminJobsRouteRouteChildren: HomeAdminJobsRouteRouteChildren = {
-  HomeAdminJobsIndexRoute: HomeAdminJobsIndexRoute,
-}
-
-const HomeAdminJobsRouteRouteWithChildren =
-  HomeAdminJobsRouteRoute._addFileChildren(HomeAdminJobsRouteRouteChildren)
-
-interface HomeAdminProjectSettingsRouteRouteChildren {
-  HomeAdminProjectSettingsIndexRoute: typeof HomeAdminProjectSettingsIndexRoute
-}
-
-const HomeAdminProjectSettingsRouteRouteChildren: HomeAdminProjectSettingsRouteRouteChildren =
-  {
-    HomeAdminProjectSettingsIndexRoute: HomeAdminProjectSettingsIndexRoute,
-  }
-
-const HomeAdminProjectSettingsRouteRouteWithChildren =
-  HomeAdminProjectSettingsRouteRoute._addFileChildren(
-    HomeAdminProjectSettingsRouteRouteChildren,
-  )
-
-interface HomeAdminRunSettingsRouteRouteChildren {
-  HomeAdminRunSettingsIndexRoute: typeof HomeAdminRunSettingsIndexRoute
-}
-
-const HomeAdminRunSettingsRouteRouteChildren: HomeAdminRunSettingsRouteRouteChildren =
-  {
-    HomeAdminRunSettingsIndexRoute: HomeAdminRunSettingsIndexRoute,
-  }
-
-const HomeAdminRunSettingsRouteRouteWithChildren =
-  HomeAdminRunSettingsRouteRoute._addFileChildren(
-    HomeAdminRunSettingsRouteRouteChildren,
-  )
-
-interface HomeAdminVendorsRouteRouteChildren {
-  HomeAdminVendorsIndexRoute: typeof HomeAdminVendorsIndexRoute
-}
-
-const HomeAdminVendorsRouteRouteChildren: HomeAdminVendorsRouteRouteChildren = {
-  HomeAdminVendorsIndexRoute: HomeAdminVendorsIndexRoute,
-}
-
-const HomeAdminVendorsRouteRouteWithChildren =
-  HomeAdminVendorsRouteRoute._addFileChildren(
-    HomeAdminVendorsRouteRouteChildren,
-  )
-
-interface HomeAdminRouteRouteChildren {
-  HomeAdminJobsRouteRoute: typeof HomeAdminJobsRouteRouteWithChildren
-  HomeAdminProjectSettingsRouteRoute: typeof HomeAdminProjectSettingsRouteRouteWithChildren
-  HomeAdminRunSettingsRouteRoute: typeof HomeAdminRunSettingsRouteRouteWithChildren
-  HomeAdminVendorsRouteRoute: typeof HomeAdminVendorsRouteRouteWithChildren
-  HomeAdminIndexRoute: typeof HomeAdminIndexRoute
-}
-
-const HomeAdminRouteRouteChildren: HomeAdminRouteRouteChildren = {
-  HomeAdminJobsRouteRoute: HomeAdminJobsRouteRouteWithChildren,
-  HomeAdminProjectSettingsRouteRoute:
-    HomeAdminProjectSettingsRouteRouteWithChildren,
-  HomeAdminRunSettingsRouteRoute: HomeAdminRunSettingsRouteRouteWithChildren,
-  HomeAdminVendorsRouteRoute: HomeAdminVendorsRouteRouteWithChildren,
-  HomeAdminIndexRoute: HomeAdminIndexRoute,
-}
-
-const HomeAdminRouteRouteWithChildren = HomeAdminRouteRoute._addFileChildren(
-  HomeAdminRouteRouteChildren,
-)
 
 interface HomeJobsJobidRouteRouteChildren {
   HomeJobsJobidIndexRoute: typeof HomeJobsJobidIndexRoute
@@ -707,7 +668,6 @@ const HomeRunsRouteRouteWithChildren = HomeRunsRouteRoute._addFileChildren(
 )
 
 interface HomeRouteRouteChildren {
-  HomeAdminRouteRoute: typeof HomeAdminRouteRouteWithChildren
   HomeJobsRouteRoute: typeof HomeJobsRouteRouteWithChildren
   HomeProfileRouteRoute: typeof HomeProfileRouteRouteWithChildren
   HomeProjectsRouteRoute: typeof HomeProjectsRouteRouteWithChildren
@@ -716,7 +676,6 @@ interface HomeRouteRouteChildren {
 }
 
 const HomeRouteRouteChildren: HomeRouteRouteChildren = {
-  HomeAdminRouteRoute: HomeAdminRouteRouteWithChildren,
   HomeJobsRouteRoute: HomeJobsRouteRouteWithChildren,
   HomeProfileRouteRoute: HomeProfileRouteRouteWithChildren,
   HomeProjectsRouteRoute: HomeProjectsRouteRouteWithChildren,
@@ -744,22 +703,129 @@ const UserRouteRouteWithChildren = UserRouteRoute._addFileChildren(
   UserRouteRouteChildren,
 )
 
+interface AuthenticatedHomeAdminJobsRouteRouteChildren {
+  AuthenticatedHomeAdminJobsIndexRoute: typeof AuthenticatedHomeAdminJobsIndexRoute
+}
+
+const AuthenticatedHomeAdminJobsRouteRouteChildren: AuthenticatedHomeAdminJobsRouteRouteChildren =
+  {
+    AuthenticatedHomeAdminJobsIndexRoute: AuthenticatedHomeAdminJobsIndexRoute,
+  }
+
+const AuthenticatedHomeAdminJobsRouteRouteWithChildren =
+  AuthenticatedHomeAdminJobsRouteRoute._addFileChildren(
+    AuthenticatedHomeAdminJobsRouteRouteChildren,
+  )
+
+interface AuthenticatedHomeAdminProjectSettingsRouteRouteChildren {
+  AuthenticatedHomeAdminProjectSettingsIndexRoute: typeof AuthenticatedHomeAdminProjectSettingsIndexRoute
+}
+
+const AuthenticatedHomeAdminProjectSettingsRouteRouteChildren: AuthenticatedHomeAdminProjectSettingsRouteRouteChildren =
+  {
+    AuthenticatedHomeAdminProjectSettingsIndexRoute:
+      AuthenticatedHomeAdminProjectSettingsIndexRoute,
+  }
+
+const AuthenticatedHomeAdminProjectSettingsRouteRouteWithChildren =
+  AuthenticatedHomeAdminProjectSettingsRouteRoute._addFileChildren(
+    AuthenticatedHomeAdminProjectSettingsRouteRouteChildren,
+  )
+
+interface AuthenticatedHomeAdminRunSettingsRouteRouteChildren {
+  AuthenticatedHomeAdminRunSettingsIndexRoute: typeof AuthenticatedHomeAdminRunSettingsIndexRoute
+}
+
+const AuthenticatedHomeAdminRunSettingsRouteRouteChildren: AuthenticatedHomeAdminRunSettingsRouteRouteChildren =
+  {
+    AuthenticatedHomeAdminRunSettingsIndexRoute:
+      AuthenticatedHomeAdminRunSettingsIndexRoute,
+  }
+
+const AuthenticatedHomeAdminRunSettingsRouteRouteWithChildren =
+  AuthenticatedHomeAdminRunSettingsRouteRoute._addFileChildren(
+    AuthenticatedHomeAdminRunSettingsRouteRouteChildren,
+  )
+
+interface AuthenticatedHomeAdminVendorsRouteRouteChildren {
+  AuthenticatedHomeAdminVendorsIndexRoute: typeof AuthenticatedHomeAdminVendorsIndexRoute
+}
+
+const AuthenticatedHomeAdminVendorsRouteRouteChildren: AuthenticatedHomeAdminVendorsRouteRouteChildren =
+  {
+    AuthenticatedHomeAdminVendorsIndexRoute:
+      AuthenticatedHomeAdminVendorsIndexRoute,
+  }
+
+const AuthenticatedHomeAdminVendorsRouteRouteWithChildren =
+  AuthenticatedHomeAdminVendorsRouteRoute._addFileChildren(
+    AuthenticatedHomeAdminVendorsRouteRouteChildren,
+  )
+
+interface AuthenticatedHomeAdminRouteRouteChildren {
+  AuthenticatedHomeAdminJobsRouteRoute: typeof AuthenticatedHomeAdminJobsRouteRouteWithChildren
+  AuthenticatedHomeAdminProjectSettingsRouteRoute: typeof AuthenticatedHomeAdminProjectSettingsRouteRouteWithChildren
+  AuthenticatedHomeAdminRunSettingsRouteRoute: typeof AuthenticatedHomeAdminRunSettingsRouteRouteWithChildren
+  AuthenticatedHomeAdminVendorsRouteRoute: typeof AuthenticatedHomeAdminVendorsRouteRouteWithChildren
+  AuthenticatedHomeAdminIndexRoute: typeof AuthenticatedHomeAdminIndexRoute
+}
+
+const AuthenticatedHomeAdminRouteRouteChildren: AuthenticatedHomeAdminRouteRouteChildren =
+  {
+    AuthenticatedHomeAdminJobsRouteRoute:
+      AuthenticatedHomeAdminJobsRouteRouteWithChildren,
+    AuthenticatedHomeAdminProjectSettingsRouteRoute:
+      AuthenticatedHomeAdminProjectSettingsRouteRouteWithChildren,
+    AuthenticatedHomeAdminRunSettingsRouteRoute:
+      AuthenticatedHomeAdminRunSettingsRouteRouteWithChildren,
+    AuthenticatedHomeAdminVendorsRouteRoute:
+      AuthenticatedHomeAdminVendorsRouteRouteWithChildren,
+    AuthenticatedHomeAdminIndexRoute: AuthenticatedHomeAdminIndexRoute,
+  }
+
+const AuthenticatedHomeAdminRouteRouteWithChildren =
+  AuthenticatedHomeAdminRouteRoute._addFileChildren(
+    AuthenticatedHomeAdminRouteRouteChildren,
+  )
+
+interface AuthenticatedHomeRouteRouteChildren {
+  AuthenticatedHomeAdminRouteRoute: typeof AuthenticatedHomeAdminRouteRouteWithChildren
+}
+
+const AuthenticatedHomeRouteRouteChildren: AuthenticatedHomeRouteRouteChildren =
+  {
+    AuthenticatedHomeAdminRouteRoute:
+      AuthenticatedHomeAdminRouteRouteWithChildren,
+  }
+
+const AuthenticatedHomeRouteRouteWithChildren =
+  AuthenticatedHomeRouteRoute._addFileChildren(
+    AuthenticatedHomeRouteRouteChildren,
+  )
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedHomeRouteRoute: typeof AuthenticatedHomeRouteRouteWithChildren
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedHomeRouteRoute: AuthenticatedHomeRouteRouteWithChildren,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
-  '': typeof UserRouteRouteWithChildren
-  '/admin': typeof HomeAdminRouteRouteWithChildren
+  '': typeof AuthenticatedHomeRouteRouteWithChildren
   '/jobs': typeof HomeJobsRouteRouteWithChildren
   '/profile': typeof HomeProfileRouteRouteWithChildren
   '/projects': typeof HomeProjectsRouteRouteWithChildren
   '/runs': typeof HomeRunsRouteRouteWithChildren
   '/': typeof HomeIndexRoute
-  '/admin/jobs': typeof HomeAdminJobsRouteRouteWithChildren
-  '/admin/project-settings': typeof HomeAdminProjectSettingsRouteRouteWithChildren
-  '/admin/run-settings': typeof HomeAdminRunSettingsRouteRouteWithChildren
-  '/admin/vendors': typeof HomeAdminVendorsRouteRouteWithChildren
+  '/admin': typeof AuthenticatedHomeAdminRouteRouteWithChildren
   '/jobs/$job_id': typeof HomeJobsJobidRouteRouteWithChildren
   '/projects/$project_id': typeof HomeProjectsProjectidRouteRouteWithChildren
   '/runs/$run_barcode': typeof HomeRunsRunbarcodeRouteRouteWithChildren
-  '/admin/': typeof HomeAdminIndexRoute
   '/jobs/': typeof HomeJobsIndexRoute
   '/profile/': typeof HomeProfileIndexRoute
   '/projects/': typeof HomeProjectsIndexRoute
@@ -767,23 +833,27 @@ export interface FileRoutesByFullPath {
   '/login': typeof UserLoginIndexRoute
   '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
+  '/admin/jobs': typeof AuthenticatedHomeAdminJobsRouteRouteWithChildren
+  '/admin/project-settings': typeof AuthenticatedHomeAdminProjectSettingsRouteRouteWithChildren
+  '/admin/run-settings': typeof AuthenticatedHomeAdminRunSettingsRouteRouteWithChildren
+  '/admin/vendors': typeof AuthenticatedHomeAdminVendorsRouteRouteWithChildren
   '/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
-  '/admin/jobs/': typeof HomeAdminJobsIndexRoute
-  '/admin/project-settings/': typeof HomeAdminProjectSettingsIndexRoute
-  '/admin/run-settings/': typeof HomeAdminRunSettingsIndexRoute
-  '/admin/vendors/': typeof HomeAdminVendorsIndexRoute
+  '/admin/': typeof AuthenticatedHomeAdminIndexRoute
   '/jobs/$job_id/': typeof HomeJobsJobidIndexRoute
   '/projects/$project_id/': typeof HomeProjectsProjectidIndexRoute
   '/runs/$run_barcode/': typeof HomeRunsRunbarcodeIndexRoute
+  '/admin/jobs/': typeof AuthenticatedHomeAdminJobsIndexRoute
+  '/admin/project-settings/': typeof AuthenticatedHomeAdminProjectSettingsIndexRoute
+  '/admin/run-settings/': typeof AuthenticatedHomeAdminRunSettingsIndexRoute
+  '/admin/vendors/': typeof AuthenticatedHomeAdminVendorsIndexRoute
   '/runs/$run_barcode/indexqc/': typeof HomeRunsRunbarcodeIndexqcIndexRoute
   '/runs/$run_barcode/samplesheet/': typeof HomeRunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '': typeof UserRouteRouteWithChildren
+  '': typeof AuthenticatedHomeRouteRouteWithChildren
   '/': typeof HomeIndexRoute
-  '/admin': typeof HomeAdminIndexRoute
   '/jobs': typeof HomeJobsIndexRoute
   '/profile': typeof HomeProfileIndexRoute
   '/projects': typeof HomeProjectsIndexRoute
@@ -791,13 +861,14 @@ export interface FileRoutesByTo {
   '/login': typeof UserLoginIndexRoute
   '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
-  '/admin/jobs': typeof HomeAdminJobsIndexRoute
-  '/admin/project-settings': typeof HomeAdminProjectSettingsIndexRoute
-  '/admin/run-settings': typeof HomeAdminRunSettingsIndexRoute
-  '/admin/vendors': typeof HomeAdminVendorsIndexRoute
+  '/admin': typeof AuthenticatedHomeAdminIndexRoute
   '/jobs/$job_id': typeof HomeJobsJobidIndexRoute
   '/projects/$project_id': typeof HomeProjectsProjectidIndexRoute
   '/runs/$run_barcode': typeof HomeRunsRunbarcodeIndexRoute
+  '/admin/jobs': typeof AuthenticatedHomeAdminJobsIndexRoute
+  '/admin/project-settings': typeof AuthenticatedHomeAdminProjectSettingsIndexRoute
+  '/admin/run-settings': typeof AuthenticatedHomeAdminRunSettingsIndexRoute
+  '/admin/vendors': typeof AuthenticatedHomeAdminVendorsIndexRoute
   '/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcIndexRoute
   '/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetIndexRoute
 }
@@ -806,20 +877,17 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_home': typeof HomeRouteRouteWithChildren
   '/_user': typeof UserRouteRouteWithChildren
-  '/_home/admin': typeof HomeAdminRouteRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated/_home': typeof AuthenticatedHomeRouteRouteWithChildren
   '/_home/jobs': typeof HomeJobsRouteRouteWithChildren
   '/_home/profile': typeof HomeProfileRouteRouteWithChildren
   '/_home/projects': typeof HomeProjectsRouteRouteWithChildren
   '/_home/runs': typeof HomeRunsRouteRouteWithChildren
   '/_home/': typeof HomeIndexRoute
-  '/_home/admin/jobs': typeof HomeAdminJobsRouteRouteWithChildren
-  '/_home/admin/project-settings': typeof HomeAdminProjectSettingsRouteRouteWithChildren
-  '/_home/admin/run-settings': typeof HomeAdminRunSettingsRouteRouteWithChildren
-  '/_home/admin/vendors': typeof HomeAdminVendorsRouteRouteWithChildren
+  '/_authenticated/_home/admin': typeof AuthenticatedHomeAdminRouteRouteWithChildren
   '/_home/jobs/$job_id': typeof HomeJobsJobidRouteRouteWithChildren
   '/_home/projects/$project_id': typeof HomeProjectsProjectidRouteRouteWithChildren
   '/_home/runs/$run_barcode': typeof HomeRunsRunbarcodeRouteRouteWithChildren
-  '/_home/admin/': typeof HomeAdminIndexRoute
   '/_home/jobs/': typeof HomeJobsIndexRoute
   '/_home/profile/': typeof HomeProfileIndexRoute
   '/_home/projects/': typeof HomeProjectsIndexRoute
@@ -827,15 +895,20 @@ export interface FileRoutesById {
   '/_user/login/': typeof UserLoginIndexRoute
   '/_user/password-reset/': typeof UserPasswordResetIndexRoute
   '/_user/register/': typeof UserRegisterIndexRoute
+  '/_authenticated/_home/admin/jobs': typeof AuthenticatedHomeAdminJobsRouteRouteWithChildren
+  '/_authenticated/_home/admin/project-settings': typeof AuthenticatedHomeAdminProjectSettingsRouteRouteWithChildren
+  '/_authenticated/_home/admin/run-settings': typeof AuthenticatedHomeAdminRunSettingsRouteRouteWithChildren
+  '/_authenticated/_home/admin/vendors': typeof AuthenticatedHomeAdminVendorsRouteRouteWithChildren
   '/_home/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/_home/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
-  '/_home/admin/jobs/': typeof HomeAdminJobsIndexRoute
-  '/_home/admin/project-settings/': typeof HomeAdminProjectSettingsIndexRoute
-  '/_home/admin/run-settings/': typeof HomeAdminRunSettingsIndexRoute
-  '/_home/admin/vendors/': typeof HomeAdminVendorsIndexRoute
+  '/_authenticated/_home/admin/': typeof AuthenticatedHomeAdminIndexRoute
   '/_home/jobs/$job_id/': typeof HomeJobsJobidIndexRoute
   '/_home/projects/$project_id/': typeof HomeProjectsProjectidIndexRoute
   '/_home/runs/$run_barcode/': typeof HomeRunsRunbarcodeIndexRoute
+  '/_authenticated/_home/admin/jobs/': typeof AuthenticatedHomeAdminJobsIndexRoute
+  '/_authenticated/_home/admin/project-settings/': typeof AuthenticatedHomeAdminProjectSettingsIndexRoute
+  '/_authenticated/_home/admin/run-settings/': typeof AuthenticatedHomeAdminRunSettingsIndexRoute
+  '/_authenticated/_home/admin/vendors/': typeof AuthenticatedHomeAdminVendorsIndexRoute
   '/_home/runs/$run_barcode/indexqc/': typeof HomeRunsRunbarcodeIndexqcIndexRoute
   '/_home/runs/$run_barcode/samplesheet/': typeof HomeRunsRunbarcodeSamplesheetIndexRoute
 }
@@ -844,20 +917,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | ''
-    | '/admin'
     | '/jobs'
     | '/profile'
     | '/projects'
     | '/runs'
     | '/'
-    | '/admin/jobs'
-    | '/admin/project-settings'
-    | '/admin/run-settings'
-    | '/admin/vendors'
+    | '/admin'
     | '/jobs/$job_id'
     | '/projects/$project_id'
     | '/runs/$run_barcode'
-    | '/admin/'
     | '/jobs/'
     | '/profile/'
     | '/projects/'
@@ -865,22 +933,26 @@ export interface FileRouteTypes {
     | '/login'
     | '/password-reset'
     | '/register'
+    | '/admin/jobs'
+    | '/admin/project-settings'
+    | '/admin/run-settings'
+    | '/admin/vendors'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
+    | '/admin/'
+    | '/jobs/$job_id/'
+    | '/projects/$project_id/'
+    | '/runs/$run_barcode/'
     | '/admin/jobs/'
     | '/admin/project-settings/'
     | '/admin/run-settings/'
     | '/admin/vendors/'
-    | '/jobs/$job_id/'
-    | '/projects/$project_id/'
-    | '/runs/$run_barcode/'
     | '/runs/$run_barcode/indexqc/'
     | '/runs/$run_barcode/samplesheet/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | ''
     | '/'
-    | '/admin'
     | '/jobs'
     | '/profile'
     | '/projects'
@@ -888,33 +960,31 @@ export interface FileRouteTypes {
     | '/login'
     | '/password-reset'
     | '/register'
+    | '/admin'
+    | '/jobs/$job_id'
+    | '/projects/$project_id'
+    | '/runs/$run_barcode'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
     | '/admin/vendors'
-    | '/jobs/$job_id'
-    | '/projects/$project_id'
-    | '/runs/$run_barcode'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
   id:
     | '__root__'
     | '/_home'
     | '/_user'
-    | '/_home/admin'
+    | '/_authenticated'
+    | '/_authenticated/_home'
     | '/_home/jobs'
     | '/_home/profile'
     | '/_home/projects'
     | '/_home/runs'
     | '/_home/'
-    | '/_home/admin/jobs'
-    | '/_home/admin/project-settings'
-    | '/_home/admin/run-settings'
-    | '/_home/admin/vendors'
+    | '/_authenticated/_home/admin'
     | '/_home/jobs/$job_id'
     | '/_home/projects/$project_id'
     | '/_home/runs/$run_barcode'
-    | '/_home/admin/'
     | '/_home/jobs/'
     | '/_home/profile/'
     | '/_home/projects/'
@@ -922,15 +992,20 @@ export interface FileRouteTypes {
     | '/_user/login/'
     | '/_user/password-reset/'
     | '/_user/register/'
+    | '/_authenticated/_home/admin/jobs'
+    | '/_authenticated/_home/admin/project-settings'
+    | '/_authenticated/_home/admin/run-settings'
+    | '/_authenticated/_home/admin/vendors'
     | '/_home/runs/$run_barcode/indexqc'
     | '/_home/runs/$run_barcode/samplesheet'
-    | '/_home/admin/jobs/'
-    | '/_home/admin/project-settings/'
-    | '/_home/admin/run-settings/'
-    | '/_home/admin/vendors/'
+    | '/_authenticated/_home/admin/'
     | '/_home/jobs/$job_id/'
     | '/_home/projects/$project_id/'
     | '/_home/runs/$run_barcode/'
+    | '/_authenticated/_home/admin/jobs/'
+    | '/_authenticated/_home/admin/project-settings/'
+    | '/_authenticated/_home/admin/run-settings/'
+    | '/_authenticated/_home/admin/vendors/'
     | '/_home/runs/$run_barcode/indexqc/'
     | '/_home/runs/$run_barcode/samplesheet/'
   fileRoutesById: FileRoutesById
@@ -939,11 +1014,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   HomeRouteRoute: typeof HomeRouteRouteWithChildren
   UserRouteRoute: typeof UserRouteRouteWithChildren
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   HomeRouteRoute: HomeRouteRouteWithChildren,
   UserRouteRoute: UserRouteRouteWithChildren,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -957,13 +1034,13 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_home",
-        "/_user"
+        "/_user",
+        "/_authenticated"
       ]
     },
     "/_home": {
       "filePath": "_home.route.tsx",
       "children": [
-        "/_home/admin",
         "/_home/jobs",
         "/_home/profile",
         "/_home/projects",
@@ -979,15 +1056,17 @@ export const routeTree = rootRoute
         "/_user/register/"
       ]
     },
-    "/_home/admin": {
-      "filePath": "_home.admin.route.tsx",
-      "parent": "/_home",
+    "/_authenticated": {
+      "filePath": "_authenticated.tsx",
       "children": [
-        "/_home/admin/jobs",
-        "/_home/admin/project-settings",
-        "/_home/admin/run-settings",
-        "/_home/admin/vendors",
-        "/_home/admin/"
+        "/_authenticated/_home"
+      ]
+    },
+    "/_authenticated/_home": {
+      "filePath": "_authenticated._home.route.tsx",
+      "parent": "/_authenticated",
+      "children": [
+        "/_authenticated/_home/admin"
       ]
     },
     "/_home/jobs": {
@@ -1025,32 +1104,15 @@ export const routeTree = rootRoute
       "filePath": "_home.index.tsx",
       "parent": "/_home"
     },
-    "/_home/admin/jobs": {
-      "filePath": "_home.admin.jobs.route.tsx",
-      "parent": "/_home/admin",
+    "/_authenticated/_home/admin": {
+      "filePath": "_authenticated._home.admin.route.tsx",
+      "parent": "/_authenticated/_home",
       "children": [
-        "/_home/admin/jobs/"
-      ]
-    },
-    "/_home/admin/project-settings": {
-      "filePath": "_home.admin.project-settings.route.tsx",
-      "parent": "/_home/admin",
-      "children": [
-        "/_home/admin/project-settings/"
-      ]
-    },
-    "/_home/admin/run-settings": {
-      "filePath": "_home.admin.run-settings.route.tsx",
-      "parent": "/_home/admin",
-      "children": [
-        "/_home/admin/run-settings/"
-      ]
-    },
-    "/_home/admin/vendors": {
-      "filePath": "_home.admin.vendors.route.tsx",
-      "parent": "/_home/admin",
-      "children": [
-        "/_home/admin/vendors/"
+        "/_authenticated/_home/admin/jobs",
+        "/_authenticated/_home/admin/project-settings",
+        "/_authenticated/_home/admin/run-settings",
+        "/_authenticated/_home/admin/vendors",
+        "/_authenticated/_home/admin/"
       ]
     },
     "/_home/jobs/$job_id": {
@@ -1075,10 +1137,6 @@ export const routeTree = rootRoute
         "/_home/runs/$run_barcode/samplesheet",
         "/_home/runs/$run_barcode/"
       ]
-    },
-    "/_home/admin/": {
-      "filePath": "_home.admin.index.tsx",
-      "parent": "/_home/admin"
     },
     "/_home/jobs/": {
       "filePath": "_home.jobs.index.tsx",
@@ -1108,6 +1166,34 @@ export const routeTree = rootRoute
       "filePath": "_user.register.index.tsx",
       "parent": "/_user"
     },
+    "/_authenticated/_home/admin/jobs": {
+      "filePath": "_authenticated._home.admin.jobs.route.tsx",
+      "parent": "/_authenticated/_home/admin",
+      "children": [
+        "/_authenticated/_home/admin/jobs/"
+      ]
+    },
+    "/_authenticated/_home/admin/project-settings": {
+      "filePath": "_authenticated._home.admin.project-settings.route.tsx",
+      "parent": "/_authenticated/_home/admin",
+      "children": [
+        "/_authenticated/_home/admin/project-settings/"
+      ]
+    },
+    "/_authenticated/_home/admin/run-settings": {
+      "filePath": "_authenticated._home.admin.run-settings.route.tsx",
+      "parent": "/_authenticated/_home/admin",
+      "children": [
+        "/_authenticated/_home/admin/run-settings/"
+      ]
+    },
+    "/_authenticated/_home/admin/vendors": {
+      "filePath": "_authenticated._home.admin.vendors.route.tsx",
+      "parent": "/_authenticated/_home/admin",
+      "children": [
+        "/_authenticated/_home/admin/vendors/"
+      ]
+    },
     "/_home/runs/$run_barcode/indexqc": {
       "filePath": "_home.runs.$run_barcode.indexqc.route.tsx",
       "parent": "/_home/runs/$run_barcode",
@@ -1122,21 +1208,9 @@ export const routeTree = rootRoute
         "/_home/runs/$run_barcode/samplesheet/"
       ]
     },
-    "/_home/admin/jobs/": {
-      "filePath": "_home.admin.jobs.index.tsx",
-      "parent": "/_home/admin/jobs"
-    },
-    "/_home/admin/project-settings/": {
-      "filePath": "_home.admin.project-settings.index.tsx",
-      "parent": "/_home/admin/project-settings"
-    },
-    "/_home/admin/run-settings/": {
-      "filePath": "_home.admin.run-settings.index.tsx",
-      "parent": "/_home/admin/run-settings"
-    },
-    "/_home/admin/vendors/": {
-      "filePath": "_home.admin.vendors.index.tsx",
-      "parent": "/_home/admin/vendors"
+    "/_authenticated/_home/admin/": {
+      "filePath": "_authenticated._home.admin.index.tsx",
+      "parent": "/_authenticated/_home/admin"
     },
     "/_home/jobs/$job_id/": {
       "filePath": "_home.jobs.$job_id.index.tsx",
@@ -1149,6 +1223,22 @@ export const routeTree = rootRoute
     "/_home/runs/$run_barcode/": {
       "filePath": "_home.runs.$run_barcode.index.tsx",
       "parent": "/_home/runs/$run_barcode"
+    },
+    "/_authenticated/_home/admin/jobs/": {
+      "filePath": "_authenticated._home.admin.jobs.index.tsx",
+      "parent": "/_authenticated/_home/admin/jobs"
+    },
+    "/_authenticated/_home/admin/project-settings/": {
+      "filePath": "_authenticated._home.admin.project-settings.index.tsx",
+      "parent": "/_authenticated/_home/admin/project-settings"
+    },
+    "/_authenticated/_home/admin/run-settings/": {
+      "filePath": "_authenticated._home.admin.run-settings.index.tsx",
+      "parent": "/_authenticated/_home/admin/run-settings"
+    },
+    "/_authenticated/_home/admin/vendors/": {
+      "filePath": "_authenticated._home.admin.vendors.index.tsx",
+      "parent": "/_authenticated/_home/admin/vendors"
     },
     "/_home/runs/$run_barcode/indexqc/": {
       "filePath": "_home.runs.$run_barcode.indexqc.index.tsx",
