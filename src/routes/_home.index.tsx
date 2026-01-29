@@ -23,11 +23,11 @@ function App() {
         </div> */}
         
         <div className="min-h-[85vh] flex flex-col items-center justify-center gap-6 px-4 relative z-10">
-        <h1 className="text-5xl md:text-6xl animate-fade-in-up flex items-center justify-center">
-          <span className="mr-3 font-normal text-muted-foreground">Welcome to</span>
-          <NGS360Logo showIcon={false} textSize="text-5xl md:text-6xl" gap="gap-0" />
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl animate-fade-in-up flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+          <span className="font-normal text-muted-foreground">Welcome to</span>
+          <NGS360Logo showIcon={false} textSize="text-3xl sm:text-4xl md:text-5xl lg:text-6xl" gap="gap-0" />
         </h1>
-        <h2 className="text-base md:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0, animationFillMode: 'forwards' }}>
+        <h2 className="text-sm sm:text-base md:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0, animationFillMode: 'forwards' }}>
           Your comprehensive next-generation sequencing data management platform.
           Search, analyze, and manage your genomic data with ease.
         </h2>
