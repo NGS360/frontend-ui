@@ -12,8 +12,9 @@ import { Sidebar,
   SidebarProvider } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getGravatarUrl } from '@/lib/utils'
+import { useAuth } from '@/context/auth-context'
 
-export const Route = createFileRoute('/_home/profile')({
+export const Route = createFileRoute('/_authenticated/_home/profile')({
   component: RouteComponent,
   loader: () => ({
     crumb: 'Profile',
@@ -22,13 +23,15 @@ export const Route = createFileRoute('/_home/profile')({
 })
 
 function RouteComponent() {
-  const userEmail = 'user@bms.com'
+  const { user } = useAuth()
+  const userEmail = user?.email || ''
   const avatarUrl = getGravatarUrl(userEmail)
-  const [activeSection, setActiveSection] = useState('jobs')
+  const [activeSection, setActiveSection] = useState('user-info')
   const location = useLocation()
   const navigate = useNavigate()
 
   const menuItems = [
+    { id: 'user-info', title: 'Account Info', icon: User },
     { id: 'jobs', title: 'Jobs', icon: ListChecks },
     { id: 'settings', title: 'Settings', icon: Settings },
   ]
@@ -92,8 +95,10 @@ function RouteComponent() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col gap-1">
-                  <h3 className="text-lg font-semibold">System User</h3>
-                  <p className="text-sm text-muted-foreground">Administrator</p>
+                  <h3 className="text-lg font-semibold">{user?.full_name || 'User'}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {user?.username || ''}
+                  </p>
                 </div>
               </div>
 
@@ -110,7 +115,9 @@ function RouteComponent() {
                   <User className="h-5 w-5 text-muted-foreground" />
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">Role</span>
-                    <span className="text-sm text-muted-foreground">Administrator</span>
+                    <span className="text-sm text-muted-foreground">
+                      {'User'}
+                    </span>
                   </div>
                 </div>
               </div>

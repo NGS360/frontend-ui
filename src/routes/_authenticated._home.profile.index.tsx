@@ -11,12 +11,14 @@ import { CopyableText } from '@/components/copyable-text'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { FullscreenSpinner } from '@/components/spinner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAuth } from '@/context/auth-context'
 
-export const Route = createFileRoute('/_home/profile/')({
+export const Route = createFileRoute('/_authenticated/_home/profile/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const { user } = useAuth()
   const { viewJob } = useViewJob()
 
   // Table state for jobs
@@ -36,7 +38,7 @@ function RouteComponent() {
       limit: pagination.pageSize,
       sort_by: sorting[0]?.id as 'id' | 'name' | 'user' | 'status' | 'submitted_on',
       sort_order: sorting[0]?.desc ? 'desc' : 'asc',
-      user: 'system',
+      user: user?.email,
     },
   })
 
@@ -48,7 +50,7 @@ function RouteComponent() {
         limit: pagination.pageSize,
         sort_by: sorting[0]?.id as 'id' | 'name' | 'user' | 'status' | 'submitted_on',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc',
-        user: 'system', // Filter by current user
+        user: user?.email, // Filter by current user from context
       },
     }),
     placeholderData: keepPreviousData
@@ -126,6 +128,49 @@ function RouteComponent() {
 
   return (
     <div className='flex flex-col gap-8 pb-8'>
+
+      {/* User Info Section */}
+      <section id="user-info" className="scroll-mt-20">
+        <div className='flex flex-col gap-4'>
+          <div className='flex flex-col gap-2'>
+            <h1 className="text-3xl">Profile</h1>
+            <p className="text-muted-foreground">
+              Manage your account information and view your activities.
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>Your NGS360 account details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Full Name</p>
+                  <p className="text-sm">{user?.full_name || 'Not set'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Email</p>
+                  <p className="text-sm">{user?.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Username</p>
+                  <p className="text-sm">{user?.username || 'Not set'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Role</p>
+                  <p className="text-sm capitalize">{'User'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <p className="text-sm capitalize">{user?.is_active ? 'Active' : 'Inactive'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
 
       {/* Jobs Section */}
       <section id="jobs" className="scroll-mt-20">

@@ -1,5 +1,5 @@
 import { LogOut, User } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { getGravatarUrl } from '@/lib/utils'
 import {
@@ -12,8 +12,14 @@ import { useAuth } from '@/context/auth-context'
 
 export function UserAvatar() {
   const { user, logout } = useAuth(); 
+  const navigate = useNavigate();
   const userEmail = user?.email || '';
   const avatarUrl = getGravatarUrl(userEmail)
+  
+  const handleLogout = async () => {
+    await logout();
+    navigate({ to: '/' });
+  }
 
   return (
     <DropdownMenu>
@@ -30,7 +36,7 @@ export function UserAvatar() {
             <span>Profile</span>
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={logout}>
+        <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Logout</span>
         </DropdownMenuItem>

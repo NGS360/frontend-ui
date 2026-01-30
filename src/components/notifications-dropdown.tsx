@@ -12,12 +12,22 @@ import {
 } from '@/components/ui/popover'
 import { getJobsOptions } from '@/client/@tanstack/react-query.gen'
 import { DEFAULT_JOBS_QUERY_OPTIONS, useViewJob } from '@/hooks/use-job-queries'
+import { useAuth } from '@/context/auth-context'
 
 export function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
   const { viewJob } = useViewJob()
+  const { user } = useAuth() 
 
-  const { data: jobsData, isLoading } = useQuery(getJobsOptions(DEFAULT_JOBS_QUERY_OPTIONS))
+  const { data: jobsData, isLoading } = useQuery({
+    ...getJobsOptions({
+      query: {
+        ...DEFAULT_JOBS_QUERY_OPTIONS.query,
+        limit: 10,
+        user: user?.email || 'system',
+      }
+    })
+  })
 
   const jobs = jobsData?.data || []
   const hasUnviewedJobs = jobs.some((job) => !job.viewed)
@@ -52,7 +62,7 @@ export function NotificationsDropdown() {
             </div>
           ) : jobs.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No jobs found for user: system
+              No jobs found for user: {user?.email || 'system'}
             </div>
           ) : (
             <div className="divide-y">

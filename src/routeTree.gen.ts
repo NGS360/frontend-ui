@@ -17,7 +17,6 @@ import { Route as HomeRouteImport } from './routes/_home.route'
 import { Route as HomeIndexImport } from './routes/_home.index'
 import { Route as HomeRunsRouteImport } from './routes/_home.runs.route'
 import { Route as HomeProjectsRouteImport } from './routes/_home.projects.route'
-import { Route as HomeProfileRouteImport } from './routes/_home.profile.route'
 import { Route as HomeJobsRouteImport } from './routes/_home.jobs.route'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated._home.route'
 import { Route as UserRegisterIndexImport } from './routes/_user.register.index'
@@ -25,15 +24,16 @@ import { Route as UserPasswordResetIndexImport } from './routes/_user.password-r
 import { Route as UserLoginIndexImport } from './routes/_user.login.index'
 import { Route as HomeRunsIndexImport } from './routes/_home.runs.index'
 import { Route as HomeProjectsIndexImport } from './routes/_home.projects.index'
-import { Route as HomeProfileIndexImport } from './routes/_home.profile.index'
 import { Route as HomeJobsIndexImport } from './routes/_home.jobs.index'
 import { Route as HomeRunsRunbarcodeRouteImport } from './routes/_home.runs.$run_barcode.route'
 import { Route as HomeProjectsProjectidRouteImport } from './routes/_home.projects.$project_id.route'
 import { Route as HomeJobsJobidRouteImport } from './routes/_home.jobs.$job_id.route'
+import { Route as AuthenticatedHomeProfileRouteImport } from './routes/_authenticated._home.profile.route'
 import { Route as AuthenticatedHomeAdminRouteImport } from './routes/_authenticated._home.admin.route'
 import { Route as HomeRunsRunbarcodeIndexImport } from './routes/_home.runs.$run_barcode.index'
 import { Route as HomeProjectsProjectidIndexImport } from './routes/_home.projects.$project_id.index'
 import { Route as HomeJobsJobidIndexImport } from './routes/_home.jobs.$job_id.index'
+import { Route as AuthenticatedHomeProfileIndexImport } from './routes/_authenticated._home.profile.index'
 import { Route as AuthenticatedHomeAdminIndexImport } from './routes/_authenticated._home.admin.index'
 import { Route as HomeRunsRunbarcodeSamplesheetRouteImport } from './routes/_home.runs.$run_barcode.samplesheet.route'
 import { Route as HomeRunsRunbarcodeIndexqcRouteImport } from './routes/_home.runs.$run_barcode.indexqc.route'
@@ -83,12 +83,6 @@ const HomeProjectsRouteRoute = HomeProjectsRouteImport.update({
   getParentRoute: () => HomeRouteRoute,
 } as any)
 
-const HomeProfileRouteRoute = HomeProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => HomeRouteRoute,
-} as any)
-
 const HomeJobsRouteRoute = HomeJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -130,12 +124,6 @@ const HomeProjectsIndexRoute = HomeProjectsIndexImport.update({
   getParentRoute: () => HomeProjectsRouteRoute,
 } as any)
 
-const HomeProfileIndexRoute = HomeProfileIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HomeProfileRouteRoute,
-} as any)
-
 const HomeJobsIndexRoute = HomeJobsIndexImport.update({
   id: '/',
   path: '/',
@@ -161,6 +149,13 @@ const HomeJobsJobidRouteRoute = HomeJobsJobidRouteImport.update({
   path: '/$job_id',
   getParentRoute: () => HomeJobsRouteRoute,
 } as any)
+
+const AuthenticatedHomeProfileRouteRoute =
+  AuthenticatedHomeProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedHomeRouteRoute,
+  } as any)
 
 const AuthenticatedHomeAdminRouteRoute =
   AuthenticatedHomeAdminRouteImport.update({
@@ -188,6 +183,13 @@ const HomeJobsJobidIndexRoute = HomeJobsJobidIndexImport.update({
   path: '/',
   getParentRoute: () => HomeJobsJobidRouteRoute,
 } as any)
+
+const AuthenticatedHomeProfileIndexRoute =
+  AuthenticatedHomeProfileIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedHomeProfileRouteRoute,
+  } as any)
 
 const AuthenticatedHomeAdminIndexRoute =
   AuthenticatedHomeAdminIndexImport.update({
@@ -319,13 +321,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeJobsRouteImport
       parentRoute: typeof HomeRouteImport
     }
-    '/_home/profile': {
-      id: '/_home/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof HomeProfileRouteImport
-      parentRoute: typeof HomeRouteImport
-    }
     '/_home/projects': {
       id: '/_home/projects'
       path: '/projects'
@@ -352,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedHomeAdminRouteImport
+      parentRoute: typeof AuthenticatedHomeRouteImport
+    }
+    '/_authenticated/_home/profile': {
+      id: '/_authenticated/_home/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedHomeProfileRouteImport
       parentRoute: typeof AuthenticatedHomeRouteImport
     }
     '/_home/jobs/$job_id': {
@@ -381,13 +383,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/jobs/'
       preLoaderRoute: typeof HomeJobsIndexImport
       parentRoute: typeof HomeJobsRouteImport
-    }
-    '/_home/profile/': {
-      id: '/_home/profile/'
-      path: '/'
-      fullPath: '/profile/'
-      preLoaderRoute: typeof HomeProfileIndexImport
-      parentRoute: typeof HomeProfileRouteImport
     }
     '/_home/projects/': {
       id: '/_home/projects/'
@@ -472,6 +467,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedHomeAdminIndexImport
       parentRoute: typeof AuthenticatedHomeAdminRouteImport
+    }
+    '/_authenticated/_home/profile/': {
+      id: '/_authenticated/_home/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthenticatedHomeProfileIndexImport
+      parentRoute: typeof AuthenticatedHomeProfileRouteImport
     }
     '/_home/jobs/$job_id/': {
       id: '/_home/jobs/$job_id/'
@@ -566,17 +568,6 @@ const HomeJobsRouteRouteWithChildren = HomeJobsRouteRoute._addFileChildren(
   HomeJobsRouteRouteChildren,
 )
 
-interface HomeProfileRouteRouteChildren {
-  HomeProfileIndexRoute: typeof HomeProfileIndexRoute
-}
-
-const HomeProfileRouteRouteChildren: HomeProfileRouteRouteChildren = {
-  HomeProfileIndexRoute: HomeProfileIndexRoute,
-}
-
-const HomeProfileRouteRouteWithChildren =
-  HomeProfileRouteRoute._addFileChildren(HomeProfileRouteRouteChildren)
-
 interface HomeProjectsProjectidRouteRouteChildren {
   HomeProjectsProjectidIndexRoute: typeof HomeProjectsProjectidIndexRoute
 }
@@ -669,7 +660,6 @@ const HomeRunsRouteRouteWithChildren = HomeRunsRouteRoute._addFileChildren(
 
 interface HomeRouteRouteChildren {
   HomeJobsRouteRoute: typeof HomeJobsRouteRouteWithChildren
-  HomeProfileRouteRoute: typeof HomeProfileRouteRouteWithChildren
   HomeProjectsRouteRoute: typeof HomeProjectsRouteRouteWithChildren
   HomeRunsRouteRoute: typeof HomeRunsRouteRouteWithChildren
   HomeIndexRoute: typeof HomeIndexRoute
@@ -677,7 +667,6 @@ interface HomeRouteRouteChildren {
 
 const HomeRouteRouteChildren: HomeRouteRouteChildren = {
   HomeJobsRouteRoute: HomeJobsRouteRouteWithChildren,
-  HomeProfileRouteRoute: HomeProfileRouteRouteWithChildren,
   HomeProjectsRouteRoute: HomeProjectsRouteRouteWithChildren,
   HomeRunsRouteRoute: HomeRunsRouteRouteWithChildren,
   HomeIndexRoute: HomeIndexRoute,
@@ -788,14 +777,31 @@ const AuthenticatedHomeAdminRouteRouteWithChildren =
     AuthenticatedHomeAdminRouteRouteChildren,
   )
 
+interface AuthenticatedHomeProfileRouteRouteChildren {
+  AuthenticatedHomeProfileIndexRoute: typeof AuthenticatedHomeProfileIndexRoute
+}
+
+const AuthenticatedHomeProfileRouteRouteChildren: AuthenticatedHomeProfileRouteRouteChildren =
+  {
+    AuthenticatedHomeProfileIndexRoute: AuthenticatedHomeProfileIndexRoute,
+  }
+
+const AuthenticatedHomeProfileRouteRouteWithChildren =
+  AuthenticatedHomeProfileRouteRoute._addFileChildren(
+    AuthenticatedHomeProfileRouteRouteChildren,
+  )
+
 interface AuthenticatedHomeRouteRouteChildren {
   AuthenticatedHomeAdminRouteRoute: typeof AuthenticatedHomeAdminRouteRouteWithChildren
+  AuthenticatedHomeProfileRouteRoute: typeof AuthenticatedHomeProfileRouteRouteWithChildren
 }
 
 const AuthenticatedHomeRouteRouteChildren: AuthenticatedHomeRouteRouteChildren =
   {
     AuthenticatedHomeAdminRouteRoute:
       AuthenticatedHomeAdminRouteRouteWithChildren,
+    AuthenticatedHomeProfileRouteRoute:
+      AuthenticatedHomeProfileRouteRouteWithChildren,
   }
 
 const AuthenticatedHomeRouteRouteWithChildren =
@@ -818,16 +824,15 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '': typeof AuthenticatedHomeRouteRouteWithChildren
   '/jobs': typeof HomeJobsRouteRouteWithChildren
-  '/profile': typeof HomeProfileRouteRouteWithChildren
   '/projects': typeof HomeProjectsRouteRouteWithChildren
   '/runs': typeof HomeRunsRouteRouteWithChildren
   '/': typeof HomeIndexRoute
   '/admin': typeof AuthenticatedHomeAdminRouteRouteWithChildren
+  '/profile': typeof AuthenticatedHomeProfileRouteRouteWithChildren
   '/jobs/$job_id': typeof HomeJobsJobidRouteRouteWithChildren
   '/projects/$project_id': typeof HomeProjectsProjectidRouteRouteWithChildren
   '/runs/$run_barcode': typeof HomeRunsRunbarcodeRouteRouteWithChildren
   '/jobs/': typeof HomeJobsIndexRoute
-  '/profile/': typeof HomeProfileIndexRoute
   '/projects/': typeof HomeProjectsIndexRoute
   '/runs/': typeof HomeRunsIndexRoute
   '/login': typeof UserLoginIndexRoute
@@ -840,6 +845,7 @@ export interface FileRoutesByFullPath {
   '/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
   '/admin/': typeof AuthenticatedHomeAdminIndexRoute
+  '/profile/': typeof AuthenticatedHomeProfileIndexRoute
   '/jobs/$job_id/': typeof HomeJobsJobidIndexRoute
   '/projects/$project_id/': typeof HomeProjectsProjectidIndexRoute
   '/runs/$run_barcode/': typeof HomeRunsRunbarcodeIndexRoute
@@ -855,13 +861,13 @@ export interface FileRoutesByTo {
   '': typeof AuthenticatedHomeRouteRouteWithChildren
   '/': typeof HomeIndexRoute
   '/jobs': typeof HomeJobsIndexRoute
-  '/profile': typeof HomeProfileIndexRoute
   '/projects': typeof HomeProjectsIndexRoute
   '/runs': typeof HomeRunsIndexRoute
   '/login': typeof UserLoginIndexRoute
   '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
   '/admin': typeof AuthenticatedHomeAdminIndexRoute
+  '/profile': typeof AuthenticatedHomeProfileIndexRoute
   '/jobs/$job_id': typeof HomeJobsJobidIndexRoute
   '/projects/$project_id': typeof HomeProjectsProjectidIndexRoute
   '/runs/$run_barcode': typeof HomeRunsRunbarcodeIndexRoute
@@ -880,16 +886,15 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated/_home': typeof AuthenticatedHomeRouteRouteWithChildren
   '/_home/jobs': typeof HomeJobsRouteRouteWithChildren
-  '/_home/profile': typeof HomeProfileRouteRouteWithChildren
   '/_home/projects': typeof HomeProjectsRouteRouteWithChildren
   '/_home/runs': typeof HomeRunsRouteRouteWithChildren
   '/_home/': typeof HomeIndexRoute
   '/_authenticated/_home/admin': typeof AuthenticatedHomeAdminRouteRouteWithChildren
+  '/_authenticated/_home/profile': typeof AuthenticatedHomeProfileRouteRouteWithChildren
   '/_home/jobs/$job_id': typeof HomeJobsJobidRouteRouteWithChildren
   '/_home/projects/$project_id': typeof HomeProjectsProjectidRouteRouteWithChildren
   '/_home/runs/$run_barcode': typeof HomeRunsRunbarcodeRouteRouteWithChildren
   '/_home/jobs/': typeof HomeJobsIndexRoute
-  '/_home/profile/': typeof HomeProfileIndexRoute
   '/_home/projects/': typeof HomeProjectsIndexRoute
   '/_home/runs/': typeof HomeRunsIndexRoute
   '/_user/login/': typeof UserLoginIndexRoute
@@ -902,6 +907,7 @@ export interface FileRoutesById {
   '/_home/runs/$run_barcode/indexqc': typeof HomeRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/_home/runs/$run_barcode/samplesheet': typeof HomeRunsRunbarcodeSamplesheetRouteRouteWithChildren
   '/_authenticated/_home/admin/': typeof AuthenticatedHomeAdminIndexRoute
+  '/_authenticated/_home/profile/': typeof AuthenticatedHomeProfileIndexRoute
   '/_home/jobs/$job_id/': typeof HomeJobsJobidIndexRoute
   '/_home/projects/$project_id/': typeof HomeProjectsProjectidIndexRoute
   '/_home/runs/$run_barcode/': typeof HomeRunsRunbarcodeIndexRoute
@@ -918,16 +924,15 @@ export interface FileRouteTypes {
   fullPaths:
     | ''
     | '/jobs'
-    | '/profile'
     | '/projects'
     | '/runs'
     | '/'
     | '/admin'
+    | '/profile'
     | '/jobs/$job_id'
     | '/projects/$project_id'
     | '/runs/$run_barcode'
     | '/jobs/'
-    | '/profile/'
     | '/projects/'
     | '/runs/'
     | '/login'
@@ -940,6 +945,7 @@ export interface FileRouteTypes {
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
     | '/admin/'
+    | '/profile/'
     | '/jobs/$job_id/'
     | '/projects/$project_id/'
     | '/runs/$run_barcode/'
@@ -954,13 +960,13 @@ export interface FileRouteTypes {
     | ''
     | '/'
     | '/jobs'
-    | '/profile'
     | '/projects'
     | '/runs'
     | '/login'
     | '/password-reset'
     | '/register'
     | '/admin'
+    | '/profile'
     | '/jobs/$job_id'
     | '/projects/$project_id'
     | '/runs/$run_barcode'
@@ -977,16 +983,15 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/_home'
     | '/_home/jobs'
-    | '/_home/profile'
     | '/_home/projects'
     | '/_home/runs'
     | '/_home/'
     | '/_authenticated/_home/admin'
+    | '/_authenticated/_home/profile'
     | '/_home/jobs/$job_id'
     | '/_home/projects/$project_id'
     | '/_home/runs/$run_barcode'
     | '/_home/jobs/'
-    | '/_home/profile/'
     | '/_home/projects/'
     | '/_home/runs/'
     | '/_user/login/'
@@ -999,6 +1004,7 @@ export interface FileRouteTypes {
     | '/_home/runs/$run_barcode/indexqc'
     | '/_home/runs/$run_barcode/samplesheet'
     | '/_authenticated/_home/admin/'
+    | '/_authenticated/_home/profile/'
     | '/_home/jobs/$job_id/'
     | '/_home/projects/$project_id/'
     | '/_home/runs/$run_barcode/'
@@ -1042,7 +1048,6 @@ export const routeTree = rootRoute
       "filePath": "_home.route.tsx",
       "children": [
         "/_home/jobs",
-        "/_home/profile",
         "/_home/projects",
         "/_home/runs",
         "/_home/"
@@ -1066,7 +1071,8 @@ export const routeTree = rootRoute
       "filePath": "_authenticated._home.route.tsx",
       "parent": "/_authenticated",
       "children": [
-        "/_authenticated/_home/admin"
+        "/_authenticated/_home/admin",
+        "/_authenticated/_home/profile"
       ]
     },
     "/_home/jobs": {
@@ -1075,13 +1081,6 @@ export const routeTree = rootRoute
       "children": [
         "/_home/jobs/$job_id",
         "/_home/jobs/"
-      ]
-    },
-    "/_home/profile": {
-      "filePath": "_home.profile.route.tsx",
-      "parent": "/_home",
-      "children": [
-        "/_home/profile/"
       ]
     },
     "/_home/projects": {
@@ -1115,6 +1114,13 @@ export const routeTree = rootRoute
         "/_authenticated/_home/admin/"
       ]
     },
+    "/_authenticated/_home/profile": {
+      "filePath": "_authenticated._home.profile.route.tsx",
+      "parent": "/_authenticated/_home",
+      "children": [
+        "/_authenticated/_home/profile/"
+      ]
+    },
     "/_home/jobs/$job_id": {
       "filePath": "_home.jobs.$job_id.route.tsx",
       "parent": "/_home/jobs",
@@ -1141,10 +1147,6 @@ export const routeTree = rootRoute
     "/_home/jobs/": {
       "filePath": "_home.jobs.index.tsx",
       "parent": "/_home/jobs"
-    },
-    "/_home/profile/": {
-      "filePath": "_home.profile.index.tsx",
-      "parent": "/_home/profile"
     },
     "/_home/projects/": {
       "filePath": "_home.projects.index.tsx",
@@ -1211,6 +1213,10 @@ export const routeTree = rootRoute
     "/_authenticated/_home/admin/": {
       "filePath": "_authenticated._home.admin.index.tsx",
       "parent": "/_authenticated/_home/admin"
+    },
+    "/_authenticated/_home/profile/": {
+      "filePath": "_authenticated._home.profile.index.tsx",
+      "parent": "/_authenticated/_home/profile"
     },
     "/_home/jobs/$job_id/": {
       "filePath": "_home.jobs.$job_id.index.tsx",
