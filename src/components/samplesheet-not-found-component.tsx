@@ -10,7 +10,7 @@ import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from "@/client/
 export const NotFoundComponent = () => {
 
   // Get route params
-  const routeApi = getRouteApi('/_home/runs/$run_barcode/samplesheet/')
+  const routeApi = getRouteApi('/_authenticated/runs/$run_barcode/samplesheet/')
   const { run_barcode } = routeApi.useParams()
 
   const queryClient = useQueryClient();

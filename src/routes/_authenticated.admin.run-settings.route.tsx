@@ -6,7 +6,7 @@ export const RouteComponent = () => (
   </>
 )
 
-export const Route = createFileRoute('/_authenticated/_home/admin/run-settings')({
+export const Route = createFileRoute('/_authenticated/admin/run-settings')({
   component: RouteComponent,
   loader: () => ({
     crumb: 'Run Settings',

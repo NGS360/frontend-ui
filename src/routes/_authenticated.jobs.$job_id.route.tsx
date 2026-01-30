@@ -2,7 +2,7 @@ import { AxiosError } from 'axios'
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { getJob } from '@/client'
 
-export const Route = createFileRoute('/_home/jobs/$job_id')({
+export const Route = createFileRoute('/_authenticated/jobs/$job_id')({
   component: RouteComponent,
   loader: async ({ params }) => {
     const jobData = await getJob({

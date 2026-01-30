@@ -1275,6 +1275,10 @@ export type UserPublic = {
    */
   is_verified: boolean
   /**
+   * Is Superuser
+   */
+  is_superuser: boolean
+  /**
    * Created At
    */
   created_at: string

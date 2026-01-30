@@ -33,7 +33,7 @@ const jobsSearchSchema = z.object({
   user_filter: z.string().optional().nullable(),
 })
 
-export const Route = createFileRoute('/_authenticated/_home/admin/jobs/')({
+export const Route = createFileRoute('/_authenticated/admin/jobs/')({
   component: RouteComponent,
   validateSearch: jobsSearchSchema,
   beforeLoad: ({ search }) => {

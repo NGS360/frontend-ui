@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Footer from '@/components/Footer'
 import { NGS360Logo } from '@/components/ngs360-logo'
 
-export const Route = createFileRoute('/_home/')({
+export const Route = createFileRoute('/_authenticated/')({
   component: App,
 })
 

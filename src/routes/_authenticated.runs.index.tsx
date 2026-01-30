@@ -27,7 +27,7 @@ const runsSearchSchema = z.object({
   ]).optional().default('desc')
 })
 
-export const Route = createFileRoute('/_home/runs/')({
+export const Route = createFileRoute('/_authenticated/runs/')({
   component: RouteComponent,
   validateSearch: runsSearchSchema,
   beforeLoad: ({ search }) => {

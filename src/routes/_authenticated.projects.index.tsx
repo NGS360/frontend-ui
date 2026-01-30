@@ -27,7 +27,7 @@ const projectsSearchSchema = z.object({
   ]).optional().default('desc')
 })
 
-export const Route = createFileRoute('/_home/projects/')({
+export const Route = createFileRoute('/_authenticated/projects/')({
   component: RouteComponent,
   validateSearch: projectsSearchSchema,
   beforeLoad: ({ search }) => {

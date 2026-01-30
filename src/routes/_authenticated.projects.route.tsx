@@ -8,10 +8,10 @@ export const RouteComponent = () => (
   </>
 )
 
-export const Route = createFileRoute('/_home/runs')({
+export const Route = createFileRoute('/_authenticated/projects')({
   component: RouteComponent,
   loader: () => ({
-    crumb: 'Illumina Runs',
+    crumb: 'Projects',
     includeCrumbLink: true,
   }),
 })

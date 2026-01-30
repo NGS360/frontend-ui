@@ -6,7 +6,7 @@ const RouteComponent = () => (
   </>
 )
 
-export const Route = createFileRoute('/_home/runs/$run_barcode/samplesheet')({
+export const Route = createFileRoute('/_authenticated/runs/$run_barcode/samplesheet')({
   component: RouteComponent,
   loader: () => {
     return ({
