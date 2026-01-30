@@ -1,4 +1,4 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { AdminSidebar } from '@/components/admin-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
@@ -16,6 +16,14 @@ export const RouteComponent = () => (
 )
 
 export const Route = createFileRoute('/_auth/admin')({
+  beforeLoad: ({ context }) => {
+    // Check if user is authenticated and is a superuser
+    if (!context.auth.user?.is_superuser) {
+      throw redirect({
+        to: '/access-denied',
+      })
+    }
+  },
   component: RouteComponent,
   loader: () => ({
     crumb: 'Admin',

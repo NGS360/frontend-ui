@@ -22,6 +22,7 @@ import { Route as AuthAdminRouteImport } from './routes/_auth.admin.route'
 import { Route as UserRegisterIndexImport } from './routes/_user.register.index'
 import { Route as UserPasswordResetIndexImport } from './routes/_user.password-reset.index'
 import { Route as UserLoginIndexImport } from './routes/_user.login.index'
+import { Route as UserAccessDeniedIndexImport } from './routes/_user.access-denied.index'
 import { Route as AuthRunsIndexImport } from './routes/_auth.runs.index'
 import { Route as AuthProjectsIndexImport } from './routes/_auth.projects.index'
 import { Route as AuthProfileIndexImport } from './routes/_auth.profile.index'
@@ -109,6 +110,12 @@ const UserPasswordResetIndexRoute = UserPasswordResetIndexImport.update({
 const UserLoginIndexRoute = UserLoginIndexImport.update({
   id: '/login/',
   path: '/login/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const UserAccessDeniedIndexRoute = UserAccessDeniedIndexImport.update({
+  id: '/access-denied/',
+  path: '/access-denied/',
   getParentRoute: () => UserRouteRoute,
 } as any)
 
@@ -404,6 +411,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRunsIndexImport
       parentRoute: typeof AuthRunsRouteImport
     }
+    '/_user/access-denied/': {
+      id: '/_user/access-denied/'
+      path: '/access-denied'
+      fullPath: '/access-denied'
+      preLoaderRoute: typeof UserAccessDeniedIndexImport
+      parentRoute: typeof UserRouteImport
+    }
     '/_user/login/': {
       id: '/_user/login/'
       path: '/login'
@@ -508,12 +522,14 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface UserRouteRouteChildren {
+  UserAccessDeniedIndexRoute: typeof UserAccessDeniedIndexRoute
   UserLoginIndexRoute: typeof UserLoginIndexRoute
   UserPasswordResetIndexRoute: typeof UserPasswordResetIndexRoute
   UserRegisterIndexRoute: typeof UserRegisterIndexRoute
 }
 
 const UserRouteRouteChildren: UserRouteRouteChildren = {
+  UserAccessDeniedIndexRoute: UserAccessDeniedIndexRoute,
   UserLoginIndexRoute: UserLoginIndexRoute,
   UserPasswordResetIndexRoute: UserPasswordResetIndexRoute,
   UserRegisterIndexRoute: UserRegisterIndexRoute,
@@ -762,6 +778,7 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof AuthProfileIndexRoute
   '/projects/': typeof AuthProjectsIndexRoute
   '/runs/': typeof AuthRunsIndexRoute
+  '/access-denied': typeof UserAccessDeniedIndexRoute
   '/login': typeof UserLoginIndexRoute
   '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
@@ -786,6 +803,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthProfileIndexRoute
   '/projects': typeof AuthProjectsIndexRoute
   '/runs': typeof AuthRunsIndexRoute
+  '/access-denied': typeof UserAccessDeniedIndexRoute
   '/login': typeof UserLoginIndexRoute
   '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
@@ -822,6 +840,7 @@ export interface FileRoutesById {
   '/_auth/profile/': typeof AuthProfileIndexRoute
   '/_auth/projects/': typeof AuthProjectsIndexRoute
   '/_auth/runs/': typeof AuthRunsIndexRoute
+  '/_user/access-denied/': typeof UserAccessDeniedIndexRoute
   '/_user/login/': typeof UserLoginIndexRoute
   '/_user/password-reset/': typeof UserPasswordResetIndexRoute
   '/_user/register/': typeof UserRegisterIndexRoute
@@ -860,6 +879,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/projects/'
     | '/runs/'
+    | '/access-denied'
     | '/login'
     | '/password-reset'
     | '/register'
@@ -883,6 +903,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/projects'
     | '/runs'
+    | '/access-denied'
     | '/login'
     | '/password-reset'
     | '/register'
@@ -917,6 +938,7 @@ export interface FileRouteTypes {
     | '/_auth/profile/'
     | '/_auth/projects/'
     | '/_auth/runs/'
+    | '/_user/access-denied/'
     | '/_user/login/'
     | '/_user/password-reset/'
     | '/_user/register/'
@@ -961,6 +983,7 @@ export const routeTree = rootRoute
     "/_user": {
       "filePath": "_user.route.tsx",
       "children": [
+        "/_user/access-denied/",
         "/_user/login/",
         "/_user/password-reset/",
         "/_user/register/"
@@ -1093,6 +1116,10 @@ export const routeTree = rootRoute
     "/_auth/runs/": {
       "filePath": "_auth.runs.index.tsx",
       "parent": "/_auth/runs"
+    },
+    "/_user/access-denied/": {
+      "filePath": "_user.access-denied.index.tsx",
+      "parent": "/_user"
     },
     "/_user/login/": {
       "filePath": "_user.login.index.tsx",
