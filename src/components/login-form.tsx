@@ -151,7 +151,7 @@ export function LoginForm({
 
         {/* Footer */}
         <div className="text-center mt-6 text-sm text-muted-foreground">
-          <p>© 2026 BMS NGS360. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} BMS NGS360. All rights reserved.</p>
         </div>
       </div>
     </div>
