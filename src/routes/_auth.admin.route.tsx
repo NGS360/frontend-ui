@@ -15,7 +15,7 @@ export const RouteComponent = () => (
   </SidebarProvider>
 )
 
-export const Route = createFileRoute('/_authenticated/admin')({
+export const Route = createFileRoute('/_auth/admin')({
   component: RouteComponent,
   loader: () => ({
     crumb: 'Admin',

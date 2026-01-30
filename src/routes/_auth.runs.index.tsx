@@ -3,8 +3,8 @@ import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import z from 'zod';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
-import type { Attribute, ProjectPublic } from '@/client';
-import { searchProjectsOptions } from '@/client/@tanstack/react-query.gen'
+import type { SequencingRunPublic } from '@/client';
+import { searchRunsOptions } from '@/client/@tanstack/react-query.gen'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
@@ -13,23 +13,23 @@ import { FullscreenSpinner } from '@/components/spinner';
 import { highlightMatch } from '@/lib/utils';
 
 // Define the search schema for projects 
-const projectsSearchSchema = z.object({
+const runsSearchSchema = z.object({
   query: z.string().optional().default(""),
   page: z.number().optional().default(1),
   per_page: z.number().optional().default(10),
   sort_by: z.union([
-    z.literal('project_id'),
-    z.literal('name')
-  ]).optional().default('project_id'),
+    z.literal('barcode'),
+    z.literal('experiment_name')
+  ]).optional().default('barcode'),
   sort_order: z.union([
     z.literal('asc'),
     z.literal('desc')
   ]).optional().default('desc')
 })
 
-export const Route = createFileRoute('/_authenticated/projects/')({
+export const Route = createFileRoute('/_auth/runs/')({
   component: RouteComponent,
-  validateSearch: projectsSearchSchema,
+  validateSearch: runsSearchSchema,
   beforeLoad: ({ search }) => {
     search
   },
@@ -52,39 +52,40 @@ function RouteComponent() {
     pageSize: search.per_page
   });
 
-  // Sorting (default: project_id desc)
+  // Sorting (default: barcode desc)
   const [sorting, setSorting] = useState<SortingState>([
     { id: search.sort_by, desc: search.sort_order == 'desc' ? true : false }
   ]);
 
   useEffect(() => {
     navigate({
-      to: '/projects',
+      to: '/runs',
       search: {
         ...search,
         query: debouncedInput,
         page: 1
       }
     })
+
   }, [debouncedInput])
 
   useEffect(() => {
     navigate({
-      to: '/projects',
+      to: '/runs',
       search: {
         ...search,
         page: pagination.pageIndex + 1,
         per_page: pagination.pageSize,
-        sort_by: sorting[0]?.id as 'project_id' | 'name',
+        sort_by: sorting[0]?.id as 'barcode' | 'experiment_name',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc'
       },
       replace: true
     })
   }, [pagination, sorting])
 
-  // Query projects
+  // Query runs
   const { data, isLoading, error } = useQuery({
-    ...searchProjectsOptions({
+    ...searchRunsOptions({
       query: {
         query: debouncedInput,
         page: search.page,
@@ -101,73 +102,103 @@ function RouteComponent() {
   if (!data) return 'No data was returned.';
 
   // Define columns
-  const columns: Array<ColumnDef<ProjectPublic>> = [
+  const columns: Array<ColumnDef<SequencingRunPublic>> = [
     {
-      accessorKey: 'project_id',
-      meta: { alias: 'Project ID', tdClassName: 'align-top' },
-      header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
+      accessorKey: 'barcode',
+      meta: { alias: "Experiment" },
+      header: ({ column }) => <SortableHeader column={column} name="Experiment" />,
+      cell: ({ cell, row }) => {
+        const barcode = cell.getValue() as string
+        const status = row.getValue('status')
+        return status === "Ready" ? (
+            <CopyableText
+              text={barcode}
+              variant='hoverLink'
+              asChild={true}
+              children={(
+                <Link
+                  to='/runs/$run_barcode'
+                  params={{ run_barcode: barcode }}
+                  preload={false}
+                >
+                  {highlightMatch(barcode, debouncedInput)}
+                </Link>
+              )}
+            />
+          ) : (
+            <CopyableText
+              text={barcode}
+              variant='hoverLight'
+              children={highlightMatch(barcode, debouncedInput)}
+            />
+          )
+      }
+    },
+    {
+      accessorKey: 'machine_id',
+      meta: { alias: "Instrument" },
+      header: "Instrument",
       cell: ({ cell }) => {
-        const project_id = cell.getValue() as string
+        const value = cell.getValue() as string
         return (
           <CopyableText
-            text={project_id}
-            variant='hoverLink'
-            asChild={true}
-            children={(
-              <Link
-                to='/projects/$project_id'
-                params={{ project_id: project_id }}
-                search={{ 
-                  page: 1,
-                  per_page: 5,
-                  sort_by: undefined, 
-                  sort_order: undefined 
-                }}
-              >
-                {highlightMatch(project_id, debouncedInput)}
-              </Link>
-            )}
+            text={value}
+            variant='hover'
+            children={highlightMatch(value, debouncedInput)}
           />
         )
       }
     },
     {
-      accessorKey: 'name',
-      meta: { alias: 'Project Name', tdClassName: 'align-top' },
-      header: ({ column }) => <SortableHeader column={column} name="Project Name" />,
-      cell: ({ row }) => {
-        const name: string = row.getValue('name')
-        const attributes: Array<Attribute> = row.original.attributes ?? []
+      accessorKey: 'flowcell_id',
+      meta: { alias: "Flowcell" },
+      header: "Flowcell",
+      cell: ({ cell }) => {
+        const value = cell.getValue() as string
         return (
-          <div className='flex flex-col gap-2 break-words whitespace-normal'>
-            <span className='text-sm'> {/* Use line-clamp-1 here to truncate */}
-              {highlightMatch(name, debouncedInput)}
-            </span>
-            <div className='flex flex-wrap gap-0.5'>
-              {attributes.map((a) => (
-                <div
-                  key={a.key}
-                  className='text-muted-foreground border-1 rounded-full px-2 text-xs'
-                >
-                  <span>
-                    {a.key}: {a.value && a.value.length > 50 ? a.value.slice(0, 50) + "..." : a.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <CopyableText
+            text={value}
+            variant='hover'
+            children={highlightMatch(value, debouncedInput)}
+          />
         )
       }
+    },
+    {
+      accessorKey: 'run_date',
+      meta: { alias: "Run Date" },
+      header: "Run Date"
+    },
+    {
+      accessorKey: 'run_folder_uri',
+      meta: { alias: "Run Folder" },
+      header: "Run Folder",
+      cell: ({ cell }) => {
+        const value = cell.getValue() as string
+        return (
+          <CopyableText
+            text={value}
+            variant='hover'
+            children={highlightMatch(value, debouncedInput)}
+          />
+        )
+      }
+    },
+    {
+      accessorKey: 'status',
+      meta: { alias: "Status" },
+      header: "Status"
     }
   ]
 
   return (
     <div className='animate-fade-in-up'>
-      <h1 className="text-2xl">Projects</h1>
-      <p className="text-muted-foreground mb-6">View all projects in NGS360</p>
+      <h1 className="text-2xl">Illumina Runs</h1>
+      <p className="text-muted-foreground mb-6">View all illumina runs in NGS360</p>
       <ServerDataTable
         data={data.data}
         columns={columns}
+        columnVisibility={{ run_folder_uri: false}}
         globalFilter={globalFilter}
         onFilterChange={setGlobalFilter}
         pagination={pagination}

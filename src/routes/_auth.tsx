@@ -5,7 +5,7 @@ import Header from '../components/Header'
 import { BreadcrumbNav } from '@/components/breadcrumb-nav.tsx'
 import { Toaster } from '@/components/ui/sonner.tsx'
 
-export const Route = createFileRoute('/_authenticated')({
+export const Route = createFileRoute('/_auth')({
   beforeLoad: ({ context, location }) => {
     if (!context.auth.isAuthenticated) {
       throw redirect({

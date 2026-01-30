@@ -12,7 +12,7 @@ import { NotFoundComponent } from '@/components/indexqc-not-found-component';
 import { getRunMetrics } from '@/client';
 import { FullscreenSpinner } from '@/components/spinner';
 
-export const Route = createFileRoute('/_authenticated/runs/$run_barcode/indexqc/')({
+export const Route = createFileRoute('/_auth/runs/$run_barcode/indexqc/')({
   component: RouteComponent,
   loader: async ({ params }) => {
 
@@ -52,7 +52,7 @@ interface ReadCountData {
 
 function RouteComponent() {
   // Load run data
-  const routeApi = getRouteApi('/_authenticated/runs/$run_barcode/indexqc/')
+  const routeApi = getRouteApi('/_auth/runs/$run_barcode/indexqc/')
   const { runMetrics } = routeApi.useLoaderData()
 
   // Get mobile state

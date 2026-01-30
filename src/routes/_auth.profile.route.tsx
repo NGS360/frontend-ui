@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getGravatarUrl } from '@/lib/utils'
 import { useAuth } from '@/context/auth-context'
 
-export const Route = createFileRoute('/_authenticated/profile')({
+export const Route = createFileRoute('/_auth/profile')({
   component: RouteComponent,
   loader: () => ({
     crumb: 'Profile',

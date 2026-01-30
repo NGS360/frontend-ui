@@ -6,12 +6,12 @@ import { JobStatusBadge } from '@/components/job-status-badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
-export const Route = createFileRoute('/_authenticated/jobs/$job_id/')({
+export const Route = createFileRoute('/_auth/jobs/$job_id/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const routeApi = getRouteApi('/_authenticated/jobs/$job_id')
+  const routeApi = getRouteApi('/_auth/jobs/$job_id')
   const { job } = routeApi.useLoaderData()
 
   return (

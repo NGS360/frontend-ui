@@ -36,7 +36,7 @@ const vendorsSearchSchema = z.object({
   ]).optional().default('asc')
 })
 
-export const Route = createFileRoute('/_authenticated/admin/vendors/')({
+export const Route = createFileRoute('/_auth/admin/vendors/')({
   component: RouteComponent,
   validateSearch: vendorsSearchSchema,
   beforeLoad: ({ search }) => {

@@ -20,13 +20,13 @@ import { FullscreenSpinner } from '@/components/spinner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
 
-export const Route = createFileRoute('/_authenticated/projects/$project_id/')({
+export const Route = createFileRoute('/_auth/projects/$project_id/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
   // Load project data
-  const routeApi = getRouteApi('/_authenticated/projects/$project_id')
+  const routeApi = getRouteApi('/_auth/projects/$project_id')
   const { project } = routeApi.useLoaderData()
 
   // Column visibility (persisted in Zustand store per project)

@@ -13,7 +13,7 @@ import { FullscreenSpinner } from '@/components/spinner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/context/auth-context'
 
-export const Route = createFileRoute('/_authenticated/profile/')({
+export const Route = createFileRoute('/_auth/profile/')({
   component: RouteComponent,
 })
 

@@ -2,16 +2,14 @@ import { Outlet, createFileRoute } from '@tanstack/react-router'
 
 export const RouteComponent = () => (
   <>
-    <div className="flex flex-col ml-8 mr-8 mt-8">
-      <Outlet />
-    </div>
+    <Outlet />
   </>
 )
 
-export const Route = createFileRoute('/_authenticated/runs')({
+export const Route = createFileRoute('/_auth/admin/project-settings')({
   component: RouteComponent,
   loader: () => ({
-    crumb: 'Illumina Runs',
+    crumb: 'Project Settings',
     includeCrumbLink: true,
   }),
 })
