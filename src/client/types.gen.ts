@@ -1251,10 +1251,6 @@ export type UnknownBarcode = {
  */
 export type UserPublic = {
   /**
-   * User Id
-   */
-  user_id: string
-  /**
    * Email
    */
   email: string
@@ -3235,6 +3231,21 @@ export type ValidateManifestData = {
      * S3 path to the manifest CSV file to validate
      */
     s3_path: string
+    /**
+     * Manifest Version
+     * Manifest version to validate against (e.g., 'DTS12.1')
+     */
+    manifest_version?: string | null
+    /**
+     * Files Bucket
+     * S3 bucket where manifest files are located
+     */
+    files_bucket?: string | null
+    /**
+     * Files Prefix
+     * S3 prefix/path where manifest files are located
+     */
+    files_prefix?: string | null
   }
   url: '/api/v1/manifest/validate'
 }

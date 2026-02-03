@@ -2,14 +2,26 @@ import React from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import type { ManifestValidationResponse } from '@/client/types.gen'
 import { Card } from '@/components/ui/card'
+import { Spinner } from '@/components/spinner'
 
 interface ManifestValidationResponseDisplayProps {
   response?: ManifestValidationResponse | null
+  isValidating?: boolean
 }
 
 export const ManifestValidationResponseDisplay: React.FC<ManifestValidationResponseDisplayProps> = ({
   response,
+  isValidating = false,
 }) => {
+  if (isValidating) {
+    return (
+      <div className="flex items-center justify-center gap-3 p-8">
+        <Spinner variant="circle" size={24} />
+        <span className="text-muted-foreground">Validating manifest...</span>
+      </div>
+    )
+  }
+
   if (!response) {
     return <div className="text-muted-foreground">No validation response available</div>
   }

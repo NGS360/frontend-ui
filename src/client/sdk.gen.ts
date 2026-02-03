@@ -1636,15 +1636,19 @@ export const uploadManifest = <ThrowOnError extends boolean = false>(
 
 /**
  * Validate Manifest
- * Validate a manifest CSV file from S3.
+ * Validate a manifest CSV file from S3 using the ngs360-manifest-validator Lambda.
  *
- * Checks the manifest file for:
+ * The Lambda function checks the manifest file for:
  * - Required fields
  * - Data format compliance
  * - Value constraints
+ * - File existence verification
  *
  * Args:
  * s3_path: S3 path to the manifest CSV file to validate
+ * manifest_version: Optional manifest version to validate against
+ * files_bucket: Optional S3 bucket where manifest files are located
+ * files_prefix: Optional S3 prefix/path for file existence checks
  *
  * Returns:
  * ManifestValidationResponse with validation status and any errors found

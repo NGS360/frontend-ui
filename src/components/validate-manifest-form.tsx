@@ -235,7 +235,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
   }, [state.selectedVendor.value, projectId, mutate]);
 
   // Manifest validate mutation
-  const { mutate: validateManifest } = useMutation({
+  const { mutate: validateManifest, isPending: isValidating } = useMutation({
     ...validateManifestMutation(),
     onSuccess: (response) => {
       dispatch({ type: 'SET_VALIDATION_RESPONSE', value: response });
@@ -457,6 +457,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                                 })
                                 dispatch({ type: 'SET_ACTIVE_STEP', value: 2 });
                               }}
+                              disabled={isValidating}
                               className='w-full'
                             >
                               <Check /> Validate
@@ -473,7 +474,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                   status: state.validationResponse ? (state.validationResponse.valid ? 'completed' : 'error') : undefined,
                   content: (
                     <>
-                      {state.activeStep >= 2 && <ManifestValidationResponseDisplay response={state.validationResponse} />}
+                      {state.activeStep >= 2 && <ManifestValidationResponseDisplay response={state.validationResponse} isValidating={isValidating} />}
                     </>
                   ),
                 },
