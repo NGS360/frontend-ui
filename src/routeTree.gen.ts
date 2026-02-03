@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as UserRouteImport } from './routes/_user.route'
 import { Route as AuthIndexImport } from './routes/_auth.index'
+import { Route as UserVerifyEmailImport } from './routes/_user.verify-email'
 import { Route as AuthRunsRouteImport } from './routes/_auth.runs.route'
 import { Route as AuthProjectsRouteImport } from './routes/_auth.projects.route'
 import { Route as AuthProfileRouteImport } from './routes/_auth.profile.route'
@@ -63,6 +64,12 @@ const AuthIndexRoute = AuthIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthRoute,
+} as any)
+
+const UserVerifyEmailRoute = UserVerifyEmailImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => UserRouteRoute,
 } as any)
 
 const AuthRunsRouteRoute = AuthRunsRouteImport.update({
@@ -320,6 +327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRunsRouteImport
       parentRoute: typeof AuthImport
     }
+    '/_user/verify-email': {
+      id: '/_user/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof UserVerifyEmailImport
+      parentRoute: typeof UserRouteImport
+    }
     '/_auth/': {
       id: '/_auth/'
       path: '/'
@@ -522,6 +536,7 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface UserRouteRouteChildren {
+  UserVerifyEmailRoute: typeof UserVerifyEmailRoute
   UserAccessDeniedIndexRoute: typeof UserAccessDeniedIndexRoute
   UserLoginIndexRoute: typeof UserLoginIndexRoute
   UserPasswordResetIndexRoute: typeof UserPasswordResetIndexRoute
@@ -529,6 +544,7 @@ interface UserRouteRouteChildren {
 }
 
 const UserRouteRouteChildren: UserRouteRouteChildren = {
+  UserVerifyEmailRoute: UserVerifyEmailRoute,
   UserAccessDeniedIndexRoute: UserAccessDeniedIndexRoute,
   UserLoginIndexRoute: UserLoginIndexRoute,
   UserPasswordResetIndexRoute: UserPasswordResetIndexRoute,
@@ -765,6 +781,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthProfileRouteRouteWithChildren
   '/projects': typeof AuthProjectsRouteRouteWithChildren
   '/runs': typeof AuthRunsRouteRouteWithChildren
+  '/verify-email': typeof UserVerifyEmailRoute
   '/': typeof AuthIndexRoute
   '/admin/jobs': typeof AuthAdminJobsRouteRouteWithChildren
   '/admin/project-settings': typeof AuthAdminProjectSettingsRouteRouteWithChildren
@@ -797,6 +814,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '': typeof UserRouteRouteWithChildren
+  '/verify-email': typeof UserVerifyEmailRoute
   '/': typeof AuthIndexRoute
   '/admin': typeof AuthAdminIndexRoute
   '/jobs': typeof AuthJobsIndexRoute
@@ -827,6 +845,7 @@ export interface FileRoutesById {
   '/_auth/profile': typeof AuthProfileRouteRouteWithChildren
   '/_auth/projects': typeof AuthProjectsRouteRouteWithChildren
   '/_auth/runs': typeof AuthRunsRouteRouteWithChildren
+  '/_user/verify-email': typeof UserVerifyEmailRoute
   '/_auth/': typeof AuthIndexRoute
   '/_auth/admin/jobs': typeof AuthAdminJobsRouteRouteWithChildren
   '/_auth/admin/project-settings': typeof AuthAdminProjectSettingsRouteRouteWithChildren
@@ -866,6 +885,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/projects'
     | '/runs'
+    | '/verify-email'
     | '/'
     | '/admin/jobs'
     | '/admin/project-settings'
@@ -897,6 +917,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | ''
+    | '/verify-email'
     | '/'
     | '/admin'
     | '/jobs'
@@ -925,6 +946,7 @@ export interface FileRouteTypes {
     | '/_auth/profile'
     | '/_auth/projects'
     | '/_auth/runs'
+    | '/_user/verify-email'
     | '/_auth/'
     | '/_auth/admin/jobs'
     | '/_auth/admin/project-settings'
@@ -983,6 +1005,7 @@ export const routeTree = rootRoute
     "/_user": {
       "filePath": "_user.route.tsx",
       "children": [
+        "/_user/verify-email",
         "/_user/access-denied/",
         "/_user/login/",
         "/_user/password-reset/",
@@ -1041,6 +1064,10 @@ export const routeTree = rootRoute
         "/_auth/runs/$run_barcode",
         "/_auth/runs/"
       ]
+    },
+    "/_user/verify-email": {
+      "filePath": "_user.verify-email.tsx",
+      "parent": "/_user"
     },
     "/_auth/": {
       "filePath": "_auth.index.tsx",
