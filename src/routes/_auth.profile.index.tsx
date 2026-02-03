@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { KeyRound } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import type { BatchJobPublic } from '@/client'
 import { getJobsOptions, getJobsQueryKey } from '@/client/@tanstack/react-query.gen'
@@ -12,6 +13,8 @@ import { JobStatusBadge } from '@/components/job-status-badge'
 import { FullscreenSpinner } from '@/components/spinner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/context/auth-context'
+import { ChangePasswordForm } from '@/components/change-password-form'
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/_auth/profile/')({
   component: RouteComponent,
@@ -166,6 +169,16 @@ function RouteComponent() {
                   <p className="text-sm font-medium text-muted-foreground">Status</p>
                   <p className="text-sm capitalize">{user?.is_active ? 'Active' : 'Inactive'}</p>
                 </div>
+              </div>
+              <div className="pt-4 border-t">           
+                <ChangePasswordForm
+                  trigger={
+                    <Button variant="outline" size="sm">
+                      <KeyRound className="mr-2 h-4 w-4" />
+                      Change Password
+                    </Button>
+                  }
+                />
               </div>
             </CardContent>
           </Card>
