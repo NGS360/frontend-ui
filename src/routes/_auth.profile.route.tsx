@@ -116,7 +116,7 @@ function RouteComponent() {
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">Role</span>
                     <span className="text-sm text-muted-foreground">
-                      {'User'}
+                      {user?.is_superuser ? 'Administrator' : 'User'}
                     </span>
                   </div>
                 </div>

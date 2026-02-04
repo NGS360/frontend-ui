@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { KeyRound } from 'lucide-react'
+import { toast } from 'sonner'
+import { KeyRound, Mail, ShieldCheck } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import type { BatchJobPublic } from '@/client'
-import { getJobsOptions, getJobsQueryKey } from '@/client/@tanstack/react-query.gen'
+import { getJobsOptions, getJobsQueryKey, resendVerificationMutation } from '@/client/@tanstack/react-query.gen'
 import { useViewJob } from '@/hooks/use-job-queries'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
@@ -15,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/context/auth-context'
 import { ChangePasswordForm } from '@/components/change-password-form'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export const Route = createFileRoute('/_auth/profile/')({
   component: RouteComponent,
@@ -23,6 +25,27 @@ export const Route = createFileRoute('/_auth/profile/')({
 function RouteComponent() {
   const { user } = useAuth()
   const { viewJob } = useViewJob()
+
+  // Resend verification email mutation
+  const resendVerificationEmail = useMutation({
+    ...resendVerificationMutation(),
+    onSuccess: () => {
+      toast.success('Verification email sent. Check your inbox.')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to send verification email. Please try again.')
+    },
+  })
+
+  const handleResendVerification = () => {
+    if (user?.email) {
+      resendVerificationEmail.mutate({
+        body: {
+          email: user.email,
+        },
+      })
+    }
+  }
 
   // Table state for jobs
   const [pagination, setPagination] = useState<PaginationState>({
@@ -155,7 +178,37 @@ function RouteComponent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Email</p>
-                  <p className="text-sm">{user?.email}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm">{user?.email}</p>
+                    {user?.is_verified ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ShieldCheck className="h-4 w-4 text-green-600" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Email verified</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={handleResendVerification}
+                            disabled={resendVerificationEmail.isPending}
+                          >
+                            <Mail className="h-4 w-4" />
+                            <span className="sr-only">Resend verification email</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Resend verification email</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Username</p>
@@ -163,7 +216,7 @@ function RouteComponent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Role</p>
-                  <p className="text-sm capitalize">{'User'}</p>
+                  <p className="text-sm capitalize">{user?.is_superuser ? 'Administrator' : 'User'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Status</p>
