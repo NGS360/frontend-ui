@@ -26,6 +26,8 @@ function RouteComponent() {
   const { user } = useAuth()
   const { viewJob } = useViewJob()
 
+  const username = user?.username || 'system'
+
   // Resend verification email mutation
   const resendVerificationEmail = useMutation({
     ...resendVerificationMutation(),
@@ -64,7 +66,7 @@ function RouteComponent() {
       limit: pagination.pageSize,
       sort_by: sorting[0]?.id as 'id' | 'name' | 'user' | 'status' | 'submitted_on',
       sort_order: sorting[0]?.desc ? 'desc' : 'asc',
-      user: user?.email,
+      user: username,
     },
   })
 
@@ -76,7 +78,7 @@ function RouteComponent() {
         limit: pagination.pageSize,
         sort_by: sorting[0]?.id as 'id' | 'name' | 'user' | 'status' | 'submitted_on',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc',
-        user: user?.email, // Filter by current user from context
+        user: username, // Filter by current user from context
       },
     }),
     placeholderData: keepPreviousData
@@ -259,6 +261,11 @@ function RouteComponent() {
             onSortingChange={setSorting}
             columnVisibility={{ id: false }}
             rowClickCallback={(row) => handleJobClick(row.original.id)}
+            notFoundComponent={
+              <div className="text-center py-8 text-muted-foreground">
+                No jobs found for user: {username}
+              </div>
+            }
           />
         </div>
       </section>

@@ -1244,6 +1244,12 @@ export const submitDemultiplexWorkflowJob = <
     ThrowOnError
   >({
     responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
     url: '/api/v1/runs/demultiplex',
     ...options,
     headers: {

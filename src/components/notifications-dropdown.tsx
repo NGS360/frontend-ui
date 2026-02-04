@@ -19,12 +19,14 @@ export function NotificationsDropdown() {
   const { viewJob } = useViewJob()
   const { user } = useAuth() 
 
+  const username = user?.username || 'system'
+
   const { data: jobsData, isLoading } = useQuery({
     ...getJobsOptions({
       query: {
         ...DEFAULT_JOBS_QUERY_OPTIONS.query,
         limit: 10,
-        user: user?.email || 'system',
+        user: username
       }
     })
   })
@@ -62,7 +64,7 @@ export function NotificationsDropdown() {
             </div>
           ) : jobs.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No jobs found for user: {user?.email || 'system'}
+              No jobs found for user: {username}
             </div>
           ) : (
             <div className="divide-y">
