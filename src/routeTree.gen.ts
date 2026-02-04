@@ -15,14 +15,15 @@ import { Route as AuthImport } from './routes/_auth'
 import { Route as UserRouteImport } from './routes/_user.route'
 import { Route as AuthIndexImport } from './routes/_auth.index'
 import { Route as UserVerifyEmailImport } from './routes/_user.verify-email'
+import { Route as UserResetPasswordImport } from './routes/_user.reset-password'
 import { Route as AuthRunsRouteImport } from './routes/_auth.runs.route'
 import { Route as AuthProjectsRouteImport } from './routes/_auth.projects.route'
 import { Route as AuthProfileRouteImport } from './routes/_auth.profile.route'
 import { Route as AuthJobsRouteImport } from './routes/_auth.jobs.route'
 import { Route as AuthAdminRouteImport } from './routes/_auth.admin.route'
 import { Route as UserRegisterIndexImport } from './routes/_user.register.index'
-import { Route as UserPasswordResetIndexImport } from './routes/_user.password-reset.index'
 import { Route as UserLoginIndexImport } from './routes/_user.login.index'
+import { Route as UserForgotPasswordIndexImport } from './routes/_user.forgot-password.index'
 import { Route as UserAccessDeniedIndexImport } from './routes/_user.access-denied.index'
 import { Route as AuthRunsIndexImport } from './routes/_auth.runs.index'
 import { Route as AuthProjectsIndexImport } from './routes/_auth.projects.index'
@@ -72,6 +73,12 @@ const UserVerifyEmailRoute = UserVerifyEmailImport.update({
   getParentRoute: () => UserRouteRoute,
 } as any)
 
+const UserResetPasswordRoute = UserResetPasswordImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
 const AuthRunsRouteRoute = AuthRunsRouteImport.update({
   id: '/runs',
   path: '/runs',
@@ -108,15 +115,15 @@ const UserRegisterIndexRoute = UserRegisterIndexImport.update({
   getParentRoute: () => UserRouteRoute,
 } as any)
 
-const UserPasswordResetIndexRoute = UserPasswordResetIndexImport.update({
-  id: '/password-reset/',
-  path: '/password-reset/',
-  getParentRoute: () => UserRouteRoute,
-} as any)
-
 const UserLoginIndexRoute = UserLoginIndexImport.update({
   id: '/login/',
   path: '/login/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const UserForgotPasswordIndexRoute = UserForgotPasswordIndexImport.update({
+  id: '/forgot-password/',
+  path: '/forgot-password/',
   getParentRoute: () => UserRouteRoute,
 } as any)
 
@@ -327,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRunsRouteImport
       parentRoute: typeof AuthImport
     }
+    '/_user/reset-password': {
+      id: '/_user/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof UserResetPasswordImport
+      parentRoute: typeof UserRouteImport
+    }
     '/_user/verify-email': {
       id: '/_user/verify-email'
       path: '/verify-email'
@@ -432,18 +446,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserAccessDeniedIndexImport
       parentRoute: typeof UserRouteImport
     }
+    '/_user/forgot-password/': {
+      id: '/_user/forgot-password/'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof UserForgotPasswordIndexImport
+      parentRoute: typeof UserRouteImport
+    }
     '/_user/login/': {
       id: '/_user/login/'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof UserLoginIndexImport
-      parentRoute: typeof UserRouteImport
-    }
-    '/_user/password-reset/': {
-      id: '/_user/password-reset/'
-      path: '/password-reset'
-      fullPath: '/password-reset'
-      preLoaderRoute: typeof UserPasswordResetIndexImport
       parentRoute: typeof UserRouteImport
     }
     '/_user/register/': {
@@ -536,18 +550,20 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface UserRouteRouteChildren {
+  UserResetPasswordRoute: typeof UserResetPasswordRoute
   UserVerifyEmailRoute: typeof UserVerifyEmailRoute
   UserAccessDeniedIndexRoute: typeof UserAccessDeniedIndexRoute
+  UserForgotPasswordIndexRoute: typeof UserForgotPasswordIndexRoute
   UserLoginIndexRoute: typeof UserLoginIndexRoute
-  UserPasswordResetIndexRoute: typeof UserPasswordResetIndexRoute
   UserRegisterIndexRoute: typeof UserRegisterIndexRoute
 }
 
 const UserRouteRouteChildren: UserRouteRouteChildren = {
+  UserResetPasswordRoute: UserResetPasswordRoute,
   UserVerifyEmailRoute: UserVerifyEmailRoute,
   UserAccessDeniedIndexRoute: UserAccessDeniedIndexRoute,
+  UserForgotPasswordIndexRoute: UserForgotPasswordIndexRoute,
   UserLoginIndexRoute: UserLoginIndexRoute,
-  UserPasswordResetIndexRoute: UserPasswordResetIndexRoute,
   UserRegisterIndexRoute: UserRegisterIndexRoute,
 }
 
@@ -781,6 +797,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthProfileRouteRouteWithChildren
   '/projects': typeof AuthProjectsRouteRouteWithChildren
   '/runs': typeof AuthRunsRouteRouteWithChildren
+  '/reset-password': typeof UserResetPasswordRoute
   '/verify-email': typeof UserVerifyEmailRoute
   '/': typeof AuthIndexRoute
   '/admin/jobs': typeof AuthAdminJobsRouteRouteWithChildren
@@ -796,8 +813,8 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof AuthProjectsIndexRoute
   '/runs/': typeof AuthRunsIndexRoute
   '/access-denied': typeof UserAccessDeniedIndexRoute
+  '/forgot-password': typeof UserForgotPasswordIndexRoute
   '/login': typeof UserLoginIndexRoute
-  '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
   '/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
@@ -814,6 +831,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '': typeof UserRouteRouteWithChildren
+  '/reset-password': typeof UserResetPasswordRoute
   '/verify-email': typeof UserVerifyEmailRoute
   '/': typeof AuthIndexRoute
   '/admin': typeof AuthAdminIndexRoute
@@ -822,8 +840,8 @@ export interface FileRoutesByTo {
   '/projects': typeof AuthProjectsIndexRoute
   '/runs': typeof AuthRunsIndexRoute
   '/access-denied': typeof UserAccessDeniedIndexRoute
+  '/forgot-password': typeof UserForgotPasswordIndexRoute
   '/login': typeof UserLoginIndexRoute
-  '/password-reset': typeof UserPasswordResetIndexRoute
   '/register': typeof UserRegisterIndexRoute
   '/admin/jobs': typeof AuthAdminJobsIndexRoute
   '/admin/project-settings': typeof AuthAdminProjectSettingsIndexRoute
@@ -845,6 +863,7 @@ export interface FileRoutesById {
   '/_auth/profile': typeof AuthProfileRouteRouteWithChildren
   '/_auth/projects': typeof AuthProjectsRouteRouteWithChildren
   '/_auth/runs': typeof AuthRunsRouteRouteWithChildren
+  '/_user/reset-password': typeof UserResetPasswordRoute
   '/_user/verify-email': typeof UserVerifyEmailRoute
   '/_auth/': typeof AuthIndexRoute
   '/_auth/admin/jobs': typeof AuthAdminJobsRouteRouteWithChildren
@@ -860,8 +879,8 @@ export interface FileRoutesById {
   '/_auth/projects/': typeof AuthProjectsIndexRoute
   '/_auth/runs/': typeof AuthRunsIndexRoute
   '/_user/access-denied/': typeof UserAccessDeniedIndexRoute
+  '/_user/forgot-password/': typeof UserForgotPasswordIndexRoute
   '/_user/login/': typeof UserLoginIndexRoute
-  '/_user/password-reset/': typeof UserPasswordResetIndexRoute
   '/_user/register/': typeof UserRegisterIndexRoute
   '/_auth/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/_auth/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
@@ -885,6 +904,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/projects'
     | '/runs'
+    | '/reset-password'
     | '/verify-email'
     | '/'
     | '/admin/jobs'
@@ -900,8 +920,8 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/runs/'
     | '/access-denied'
+    | '/forgot-password'
     | '/login'
-    | '/password-reset'
     | '/register'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
@@ -917,6 +937,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | ''
+    | '/reset-password'
     | '/verify-email'
     | '/'
     | '/admin'
@@ -925,8 +946,8 @@ export interface FileRouteTypes {
     | '/projects'
     | '/runs'
     | '/access-denied'
+    | '/forgot-password'
     | '/login'
-    | '/password-reset'
     | '/register'
     | '/admin/jobs'
     | '/admin/project-settings'
@@ -946,6 +967,7 @@ export interface FileRouteTypes {
     | '/_auth/profile'
     | '/_auth/projects'
     | '/_auth/runs'
+    | '/_user/reset-password'
     | '/_user/verify-email'
     | '/_auth/'
     | '/_auth/admin/jobs'
@@ -961,8 +983,8 @@ export interface FileRouteTypes {
     | '/_auth/projects/'
     | '/_auth/runs/'
     | '/_user/access-denied/'
+    | '/_user/forgot-password/'
     | '/_user/login/'
-    | '/_user/password-reset/'
     | '/_user/register/'
     | '/_auth/runs/$run_barcode/indexqc'
     | '/_auth/runs/$run_barcode/samplesheet'
@@ -1005,10 +1027,11 @@ export const routeTree = rootRoute
     "/_user": {
       "filePath": "_user.route.tsx",
       "children": [
+        "/_user/reset-password",
         "/_user/verify-email",
         "/_user/access-denied/",
+        "/_user/forgot-password/",
         "/_user/login/",
-        "/_user/password-reset/",
         "/_user/register/"
       ]
     },
@@ -1064,6 +1087,10 @@ export const routeTree = rootRoute
         "/_auth/runs/$run_barcode",
         "/_auth/runs/"
       ]
+    },
+    "/_user/reset-password": {
+      "filePath": "_user.reset-password.tsx",
+      "parent": "/_user"
     },
     "/_user/verify-email": {
       "filePath": "_user.verify-email.tsx",
@@ -1148,12 +1175,12 @@ export const routeTree = rootRoute
       "filePath": "_user.access-denied.index.tsx",
       "parent": "/_user"
     },
-    "/_user/login/": {
-      "filePath": "_user.login.index.tsx",
+    "/_user/forgot-password/": {
+      "filePath": "_user.forgot-password.index.tsx",
       "parent": "/_user"
     },
-    "/_user/password-reset/": {
-      "filePath": "_user.password-reset.index.tsx",
+    "/_user/login/": {
+      "filePath": "_user.login.index.tsx",
       "parent": "/_user"
     },
     "/_user/register/": {

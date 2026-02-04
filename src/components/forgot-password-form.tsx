@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,6 +12,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { requestPasswordResetMutation } from '@/client/@tanstack/react-query.gen'
 import { NGS360Logo } from '@/components/ngs360-logo'
@@ -21,11 +30,13 @@ const schema = z.object({
 
 type FormFields = z.infer<typeof schema>
 
-export function PasswordResetForm({
+export function ForgotPasswordForm({
   className,
   ...props
 }: ComponentPropsWithoutRef<'form'>) {
   const navigate = useNavigate()
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [sentEmail, setSentEmail] = useState('')
 
   const {
     register,
@@ -46,13 +57,14 @@ export function PasswordResetForm({
         error.response?.data.detail?.toString() || 'An unknown error occurred.'
       setError('root', { message })
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success('Password reset email sent. Please check your inbox.')
-      navigate({ to: '/login' })
+      setSentEmail(variables.body.email)
+      setShowSuccessDialog(true)
     },
   })
 
-  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+  const onSubmit: SubmitHandler<FormFields> = (data) => {
     mutate({ body: { ...data } })
   }
 
@@ -117,6 +129,29 @@ export function PasswordResetForm({
           <p>© {new Date().getFullYear()} BMS NGS360. All rights reserved.</p>
         </div>
       </div>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Success!</DialogTitle>
+            <DialogDescription>
+              A password reset link has been sent to <strong>{sentEmail}</strong>.<br />
+              Please check your inbox and follow the instructions to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setShowSuccessDialog(false)
+                navigate({ to: '/login' })
+              }}
+            >
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -101,7 +101,7 @@ export function LoginForm({
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
                     <Link
-                      to="/password-reset"
+                      to="/forgot-password"
                       className="text-xs underline-offset-4 hover:underline"
                     >
                       Forgot your password?
