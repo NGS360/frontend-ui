@@ -210,6 +210,36 @@ export type BodyCreateFile = {
 }
 
 /**
+ * Body_login
+ */
+export type BodyLogin = {
+  /**
+   * Grant Type
+   */
+  grant_type?: string | null
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Password
+   */
+  password: string
+  /**
+   * Scope
+   */
+  scope?: string
+  /**
+   * Client Id
+   */
+  client_id?: string | null
+  /**
+   * Client Secret
+   */
+  client_secret?: string | null
+}
+
+/**
  * Body_post_run_samplesheet
  */
 export type BodyPostRunSamplesheet = {
@@ -378,6 +408,17 @@ export type DemuxWorkflowTag = {
    * Name
    */
   name: string
+}
+
+/**
+ * EmailVerificationRequest
+ * Email verification request
+ */
+export type EmailVerificationRequest = {
+  /**
+   * Token
+   */
+  token: string
 }
 
 /**
@@ -762,6 +803,55 @@ export type PlatformConfig = {
    * Export Command
    */
   export_command?: string | null
+ * OAuthLinkRequest
+ * Link OAuth provider to account
+ */
+export type OAuthLinkRequest = {
+  /**
+   * Code
+   */
+  code: string
+}
+
+/**
+ * PasswordChange
+ * Password change request
+ */
+export type PasswordChange = {
+  /**
+   * Current Password
+   */
+  current_password: string
+  /**
+   * New Password
+   */
+  new_password: string
+}
+
+/**
+ * PasswordResetConfirm
+ * Password reset confirmation
+ */
+export type PasswordResetConfirm = {
+  /**
+   * Token
+   */
+  token: string
+  /**
+   * New Password
+   */
+  new_password: string
+}
+
+/**
+ * PasswordResetRequest
+ * Password reset request
+ */
+export type PasswordResetRequest = {
+  /**
+   * Email
+   */
+  email: string
 }
 
 /**
@@ -928,6 +1018,28 @@ export type ReadMetricsType = {
    * Trimmedbases
    */
   TrimmedBases?: number | null
+}
+
+/**
+ * RefreshTokenRequest
+ * Refresh token request
+ */
+export type RefreshTokenRequest = {
+  /**
+   * Refresh Token
+   */
+  refresh_token: string
+}
+
+/**
+ * ResendVerificationRequest
+ * Resend verification email request
+ */
+export type ResendVerificationRequest = {
+  /**
+   * Email
+   */
+  email: string
 }
 
 /**
@@ -1200,6 +1312,29 @@ export type SettingUpdate = {
 export type StorageBackend = 'local' | 's3' | 'azure' | 'gcs'
 
 /**
+ * TokenResponse
+ * Authentication token response
+ */
+export type TokenResponse = {
+  /**
+   * Access Token
+   */
+  access_token: string
+  /**
+   * Refresh Token
+   */
+  refresh_token: string
+  /**
+   * Token Type
+   */
+  token_type?: string
+  /**
+   * Expires In
+   */
+  expires_in: number
+}
+
+/**
  * UndeterminedType
  */
 export type UndeterminedType = {
@@ -1231,6 +1366,72 @@ export type UnknownBarcode = {
   Barcodes?: {
     [key: string]: number
   } | null
+}
+
+/**
+ * UserPublic
+ * Public user information
+ */
+export type UserPublic = {
+  /**
+   * Email
+   */
+  email: string
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Full Name
+   */
+  full_name: string | null
+  /**
+   * Is Active
+   */
+  is_active: boolean
+  /**
+   * Is Verified
+   */
+  is_verified: boolean
+  /**
+   * Is Superuser
+   */
+  is_superuser: boolean
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Last Login
+   */
+  last_login: string | null
+  /**
+   * Oauth Providers
+   */
+  oauth_providers?: Array<string>
+}
+
+/**
+ * UserRegister
+ * User registration request
+ */
+export type UserRegister = {
+  /**
+   * Email
+   */
+  email: string
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Password
+   */
+  password: string
+  /**
+   * Full Name
+   */
+  full_name?: string | null
 }
 
 /**
@@ -1426,6 +1627,424 @@ export type HealthCheckResponses = {
    */
   200: unknown
 }
+
+export type RegisterData = {
+  body: UserRegister
+  path?: never
+  query?: never
+  url: '/api/v1/auth/register'
+}
+
+export type RegisterErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type RegisterError = RegisterErrors[keyof RegisterErrors]
+
+export type RegisterResponses = {
+  /**
+   * Successful Response
+   */
+  201: UserPublic
+}
+
+export type RegisterResponse = RegisterResponses[keyof RegisterResponses]
+
+export type LoginData = {
+  body: BodyLogin
+  path?: never
+  query?: never
+  url: '/api/v1/auth/login'
+}
+
+export type LoginErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type LoginError = LoginErrors[keyof LoginErrors]
+
+export type LoginResponses = {
+  /**
+   * Successful Response
+   */
+  200: TokenResponse
+}
+
+export type LoginResponse = LoginResponses[keyof LoginResponses]
+
+export type RefreshTokenData = {
+  body: RefreshTokenRequest
+  path?: never
+  query?: never
+  url: '/api/v1/auth/refresh'
+}
+
+export type RefreshTokenErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type RefreshTokenError = RefreshTokenErrors[keyof RefreshTokenErrors]
+
+export type RefreshTokenResponses = {
+  /**
+   * Successful Response
+   */
+  200: TokenResponse
+}
+
+export type RefreshTokenResponse =
+  RefreshTokenResponses[keyof RefreshTokenResponses]
+
+export type LogoutData = {
+  body: RefreshTokenRequest
+  path?: never
+  query?: never
+  url: '/api/v1/auth/logout'
+}
+
+export type LogoutErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type LogoutError = LogoutErrors[keyof LogoutErrors]
+
+export type LogoutResponses = {
+  /**
+   * Response Logout
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type LogoutResponse = LogoutResponses[keyof LogoutResponses]
+
+export type GetCurrentUserInfoData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/auth/me'
+}
+
+export type GetCurrentUserInfoResponses = {
+  /**
+   * Successful Response
+   */
+  200: UserPublic
+}
+
+export type GetCurrentUserInfoResponse =
+  GetCurrentUserInfoResponses[keyof GetCurrentUserInfoResponses]
+
+export type RequestPasswordResetData = {
+  body: PasswordResetRequest
+  path?: never
+  query?: never
+  url: '/api/v1/auth/password-reset/request'
+}
+
+export type RequestPasswordResetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type RequestPasswordResetError =
+  RequestPasswordResetErrors[keyof RequestPasswordResetErrors]
+
+export type RequestPasswordResetResponses = {
+  /**
+   * Response Request Password Reset
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type RequestPasswordResetResponse =
+  RequestPasswordResetResponses[keyof RequestPasswordResetResponses]
+
+export type ConfirmPasswordResetData = {
+  body: PasswordResetConfirm
+  path?: never
+  query?: never
+  url: '/api/v1/auth/password-reset/confirm'
+}
+
+export type ConfirmPasswordResetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ConfirmPasswordResetError =
+  ConfirmPasswordResetErrors[keyof ConfirmPasswordResetErrors]
+
+export type ConfirmPasswordResetResponses = {
+  /**
+   * Response Confirm Password Reset
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type ConfirmPasswordResetResponse =
+  ConfirmPasswordResetResponses[keyof ConfirmPasswordResetResponses]
+
+export type ChangePasswordData = {
+  body: PasswordChange
+  path?: never
+  query?: never
+  url: '/api/v1/auth/password/change'
+}
+
+export type ChangePasswordErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ChangePasswordError =
+  ChangePasswordErrors[keyof ChangePasswordErrors]
+
+export type ChangePasswordResponses = {
+  /**
+   * Response Change Password
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type ChangePasswordResponse =
+  ChangePasswordResponses[keyof ChangePasswordResponses]
+
+export type VerifyEmailData = {
+  body: EmailVerificationRequest
+  path?: never
+  query?: never
+  url: '/api/v1/auth/verify-email'
+}
+
+export type VerifyEmailErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type VerifyEmailError = VerifyEmailErrors[keyof VerifyEmailErrors]
+
+export type VerifyEmailResponses = {
+  /**
+   * Response Verify Email
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type VerifyEmailResponse =
+  VerifyEmailResponses[keyof VerifyEmailResponses]
+
+export type ResendVerificationData = {
+  body: ResendVerificationRequest
+  path?: never
+  query?: never
+  url: '/api/v1/auth/resend-verification'
+}
+
+export type ResendVerificationErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ResendVerificationError =
+  ResendVerificationErrors[keyof ResendVerificationErrors]
+
+export type ResendVerificationResponses = {
+  /**
+   * Response Resend Verification
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type ResendVerificationResponse =
+  ResendVerificationResponses[keyof ResendVerificationResponses]
+
+export type OauthAuthorizeData = {
+  body?: never
+  path: {
+    /**
+     * Provider
+     */
+    provider: string
+  }
+  query?: {
+    /**
+     * Redirect Uri
+     */
+    redirect_uri?: string | null
+  }
+  url: '/api/v1/auth/oauth/{provider}/authorize'
+}
+
+export type OauthAuthorizeErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type OauthAuthorizeError =
+  OauthAuthorizeErrors[keyof OauthAuthorizeErrors]
+
+export type OauthAuthorizeResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
+export type OauthCallbackData = {
+  body?: never
+  path: {
+    /**
+     * Provider
+     */
+    provider: string
+  }
+  query: {
+    /**
+     * Code
+     */
+    code: string
+    /**
+     * State
+     */
+    state?: string | null
+    /**
+     * Redirect Uri
+     */
+    redirect_uri?: string | null
+  }
+  url: '/api/v1/auth/oauth/{provider}/callback'
+}
+
+export type OauthCallbackErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type OauthCallbackError = OauthCallbackErrors[keyof OauthCallbackErrors]
+
+export type OauthCallbackResponses = {
+  /**
+   * Successful Response
+   */
+  200: TokenResponse
+}
+
+export type OauthCallbackResponse =
+  OauthCallbackResponses[keyof OauthCallbackResponses]
+
+export type LinkOauthProviderData = {
+  body: OAuthLinkRequest
+  path: {
+    /**
+     * Provider
+     */
+    provider: string
+  }
+  query?: never
+  url: '/api/v1/auth/oauth/{provider}/link'
+}
+
+export type LinkOauthProviderErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type LinkOauthProviderError =
+  LinkOauthProviderErrors[keyof LinkOauthProviderErrors]
+
+export type LinkOauthProviderResponses = {
+  /**
+   * Response Link Oauth Provider
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type LinkOauthProviderResponse =
+  LinkOauthProviderResponses[keyof LinkOauthProviderResponses]
+
+export type UnlinkOauthProviderData = {
+  body?: never
+  path: {
+    /**
+     * Provider
+     */
+    provider: string
+  }
+  query?: never
+  url: '/api/v1/auth/oauth/{provider}/unlink'
+}
+
+export type UnlinkOauthProviderErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UnlinkOauthProviderError =
+  UnlinkOauthProviderErrors[keyof UnlinkOauthProviderErrors]
+
+export type UnlinkOauthProviderResponses = {
+  /**
+   * Response Unlink Oauth Provider
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type UnlinkOauthProviderResponse =
+  UnlinkOauthProviderResponses[keyof UnlinkOauthProviderResponses]
 
 export type CreateFileData = {
   body: BodyCreateFile
@@ -2911,10 +3530,20 @@ export type ValidateManifestData = {
      */
     s3_path: string
     /**
-     * Valid
-     * Mock validation result for testing (True=valid, False=invalid)
+     * Manifest Version
+     * Manifest version to validate against (e.g., 'DTS12.1')
      */
-    valid?: boolean
+    manifest_version?: string | null
+    /**
+     * Files Bucket
+     * S3 bucket where manifest files are located
+     */
+    files_bucket?: string | null
+    /**
+     * Files Prefix
+     * S3 prefix/path where manifest files are located
+     */
+    files_prefix?: string | null
   }
   url: '/api/v1/manifest/validate'
 }

@@ -8,3 +8,5 @@
 public/data/*
 
 .vscode
+
+.DS_Store

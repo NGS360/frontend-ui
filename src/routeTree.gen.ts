@@ -11,716 +11,902 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as RunsRouteImport } from './routes/runs.route'
-import { Route as ProjectsRouteImport } from './routes/projects.route'
-import { Route as ProfileRouteImport } from './routes/profile.route'
-import { Route as JobsRouteImport } from './routes/jobs.route'
-import { Route as AdminRouteImport } from './routes/admin.route'
-import { Route as IndexImport } from './routes/index'
-import { Route as RunsIndexImport } from './routes/runs.index'
-import { Route as ProjectsIndexImport } from './routes/projects.index'
-import { Route as ProfileIndexImport } from './routes/profile.index'
-import { Route as JobsIndexImport } from './routes/jobs.index'
-import { Route as AdminIndexImport } from './routes/admin.index'
-import { Route as RunsRunbarcodeRouteImport } from './routes/runs.$run_barcode.route'
-import { Route as ProjectsProjectidRouteImport } from './routes/projects.$project_id.route'
-import { Route as JobsJobidRouteImport } from './routes/jobs.$job_id.route'
-import { Route as AdminVendorsRouteImport } from './routes/admin.vendors.route'
-import { Route as AdminRunSettingsRouteImport } from './routes/admin.run-settings.route'
-import { Route as AdminProjectSettingsRouteImport } from './routes/admin.project-settings.route'
-import { Route as AdminJobsRouteImport } from './routes/admin.jobs.route'
-import { Route as RunsRunbarcodeIndexImport } from './routes/runs.$run_barcode.index'
-import { Route as ProjectsProjectidIndexImport } from './routes/projects.$project_id.index'
-import { Route as JobsJobidIndexImport } from './routes/jobs.$job_id.index'
-import { Route as AdminVendorsIndexImport } from './routes/admin.vendors.index'
-import { Route as AdminRunSettingsIndexImport } from './routes/admin.run-settings.index'
-import { Route as AdminProjectSettingsIndexImport } from './routes/admin.project-settings.index'
-import { Route as AdminJobsIndexImport } from './routes/admin.jobs.index'
-import { Route as RunsRunbarcodeSamplesheetRouteImport } from './routes/runs.$run_barcode.samplesheet.route'
-import { Route as RunsRunbarcodeIndexqcRouteImport } from './routes/runs.$run_barcode.indexqc.route'
-import { Route as RunsRunbarcodeSamplesheetIndexImport } from './routes/runs.$run_barcode.samplesheet.index'
-import { Route as RunsRunbarcodeIndexqcIndexImport } from './routes/runs.$run_barcode.indexqc.index'
+import { Route as AuthImport } from './routes/_auth'
+import { Route as UserRouteImport } from './routes/_user.route'
+import { Route as AuthIndexImport } from './routes/_auth.index'
+import { Route as UserVerifyEmailImport } from './routes/_user.verify-email'
+import { Route as UserResetPasswordImport } from './routes/_user.reset-password'
+import { Route as AuthRunsRouteImport } from './routes/_auth.runs.route'
+import { Route as AuthProjectsRouteImport } from './routes/_auth.projects.route'
+import { Route as AuthProfileRouteImport } from './routes/_auth.profile.route'
+import { Route as AuthJobsRouteImport } from './routes/_auth.jobs.route'
+import { Route as AuthAdminRouteImport } from './routes/_auth.admin.route'
+import { Route as UserRegisterIndexImport } from './routes/_user.register.index'
+import { Route as UserLoginIndexImport } from './routes/_user.login.index'
+import { Route as UserForgotPasswordIndexImport } from './routes/_user.forgot-password.index'
+import { Route as UserAccessDeniedIndexImport } from './routes/_user.access-denied.index'
+import { Route as AuthRunsIndexImport } from './routes/_auth.runs.index'
+import { Route as AuthProjectsIndexImport } from './routes/_auth.projects.index'
+import { Route as AuthProfileIndexImport } from './routes/_auth.profile.index'
+import { Route as AuthJobsIndexImport } from './routes/_auth.jobs.index'
+import { Route as AuthAdminIndexImport } from './routes/_auth.admin.index'
+import { Route as AuthRunsRunbarcodeRouteImport } from './routes/_auth.runs.$run_barcode.route'
+import { Route as AuthProjectsProjectidRouteImport } from './routes/_auth.projects.$project_id.route'
+import { Route as AuthJobsJobidRouteImport } from './routes/_auth.jobs.$job_id.route'
+import { Route as AuthAdminVendorsRouteImport } from './routes/_auth.admin.vendors.route'
+import { Route as AuthAdminRunSettingsRouteImport } from './routes/_auth.admin.run-settings.route'
+import { Route as AuthAdminProjectSettingsRouteImport } from './routes/_auth.admin.project-settings.route'
+import { Route as AuthAdminJobsRouteImport } from './routes/_auth.admin.jobs.route'
+import { Route as AuthRunsRunbarcodeIndexImport } from './routes/_auth.runs.$run_barcode.index'
+import { Route as AuthProjectsProjectidIndexImport } from './routes/_auth.projects.$project_id.index'
+import { Route as AuthJobsJobidIndexImport } from './routes/_auth.jobs.$job_id.index'
+import { Route as AuthAdminVendorsIndexImport } from './routes/_auth.admin.vendors.index'
+import { Route as AuthAdminRunSettingsIndexImport } from './routes/_auth.admin.run-settings.index'
+import { Route as AuthAdminProjectSettingsIndexImport } from './routes/_auth.admin.project-settings.index'
+import { Route as AuthAdminJobsIndexImport } from './routes/_auth.admin.jobs.index'
+import { Route as AuthRunsRunbarcodeSamplesheetRouteImport } from './routes/_auth.runs.$run_barcode.samplesheet.route'
+import { Route as AuthRunsRunbarcodeIndexqcRouteImport } from './routes/_auth.runs.$run_barcode.indexqc.route'
+import { Route as AuthRunsRunbarcodeSamplesheetIndexImport } from './routes/_auth.runs.$run_barcode.samplesheet.index'
+import { Route as AuthRunsRunbarcodeIndexqcIndexImport } from './routes/_auth.runs.$run_barcode.indexqc.index'
 
 // Create/Update Routes
 
-const RunsRouteRoute = RunsRouteImport.update({
+const AuthRoute = AuthImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const UserRouteRoute = UserRouteImport.update({
+  id: '/_user',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthIndexRoute = AuthIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const UserVerifyEmailRoute = UserVerifyEmailImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const UserResetPasswordRoute = UserResetPasswordImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const AuthRunsRouteRoute = AuthRunsRouteImport.update({
   id: '/runs',
   path: '/runs',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthRoute,
 } as any)
 
-const ProjectsRouteRoute = ProjectsRouteImport.update({
+const AuthProjectsRouteRoute = AuthProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthRoute,
 } as any)
 
-const ProfileRouteRoute = ProfileRouteImport.update({
+const AuthProfileRouteRoute = AuthProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthRoute,
 } as any)
 
-const JobsRouteRoute = JobsRouteImport.update({
+const AuthJobsRouteRoute = AuthJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthRoute,
 } as any)
 
-const AdminRouteRoute = AdminRouteImport.update({
+const AuthAdminRouteRoute = AuthAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthRoute,
 } as any)
 
-const IndexRoute = IndexImport.update({
+const UserRegisterIndexRoute = UserRegisterIndexImport.update({
+  id: '/register/',
+  path: '/register/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const UserLoginIndexRoute = UserLoginIndexImport.update({
+  id: '/login/',
+  path: '/login/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const UserForgotPasswordIndexRoute = UserForgotPasswordIndexImport.update({
+  id: '/forgot-password/',
+  path: '/forgot-password/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const UserAccessDeniedIndexRoute = UserAccessDeniedIndexImport.update({
+  id: '/access-denied/',
+  path: '/access-denied/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+
+const AuthRunsIndexRoute = AuthRunsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthRunsRouteRoute,
 } as any)
 
-const RunsIndexRoute = RunsIndexImport.update({
+const AuthProjectsIndexRoute = AuthProjectsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => RunsRouteRoute,
+  getParentRoute: () => AuthProjectsRouteRoute,
 } as any)
 
-const ProjectsIndexRoute = ProjectsIndexImport.update({
+const AuthProfileIndexRoute = AuthProfileIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProjectsRouteRoute,
+  getParentRoute: () => AuthProfileRouteRoute,
 } as any)
 
-const ProfileIndexRoute = ProfileIndexImport.update({
+const AuthJobsIndexRoute = AuthJobsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProfileRouteRoute,
+  getParentRoute: () => AuthJobsRouteRoute,
 } as any)
 
-const JobsIndexRoute = JobsIndexImport.update({
+const AuthAdminIndexRoute = AuthAdminIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => JobsRouteRoute,
+  getParentRoute: () => AuthAdminRouteRoute,
 } as any)
 
-const AdminIndexRoute = AdminIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-
-const RunsRunbarcodeRouteRoute = RunsRunbarcodeRouteImport.update({
+const AuthRunsRunbarcodeRouteRoute = AuthRunsRunbarcodeRouteImport.update({
   id: '/$run_barcode',
   path: '/$run_barcode',
-  getParentRoute: () => RunsRouteRoute,
+  getParentRoute: () => AuthRunsRouteRoute,
 } as any)
 
-const ProjectsProjectidRouteRoute = ProjectsProjectidRouteImport.update({
-  id: '/$project_id',
-  path: '/$project_id',
-  getParentRoute: () => ProjectsRouteRoute,
-} as any)
+const AuthProjectsProjectidRouteRoute = AuthProjectsProjectidRouteImport.update(
+  {
+    id: '/$project_id',
+    path: '/$project_id',
+    getParentRoute: () => AuthProjectsRouteRoute,
+  } as any,
+)
 
-const JobsJobidRouteRoute = JobsJobidRouteImport.update({
+const AuthJobsJobidRouteRoute = AuthJobsJobidRouteImport.update({
   id: '/$job_id',
   path: '/$job_id',
-  getParentRoute: () => JobsRouteRoute,
+  getParentRoute: () => AuthJobsRouteRoute,
 } as any)
 
-const AdminVendorsRouteRoute = AdminVendorsRouteImport.update({
+const AuthAdminVendorsRouteRoute = AuthAdminVendorsRouteImport.update({
   id: '/vendors',
   path: '/vendors',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => AuthAdminRouteRoute,
 } as any)
 
-const AdminRunSettingsRouteRoute = AdminRunSettingsRouteImport.update({
+const AuthAdminRunSettingsRouteRoute = AuthAdminRunSettingsRouteImport.update({
   id: '/run-settings',
   path: '/run-settings',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => AuthAdminRouteRoute,
 } as any)
 
-const AdminProjectSettingsRouteRoute = AdminProjectSettingsRouteImport.update({
-  id: '/project-settings',
-  path: '/project-settings',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
+const AuthAdminProjectSettingsRouteRoute =
+  AuthAdminProjectSettingsRouteImport.update({
+    id: '/project-settings',
+    path: '/project-settings',
+    getParentRoute: () => AuthAdminRouteRoute,
+  } as any)
 
-const AdminJobsRouteRoute = AdminJobsRouteImport.update({
+const AuthAdminJobsRouteRoute = AuthAdminJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => AuthAdminRouteRoute,
 } as any)
 
-const RunsRunbarcodeIndexRoute = RunsRunbarcodeIndexImport.update({
+const AuthRunsRunbarcodeIndexRoute = AuthRunsRunbarcodeIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => RunsRunbarcodeRouteRoute,
+  getParentRoute: () => AuthRunsRunbarcodeRouteRoute,
 } as any)
 
-const ProjectsProjectidIndexRoute = ProjectsProjectidIndexImport.update({
+const AuthProjectsProjectidIndexRoute = AuthProjectsProjectidIndexImport.update(
+  {
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthProjectsProjectidRouteRoute,
+  } as any,
+)
+
+const AuthJobsJobidIndexRoute = AuthJobsJobidIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProjectsProjectidRouteRoute,
+  getParentRoute: () => AuthJobsJobidRouteRoute,
 } as any)
 
-const JobsJobidIndexRoute = JobsJobidIndexImport.update({
+const AuthAdminVendorsIndexRoute = AuthAdminVendorsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => JobsJobidRouteRoute,
+  getParentRoute: () => AuthAdminVendorsRouteRoute,
 } as any)
 
-const AdminVendorsIndexRoute = AdminVendorsIndexImport.update({
+const AuthAdminRunSettingsIndexRoute = AuthAdminRunSettingsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminVendorsRouteRoute,
+  getParentRoute: () => AuthAdminRunSettingsRouteRoute,
 } as any)
 
-const AdminRunSettingsIndexRoute = AdminRunSettingsIndexImport.update({
+const AuthAdminProjectSettingsIndexRoute =
+  AuthAdminProjectSettingsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthAdminProjectSettingsRouteRoute,
+  } as any)
+
+const AuthAdminJobsIndexRoute = AuthAdminJobsIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRunSettingsRouteRoute,
+  getParentRoute: () => AuthAdminJobsRouteRoute,
 } as any)
 
-const AdminProjectSettingsIndexRoute = AdminProjectSettingsIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminProjectSettingsRouteRoute,
-} as any)
-
-const AdminJobsIndexRoute = AdminJobsIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminJobsRouteRoute,
-} as any)
-
-const RunsRunbarcodeSamplesheetRouteRoute =
-  RunsRunbarcodeSamplesheetRouteImport.update({
+const AuthRunsRunbarcodeSamplesheetRouteRoute =
+  AuthRunsRunbarcodeSamplesheetRouteImport.update({
     id: '/samplesheet',
     path: '/samplesheet',
-    getParentRoute: () => RunsRunbarcodeRouteRoute,
+    getParentRoute: () => AuthRunsRunbarcodeRouteRoute,
   } as any)
 
-const RunsRunbarcodeIndexqcRouteRoute = RunsRunbarcodeIndexqcRouteImport.update(
-  {
+const AuthRunsRunbarcodeIndexqcRouteRoute =
+  AuthRunsRunbarcodeIndexqcRouteImport.update({
     id: '/indexqc',
     path: '/indexqc',
-    getParentRoute: () => RunsRunbarcodeRouteRoute,
-  } as any,
-)
-
-const RunsRunbarcodeSamplesheetIndexRoute =
-  RunsRunbarcodeSamplesheetIndexImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => RunsRunbarcodeSamplesheetRouteRoute,
+    getParentRoute: () => AuthRunsRunbarcodeRouteRoute,
   } as any)
 
-const RunsRunbarcodeIndexqcIndexRoute = RunsRunbarcodeIndexqcIndexImport.update(
-  {
+const AuthRunsRunbarcodeSamplesheetIndexRoute =
+  AuthRunsRunbarcodeSamplesheetIndexImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => RunsRunbarcodeIndexqcRouteRoute,
-  } as any,
-)
+    getParentRoute: () => AuthRunsRunbarcodeSamplesheetRouteRoute,
+  } as any)
+
+const AuthRunsRunbarcodeIndexqcIndexRoute =
+  AuthRunsRunbarcodeIndexqcIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthRunsRunbarcodeIndexqcRouteRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
+    '/_user': {
+      id: '/_user'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof UserRouteImport
       parentRoute: typeof rootRoute
     }
-    '/admin': {
-      id: '/admin'
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthImport
+      parentRoute: typeof rootRoute
+    }
+    '/_auth/admin': {
+      id: '/_auth/admin'
       path: '/admin'
       fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthAdminRouteImport
+      parentRoute: typeof AuthImport
     }
-    '/jobs': {
-      id: '/jobs'
+    '/_auth/jobs': {
+      id: '/_auth/jobs'
       path: '/jobs'
       fullPath: '/jobs'
-      preLoaderRoute: typeof JobsRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthJobsRouteImport
+      parentRoute: typeof AuthImport
     }
-    '/profile': {
-      id: '/profile'
+    '/_auth/profile': {
+      id: '/_auth/profile'
       path: '/profile'
       fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthProfileRouteImport
+      parentRoute: typeof AuthImport
     }
-    '/projects': {
-      id: '/projects'
+    '/_auth/projects': {
+      id: '/_auth/projects'
       path: '/projects'
       fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthProjectsRouteImport
+      parentRoute: typeof AuthImport
     }
-    '/runs': {
-      id: '/runs'
+    '/_auth/runs': {
+      id: '/_auth/runs'
       path: '/runs'
       fullPath: '/runs'
-      preLoaderRoute: typeof RunsRouteImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthRunsRouteImport
+      parentRoute: typeof AuthImport
     }
-    '/admin/jobs': {
-      id: '/admin/jobs'
+    '/_user/reset-password': {
+      id: '/_user/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof UserResetPasswordImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_user/verify-email': {
+      id: '/_user/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof UserVerifyEmailImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_auth/': {
+      id: '/_auth/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthIndexImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/admin/jobs': {
+      id: '/_auth/admin/jobs'
       path: '/jobs'
       fullPath: '/admin/jobs'
-      preLoaderRoute: typeof AdminJobsRouteImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof AuthAdminJobsRouteImport
+      parentRoute: typeof AuthAdminRouteImport
     }
-    '/admin/project-settings': {
-      id: '/admin/project-settings'
+    '/_auth/admin/project-settings': {
+      id: '/_auth/admin/project-settings'
       path: '/project-settings'
       fullPath: '/admin/project-settings'
-      preLoaderRoute: typeof AdminProjectSettingsRouteImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof AuthAdminProjectSettingsRouteImport
+      parentRoute: typeof AuthAdminRouteImport
     }
-    '/admin/run-settings': {
-      id: '/admin/run-settings'
+    '/_auth/admin/run-settings': {
+      id: '/_auth/admin/run-settings'
       path: '/run-settings'
       fullPath: '/admin/run-settings'
-      preLoaderRoute: typeof AdminRunSettingsRouteImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof AuthAdminRunSettingsRouteImport
+      parentRoute: typeof AuthAdminRouteImport
     }
-    '/admin/vendors': {
-      id: '/admin/vendors'
+    '/_auth/admin/vendors': {
+      id: '/_auth/admin/vendors'
       path: '/vendors'
       fullPath: '/admin/vendors'
-      preLoaderRoute: typeof AdminVendorsRouteImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof AuthAdminVendorsRouteImport
+      parentRoute: typeof AuthAdminRouteImport
     }
-    '/jobs/$job_id': {
-      id: '/jobs/$job_id'
+    '/_auth/jobs/$job_id': {
+      id: '/_auth/jobs/$job_id'
       path: '/$job_id'
       fullPath: '/jobs/$job_id'
-      preLoaderRoute: typeof JobsJobidRouteImport
-      parentRoute: typeof JobsRouteImport
+      preLoaderRoute: typeof AuthJobsJobidRouteImport
+      parentRoute: typeof AuthJobsRouteImport
     }
-    '/projects/$project_id': {
-      id: '/projects/$project_id'
+    '/_auth/projects/$project_id': {
+      id: '/_auth/projects/$project_id'
       path: '/$project_id'
       fullPath: '/projects/$project_id'
-      preLoaderRoute: typeof ProjectsProjectidRouteImport
-      parentRoute: typeof ProjectsRouteImport
+      preLoaderRoute: typeof AuthProjectsProjectidRouteImport
+      parentRoute: typeof AuthProjectsRouteImport
     }
-    '/runs/$run_barcode': {
-      id: '/runs/$run_barcode'
+    '/_auth/runs/$run_barcode': {
+      id: '/_auth/runs/$run_barcode'
       path: '/$run_barcode'
       fullPath: '/runs/$run_barcode'
-      preLoaderRoute: typeof RunsRunbarcodeRouteImport
-      parentRoute: typeof RunsRouteImport
+      preLoaderRoute: typeof AuthRunsRunbarcodeRouteImport
+      parentRoute: typeof AuthRunsRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
+    '/_auth/admin/': {
+      id: '/_auth/admin/'
       path: '/'
       fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexImport
-      parentRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof AuthAdminIndexImport
+      parentRoute: typeof AuthAdminRouteImport
     }
-    '/jobs/': {
-      id: '/jobs/'
+    '/_auth/jobs/': {
+      id: '/_auth/jobs/'
       path: '/'
       fullPath: '/jobs/'
-      preLoaderRoute: typeof JobsIndexImport
-      parentRoute: typeof JobsRouteImport
+      preLoaderRoute: typeof AuthJobsIndexImport
+      parentRoute: typeof AuthJobsRouteImport
     }
-    '/profile/': {
-      id: '/profile/'
+    '/_auth/profile/': {
+      id: '/_auth/profile/'
       path: '/'
       fullPath: '/profile/'
-      preLoaderRoute: typeof ProfileIndexImport
-      parentRoute: typeof ProfileRouteImport
+      preLoaderRoute: typeof AuthProfileIndexImport
+      parentRoute: typeof AuthProfileRouteImport
     }
-    '/projects/': {
-      id: '/projects/'
+    '/_auth/projects/': {
+      id: '/_auth/projects/'
       path: '/'
       fullPath: '/projects/'
-      preLoaderRoute: typeof ProjectsIndexImport
-      parentRoute: typeof ProjectsRouteImport
+      preLoaderRoute: typeof AuthProjectsIndexImport
+      parentRoute: typeof AuthProjectsRouteImport
     }
-    '/runs/': {
-      id: '/runs/'
+    '/_auth/runs/': {
+      id: '/_auth/runs/'
       path: '/'
       fullPath: '/runs/'
-      preLoaderRoute: typeof RunsIndexImport
-      parentRoute: typeof RunsRouteImport
+      preLoaderRoute: typeof AuthRunsIndexImport
+      parentRoute: typeof AuthRunsRouteImport
     }
-    '/runs/$run_barcode/indexqc': {
-      id: '/runs/$run_barcode/indexqc'
+    '/_user/access-denied/': {
+      id: '/_user/access-denied/'
+      path: '/access-denied'
+      fullPath: '/access-denied'
+      preLoaderRoute: typeof UserAccessDeniedIndexImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_user/forgot-password/': {
+      id: '/_user/forgot-password/'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof UserForgotPasswordIndexImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_user/login/': {
+      id: '/_user/login/'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof UserLoginIndexImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_user/register/': {
+      id: '/_user/register/'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof UserRegisterIndexImport
+      parentRoute: typeof UserRouteImport
+    }
+    '/_auth/runs/$run_barcode/indexqc': {
+      id: '/_auth/runs/$run_barcode/indexqc'
       path: '/indexqc'
       fullPath: '/runs/$run_barcode/indexqc'
-      preLoaderRoute: typeof RunsRunbarcodeIndexqcRouteImport
-      parentRoute: typeof RunsRunbarcodeRouteImport
+      preLoaderRoute: typeof AuthRunsRunbarcodeIndexqcRouteImport
+      parentRoute: typeof AuthRunsRunbarcodeRouteImport
     }
-    '/runs/$run_barcode/samplesheet': {
-      id: '/runs/$run_barcode/samplesheet'
+    '/_auth/runs/$run_barcode/samplesheet': {
+      id: '/_auth/runs/$run_barcode/samplesheet'
       path: '/samplesheet'
       fullPath: '/runs/$run_barcode/samplesheet'
-      preLoaderRoute: typeof RunsRunbarcodeSamplesheetRouteImport
-      parentRoute: typeof RunsRunbarcodeRouteImport
+      preLoaderRoute: typeof AuthRunsRunbarcodeSamplesheetRouteImport
+      parentRoute: typeof AuthRunsRunbarcodeRouteImport
     }
-    '/admin/jobs/': {
-      id: '/admin/jobs/'
+    '/_auth/admin/jobs/': {
+      id: '/_auth/admin/jobs/'
       path: '/'
       fullPath: '/admin/jobs/'
-      preLoaderRoute: typeof AdminJobsIndexImport
-      parentRoute: typeof AdminJobsRouteImport
+      preLoaderRoute: typeof AuthAdminJobsIndexImport
+      parentRoute: typeof AuthAdminJobsRouteImport
     }
-    '/admin/project-settings/': {
-      id: '/admin/project-settings/'
+    '/_auth/admin/project-settings/': {
+      id: '/_auth/admin/project-settings/'
       path: '/'
       fullPath: '/admin/project-settings/'
-      preLoaderRoute: typeof AdminProjectSettingsIndexImport
-      parentRoute: typeof AdminProjectSettingsRouteImport
+      preLoaderRoute: typeof AuthAdminProjectSettingsIndexImport
+      parentRoute: typeof AuthAdminProjectSettingsRouteImport
     }
-    '/admin/run-settings/': {
-      id: '/admin/run-settings/'
+    '/_auth/admin/run-settings/': {
+      id: '/_auth/admin/run-settings/'
       path: '/'
       fullPath: '/admin/run-settings/'
-      preLoaderRoute: typeof AdminRunSettingsIndexImport
-      parentRoute: typeof AdminRunSettingsRouteImport
+      preLoaderRoute: typeof AuthAdminRunSettingsIndexImport
+      parentRoute: typeof AuthAdminRunSettingsRouteImport
     }
-    '/admin/vendors/': {
-      id: '/admin/vendors/'
+    '/_auth/admin/vendors/': {
+      id: '/_auth/admin/vendors/'
       path: '/'
       fullPath: '/admin/vendors/'
-      preLoaderRoute: typeof AdminVendorsIndexImport
-      parentRoute: typeof AdminVendorsRouteImport
+      preLoaderRoute: typeof AuthAdminVendorsIndexImport
+      parentRoute: typeof AuthAdminVendorsRouteImport
     }
-    '/jobs/$job_id/': {
-      id: '/jobs/$job_id/'
+    '/_auth/jobs/$job_id/': {
+      id: '/_auth/jobs/$job_id/'
       path: '/'
       fullPath: '/jobs/$job_id/'
-      preLoaderRoute: typeof JobsJobidIndexImport
-      parentRoute: typeof JobsJobidRouteImport
+      preLoaderRoute: typeof AuthJobsJobidIndexImport
+      parentRoute: typeof AuthJobsJobidRouteImport
     }
-    '/projects/$project_id/': {
-      id: '/projects/$project_id/'
+    '/_auth/projects/$project_id/': {
+      id: '/_auth/projects/$project_id/'
       path: '/'
       fullPath: '/projects/$project_id/'
-      preLoaderRoute: typeof ProjectsProjectidIndexImport
-      parentRoute: typeof ProjectsProjectidRouteImport
+      preLoaderRoute: typeof AuthProjectsProjectidIndexImport
+      parentRoute: typeof AuthProjectsProjectidRouteImport
     }
-    '/runs/$run_barcode/': {
-      id: '/runs/$run_barcode/'
+    '/_auth/runs/$run_barcode/': {
+      id: '/_auth/runs/$run_barcode/'
       path: '/'
       fullPath: '/runs/$run_barcode/'
-      preLoaderRoute: typeof RunsRunbarcodeIndexImport
-      parentRoute: typeof RunsRunbarcodeRouteImport
+      preLoaderRoute: typeof AuthRunsRunbarcodeIndexImport
+      parentRoute: typeof AuthRunsRunbarcodeRouteImport
     }
-    '/runs/$run_barcode/indexqc/': {
-      id: '/runs/$run_barcode/indexqc/'
+    '/_auth/runs/$run_barcode/indexqc/': {
+      id: '/_auth/runs/$run_barcode/indexqc/'
       path: '/'
       fullPath: '/runs/$run_barcode/indexqc/'
-      preLoaderRoute: typeof RunsRunbarcodeIndexqcIndexImport
-      parentRoute: typeof RunsRunbarcodeIndexqcRouteImport
+      preLoaderRoute: typeof AuthRunsRunbarcodeIndexqcIndexImport
+      parentRoute: typeof AuthRunsRunbarcodeIndexqcRouteImport
     }
-    '/runs/$run_barcode/samplesheet/': {
-      id: '/runs/$run_barcode/samplesheet/'
+    '/_auth/runs/$run_barcode/samplesheet/': {
+      id: '/_auth/runs/$run_barcode/samplesheet/'
       path: '/'
       fullPath: '/runs/$run_barcode/samplesheet/'
-      preLoaderRoute: typeof RunsRunbarcodeSamplesheetIndexImport
-      parentRoute: typeof RunsRunbarcodeSamplesheetRouteImport
+      preLoaderRoute: typeof AuthRunsRunbarcodeSamplesheetIndexImport
+      parentRoute: typeof AuthRunsRunbarcodeSamplesheetRouteImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface AdminJobsRouteRouteChildren {
-  AdminJobsIndexRoute: typeof AdminJobsIndexRoute
+interface UserRouteRouteChildren {
+  UserResetPasswordRoute: typeof UserResetPasswordRoute
+  UserVerifyEmailRoute: typeof UserVerifyEmailRoute
+  UserAccessDeniedIndexRoute: typeof UserAccessDeniedIndexRoute
+  UserForgotPasswordIndexRoute: typeof UserForgotPasswordIndexRoute
+  UserLoginIndexRoute: typeof UserLoginIndexRoute
+  UserRegisterIndexRoute: typeof UserRegisterIndexRoute
 }
 
-const AdminJobsRouteRouteChildren: AdminJobsRouteRouteChildren = {
-  AdminJobsIndexRoute: AdminJobsIndexRoute,
+const UserRouteRouteChildren: UserRouteRouteChildren = {
+  UserResetPasswordRoute: UserResetPasswordRoute,
+  UserVerifyEmailRoute: UserVerifyEmailRoute,
+  UserAccessDeniedIndexRoute: UserAccessDeniedIndexRoute,
+  UserForgotPasswordIndexRoute: UserForgotPasswordIndexRoute,
+  UserLoginIndexRoute: UserLoginIndexRoute,
+  UserRegisterIndexRoute: UserRegisterIndexRoute,
 }
 
-const AdminJobsRouteRouteWithChildren = AdminJobsRouteRoute._addFileChildren(
-  AdminJobsRouteRouteChildren,
+const UserRouteRouteWithChildren = UserRouteRoute._addFileChildren(
+  UserRouteRouteChildren,
 )
 
-interface AdminProjectSettingsRouteRouteChildren {
-  AdminProjectSettingsIndexRoute: typeof AdminProjectSettingsIndexRoute
+interface AuthAdminJobsRouteRouteChildren {
+  AuthAdminJobsIndexRoute: typeof AuthAdminJobsIndexRoute
 }
 
-const AdminProjectSettingsRouteRouteChildren: AdminProjectSettingsRouteRouteChildren =
+const AuthAdminJobsRouteRouteChildren: AuthAdminJobsRouteRouteChildren = {
+  AuthAdminJobsIndexRoute: AuthAdminJobsIndexRoute,
+}
+
+const AuthAdminJobsRouteRouteWithChildren =
+  AuthAdminJobsRouteRoute._addFileChildren(AuthAdminJobsRouteRouteChildren)
+
+interface AuthAdminProjectSettingsRouteRouteChildren {
+  AuthAdminProjectSettingsIndexRoute: typeof AuthAdminProjectSettingsIndexRoute
+}
+
+const AuthAdminProjectSettingsRouteRouteChildren: AuthAdminProjectSettingsRouteRouteChildren =
   {
-    AdminProjectSettingsIndexRoute: AdminProjectSettingsIndexRoute,
+    AuthAdminProjectSettingsIndexRoute: AuthAdminProjectSettingsIndexRoute,
   }
 
-const AdminProjectSettingsRouteRouteWithChildren =
-  AdminProjectSettingsRouteRoute._addFileChildren(
-    AdminProjectSettingsRouteRouteChildren,
+const AuthAdminProjectSettingsRouteRouteWithChildren =
+  AuthAdminProjectSettingsRouteRoute._addFileChildren(
+    AuthAdminProjectSettingsRouteRouteChildren,
   )
 
-interface AdminRunSettingsRouteRouteChildren {
-  AdminRunSettingsIndexRoute: typeof AdminRunSettingsIndexRoute
+interface AuthAdminRunSettingsRouteRouteChildren {
+  AuthAdminRunSettingsIndexRoute: typeof AuthAdminRunSettingsIndexRoute
 }
 
-const AdminRunSettingsRouteRouteChildren: AdminRunSettingsRouteRouteChildren = {
-  AdminRunSettingsIndexRoute: AdminRunSettingsIndexRoute,
-}
-
-const AdminRunSettingsRouteRouteWithChildren =
-  AdminRunSettingsRouteRoute._addFileChildren(
-    AdminRunSettingsRouteRouteChildren,
-  )
-
-interface AdminVendorsRouteRouteChildren {
-  AdminVendorsIndexRoute: typeof AdminVendorsIndexRoute
-}
-
-const AdminVendorsRouteRouteChildren: AdminVendorsRouteRouteChildren = {
-  AdminVendorsIndexRoute: AdminVendorsIndexRoute,
-}
-
-const AdminVendorsRouteRouteWithChildren =
-  AdminVendorsRouteRoute._addFileChildren(AdminVendorsRouteRouteChildren)
-
-interface AdminRouteRouteChildren {
-  AdminJobsRouteRoute: typeof AdminJobsRouteRouteWithChildren
-  AdminProjectSettingsRouteRoute: typeof AdminProjectSettingsRouteRouteWithChildren
-  AdminRunSettingsRouteRoute: typeof AdminRunSettingsRouteRouteWithChildren
-  AdminVendorsRouteRoute: typeof AdminVendorsRouteRouteWithChildren
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteRouteChildren: AdminRouteRouteChildren = {
-  AdminJobsRouteRoute: AdminJobsRouteRouteWithChildren,
-  AdminProjectSettingsRouteRoute: AdminProjectSettingsRouteRouteWithChildren,
-  AdminRunSettingsRouteRoute: AdminRunSettingsRouteRouteWithChildren,
-  AdminVendorsRouteRoute: AdminVendorsRouteRouteWithChildren,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
-  AdminRouteRouteChildren,
-)
-
-interface JobsJobidRouteRouteChildren {
-  JobsJobidIndexRoute: typeof JobsJobidIndexRoute
-}
-
-const JobsJobidRouteRouteChildren: JobsJobidRouteRouteChildren = {
-  JobsJobidIndexRoute: JobsJobidIndexRoute,
-}
-
-const JobsJobidRouteRouteWithChildren = JobsJobidRouteRoute._addFileChildren(
-  JobsJobidRouteRouteChildren,
-)
-
-interface JobsRouteRouteChildren {
-  JobsJobidRouteRoute: typeof JobsJobidRouteRouteWithChildren
-  JobsIndexRoute: typeof JobsIndexRoute
-}
-
-const JobsRouteRouteChildren: JobsRouteRouteChildren = {
-  JobsJobidRouteRoute: JobsJobidRouteRouteWithChildren,
-  JobsIndexRoute: JobsIndexRoute,
-}
-
-const JobsRouteRouteWithChildren = JobsRouteRoute._addFileChildren(
-  JobsRouteRouteChildren,
-)
-
-interface ProfileRouteRouteChildren {
-  ProfileIndexRoute: typeof ProfileIndexRoute
-}
-
-const ProfileRouteRouteChildren: ProfileRouteRouteChildren = {
-  ProfileIndexRoute: ProfileIndexRoute,
-}
-
-const ProfileRouteRouteWithChildren = ProfileRouteRoute._addFileChildren(
-  ProfileRouteRouteChildren,
-)
-
-interface ProjectsProjectidRouteRouteChildren {
-  ProjectsProjectidIndexRoute: typeof ProjectsProjectidIndexRoute
-}
-
-const ProjectsProjectidRouteRouteChildren: ProjectsProjectidRouteRouteChildren =
+const AuthAdminRunSettingsRouteRouteChildren: AuthAdminRunSettingsRouteRouteChildren =
   {
-    ProjectsProjectidIndexRoute: ProjectsProjectidIndexRoute,
+    AuthAdminRunSettingsIndexRoute: AuthAdminRunSettingsIndexRoute,
   }
 
-const ProjectsProjectidRouteRouteWithChildren =
-  ProjectsProjectidRouteRoute._addFileChildren(
-    ProjectsProjectidRouteRouteChildren,
+const AuthAdminRunSettingsRouteRouteWithChildren =
+  AuthAdminRunSettingsRouteRoute._addFileChildren(
+    AuthAdminRunSettingsRouteRouteChildren,
   )
 
-interface ProjectsRouteRouteChildren {
-  ProjectsProjectidRouteRoute: typeof ProjectsProjectidRouteRouteWithChildren
-  ProjectsIndexRoute: typeof ProjectsIndexRoute
+interface AuthAdminVendorsRouteRouteChildren {
+  AuthAdminVendorsIndexRoute: typeof AuthAdminVendorsIndexRoute
 }
 
-const ProjectsRouteRouteChildren: ProjectsRouteRouteChildren = {
-  ProjectsProjectidRouteRoute: ProjectsProjectidRouteRouteWithChildren,
-  ProjectsIndexRoute: ProjectsIndexRoute,
+const AuthAdminVendorsRouteRouteChildren: AuthAdminVendorsRouteRouteChildren = {
+  AuthAdminVendorsIndexRoute: AuthAdminVendorsIndexRoute,
 }
 
-const ProjectsRouteRouteWithChildren = ProjectsRouteRoute._addFileChildren(
-  ProjectsRouteRouteChildren,
+const AuthAdminVendorsRouteRouteWithChildren =
+  AuthAdminVendorsRouteRoute._addFileChildren(
+    AuthAdminVendorsRouteRouteChildren,
+  )
+
+interface AuthAdminRouteRouteChildren {
+  AuthAdminJobsRouteRoute: typeof AuthAdminJobsRouteRouteWithChildren
+  AuthAdminProjectSettingsRouteRoute: typeof AuthAdminProjectSettingsRouteRouteWithChildren
+  AuthAdminRunSettingsRouteRoute: typeof AuthAdminRunSettingsRouteRouteWithChildren
+  AuthAdminVendorsRouteRoute: typeof AuthAdminVendorsRouteRouteWithChildren
+  AuthAdminIndexRoute: typeof AuthAdminIndexRoute
+}
+
+const AuthAdminRouteRouteChildren: AuthAdminRouteRouteChildren = {
+  AuthAdminJobsRouteRoute: AuthAdminJobsRouteRouteWithChildren,
+  AuthAdminProjectSettingsRouteRoute:
+    AuthAdminProjectSettingsRouteRouteWithChildren,
+  AuthAdminRunSettingsRouteRoute: AuthAdminRunSettingsRouteRouteWithChildren,
+  AuthAdminVendorsRouteRoute: AuthAdminVendorsRouteRouteWithChildren,
+  AuthAdminIndexRoute: AuthAdminIndexRoute,
+}
+
+const AuthAdminRouteRouteWithChildren = AuthAdminRouteRoute._addFileChildren(
+  AuthAdminRouteRouteChildren,
 )
 
-interface RunsRunbarcodeIndexqcRouteRouteChildren {
-  RunsRunbarcodeIndexqcIndexRoute: typeof RunsRunbarcodeIndexqcIndexRoute
+interface AuthJobsJobidRouteRouteChildren {
+  AuthJobsJobidIndexRoute: typeof AuthJobsJobidIndexRoute
 }
 
-const RunsRunbarcodeIndexqcRouteRouteChildren: RunsRunbarcodeIndexqcRouteRouteChildren =
-  {
-    RunsRunbarcodeIndexqcIndexRoute: RunsRunbarcodeIndexqcIndexRoute,
-  }
-
-const RunsRunbarcodeIndexqcRouteRouteWithChildren =
-  RunsRunbarcodeIndexqcRouteRoute._addFileChildren(
-    RunsRunbarcodeIndexqcRouteRouteChildren,
-  )
-
-interface RunsRunbarcodeSamplesheetRouteRouteChildren {
-  RunsRunbarcodeSamplesheetIndexRoute: typeof RunsRunbarcodeSamplesheetIndexRoute
+const AuthJobsJobidRouteRouteChildren: AuthJobsJobidRouteRouteChildren = {
+  AuthJobsJobidIndexRoute: AuthJobsJobidIndexRoute,
 }
 
-const RunsRunbarcodeSamplesheetRouteRouteChildren: RunsRunbarcodeSamplesheetRouteRouteChildren =
-  {
-    RunsRunbarcodeSamplesheetIndexRoute: RunsRunbarcodeSamplesheetIndexRoute,
-  }
+const AuthJobsJobidRouteRouteWithChildren =
+  AuthJobsJobidRouteRoute._addFileChildren(AuthJobsJobidRouteRouteChildren)
 
-const RunsRunbarcodeSamplesheetRouteRouteWithChildren =
-  RunsRunbarcodeSamplesheetRouteRoute._addFileChildren(
-    RunsRunbarcodeSamplesheetRouteRouteChildren,
-  )
-
-interface RunsRunbarcodeRouteRouteChildren {
-  RunsRunbarcodeIndexqcRouteRoute: typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
-  RunsRunbarcodeSamplesheetRouteRoute: typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
-  RunsRunbarcodeIndexRoute: typeof RunsRunbarcodeIndexRoute
+interface AuthJobsRouteRouteChildren {
+  AuthJobsJobidRouteRoute: typeof AuthJobsJobidRouteRouteWithChildren
+  AuthJobsIndexRoute: typeof AuthJobsIndexRoute
 }
 
-const RunsRunbarcodeRouteRouteChildren: RunsRunbarcodeRouteRouteChildren = {
-  RunsRunbarcodeIndexqcRouteRoute: RunsRunbarcodeIndexqcRouteRouteWithChildren,
-  RunsRunbarcodeSamplesheetRouteRoute:
-    RunsRunbarcodeSamplesheetRouteRouteWithChildren,
-  RunsRunbarcodeIndexRoute: RunsRunbarcodeIndexRoute,
+const AuthJobsRouteRouteChildren: AuthJobsRouteRouteChildren = {
+  AuthJobsJobidRouteRoute: AuthJobsJobidRouteRouteWithChildren,
+  AuthJobsIndexRoute: AuthJobsIndexRoute,
 }
 
-const RunsRunbarcodeRouteRouteWithChildren =
-  RunsRunbarcodeRouteRoute._addFileChildren(RunsRunbarcodeRouteRouteChildren)
-
-interface RunsRouteRouteChildren {
-  RunsRunbarcodeRouteRoute: typeof RunsRunbarcodeRouteRouteWithChildren
-  RunsIndexRoute: typeof RunsIndexRoute
-}
-
-const RunsRouteRouteChildren: RunsRouteRouteChildren = {
-  RunsRunbarcodeRouteRoute: RunsRunbarcodeRouteRouteWithChildren,
-  RunsIndexRoute: RunsIndexRoute,
-}
-
-const RunsRouteRouteWithChildren = RunsRouteRoute._addFileChildren(
-  RunsRouteRouteChildren,
+const AuthJobsRouteRouteWithChildren = AuthJobsRouteRoute._addFileChildren(
+  AuthJobsRouteRouteChildren,
 )
+
+interface AuthProfileRouteRouteChildren {
+  AuthProfileIndexRoute: typeof AuthProfileIndexRoute
+}
+
+const AuthProfileRouteRouteChildren: AuthProfileRouteRouteChildren = {
+  AuthProfileIndexRoute: AuthProfileIndexRoute,
+}
+
+const AuthProfileRouteRouteWithChildren =
+  AuthProfileRouteRoute._addFileChildren(AuthProfileRouteRouteChildren)
+
+interface AuthProjectsProjectidRouteRouteChildren {
+  AuthProjectsProjectidIndexRoute: typeof AuthProjectsProjectidIndexRoute
+}
+
+const AuthProjectsProjectidRouteRouteChildren: AuthProjectsProjectidRouteRouteChildren =
+  {
+    AuthProjectsProjectidIndexRoute: AuthProjectsProjectidIndexRoute,
+  }
+
+const AuthProjectsProjectidRouteRouteWithChildren =
+  AuthProjectsProjectidRouteRoute._addFileChildren(
+    AuthProjectsProjectidRouteRouteChildren,
+  )
+
+interface AuthProjectsRouteRouteChildren {
+  AuthProjectsProjectidRouteRoute: typeof AuthProjectsProjectidRouteRouteWithChildren
+  AuthProjectsIndexRoute: typeof AuthProjectsIndexRoute
+}
+
+const AuthProjectsRouteRouteChildren: AuthProjectsRouteRouteChildren = {
+  AuthProjectsProjectidRouteRoute: AuthProjectsProjectidRouteRouteWithChildren,
+  AuthProjectsIndexRoute: AuthProjectsIndexRoute,
+}
+
+const AuthProjectsRouteRouteWithChildren =
+  AuthProjectsRouteRoute._addFileChildren(AuthProjectsRouteRouteChildren)
+
+interface AuthRunsRunbarcodeIndexqcRouteRouteChildren {
+  AuthRunsRunbarcodeIndexqcIndexRoute: typeof AuthRunsRunbarcodeIndexqcIndexRoute
+}
+
+const AuthRunsRunbarcodeIndexqcRouteRouteChildren: AuthRunsRunbarcodeIndexqcRouteRouteChildren =
+  {
+    AuthRunsRunbarcodeIndexqcIndexRoute: AuthRunsRunbarcodeIndexqcIndexRoute,
+  }
+
+const AuthRunsRunbarcodeIndexqcRouteRouteWithChildren =
+  AuthRunsRunbarcodeIndexqcRouteRoute._addFileChildren(
+    AuthRunsRunbarcodeIndexqcRouteRouteChildren,
+  )
+
+interface AuthRunsRunbarcodeSamplesheetRouteRouteChildren {
+  AuthRunsRunbarcodeSamplesheetIndexRoute: typeof AuthRunsRunbarcodeSamplesheetIndexRoute
+}
+
+const AuthRunsRunbarcodeSamplesheetRouteRouteChildren: AuthRunsRunbarcodeSamplesheetRouteRouteChildren =
+  {
+    AuthRunsRunbarcodeSamplesheetIndexRoute:
+      AuthRunsRunbarcodeSamplesheetIndexRoute,
+  }
+
+const AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren =
+  AuthRunsRunbarcodeSamplesheetRouteRoute._addFileChildren(
+    AuthRunsRunbarcodeSamplesheetRouteRouteChildren,
+  )
+
+interface AuthRunsRunbarcodeRouteRouteChildren {
+  AuthRunsRunbarcodeIndexqcRouteRoute: typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
+  AuthRunsRunbarcodeSamplesheetRouteRoute: typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  AuthRunsRunbarcodeIndexRoute: typeof AuthRunsRunbarcodeIndexRoute
+}
+
+const AuthRunsRunbarcodeRouteRouteChildren: AuthRunsRunbarcodeRouteRouteChildren =
+  {
+    AuthRunsRunbarcodeIndexqcRouteRoute:
+      AuthRunsRunbarcodeIndexqcRouteRouteWithChildren,
+    AuthRunsRunbarcodeSamplesheetRouteRoute:
+      AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren,
+    AuthRunsRunbarcodeIndexRoute: AuthRunsRunbarcodeIndexRoute,
+  }
+
+const AuthRunsRunbarcodeRouteRouteWithChildren =
+  AuthRunsRunbarcodeRouteRoute._addFileChildren(
+    AuthRunsRunbarcodeRouteRouteChildren,
+  )
+
+interface AuthRunsRouteRouteChildren {
+  AuthRunsRunbarcodeRouteRoute: typeof AuthRunsRunbarcodeRouteRouteWithChildren
+  AuthRunsIndexRoute: typeof AuthRunsIndexRoute
+}
+
+const AuthRunsRouteRouteChildren: AuthRunsRouteRouteChildren = {
+  AuthRunsRunbarcodeRouteRoute: AuthRunsRunbarcodeRouteRouteWithChildren,
+  AuthRunsIndexRoute: AuthRunsIndexRoute,
+}
+
+const AuthRunsRouteRouteWithChildren = AuthRunsRouteRoute._addFileChildren(
+  AuthRunsRouteRouteChildren,
+)
+
+interface AuthRouteChildren {
+  AuthAdminRouteRoute: typeof AuthAdminRouteRouteWithChildren
+  AuthJobsRouteRoute: typeof AuthJobsRouteRouteWithChildren
+  AuthProfileRouteRoute: typeof AuthProfileRouteRouteWithChildren
+  AuthProjectsRouteRoute: typeof AuthProjectsRouteRouteWithChildren
+  AuthRunsRouteRoute: typeof AuthRunsRouteRouteWithChildren
+  AuthIndexRoute: typeof AuthIndexRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthAdminRouteRoute: AuthAdminRouteRouteWithChildren,
+  AuthJobsRouteRoute: AuthJobsRouteRouteWithChildren,
+  AuthProfileRouteRoute: AuthProfileRouteRouteWithChildren,
+  AuthProjectsRouteRoute: AuthProjectsRouteRouteWithChildren,
+  AuthRunsRouteRoute: AuthRunsRouteRouteWithChildren,
+  AuthIndexRoute: AuthIndexRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRouteRouteWithChildren
-  '/jobs': typeof JobsRouteRouteWithChildren
-  '/profile': typeof ProfileRouteRouteWithChildren
-  '/projects': typeof ProjectsRouteRouteWithChildren
-  '/runs': typeof RunsRouteRouteWithChildren
-  '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
-  '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
-  '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
-  '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
-  '/jobs/$job_id': typeof JobsJobidRouteRouteWithChildren
-  '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
-  '/runs/$run_barcode': typeof RunsRunbarcodeRouteRouteWithChildren
-  '/admin/': typeof AdminIndexRoute
-  '/jobs/': typeof JobsIndexRoute
-  '/profile/': typeof ProfileIndexRoute
-  '/projects/': typeof ProjectsIndexRoute
-  '/runs/': typeof RunsIndexRoute
-  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
-  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
-  '/admin/jobs/': typeof AdminJobsIndexRoute
-  '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
-  '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
-  '/admin/vendors/': typeof AdminVendorsIndexRoute
-  '/jobs/$job_id/': typeof JobsJobidIndexRoute
-  '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
-  '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
-  '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
-  '/runs/$run_barcode/samplesheet/': typeof RunsRunbarcodeSamplesheetIndexRoute
+  '': typeof AuthRouteWithChildren
+  '/admin': typeof AuthAdminRouteRouteWithChildren
+  '/jobs': typeof AuthJobsRouteRouteWithChildren
+  '/profile': typeof AuthProfileRouteRouteWithChildren
+  '/projects': typeof AuthProjectsRouteRouteWithChildren
+  '/runs': typeof AuthRunsRouteRouteWithChildren
+  '/reset-password': typeof UserResetPasswordRoute
+  '/verify-email': typeof UserVerifyEmailRoute
+  '/': typeof AuthIndexRoute
+  '/admin/jobs': typeof AuthAdminJobsRouteRouteWithChildren
+  '/admin/project-settings': typeof AuthAdminProjectSettingsRouteRouteWithChildren
+  '/admin/run-settings': typeof AuthAdminRunSettingsRouteRouteWithChildren
+  '/admin/vendors': typeof AuthAdminVendorsRouteRouteWithChildren
+  '/jobs/$job_id': typeof AuthJobsJobidRouteRouteWithChildren
+  '/projects/$project_id': typeof AuthProjectsProjectidRouteRouteWithChildren
+  '/runs/$run_barcode': typeof AuthRunsRunbarcodeRouteRouteWithChildren
+  '/admin/': typeof AuthAdminIndexRoute
+  '/jobs/': typeof AuthJobsIndexRoute
+  '/profile/': typeof AuthProfileIndexRoute
+  '/projects/': typeof AuthProjectsIndexRoute
+  '/runs/': typeof AuthRunsIndexRoute
+  '/access-denied': typeof UserAccessDeniedIndexRoute
+  '/forgot-password': typeof UserForgotPasswordIndexRoute
+  '/login': typeof UserLoginIndexRoute
+  '/register': typeof UserRegisterIndexRoute
+  '/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
+  '/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/admin/jobs/': typeof AuthAdminJobsIndexRoute
+  '/admin/project-settings/': typeof AuthAdminProjectSettingsIndexRoute
+  '/admin/run-settings/': typeof AuthAdminRunSettingsIndexRoute
+  '/admin/vendors/': typeof AuthAdminVendorsIndexRoute
+  '/jobs/$job_id/': typeof AuthJobsJobidIndexRoute
+  '/projects/$project_id/': typeof AuthProjectsProjectidIndexRoute
+  '/runs/$run_barcode/': typeof AuthRunsRunbarcodeIndexRoute
+  '/runs/$run_barcode/indexqc/': typeof AuthRunsRunbarcodeIndexqcIndexRoute
+  '/runs/$run_barcode/samplesheet/': typeof AuthRunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminIndexRoute
-  '/jobs': typeof JobsIndexRoute
-  '/profile': typeof ProfileIndexRoute
-  '/projects': typeof ProjectsIndexRoute
-  '/runs': typeof RunsIndexRoute
-  '/admin/jobs': typeof AdminJobsIndexRoute
-  '/admin/project-settings': typeof AdminProjectSettingsIndexRoute
-  '/admin/run-settings': typeof AdminRunSettingsIndexRoute
-  '/admin/vendors': typeof AdminVendorsIndexRoute
-  '/jobs/$job_id': typeof JobsJobidIndexRoute
-  '/projects/$project_id': typeof ProjectsProjectidIndexRoute
-  '/runs/$run_barcode': typeof RunsRunbarcodeIndexRoute
-  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcIndexRoute
-  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetIndexRoute
+  '': typeof UserRouteRouteWithChildren
+  '/reset-password': typeof UserResetPasswordRoute
+  '/verify-email': typeof UserVerifyEmailRoute
+  '/': typeof AuthIndexRoute
+  '/admin': typeof AuthAdminIndexRoute
+  '/jobs': typeof AuthJobsIndexRoute
+  '/profile': typeof AuthProfileIndexRoute
+  '/projects': typeof AuthProjectsIndexRoute
+  '/runs': typeof AuthRunsIndexRoute
+  '/access-denied': typeof UserAccessDeniedIndexRoute
+  '/forgot-password': typeof UserForgotPasswordIndexRoute
+  '/login': typeof UserLoginIndexRoute
+  '/register': typeof UserRegisterIndexRoute
+  '/admin/jobs': typeof AuthAdminJobsIndexRoute
+  '/admin/project-settings': typeof AuthAdminProjectSettingsIndexRoute
+  '/admin/run-settings': typeof AuthAdminRunSettingsIndexRoute
+  '/admin/vendors': typeof AuthAdminVendorsIndexRoute
+  '/jobs/$job_id': typeof AuthJobsJobidIndexRoute
+  '/projects/$project_id': typeof AuthProjectsProjectidIndexRoute
+  '/runs/$run_barcode': typeof AuthRunsRunbarcodeIndexRoute
+  '/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcIndexRoute
+  '/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRouteRouteWithChildren
-  '/jobs': typeof JobsRouteRouteWithChildren
-  '/profile': typeof ProfileRouteRouteWithChildren
-  '/projects': typeof ProjectsRouteRouteWithChildren
-  '/runs': typeof RunsRouteRouteWithChildren
-  '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
-  '/admin/project-settings': typeof AdminProjectSettingsRouteRouteWithChildren
-  '/admin/run-settings': typeof AdminRunSettingsRouteRouteWithChildren
-  '/admin/vendors': typeof AdminVendorsRouteRouteWithChildren
-  '/jobs/$job_id': typeof JobsJobidRouteRouteWithChildren
-  '/projects/$project_id': typeof ProjectsProjectidRouteRouteWithChildren
-  '/runs/$run_barcode': typeof RunsRunbarcodeRouteRouteWithChildren
-  '/admin/': typeof AdminIndexRoute
-  '/jobs/': typeof JobsIndexRoute
-  '/profile/': typeof ProfileIndexRoute
-  '/projects/': typeof ProjectsIndexRoute
-  '/runs/': typeof RunsIndexRoute
-  '/runs/$run_barcode/indexqc': typeof RunsRunbarcodeIndexqcRouteRouteWithChildren
-  '/runs/$run_barcode/samplesheet': typeof RunsRunbarcodeSamplesheetRouteRouteWithChildren
-  '/admin/jobs/': typeof AdminJobsIndexRoute
-  '/admin/project-settings/': typeof AdminProjectSettingsIndexRoute
-  '/admin/run-settings/': typeof AdminRunSettingsIndexRoute
-  '/admin/vendors/': typeof AdminVendorsIndexRoute
-  '/jobs/$job_id/': typeof JobsJobidIndexRoute
-  '/projects/$project_id/': typeof ProjectsProjectidIndexRoute
-  '/runs/$run_barcode/': typeof RunsRunbarcodeIndexRoute
-  '/runs/$run_barcode/indexqc/': typeof RunsRunbarcodeIndexqcIndexRoute
-  '/runs/$run_barcode/samplesheet/': typeof RunsRunbarcodeSamplesheetIndexRoute
+  '/_user': typeof UserRouteRouteWithChildren
+  '/_auth': typeof AuthRouteWithChildren
+  '/_auth/admin': typeof AuthAdminRouteRouteWithChildren
+  '/_auth/jobs': typeof AuthJobsRouteRouteWithChildren
+  '/_auth/profile': typeof AuthProfileRouteRouteWithChildren
+  '/_auth/projects': typeof AuthProjectsRouteRouteWithChildren
+  '/_auth/runs': typeof AuthRunsRouteRouteWithChildren
+  '/_user/reset-password': typeof UserResetPasswordRoute
+  '/_user/verify-email': typeof UserVerifyEmailRoute
+  '/_auth/': typeof AuthIndexRoute
+  '/_auth/admin/jobs': typeof AuthAdminJobsRouteRouteWithChildren
+  '/_auth/admin/project-settings': typeof AuthAdminProjectSettingsRouteRouteWithChildren
+  '/_auth/admin/run-settings': typeof AuthAdminRunSettingsRouteRouteWithChildren
+  '/_auth/admin/vendors': typeof AuthAdminVendorsRouteRouteWithChildren
+  '/_auth/jobs/$job_id': typeof AuthJobsJobidRouteRouteWithChildren
+  '/_auth/projects/$project_id': typeof AuthProjectsProjectidRouteRouteWithChildren
+  '/_auth/runs/$run_barcode': typeof AuthRunsRunbarcodeRouteRouteWithChildren
+  '/_auth/admin/': typeof AuthAdminIndexRoute
+  '/_auth/jobs/': typeof AuthJobsIndexRoute
+  '/_auth/profile/': typeof AuthProfileIndexRoute
+  '/_auth/projects/': typeof AuthProjectsIndexRoute
+  '/_auth/runs/': typeof AuthRunsIndexRoute
+  '/_user/access-denied/': typeof UserAccessDeniedIndexRoute
+  '/_user/forgot-password/': typeof UserForgotPasswordIndexRoute
+  '/_user/login/': typeof UserLoginIndexRoute
+  '/_user/register/': typeof UserRegisterIndexRoute
+  '/_auth/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
+  '/_auth/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/_auth/admin/jobs/': typeof AuthAdminJobsIndexRoute
+  '/_auth/admin/project-settings/': typeof AuthAdminProjectSettingsIndexRoute
+  '/_auth/admin/run-settings/': typeof AuthAdminRunSettingsIndexRoute
+  '/_auth/admin/vendors/': typeof AuthAdminVendorsIndexRoute
+  '/_auth/jobs/$job_id/': typeof AuthJobsJobidIndexRoute
+  '/_auth/projects/$project_id/': typeof AuthProjectsProjectidIndexRoute
+  '/_auth/runs/$run_barcode/': typeof AuthRunsRunbarcodeIndexRoute
+  '/_auth/runs/$run_barcode/indexqc/': typeof AuthRunsRunbarcodeIndexqcIndexRoute
+  '/_auth/runs/$run_barcode/samplesheet/': typeof AuthRunsRunbarcodeSamplesheetIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
+    | ''
     | '/admin'
     | '/jobs'
     | '/profile'
     | '/projects'
     | '/runs'
+    | '/reset-password'
+    | '/verify-email'
+    | '/'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
@@ -733,6 +919,10 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/projects/'
     | '/runs/'
+    | '/access-denied'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
     | '/admin/jobs/'
@@ -746,12 +936,19 @@ export interface FileRouteTypes {
     | '/runs/$run_barcode/samplesheet/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | ''
+    | '/reset-password'
+    | '/verify-email'
     | '/'
     | '/admin'
     | '/jobs'
     | '/profile'
     | '/projects'
     | '/runs'
+    | '/access-denied'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
@@ -763,54 +960,54 @@ export interface FileRouteTypes {
     | '/runs/$run_barcode/samplesheet'
   id:
     | '__root__'
-    | '/'
-    | '/admin'
-    | '/jobs'
-    | '/profile'
-    | '/projects'
-    | '/runs'
-    | '/admin/jobs'
-    | '/admin/project-settings'
-    | '/admin/run-settings'
-    | '/admin/vendors'
-    | '/jobs/$job_id'
-    | '/projects/$project_id'
-    | '/runs/$run_barcode'
-    | '/admin/'
-    | '/jobs/'
-    | '/profile/'
-    | '/projects/'
-    | '/runs/'
-    | '/runs/$run_barcode/indexqc'
-    | '/runs/$run_barcode/samplesheet'
-    | '/admin/jobs/'
-    | '/admin/project-settings/'
-    | '/admin/run-settings/'
-    | '/admin/vendors/'
-    | '/jobs/$job_id/'
-    | '/projects/$project_id/'
-    | '/runs/$run_barcode/'
-    | '/runs/$run_barcode/indexqc/'
-    | '/runs/$run_barcode/samplesheet/'
+    | '/_user'
+    | '/_auth'
+    | '/_auth/admin'
+    | '/_auth/jobs'
+    | '/_auth/profile'
+    | '/_auth/projects'
+    | '/_auth/runs'
+    | '/_user/reset-password'
+    | '/_user/verify-email'
+    | '/_auth/'
+    | '/_auth/admin/jobs'
+    | '/_auth/admin/project-settings'
+    | '/_auth/admin/run-settings'
+    | '/_auth/admin/vendors'
+    | '/_auth/jobs/$job_id'
+    | '/_auth/projects/$project_id'
+    | '/_auth/runs/$run_barcode'
+    | '/_auth/admin/'
+    | '/_auth/jobs/'
+    | '/_auth/profile/'
+    | '/_auth/projects/'
+    | '/_auth/runs/'
+    | '/_user/access-denied/'
+    | '/_user/forgot-password/'
+    | '/_user/login/'
+    | '/_user/register/'
+    | '/_auth/runs/$run_barcode/indexqc'
+    | '/_auth/runs/$run_barcode/samplesheet'
+    | '/_auth/admin/jobs/'
+    | '/_auth/admin/project-settings/'
+    | '/_auth/admin/run-settings/'
+    | '/_auth/admin/vendors/'
+    | '/_auth/jobs/$job_id/'
+    | '/_auth/projects/$project_id/'
+    | '/_auth/runs/$run_barcode/'
+    | '/_auth/runs/$run_barcode/indexqc/'
+    | '/_auth/runs/$run_barcode/samplesheet/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AdminRouteRoute: typeof AdminRouteRouteWithChildren
-  JobsRouteRoute: typeof JobsRouteRouteWithChildren
-  ProfileRouteRoute: typeof ProfileRouteRouteWithChildren
-  ProjectsRouteRoute: typeof ProjectsRouteRouteWithChildren
-  RunsRouteRoute: typeof RunsRouteRouteWithChildren
+  UserRouteRoute: typeof UserRouteRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AdminRouteRoute: AdminRouteRouteWithChildren,
-  JobsRouteRoute: JobsRouteRouteWithChildren,
-  ProfileRouteRoute: ProfileRouteRouteWithChildren,
-  ProjectsRouteRoute: ProjectsRouteRouteWithChildren,
-  RunsRouteRoute: RunsRouteRouteWithChildren,
+  UserRouteRoute: UserRouteRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -823,174 +1020,222 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/admin",
-        "/jobs",
-        "/profile",
-        "/projects",
-        "/runs"
+        "/_user",
+        "/_auth"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/admin": {
-      "filePath": "admin.route.tsx",
+    "/_user": {
+      "filePath": "_user.route.tsx",
       "children": [
-        "/admin/jobs",
-        "/admin/project-settings",
-        "/admin/run-settings",
-        "/admin/vendors",
-        "/admin/"
+        "/_user/reset-password",
+        "/_user/verify-email",
+        "/_user/access-denied/",
+        "/_user/forgot-password/",
+        "/_user/login/",
+        "/_user/register/"
       ]
     },
-    "/jobs": {
-      "filePath": "jobs.route.tsx",
+    "/_auth": {
+      "filePath": "_auth.tsx",
       "children": [
-        "/jobs/$job_id",
-        "/jobs/"
+        "/_auth/admin",
+        "/_auth/jobs",
+        "/_auth/profile",
+        "/_auth/projects",
+        "/_auth/runs",
+        "/_auth/"
       ]
     },
-    "/profile": {
-      "filePath": "profile.route.tsx",
+    "/_auth/admin": {
+      "filePath": "_auth.admin.route.tsx",
+      "parent": "/_auth",
       "children": [
-        "/profile/"
+        "/_auth/admin/jobs",
+        "/_auth/admin/project-settings",
+        "/_auth/admin/run-settings",
+        "/_auth/admin/vendors",
+        "/_auth/admin/"
       ]
     },
-    "/projects": {
-      "filePath": "projects.route.tsx",
+    "/_auth/jobs": {
+      "filePath": "_auth.jobs.route.tsx",
+      "parent": "/_auth",
       "children": [
-        "/projects/$project_id",
-        "/projects/"
+        "/_auth/jobs/$job_id",
+        "/_auth/jobs/"
       ]
     },
-    "/runs": {
-      "filePath": "runs.route.tsx",
+    "/_auth/profile": {
+      "filePath": "_auth.profile.route.tsx",
+      "parent": "/_auth",
       "children": [
-        "/runs/$run_barcode",
-        "/runs/"
+        "/_auth/profile/"
       ]
     },
-    "/admin/jobs": {
-      "filePath": "admin.jobs.route.tsx",
-      "parent": "/admin",
+    "/_auth/projects": {
+      "filePath": "_auth.projects.route.tsx",
+      "parent": "/_auth",
       "children": [
-        "/admin/jobs/"
+        "/_auth/projects/$project_id",
+        "/_auth/projects/"
       ]
     },
-    "/admin/project-settings": {
-      "filePath": "admin.project-settings.route.tsx",
-      "parent": "/admin",
+    "/_auth/runs": {
+      "filePath": "_auth.runs.route.tsx",
+      "parent": "/_auth",
       "children": [
-        "/admin/project-settings/"
+        "/_auth/runs/$run_barcode",
+        "/_auth/runs/"
       ]
     },
-    "/admin/run-settings": {
-      "filePath": "admin.run-settings.route.tsx",
-      "parent": "/admin",
+    "/_user/reset-password": {
+      "filePath": "_user.reset-password.tsx",
+      "parent": "/_user"
+    },
+    "/_user/verify-email": {
+      "filePath": "_user.verify-email.tsx",
+      "parent": "/_user"
+    },
+    "/_auth/": {
+      "filePath": "_auth.index.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/admin/jobs": {
+      "filePath": "_auth.admin.jobs.route.tsx",
+      "parent": "/_auth/admin",
       "children": [
-        "/admin/run-settings/"
+        "/_auth/admin/jobs/"
       ]
     },
-    "/admin/vendors": {
-      "filePath": "admin.vendors.route.tsx",
-      "parent": "/admin",
+    "/_auth/admin/project-settings": {
+      "filePath": "_auth.admin.project-settings.route.tsx",
+      "parent": "/_auth/admin",
       "children": [
-        "/admin/vendors/"
+        "/_auth/admin/project-settings/"
       ]
     },
-    "/jobs/$job_id": {
-      "filePath": "jobs.$job_id.route.tsx",
-      "parent": "/jobs",
+    "/_auth/admin/run-settings": {
+      "filePath": "_auth.admin.run-settings.route.tsx",
+      "parent": "/_auth/admin",
       "children": [
-        "/jobs/$job_id/"
+        "/_auth/admin/run-settings/"
       ]
     },
-    "/projects/$project_id": {
-      "filePath": "projects.$project_id.route.tsx",
-      "parent": "/projects",
+    "/_auth/admin/vendors": {
+      "filePath": "_auth.admin.vendors.route.tsx",
+      "parent": "/_auth/admin",
       "children": [
-        "/projects/$project_id/"
+        "/_auth/admin/vendors/"
       ]
     },
-    "/runs/$run_barcode": {
-      "filePath": "runs.$run_barcode.route.tsx",
-      "parent": "/runs",
+    "/_auth/jobs/$job_id": {
+      "filePath": "_auth.jobs.$job_id.route.tsx",
+      "parent": "/_auth/jobs",
       "children": [
-        "/runs/$run_barcode/indexqc",
-        "/runs/$run_barcode/samplesheet",
-        "/runs/$run_barcode/"
+        "/_auth/jobs/$job_id/"
       ]
     },
-    "/admin/": {
-      "filePath": "admin.index.tsx",
-      "parent": "/admin"
-    },
-    "/jobs/": {
-      "filePath": "jobs.index.tsx",
-      "parent": "/jobs"
-    },
-    "/profile/": {
-      "filePath": "profile.index.tsx",
-      "parent": "/profile"
-    },
-    "/projects/": {
-      "filePath": "projects.index.tsx",
-      "parent": "/projects"
-    },
-    "/runs/": {
-      "filePath": "runs.index.tsx",
-      "parent": "/runs"
-    },
-    "/runs/$run_barcode/indexqc": {
-      "filePath": "runs.$run_barcode.indexqc.route.tsx",
-      "parent": "/runs/$run_barcode",
+    "/_auth/projects/$project_id": {
+      "filePath": "_auth.projects.$project_id.route.tsx",
+      "parent": "/_auth/projects",
       "children": [
-        "/runs/$run_barcode/indexqc/"
+        "/_auth/projects/$project_id/"
       ]
     },
-    "/runs/$run_barcode/samplesheet": {
-      "filePath": "runs.$run_barcode.samplesheet.route.tsx",
-      "parent": "/runs/$run_barcode",
+    "/_auth/runs/$run_barcode": {
+      "filePath": "_auth.runs.$run_barcode.route.tsx",
+      "parent": "/_auth/runs",
       "children": [
-        "/runs/$run_barcode/samplesheet/"
+        "/_auth/runs/$run_barcode/indexqc",
+        "/_auth/runs/$run_barcode/samplesheet",
+        "/_auth/runs/$run_barcode/"
       ]
     },
-    "/admin/jobs/": {
-      "filePath": "admin.jobs.index.tsx",
-      "parent": "/admin/jobs"
+    "/_auth/admin/": {
+      "filePath": "_auth.admin.index.tsx",
+      "parent": "/_auth/admin"
     },
-    "/admin/project-settings/": {
-      "filePath": "admin.project-settings.index.tsx",
-      "parent": "/admin/project-settings"
+    "/_auth/jobs/": {
+      "filePath": "_auth.jobs.index.tsx",
+      "parent": "/_auth/jobs"
     },
-    "/admin/run-settings/": {
-      "filePath": "admin.run-settings.index.tsx",
-      "parent": "/admin/run-settings"
+    "/_auth/profile/": {
+      "filePath": "_auth.profile.index.tsx",
+      "parent": "/_auth/profile"
     },
-    "/admin/vendors/": {
-      "filePath": "admin.vendors.index.tsx",
-      "parent": "/admin/vendors"
+    "/_auth/projects/": {
+      "filePath": "_auth.projects.index.tsx",
+      "parent": "/_auth/projects"
     },
-    "/jobs/$job_id/": {
-      "filePath": "jobs.$job_id.index.tsx",
-      "parent": "/jobs/$job_id"
+    "/_auth/runs/": {
+      "filePath": "_auth.runs.index.tsx",
+      "parent": "/_auth/runs"
     },
-    "/projects/$project_id/": {
-      "filePath": "projects.$project_id.index.tsx",
-      "parent": "/projects/$project_id"
+    "/_user/access-denied/": {
+      "filePath": "_user.access-denied.index.tsx",
+      "parent": "/_user"
     },
-    "/runs/$run_barcode/": {
-      "filePath": "runs.$run_barcode.index.tsx",
-      "parent": "/runs/$run_barcode"
+    "/_user/forgot-password/": {
+      "filePath": "_user.forgot-password.index.tsx",
+      "parent": "/_user"
     },
-    "/runs/$run_barcode/indexqc/": {
-      "filePath": "runs.$run_barcode.indexqc.index.tsx",
-      "parent": "/runs/$run_barcode/indexqc"
+    "/_user/login/": {
+      "filePath": "_user.login.index.tsx",
+      "parent": "/_user"
     },
-    "/runs/$run_barcode/samplesheet/": {
-      "filePath": "runs.$run_barcode.samplesheet.index.tsx",
-      "parent": "/runs/$run_barcode/samplesheet"
+    "/_user/register/": {
+      "filePath": "_user.register.index.tsx",
+      "parent": "/_user"
+    },
+    "/_auth/runs/$run_barcode/indexqc": {
+      "filePath": "_auth.runs.$run_barcode.indexqc.route.tsx",
+      "parent": "/_auth/runs/$run_barcode",
+      "children": [
+        "/_auth/runs/$run_barcode/indexqc/"
+      ]
+    },
+    "/_auth/runs/$run_barcode/samplesheet": {
+      "filePath": "_auth.runs.$run_barcode.samplesheet.route.tsx",
+      "parent": "/_auth/runs/$run_barcode",
+      "children": [
+        "/_auth/runs/$run_barcode/samplesheet/"
+      ]
+    },
+    "/_auth/admin/jobs/": {
+      "filePath": "_auth.admin.jobs.index.tsx",
+      "parent": "/_auth/admin/jobs"
+    },
+    "/_auth/admin/project-settings/": {
+      "filePath": "_auth.admin.project-settings.index.tsx",
+      "parent": "/_auth/admin/project-settings"
+    },
+    "/_auth/admin/run-settings/": {
+      "filePath": "_auth.admin.run-settings.index.tsx",
+      "parent": "/_auth/admin/run-settings"
+    },
+    "/_auth/admin/vendors/": {
+      "filePath": "_auth.admin.vendors.index.tsx",
+      "parent": "/_auth/admin/vendors"
+    },
+    "/_auth/jobs/$job_id/": {
+      "filePath": "_auth.jobs.$job_id.index.tsx",
+      "parent": "/_auth/jobs/$job_id"
+    },
+    "/_auth/projects/$project_id/": {
+      "filePath": "_auth.projects.$project_id.index.tsx",
+      "parent": "/_auth/projects/$project_id"
+    },
+    "/_auth/runs/$run_barcode/": {
+      "filePath": "_auth.runs.$run_barcode.index.tsx",
+      "parent": "/_auth/runs/$run_barcode"
+    },
+    "/_auth/runs/$run_barcode/indexqc/": {
+      "filePath": "_auth.runs.$run_barcode.indexqc.index.tsx",
+      "parent": "/_auth/runs/$run_barcode/indexqc"
+    },
+    "/_auth/runs/$run_barcode/samplesheet/": {
+      "filePath": "_auth.runs.$run_barcode.samplesheet.index.tsx",
+      "parent": "/_auth/runs/$run_barcode/samplesheet"
     }
   }
 }
