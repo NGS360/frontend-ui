@@ -6,7 +6,8 @@ import { CreateProjectForm } from './create-project-form'
 import { SearchBar } from './search-bar'
 import { NotificationsDropdown } from './notifications-dropdown'
 import { UserAvatar } from './user-avatar'
-import circosLogo from '@/img/circos_color.svg'
+import { NGS360Logo } from '@/components/ngs360-logo'
+import { useAuth } from '@/context/auth-context'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -30,18 +31,10 @@ type NavItemType = {
 
 export default function Header() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const apiDocsUrl = `${import.meta.env.VITE_API_URL}docs`
-
-  const logoMap = [
-    ['N', '#9de073'],
-    ['G', '#68706e'],
-    ['S', '#25aedd'],
-    ['3', '#eb6341'],
-    ['6', '#ffc180'],
-    ['0', '#9de073'],
-  ]
+  const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
 
   const navItems: Array<NavItemType> = [
     { to: '/runs', label: 'Illumina Runs', icon: <Database className="inline mr-1" /> },
@@ -56,21 +49,14 @@ export default function Header() {
       <div className="flex items-center">
         {/* Logo */}
         <div
-          className="flex items-center pl-2 cursor-pointer"
+          className="pl-2 cursor-pointer"
           onClick={() => navigate({ to: '/' })}
         >
-          <img src={circosLogo} style={{ maxWidth: '35px' }} alt="NGS360 logo" />
-          <div className="p-2 flex">
-            {logoMap.map(([char, color]) => (
-              <span key={char} className="font-bold text-xl" style={{ color }}>
-                {char}
-              </span>
-            ))}
-          </div>
+          <NGS360Logo iconSize="max-w-[35px]" textSize="text-xl" gap="gap-2" className="p-2" />
         </div>
 
         {/* Desktop Nav Items */}
-        <div className="hidden md:block ml-4">
+        <div className="hidden xl:block ml-4">
           <NavigationMenu>
             <NavigationMenuList className="gap-4">
               {navItems.map(({ to, label, icon, search, isExternal }) => (
@@ -102,12 +88,12 @@ export default function Header() {
       {/* Search bar and Create Button - Right Side */}
       <div className="flex items-center gap-3 ml-auto pr-2">
         {/* Search bar - narrower version for header */}
-        <div className="hidden md:block w-64 lg:w-80">
+        <div className="hidden xl:block w-64 xl:w-80">
           <SearchBar />
         </div>
 
         {/* Desktop Create Button */}
-        <div className="hidden md:block">
+        <div className="hidden xl:block">
           <CreateProjectForm
             trigger={(
               <Button>Create Project</Button>
@@ -115,14 +101,24 @@ export default function Header() {
           />
         </div>
 
-        {/* Notifications Dropdown */}
-        <div className="hidden md:block">
-          <NotificationsDropdown />
-        </div>
+        {/* Notifications Dropdown - Only show when authenticated */}
+        {isAuthenticated && (
+          <div className="hidden xl:block">
+            <NotificationsDropdown />
+          </div>
+        )}
 
-        {/* Avatar */}
-        <div className="hidden md:block">
-          <UserAvatar />
+        {/* Avatar or Sign In */}
+        <div>
+          {isAuthenticated ? (
+            <UserAvatar />
+          ) : (
+            <Link to="/login">
+              <Button variant="outline">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -130,7 +126,7 @@ export default function Header() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="md:hidden"
+              className="xl:hidden"
               aria-label="Toggle navigation"
             >
               {menuOpen ? (
