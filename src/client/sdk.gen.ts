@@ -40,6 +40,8 @@ import type {
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
+  GetAllWorkflowConfigsData,
+  GetAllWorkflowConfigsResponses,
   GetCurrentUserInfoData,
   GetCurrentUserInfoResponses,
   GetDemultiplexWorkflowConfigData,
@@ -57,9 +59,16 @@ import type {
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
+  GetProjectActionsData,
+  GetProjectActionsResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
+  GetProjectPlatformsData,
+  GetProjectPlatformsResponses,
+  GetProjectTypesData,
+  GetProjectTypesErrors,
+  GetProjectTypesResponses,
   GetProjectsData,
   GetProjectsErrors,
   GetProjectsResponses,
@@ -93,6 +102,9 @@ import type {
   GetWorkflowByWorkflowIdData,
   GetWorkflowByWorkflowIdErrors,
   GetWorkflowByWorkflowIdResponses,
+  GetWorkflowConfigData,
+  GetWorkflowConfigErrors,
+  GetWorkflowConfigResponses,
   GetWorkflowsData,
   GetWorkflowsErrors,
   GetWorkflowsResponses,
@@ -106,6 +118,8 @@ import type {
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
+  ListWorkflowConfigsData,
+  ListWorkflowConfigsResponses,
   LoginData,
   LoginErrors,
   LoginResponses,
@@ -162,6 +176,9 @@ import type {
   UpdateJobData,
   UpdateJobErrors,
   UpdateJobResponses,
+  UpdateProjectData,
+  UpdateProjectErrors,
+  UpdateProjectResponses,
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
@@ -1046,6 +1063,138 @@ export const reindexProjects = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * List Workflow Configs
+ * List all available project workflow configs from S3.
+ *
+ * Returns a list of workflow IDs (config filenames without extensions).
+ */
+export const listWorkflowConfigs = <ThrowOnError extends boolean = false>(
+  options?: Options<ListWorkflowConfigsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListWorkflowConfigsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/workflows',
+    ...options,
+  })
+}
+
+/**
+ * Get All Workflow Configs
+ * Retrieve and parse all project workflow configurations from S3.
+ *
+ * Returns:
+ * PipelineConfigsResponse containing all parsed workflow configurations
+ */
+export const getAllWorkflowConfigs = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAllWorkflowConfigsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAllWorkflowConfigsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/workflows/configs',
+    ...options,
+  })
+}
+
+/**
+ * Get Workflow Config
+ * Retrieve a specific workflow configuration.
+ *
+ * Args:
+ * workflow_id: The workflow identifier (filename without extension)
+ *
+ * Returns:
+ * Complete workflow configuration
+ */
+export const getWorkflowConfig = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowConfigData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowConfigResponses,
+    GetWorkflowConfigErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/workflows/{workflow_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Project Actions
+ * Get available project actions.
+ *
+ * Returns:
+ * List of available project actions with labels, values, and descriptions
+ */
+export const getProjectActions = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProjectActionsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProjectActionsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/actions',
+    ...options,
+  })
+}
+
+/**
+ * Get Project Platforms
+ * Get available project platforms.
+ *
+ * Returns:
+ * List of available platforms with labels, values, and descriptions
+ */
+export const getProjectPlatforms = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProjectPlatformsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProjectPlatformsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/platforms',
+    ...options,
+  })
+}
+
+/**
+ * Get Project Types
+ * Get available project types based on action and platform.
+ *
+ * Args:
+ * action: The project action
+ * platform: The platform
+ *
+ * Returns:
+ * List of project types with label, value, and project_type
+ */
+export const getProjectTypes = <ThrowOnError extends boolean = false>(
+  options: Options<GetProjectTypesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetProjectTypesResponses,
+    GetProjectTypesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/types',
+    ...options,
+  })
+}
+
+/**
  * Get Project By Project Id
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
@@ -1061,6 +1210,28 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     url: '/api/v1/projects/{project_id}',
     ...options,
+  })
+}
+
+/**
+ * Update Project
+ * Update information about a specific project.
+ */
+export const updateProject = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateProjectData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    UpdateProjectResponses,
+    UpdateProjectErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/{project_id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }
 

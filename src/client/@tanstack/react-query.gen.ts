@@ -19,13 +19,17 @@ import {
   createWorkflow,
   deleteVendor,
   downloadFile,
+  getAllWorkflowConfigs,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
   getFile,
   getJob,
   getJobs,
   getLatestManifest,
+  getProjectActions,
   getProjectByProjectId,
+  getProjectPlatforms,
+  getProjectTypes,
   getProjects,
   getRun,
   getRunMetrics,
@@ -37,11 +41,13 @@ import {
   getVendor,
   getVendors,
   getWorkflowByWorkflowId,
+  getWorkflowConfig,
   getWorkflows,
   healthCheck,
   linkOauthProvider,
   listDemultiplexWorkflows,
   listFiles,
+  listWorkflowConfigs,
   login,
   logout,
   oauthAuthorize,
@@ -62,6 +68,7 @@ import {
   submitJob,
   unlinkOauthProvider,
   updateJob,
+  updateProject,
   updateRun,
   updateSampleInProject,
   updateSetting,
@@ -102,13 +109,17 @@ import type {
   DeleteVendorError,
   DeleteVendorResponse,
   DownloadFileData,
+  GetAllWorkflowConfigsData,
   GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
   GetFileData,
   GetJobData,
   GetJobsData,
   GetLatestManifestData,
+  GetProjectActionsData,
   GetProjectByProjectIdData,
+  GetProjectPlatformsData,
+  GetProjectTypesData,
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
@@ -128,6 +139,7 @@ import type {
   GetVendorsError,
   GetVendorsResponse,
   GetWorkflowByWorkflowIdData,
+  GetWorkflowConfigData,
   GetWorkflowsData,
   GetWorkflowsError,
   GetWorkflowsResponse,
@@ -137,6 +149,7 @@ import type {
   LinkOauthProviderResponse,
   ListDemultiplexWorkflowsData,
   ListFilesData,
+  ListWorkflowConfigsData,
   LoginData,
   LoginError,
   LoginResponse,
@@ -183,6 +196,9 @@ import type {
   UpdateJobData,
   UpdateJobError,
   UpdateJobResponse,
+  UpdateProjectData,
+  UpdateProjectError,
+  UpdateProjectResponse,
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
@@ -1839,6 +1855,180 @@ export const reindexProjectsMutation = (
   return mutationOptions
 }
 
+export const listWorkflowConfigsQueryKey = (
+  options?: Options<ListWorkflowConfigsData>,
+) => createQueryKey('listWorkflowConfigs', options)
+
+/**
+ * List Workflow Configs
+ * List all available project workflow configs from S3.
+ *
+ * Returns a list of workflow IDs (config filenames without extensions).
+ */
+export const listWorkflowConfigsOptions = (
+  options?: Options<ListWorkflowConfigsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listWorkflowConfigs({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listWorkflowConfigsQueryKey(options),
+  })
+}
+
+export const getAllWorkflowConfigsQueryKey = (
+  options?: Options<GetAllWorkflowConfigsData>,
+) => createQueryKey('getAllWorkflowConfigs', options)
+
+/**
+ * Get All Workflow Configs
+ * Retrieve and parse all project workflow configurations from S3.
+ *
+ * Returns:
+ * PipelineConfigsResponse containing all parsed workflow configurations
+ */
+export const getAllWorkflowConfigsOptions = (
+  options?: Options<GetAllWorkflowConfigsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAllWorkflowConfigs({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getAllWorkflowConfigsQueryKey(options),
+  })
+}
+
+export const getWorkflowConfigQueryKey = (
+  options: Options<GetWorkflowConfigData>,
+) => createQueryKey('getWorkflowConfig', options)
+
+/**
+ * Get Workflow Config
+ * Retrieve a specific workflow configuration.
+ *
+ * Args:
+ * workflow_id: The workflow identifier (filename without extension)
+ *
+ * Returns:
+ * Complete workflow configuration
+ */
+export const getWorkflowConfigOptions = (
+  options: Options<GetWorkflowConfigData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflowConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowConfigQueryKey(options),
+  })
+}
+
+export const getProjectActionsQueryKey = (
+  options?: Options<GetProjectActionsData>,
+) => createQueryKey('getProjectActions', options)
+
+/**
+ * Get Project Actions
+ * Get available project actions.
+ *
+ * Returns:
+ * List of available project actions with labels, values, and descriptions
+ */
+export const getProjectActionsOptions = (
+  options?: Options<GetProjectActionsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectActions({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectActionsQueryKey(options),
+  })
+}
+
+export const getProjectPlatformsQueryKey = (
+  options?: Options<GetProjectPlatformsData>,
+) => createQueryKey('getProjectPlatforms', options)
+
+/**
+ * Get Project Platforms
+ * Get available project platforms.
+ *
+ * Returns:
+ * List of available platforms with labels, values, and descriptions
+ */
+export const getProjectPlatformsOptions = (
+  options?: Options<GetProjectPlatformsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectPlatforms({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectPlatformsQueryKey(options),
+  })
+}
+
+export const getProjectTypesQueryKey = (
+  options: Options<GetProjectTypesData>,
+) => createQueryKey('getProjectTypes', options)
+
+/**
+ * Get Project Types
+ * Get available project types based on action and platform.
+ *
+ * Args:
+ * action: The project action
+ * platform: The platform
+ *
+ * Returns:
+ * List of project types with label, value, and project_type
+ */
+export const getProjectTypesOptions = (
+  options: Options<GetProjectTypesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectTypes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectTypesQueryKey(options),
+  })
+}
+
 export const getProjectByProjectIdQueryKey = (
   options: Options<GetProjectByProjectIdData>,
 ) => createQueryKey('getProjectByProjectId', options)
@@ -1863,6 +2053,34 @@ export const getProjectByProjectIdOptions = (
     },
     queryKey: getProjectByProjectIdQueryKey(options),
   })
+}
+
+/**
+ * Update Project
+ * Update information about a specific project.
+ */
+export const updateProjectMutation = (
+  options?: Partial<Options<UpdateProjectData>>,
+): UseMutationOptions<
+  UpdateProjectResponse,
+  AxiosError<UpdateProjectError>,
+  Options<UpdateProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateProjectResponse,
+    AxiosError<UpdateProjectError>,
+    Options<UpdateProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getSamplesQueryKey = (options: Options<GetSamplesData>) =>

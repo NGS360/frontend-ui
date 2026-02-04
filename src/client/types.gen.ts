@@ -766,6 +766,98 @@ export type PasswordResetRequest = {
 }
 
 /**
+ * PipelineConfig
+ * Model for pipeline workflow configuration.
+ */
+export type PipelineConfig = {
+  /**
+   * Workflow Id
+   */
+  workflow_id?: string | null
+  /**
+   * Project Type
+   */
+  project_type: string
+  /**
+   * Project Admins
+   */
+  project_admins: Array<string>
+  /**
+   * Inputs
+   */
+  inputs?: Array<PipelineInput> | null
+  /**
+   * Platforms
+   */
+  platforms: {
+    [key: string]: PlatformConfig
+  }
+  /**
+   * Export Command
+   */
+  export_command?: string | null
+}
+
+/**
+ * PipelineConfigsResponse
+ * Response model for list of pipeline workflow configurations.
+ */
+export type PipelineConfigsResponse = {
+  /**
+   * Configs
+   */
+  configs: Array<PipelineConfig>
+  /**
+   * Total
+   */
+  total: number
+}
+
+/**
+ * PipelineInput
+ * Model for pipeline input configuration.
+ */
+export type PipelineInput = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Desc
+   */
+  desc: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Default
+   */
+  default?: unknown
+}
+
+/**
+ * PlatformConfig
+ * Model for platform-specific configuration (Arvados, SevenBridges, etc).
+ */
+export type PlatformConfig = {
+  /**
+   * Launchers
+   */
+  launchers?: string | Array<string> | null
+  /**
+   * Exports
+   */
+  exports?: Array<{
+    [key: string]: string
+  }> | null
+  /**
+   * Export Command
+   */
+  export_command?: string | null
+}
+
+/**
  * ProjectCreate
  */
 export type ProjectCreate = {
@@ -777,6 +869,25 @@ export type ProjectCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+}
+
+/**
+ * ProjectOption
+ * Model for project option
+ */
+export type ProjectOption = {
+  /**
+   * Label
+   */
+  label: string
+  /**
+   * Value
+   */
+  value: string
+  /**
+   * Description
+   */
+  description: string
 }
 
 /**
@@ -803,6 +914,21 @@ export type ProjectPublic = {
    * Attributes
    */
   attributes: Array<Attribute> | null
+}
+
+/**
+ * ProjectUpdate
+ * Represents the data that can be updated for a project
+ */
+export type ProjectUpdate = {
+  /**
+   * Name
+   */
+  name?: string | null
+  /**
+   * Attributes
+   */
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2317,6 +2443,150 @@ export type ReindexProjectsResponses = {
   201: unknown
 }
 
+export type ListWorkflowConfigsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/workflows'
+}
+
+export type ListWorkflowConfigsResponses = {
+  /**
+   * Response List Workflow Configs
+   * Successful Response
+   */
+  200: Array<string>
+}
+
+export type ListWorkflowConfigsResponse =
+  ListWorkflowConfigsResponses[keyof ListWorkflowConfigsResponses]
+
+export type GetAllWorkflowConfigsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/workflows/configs'
+}
+
+export type GetAllWorkflowConfigsResponses = {
+  /**
+   * Successful Response
+   */
+  200: PipelineConfigsResponse
+}
+
+export type GetAllWorkflowConfigsResponse =
+  GetAllWorkflowConfigsResponses[keyof GetAllWorkflowConfigsResponses]
+
+export type GetWorkflowConfigData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/workflows/{workflow_id}'
+}
+
+export type GetWorkflowConfigErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetWorkflowConfigError =
+  GetWorkflowConfigErrors[keyof GetWorkflowConfigErrors]
+
+export type GetWorkflowConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: PipelineConfig
+}
+
+export type GetWorkflowConfigResponse =
+  GetWorkflowConfigResponses[keyof GetWorkflowConfigResponses]
+
+export type GetProjectActionsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/actions'
+}
+
+export type GetProjectActionsResponses = {
+  /**
+   * Response Get Project Actions
+   * Successful Response
+   */
+  200: Array<ProjectOption>
+}
+
+export type GetProjectActionsResponse =
+  GetProjectActionsResponses[keyof GetProjectActionsResponses]
+
+export type GetProjectPlatformsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/platforms'
+}
+
+export type GetProjectPlatformsResponses = {
+  /**
+   * Response Get Project Platforms
+   * Successful Response
+   */
+  200: Array<ProjectOption>
+}
+
+export type GetProjectPlatformsResponse =
+  GetProjectPlatformsResponses[keyof GetProjectPlatformsResponses]
+
+export type GetProjectTypesData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Action
+     * Project action
+     */
+    action: 'create-project' | 'export-project-results'
+    /**
+     * Platform
+     * Project platform
+     */
+    platform: 'arvados' | 'sevenbridges'
+  }
+  url: '/api/v1/projects/types'
+}
+
+export type GetProjectTypesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetProjectTypesError =
+  GetProjectTypesErrors[keyof GetProjectTypesErrors]
+
+export type GetProjectTypesResponses = {
+  /**
+   * Response Get Project Types
+   * Successful Response
+   */
+  200: Array<{
+    [key: string]: unknown
+  }>
+}
+
+export type GetProjectTypesResponse =
+  GetProjectTypesResponses[keyof GetProjectTypesResponses]
+
 export type GetProjectByProjectIdData = {
   body?: never
   path: {
@@ -2348,6 +2618,37 @@ export type GetProjectByProjectIdResponses = {
 
 export type GetProjectByProjectIdResponse =
   GetProjectByProjectIdResponses[keyof GetProjectByProjectIdResponses]
+
+export type UpdateProjectData = {
+  body: ProjectUpdate
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}'
+}
+
+export type UpdateProjectErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateProjectError = UpdateProjectErrors[keyof UpdateProjectErrors]
+
+export type UpdateProjectResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProjectPublic
+}
+
+export type UpdateProjectResponse =
+  UpdateProjectResponses[keyof UpdateProjectResponses]
 
 export type GetSamplesData = {
   body?: never
