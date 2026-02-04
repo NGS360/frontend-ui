@@ -714,6 +714,58 @@ export type ManifestValidationResponse = {
 }
 
 /**
+ * OAuthLinkRequest
+ * Link OAuth provider to account
+ */
+export type OAuthLinkRequest = {
+  /**
+   * Code
+   */
+  code: string
+}
+
+/**
+ * PasswordChange
+ * Password change request
+ */
+export type PasswordChange = {
+  /**
+   * Current Password
+   */
+  current_password: string
+  /**
+   * New Password
+   */
+  new_password: string
+}
+
+/**
+ * PasswordResetConfirm
+ * Password reset confirmation
+ */
+export type PasswordResetConfirm = {
+  /**
+   * Token
+   */
+  token: string
+  /**
+   * New Password
+   */
+  new_password: string
+}
+
+/**
+ * PasswordResetRequest
+ * Password reset request
+ */
+export type PasswordResetRequest = {
+  /**
+   * Email
+   */
+  email: string
+}
+
+/**
  * PipelineConfig
  * Model for pipeline workflow configuration.
  */
@@ -803,55 +855,6 @@ export type PlatformConfig = {
    * Export Command
    */
   export_command?: string | null
- * OAuthLinkRequest
- * Link OAuth provider to account
- */
-export type OAuthLinkRequest = {
-  /**
-   * Code
-   */
-  code: string
-}
-
-/**
- * PasswordChange
- * Password change request
- */
-export type PasswordChange = {
-  /**
-   * Current Password
-   */
-  current_password: string
-  /**
-   * New Password
-   */
-  new_password: string
-}
-
-/**
- * PasswordResetConfirm
- * Password reset confirmation
- */
-export type PasswordResetConfirm = {
-  /**
-   * Token
-   */
-  token: string
-  /**
-   * New Password
-   */
-  new_password: string
-}
-
-/**
- * PasswordResetRequest
- * Password reset request
- */
-export type PasswordResetRequest = {
-  /**
-   * Email
-   */
-  email: string
 }
 
 /**
