@@ -15,6 +15,21 @@ export type Attribute = {
 }
 
 /**
+ * AvailableProvidersResponse
+ * Available OAuth providers response
+ */
+export type AvailableProvidersResponse = {
+  /**
+   * Count
+   */
+  count: number
+  /**
+   * Providers
+   */
+  providers: Array<OAuthProviderInfo>
+}
+
+/**
  * AwsBatchConfig
  * Base schema for AWS Batch job configuration
  */
@@ -722,6 +737,29 @@ export type OAuthLinkRequest = {
    * Code
    */
   code: string
+}
+
+/**
+ * OAuthProviderInfo
+ * OAuth provider information
+ */
+export type OAuthProviderInfo = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Display Name
+   */
+  display_name: string
+  /**
+   * Logo Url
+   */
+  logo_url: string
+  /**
+   * Authorize Url
+   */
+  authorize_url: string
 }
 
 /**
@@ -1774,6 +1812,23 @@ export type ResendVerificationResponses = {
 
 export type ResendVerificationResponse =
   ResendVerificationResponses[keyof ResendVerificationResponses]
+
+export type GetAvailableOauthProvidersData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/auth/oauth/providers'
+}
+
+export type GetAvailableOauthProvidersResponses = {
+  /**
+   * Successful Response
+   */
+  200: AvailableProvidersResponse
+}
+
+export type GetAvailableOauthProvidersResponse =
+  GetAvailableOauthProvidersResponses[keyof GetAvailableOauthProvidersResponses]
 
 export type OauthAuthorizeData = {
   body?: never

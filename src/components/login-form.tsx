@@ -5,15 +5,18 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircle } from 'lucide-react'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
 import type { SubmitHandler } from 'react-hook-form'
 import type { ComponentPropsWithoutRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { NGS360Logo } from '@/components/ngs360-logo'
 import { useAuth } from '@/context/auth-context'
+import { getAvailableOauthProvidersOptions } from '@/client/@tanstack/react-query.gen'
 
 // Define the schema for the form fields
 // This is used to perform client-side validation
@@ -31,6 +34,9 @@ export function LoginForm({
   const navigate = useNavigate()
   const { login } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, '')
+
+  const { data: oauthProviders } = useQuery(getAvailableOauthProvidersOptions())
 
   const {
     register,
@@ -59,6 +65,10 @@ export function LoginForm({
     }
   }
 
+  const handleOAuthLogin = (authorizeUrl: string) => {
+    window.location.href = authorizeUrl
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
       <div className="w-full max-w-md">
@@ -74,9 +84,9 @@ export function LoginForm({
               {/* Logo and Title Section */}
               <div className="flex flex-col items-center gap-2 text-center">
                 <NGS360Logo className="mb-2" />
-                <h1 className="text-2xl font-bold">Login to your account</h1>
+                <h1 className="text-2xl font-bold">Login</h1>
                 <p className="text-sm text-muted-foreground max-w-xs">
-                  Enter your email and password below to login to your account.
+                  Enter your email and password below to login to your NGS360 account.
                 </p>
               </div>
 
@@ -136,6 +146,43 @@ export function LoginForm({
               {errors.root && (
                 <div className="text-red-500 text-sm text-center">
                   {errors.root.message}
+                </div>
+              )}
+
+              {/* OAuth Providers Section */}
+              {oauthProviders && oauthProviders.providers.length > 0 && (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">
+                        or continue with
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    {oauthProviders.providers.map((provider) => (
+                      <Button
+                        key={provider.name}
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleOAuthLogin(provider.authorize_url)}
+                        className="flex items-center gap-2"
+                      >
+                        {provider.logo_url && (
+                          <img
+                            src={`${apiUrl}${provider.logo_url}`}
+                            alt={`${provider.display_name} logo`}
+                            className="h-5 w-5"
+                          />
+                        )}
+                        {provider.display_name}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
 

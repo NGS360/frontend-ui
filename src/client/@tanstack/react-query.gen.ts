@@ -19,6 +19,7 @@ import {
   createWorkflow,
   deleteVendor,
   downloadFile,
+  getAvailableOauthProviders,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
   getFile,
@@ -102,6 +103,7 @@ import type {
   DeleteVendorError,
   DeleteVendorResponse,
   DownloadFileData,
+  GetAvailableOauthProvidersData,
   GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
   GetFileData,
@@ -1004,6 +1006,34 @@ export const resendVerificationMutation = (
     },
   }
   return mutationOptions
+}
+
+export const getAvailableOauthProvidersQueryKey = (
+  options?: Options<GetAvailableOauthProvidersData>,
+) => createQueryKey('getAvailableOauthProviders', options)
+
+/**
+ * Get Available Oauth Providers
+ * Get list of available OAuth providers
+ *
+ * Returns:
+ * List of supported OAuth providers
+ */
+export const getAvailableOauthProvidersOptions = (
+  options?: Options<GetAvailableOauthProvidersData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAvailableOauthProviders({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getAvailableOauthProvidersQueryKey(options),
+  })
 }
 
 export const oauthAuthorizeQueryKey = (options: Options<OauthAuthorizeData>) =>
