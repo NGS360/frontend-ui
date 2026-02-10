@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
-import { ExecuteWorkflowForm } from '@/components/execute-workflow-form'
+import { ExecuteActionForm } from '@/components/execute-action-form'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
@@ -267,18 +267,18 @@ function RouteComponent() {
                   )}
                 />
 
-                {/* Execute Workflow */}
-                <ExecuteWorkflowForm
+                {/* Execute Action */}
+                <ExecuteActionForm
                   projectId={project_id}
                   trigger={(
                     <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
                       <CardHeader>
                         <CardTitle className='flex items-center gap-2 text-lg'>
                           <Cog className='size-5 text-primary' />
-                          Execute Workflow
+                          Execute Action
                         </CardTitle>
                         <CardDescription className='text-sm'>
-                          Execute workflows and actions on this project
+                          Execute pipelines and actions on this project
                         </CardDescription>
                       </CardHeader>
                     </Card>

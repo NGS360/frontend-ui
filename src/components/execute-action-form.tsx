@@ -15,14 +15,14 @@ import { Label } from '@/components/ui/label'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { getPipelineActionsOptions, getPipelinePlatformsOptions, getPipelineTypesOptions, submitPipelineJobMutation } from '@/client/@tanstack/react-query.gen'
 
-interface ExecuteWorkflowFormProps {
+interface ExecuteActionFormProps {
   /** Trigger for the Sheet component */
   trigger: JSX.Element
   /** Project ID for pipeline submission */
   projectId: string
 }
 
-export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
+export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   trigger,
   projectId
 }) => {
@@ -174,9 +174,9 @@ export const ExecuteWorkflowForm: React.FC<ExecuteWorkflowFormProps> = ({
       <SheetTrigger asChild onClick={() => setSheetOpen(true)}>{trigger}</SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Execute Workflow</SheetTitle>
+          <SheetTitle>Execute Action</SheetTitle>
           <SheetDescription>
-            Execute workflows and actions on this project
+            Execute pipelines and actions on this project
           </SheetDescription>
         <div className='flex flex-col gap-12 mt-6'>
           <Stepper

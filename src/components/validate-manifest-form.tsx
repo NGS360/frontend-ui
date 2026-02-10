@@ -301,9 +301,9 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
       <SheetTrigger asChild onClick={() => setSheetOpen(true)}>{trigger}</SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Validate Manifest</SheetTitle>
+          <SheetTitle>Ingest Vendor Data</SheetTitle>
           <SheetDescription>
-            Select and validate vendor manifest files
+            Validate and ingest data from vendor manifests into this project
           </SheetDescription>
           <div className='flex flex-col gap-12 mt-6'>
             <Stepper
