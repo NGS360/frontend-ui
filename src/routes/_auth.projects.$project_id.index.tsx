@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 // tooltip no longer needed for vendor card
 import { highlightMatch, isValidHttpURL } from '@/lib/utils'
-import { getSamples } from '@/client/sdk.gen'
+import { getProjectSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
@@ -54,7 +54,7 @@ function RouteComponent() {
   // Fetch all samples using the use-all-paginated hook
   const { data: allSamples, isLoading, error } = useAllPaginated({
     queryKey: ['samples', 'all', project.project_id],
-    fetcher: ({ query }) => getSamples({
+    fetcher: ({ query }) => getProjectSamples({
       path: { project_id: project.project_id },
       query
     }),
@@ -269,6 +269,7 @@ function RouteComponent() {
 
                 {/* Execute Workflow */}
                 <ExecuteWorkflowForm
+                  projectId={project_id}
                   trigger={(
                     <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
                       <CardHeader>

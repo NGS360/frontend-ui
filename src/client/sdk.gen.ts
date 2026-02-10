@@ -40,8 +40,6 @@ import type {
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
-  GetAllWorkflowConfigsData,
-  GetAllWorkflowConfigsResponses,
   GetCurrentUserInfoData,
   GetCurrentUserInfoResponses,
   GetDemultiplexWorkflowConfigData,
@@ -59,16 +57,19 @@ import type {
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
-  GetProjectActionsData,
-  GetProjectActionsResponses,
+  GetPipelineActionsData,
+  GetPipelineActionsResponses,
+  GetPipelinePlatformsData,
+  GetPipelinePlatformsResponses,
+  GetPipelineTypesData,
+  GetPipelineTypesErrors,
+  GetPipelineTypesResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
-  GetProjectPlatformsData,
-  GetProjectPlatformsResponses,
-  GetProjectTypesData,
-  GetProjectTypesErrors,
-  GetProjectTypesResponses,
+  GetProjectSamplesData,
+  GetProjectSamplesErrors,
+  GetProjectSamplesResponses,
   GetProjectsData,
   GetProjectsErrors,
   GetProjectsResponses,
@@ -84,9 +85,6 @@ import type {
   GetRunsData,
   GetRunsErrors,
   GetRunsResponses,
-  GetSamplesData,
-  GetSamplesErrors,
-  GetSamplesResponses,
   GetSettingData,
   GetSettingErrors,
   GetSettingResponses,
@@ -102,9 +100,6 @@ import type {
   GetWorkflowByWorkflowIdData,
   GetWorkflowByWorkflowIdErrors,
   GetWorkflowByWorkflowIdResponses,
-  GetWorkflowConfigData,
-  GetWorkflowConfigErrors,
-  GetWorkflowConfigResponses,
   GetWorkflowsData,
   GetWorkflowsErrors,
   GetWorkflowsResponses,
@@ -118,8 +113,6 @@ import type {
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
-  ListWorkflowConfigsData,
-  ListWorkflowConfigsResponses,
   LoginData,
   LoginErrors,
   LoginResponses,
@@ -170,6 +163,9 @@ import type {
   SubmitJobData,
   SubmitJobErrors,
   SubmitJobResponses,
+  SubmitPipelineJobData,
+  SubmitPipelineJobErrors,
+  SubmitPipelineJobResponses,
   UnlinkOauthProviderData,
   UnlinkOauthProviderErrors,
   UnlinkOauthProviderResponses,
@@ -197,6 +193,9 @@ import type {
   ValidateManifestData,
   ValidateManifestErrors,
   ValidateManifestResponses,
+  ValidatePipelineConfigData,
+  ValidatePipelineConfigErrors,
+  ValidatePipelineConfigResponses,
   VerifyEmailData,
   VerifyEmailErrors,
   VerifyEmailResponses,
@@ -1063,138 +1062,6 @@ export const reindexProjects = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * List Workflow Configs
- * List all available project workflow configs from S3.
- *
- * Returns a list of workflow IDs (config filenames without extensions).
- */
-export const listWorkflowConfigs = <ThrowOnError extends boolean = false>(
-  options?: Options<ListWorkflowConfigsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    ListWorkflowConfigsResponses,
-    unknown,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/projects/workflows',
-    ...options,
-  })
-}
-
-/**
- * Get All Workflow Configs
- * Retrieve and parse all project workflow configurations from S3.
- *
- * Returns:
- * PipelineConfigsResponse containing all parsed workflow configurations
- */
-export const getAllWorkflowConfigs = <ThrowOnError extends boolean = false>(
-  options?: Options<GetAllWorkflowConfigsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    GetAllWorkflowConfigsResponses,
-    unknown,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/projects/workflows/configs',
-    ...options,
-  })
-}
-
-/**
- * Get Workflow Config
- * Retrieve a specific workflow configuration.
- *
- * Args:
- * workflow_id: The workflow identifier (filename without extension)
- *
- * Returns:
- * Complete workflow configuration
- */
-export const getWorkflowConfig = <ThrowOnError extends boolean = false>(
-  options: Options<GetWorkflowConfigData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetWorkflowConfigResponses,
-    GetWorkflowConfigErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/projects/workflows/{workflow_id}',
-    ...options,
-  })
-}
-
-/**
- * Get Project Actions
- * Get available project actions.
- *
- * Returns:
- * List of available project actions with labels, values, and descriptions
- */
-export const getProjectActions = <ThrowOnError extends boolean = false>(
-  options?: Options<GetProjectActionsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    GetProjectActionsResponses,
-    unknown,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/projects/actions',
-    ...options,
-  })
-}
-
-/**
- * Get Project Platforms
- * Get available project platforms.
- *
- * Returns:
- * List of available platforms with labels, values, and descriptions
- */
-export const getProjectPlatforms = <ThrowOnError extends boolean = false>(
-  options?: Options<GetProjectPlatformsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    GetProjectPlatformsResponses,
-    unknown,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/projects/platforms',
-    ...options,
-  })
-}
-
-/**
- * Get Project Types
- * Get available project types based on action and platform.
- *
- * Args:
- * action: The project action
- * platform: The platform
- *
- * Returns:
- * List of project types with label, value, and project_type
- */
-export const getProjectTypes = <ThrowOnError extends boolean = false>(
-  options: Options<GetProjectTypesData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetProjectTypesResponses,
-    GetProjectTypesErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/projects/types',
-    ...options,
-  })
-}
-
-/**
  * Get Project By Project Id
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
@@ -1236,15 +1103,15 @@ export const updateProject = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Samples
+ * Get Project Samples
  * Returns a paginated list of samples.
  */
-export const getSamples = <ThrowOnError extends boolean = false>(
-  options: Options<GetSamplesData, ThrowOnError>,
+export const getProjectSamples = <ThrowOnError extends boolean = false>(
+  options: Options<GetProjectSamplesData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<
-    GetSamplesResponses,
-    GetSamplesErrors,
+    GetProjectSamplesResponses,
+    GetProjectSamplesErrors,
     ThrowOnError
   >({
     responseType: 'json',
@@ -1294,6 +1161,155 @@ export const updateSampleInProject = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Submit Pipeline Job
+ * Submit a pipeline job to AWS Batch for a project.
+ *
+ * This endpoint validates the project exists, retrieves the appropriate pipeline
+ * configuration based on the project type, determines the command to execute
+ * based on the action (create-project or export-project-results), interpolates
+ * template variables, and submits the job to AWS Batch.
+ *
+ * Args:
+ * session: Database session
+ * project_id: The project ID
+ * request: Pipeline submission request containing:
+ * - action: Pipeline action (create-project or export-project-results)
+ * - platform: Platform name (Arvados or SevenBridges)
+ * - project_type: Pipeline workflow type (e.g., RNA-Seq, WGS)
+ * - reference: Export reference (required for export-project-results)
+ * - auto_release: Auto-release flag for export action (default: False)
+ * current_user: Currently authenticated user
+ * s3_client: S3 client for retrieving pipeline configs
+ *
+ * Returns:
+ * BatchJobPublic: The created batch job information
+ */
+export const submitPipelineJob = <ThrowOnError extends boolean = false>(
+  options: Options<SubmitPipelineJobData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    SubmitPipelineJobResponses,
+    SubmitPipelineJobErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/projects/{project_id}/pipelines/submit',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Validate Pipeline Config
+ * Validate a pipeline configuration file from S3.
+ *
+ * Accepts an S3 path to a pipeline configuration file and validates it
+ * against the PipelineConfig schema. Returns the parsed config if valid,
+ * or error details if invalid.
+ *
+ * Args:
+ * s3_path: S3 path to the config file. Can be:
+ * - Full S3 URI: s3://bucket/path/to/config.yaml
+ * - Relative path: config.yaml or path/to/config.yaml
+ * (uses default pipeline configs bucket)
+ *
+ * Examples:
+ * - s3://my-bucket/configs/rna-seq_pipeline.yaml
+ * - rna-seq_pipeline.yaml
+ * - custom/wgs_pipeline.yaml
+ */
+export const validatePipelineConfig = <ThrowOnError extends boolean = false>(
+  options: Options<ValidatePipelineConfigData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ValidatePipelineConfigResponses,
+    ValidatePipelineConfigErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/pipelines/validate',
+    ...options,
+  })
+}
+
+/**
+ * Get Pipeline Actions
+ * Get available pipeline actions.
+ *
+ * Returns:
+ * List of available pipeline actions with labels, values,
+ * and descriptions
+ */
+export const getPipelineActions = <ThrowOnError extends boolean = false>(
+  options?: Options<GetPipelineActionsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetPipelineActionsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/pipelines/actions',
+    ...options,
+  })
+}
+
+/**
+ * Get Pipeline Platforms
+ * Get available pipeline platforms.
+ *
+ * Returns:
+ * List of available platforms with labels, values, and descriptions
+ */
+export const getPipelinePlatforms = <ThrowOnError extends boolean = false>(
+  options?: Options<GetPipelinePlatformsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetPipelinePlatformsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/pipelines/platforms',
+    ...options,
+  })
+}
+
+/**
+ * Get Pipeline Types
+ * Get available pipeline types based on action and platform.
+ *
+ * Args:
+ * action: The pipeline action
+ * platform: The platform
+ *
+ * Returns:
+ * List of pipeline types with label, value, and project_type
+ */
+export const getPipelineTypes = <ThrowOnError extends boolean = false>(
+  options: Options<GetPipelineTypesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetPipelineTypesResponses,
+    GetPipelineTypesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/pipelines/types',
+    ...options,
   })
 }
 

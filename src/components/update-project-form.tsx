@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { getProjectByProjectIdQueryKey, getProjectsQueryKey, getSamplesQueryKey, updateProjectMutation } from "@/client/@tanstack/react-query.gen";
+import { getProjectByProjectIdQueryKey, getProjectSamplesQueryKey, getProjectsQueryKey, updateProjectMutation } from "@/client/@tanstack/react-query.gen";
 
 // Define Schema w/Validation
 const AttributeSchema = z.object({
@@ -120,7 +120,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
       });
       // Invalidate samples queries for this project
       queryClient.invalidateQueries({ 
-        queryKey: getSamplesQueryKey({ 
+        queryKey: getProjectSamplesQueryKey({ 
           path: { project_id: projectId } 
         })
       });

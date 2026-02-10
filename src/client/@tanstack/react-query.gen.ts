@@ -19,35 +19,32 @@ import {
   createWorkflow,
   deleteVendor,
   downloadFile,
-  getAllWorkflowConfigs,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
   getFile,
   getJob,
   getJobs,
   getLatestManifest,
-  getProjectActions,
+  getPipelineActions,
+  getPipelinePlatforms,
+  getPipelineTypes,
   getProjectByProjectId,
-  getProjectPlatforms,
-  getProjectTypes,
+  getProjectSamples,
   getProjects,
   getRun,
   getRunMetrics,
   getRunSamplesheet,
   getRuns,
-  getSamples,
   getSetting,
   getSettingsByTag,
   getVendor,
   getVendors,
   getWorkflowByWorkflowId,
-  getWorkflowConfig,
   getWorkflows,
   healthCheck,
   linkOauthProvider,
   listDemultiplexWorkflows,
   listFiles,
-  listWorkflowConfigs,
   login,
   logout,
   oauthAuthorize,
@@ -66,6 +63,7 @@ import {
   searchRuns,
   submitDemultiplexWorkflowJob,
   submitJob,
+  submitPipelineJob,
   unlinkOauthProvider,
   updateJob,
   updateProject,
@@ -75,6 +73,7 @@ import {
   updateVendor,
   uploadManifest,
   validateManifest,
+  validatePipelineConfig,
   verifyEmail
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
@@ -109,17 +108,19 @@ import type {
   DeleteVendorError,
   DeleteVendorResponse,
   DownloadFileData,
-  GetAllWorkflowConfigsData,
   GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
   GetFileData,
   GetJobData,
   GetJobsData,
   GetLatestManifestData,
-  GetProjectActionsData,
+  GetPipelineActionsData,
+  GetPipelinePlatformsData,
+  GetPipelineTypesData,
   GetProjectByProjectIdData,
-  GetProjectPlatformsData,
-  GetProjectTypesData,
+  GetProjectSamplesData,
+  GetProjectSamplesError,
+  GetProjectSamplesResponse,
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
@@ -129,9 +130,6 @@ import type {
   GetRunsData,
   GetRunsError,
   GetRunsResponse,
-  GetSamplesData,
-  GetSamplesError,
-  GetSamplesResponse,
   GetSettingData,
   GetSettingsByTagData,
   GetVendorData,
@@ -139,7 +137,6 @@ import type {
   GetVendorsError,
   GetVendorsResponse,
   GetWorkflowByWorkflowIdData,
-  GetWorkflowConfigData,
   GetWorkflowsData,
   GetWorkflowsError,
   GetWorkflowsResponse,
@@ -149,7 +146,6 @@ import type {
   LinkOauthProviderResponse,
   ListDemultiplexWorkflowsData,
   ListFilesData,
-  ListWorkflowConfigsData,
   LoginData,
   LoginError,
   LoginResponse,
@@ -190,6 +186,9 @@ import type {
   SubmitJobData,
   SubmitJobError,
   SubmitJobResponse,
+  SubmitPipelineJobData,
+  SubmitPipelineJobError,
+  SubmitPipelineJobResponse,
   UnlinkOauthProviderData,
   UnlinkOauthProviderError,
   UnlinkOauthProviderResponse,
@@ -217,6 +216,9 @@ import type {
   ValidateManifestData,
   ValidateManifestError,
   ValidateManifestResponse,
+  ValidatePipelineConfigData,
+  ValidatePipelineConfigError,
+  ValidatePipelineConfigResponse,
   VerifyEmailData,
   VerifyEmailError,
   VerifyEmailResponse,
@@ -1855,180 +1857,6 @@ export const reindexProjectsMutation = (
   return mutationOptions
 }
 
-export const listWorkflowConfigsQueryKey = (
-  options?: Options<ListWorkflowConfigsData>,
-) => createQueryKey('listWorkflowConfigs', options)
-
-/**
- * List Workflow Configs
- * List all available project workflow configs from S3.
- *
- * Returns a list of workflow IDs (config filenames without extensions).
- */
-export const listWorkflowConfigsOptions = (
-  options?: Options<ListWorkflowConfigsData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listWorkflowConfigs({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: listWorkflowConfigsQueryKey(options),
-  })
-}
-
-export const getAllWorkflowConfigsQueryKey = (
-  options?: Options<GetAllWorkflowConfigsData>,
-) => createQueryKey('getAllWorkflowConfigs', options)
-
-/**
- * Get All Workflow Configs
- * Retrieve and parse all project workflow configurations from S3.
- *
- * Returns:
- * PipelineConfigsResponse containing all parsed workflow configurations
- */
-export const getAllWorkflowConfigsOptions = (
-  options?: Options<GetAllWorkflowConfigsData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getAllWorkflowConfigs({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getAllWorkflowConfigsQueryKey(options),
-  })
-}
-
-export const getWorkflowConfigQueryKey = (
-  options: Options<GetWorkflowConfigData>,
-) => createQueryKey('getWorkflowConfig', options)
-
-/**
- * Get Workflow Config
- * Retrieve a specific workflow configuration.
- *
- * Args:
- * workflow_id: The workflow identifier (filename without extension)
- *
- * Returns:
- * Complete workflow configuration
- */
-export const getWorkflowConfigOptions = (
-  options: Options<GetWorkflowConfigData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowConfig({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getWorkflowConfigQueryKey(options),
-  })
-}
-
-export const getProjectActionsQueryKey = (
-  options?: Options<GetProjectActionsData>,
-) => createQueryKey('getProjectActions', options)
-
-/**
- * Get Project Actions
- * Get available project actions.
- *
- * Returns:
- * List of available project actions with labels, values, and descriptions
- */
-export const getProjectActionsOptions = (
-  options?: Options<GetProjectActionsData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getProjectActions({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getProjectActionsQueryKey(options),
-  })
-}
-
-export const getProjectPlatformsQueryKey = (
-  options?: Options<GetProjectPlatformsData>,
-) => createQueryKey('getProjectPlatforms', options)
-
-/**
- * Get Project Platforms
- * Get available project platforms.
- *
- * Returns:
- * List of available platforms with labels, values, and descriptions
- */
-export const getProjectPlatformsOptions = (
-  options?: Options<GetProjectPlatformsData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getProjectPlatforms({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getProjectPlatformsQueryKey(options),
-  })
-}
-
-export const getProjectTypesQueryKey = (
-  options: Options<GetProjectTypesData>,
-) => createQueryKey('getProjectTypes', options)
-
-/**
- * Get Project Types
- * Get available project types based on action and platform.
- *
- * Args:
- * action: The project action
- * platform: The platform
- *
- * Returns:
- * List of project types with label, value, and project_type
- */
-export const getProjectTypesOptions = (
-  options: Options<GetProjectTypesData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getProjectTypes({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getProjectTypesQueryKey(options),
-  })
-}
-
 export const getProjectByProjectIdQueryKey = (
   options: Options<GetProjectByProjectIdData>,
 ) => createQueryKey('getProjectByProjectId', options)
@@ -2083,17 +1911,20 @@ export const updateProjectMutation = (
   return mutationOptions
 }
 
-export const getSamplesQueryKey = (options: Options<GetSamplesData>) =>
-  createQueryKey('getSamples', options)
+export const getProjectSamplesQueryKey = (
+  options: Options<GetProjectSamplesData>,
+) => createQueryKey('getProjectSamples', options)
 
 /**
- * Get Samples
+ * Get Project Samples
  * Returns a paginated list of samples.
  */
-export const getSamplesOptions = (options: Options<GetSamplesData>) => {
+export const getProjectSamplesOptions = (
+  options: Options<GetProjectSamplesData>,
+) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getSamples({
+      const { data } = await getProjectSamples({
         ...options,
         ...queryKey[0],
         signal,
@@ -2101,28 +1932,30 @@ export const getSamplesOptions = (options: Options<GetSamplesData>) => {
       })
       return data
     },
-    queryKey: getSamplesQueryKey(options),
+    queryKey: getProjectSamplesQueryKey(options),
   })
 }
 
-export const getSamplesInfiniteQueryKey = (
-  options: Options<GetSamplesData>,
-): QueryKey<Options<GetSamplesData>> =>
-  createQueryKey('getSamples', options, true)
+export const getProjectSamplesInfiniteQueryKey = (
+  options: Options<GetProjectSamplesData>,
+): QueryKey<Options<GetProjectSamplesData>> =>
+  createQueryKey('getProjectSamples', options, true)
 
 /**
- * Get Samples
+ * Get Project Samples
  * Returns a paginated list of samples.
  */
-export const getSamplesInfiniteOptions = (options: Options<GetSamplesData>) => {
+export const getProjectSamplesInfiniteOptions = (
+  options: Options<GetProjectSamplesData>,
+) => {
   return infiniteQueryOptions<
-    GetSamplesResponse,
-    AxiosError<GetSamplesError>,
-    InfiniteData<GetSamplesResponse>,
-    QueryKey<Options<GetSamplesData>>,
+    GetProjectSamplesResponse,
+    AxiosError<GetProjectSamplesError>,
+    InfiniteData<GetProjectSamplesResponse>,
+    QueryKey<Options<GetProjectSamplesData>>,
     | number
     | Pick<
-        QueryKey<Options<GetSamplesData>>[0],
+        QueryKey<Options<GetProjectSamplesData>>[0],
         'body' | 'headers' | 'path' | 'query'
       >
   >(
@@ -2131,7 +1964,7 @@ export const getSamplesInfiniteOptions = (options: Options<GetSamplesData>) => {
       queryFn: async ({ pageParam, queryKey, signal }) => {
         // @ts-ignore
         const page: Pick<
-          QueryKey<Options<GetSamplesData>>[0],
+          QueryKey<Options<GetProjectSamplesData>>[0],
           'body' | 'headers' | 'path' | 'query'
         > =
           typeof pageParam === 'object'
@@ -2142,7 +1975,7 @@ export const getSamplesInfiniteOptions = (options: Options<GetSamplesData>) => {
                 },
               }
         const params = createInfiniteParams(queryKey, page)
-        const { data } = await getSamples({
+        const { data } = await getProjectSamples({
           ...options,
           ...params,
           signal,
@@ -2150,7 +1983,7 @@ export const getSamplesInfiniteOptions = (options: Options<GetSamplesData>) => {
         })
         return data
       },
-      queryKey: getSamplesInfiniteQueryKey(options),
+      queryKey: getProjectSamplesInfiniteQueryKey(options),
     },
   )
 }
@@ -2234,6 +2067,271 @@ export const updateSampleInProjectMutation = (
     },
   }
   return mutationOptions
+}
+
+export const submitPipelineJobQueryKey = (
+  options: Options<SubmitPipelineJobData>,
+) => createQueryKey('submitPipelineJob', options)
+
+/**
+ * Submit Pipeline Job
+ * Submit a pipeline job to AWS Batch for a project.
+ *
+ * This endpoint validates the project exists, retrieves the appropriate pipeline
+ * configuration based on the project type, determines the command to execute
+ * based on the action (create-project or export-project-results), interpolates
+ * template variables, and submits the job to AWS Batch.
+ *
+ * Args:
+ * session: Database session
+ * project_id: The project ID
+ * request: Pipeline submission request containing:
+ * - action: Pipeline action (create-project or export-project-results)
+ * - platform: Platform name (Arvados or SevenBridges)
+ * - project_type: Pipeline workflow type (e.g., RNA-Seq, WGS)
+ * - reference: Export reference (required for export-project-results)
+ * - auto_release: Auto-release flag for export action (default: False)
+ * current_user: Currently authenticated user
+ * s3_client: S3 client for retrieving pipeline configs
+ *
+ * Returns:
+ * BatchJobPublic: The created batch job information
+ */
+export const submitPipelineJobOptions = (
+  options: Options<SubmitPipelineJobData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await submitPipelineJob({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: submitPipelineJobQueryKey(options),
+  })
+}
+
+/**
+ * Submit Pipeline Job
+ * Submit a pipeline job to AWS Batch for a project.
+ *
+ * This endpoint validates the project exists, retrieves the appropriate pipeline
+ * configuration based on the project type, determines the command to execute
+ * based on the action (create-project or export-project-results), interpolates
+ * template variables, and submits the job to AWS Batch.
+ *
+ * Args:
+ * session: Database session
+ * project_id: The project ID
+ * request: Pipeline submission request containing:
+ * - action: Pipeline action (create-project or export-project-results)
+ * - platform: Platform name (Arvados or SevenBridges)
+ * - project_type: Pipeline workflow type (e.g., RNA-Seq, WGS)
+ * - reference: Export reference (required for export-project-results)
+ * - auto_release: Auto-release flag for export action (default: False)
+ * current_user: Currently authenticated user
+ * s3_client: S3 client for retrieving pipeline configs
+ *
+ * Returns:
+ * BatchJobPublic: The created batch job information
+ */
+export const submitPipelineJobMutation = (
+  options?: Partial<Options<SubmitPipelineJobData>>,
+): UseMutationOptions<
+  SubmitPipelineJobResponse,
+  AxiosError<SubmitPipelineJobError>,
+  Options<SubmitPipelineJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SubmitPipelineJobResponse,
+    AxiosError<SubmitPipelineJobError>,
+    Options<SubmitPipelineJobData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await submitPipelineJob({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const validatePipelineConfigQueryKey = (
+  options: Options<ValidatePipelineConfigData>,
+) => createQueryKey('validatePipelineConfig', options)
+
+/**
+ * Validate Pipeline Config
+ * Validate a pipeline configuration file from S3.
+ *
+ * Accepts an S3 path to a pipeline configuration file and validates it
+ * against the PipelineConfig schema. Returns the parsed config if valid,
+ * or error details if invalid.
+ *
+ * Args:
+ * s3_path: S3 path to the config file. Can be:
+ * - Full S3 URI: s3://bucket/path/to/config.yaml
+ * - Relative path: config.yaml or path/to/config.yaml
+ * (uses default pipeline configs bucket)
+ *
+ * Examples:
+ * - s3://my-bucket/configs/rna-seq_pipeline.yaml
+ * - rna-seq_pipeline.yaml
+ * - custom/wgs_pipeline.yaml
+ */
+export const validatePipelineConfigOptions = (
+  options: Options<ValidatePipelineConfigData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await validatePipelineConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: validatePipelineConfigQueryKey(options),
+  })
+}
+
+/**
+ * Validate Pipeline Config
+ * Validate a pipeline configuration file from S3.
+ *
+ * Accepts an S3 path to a pipeline configuration file and validates it
+ * against the PipelineConfig schema. Returns the parsed config if valid,
+ * or error details if invalid.
+ *
+ * Args:
+ * s3_path: S3 path to the config file. Can be:
+ * - Full S3 URI: s3://bucket/path/to/config.yaml
+ * - Relative path: config.yaml or path/to/config.yaml
+ * (uses default pipeline configs bucket)
+ *
+ * Examples:
+ * - s3://my-bucket/configs/rna-seq_pipeline.yaml
+ * - rna-seq_pipeline.yaml
+ * - custom/wgs_pipeline.yaml
+ */
+export const validatePipelineConfigMutation = (
+  options?: Partial<Options<ValidatePipelineConfigData>>,
+): UseMutationOptions<
+  ValidatePipelineConfigResponse,
+  AxiosError<ValidatePipelineConfigError>,
+  Options<ValidatePipelineConfigData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ValidatePipelineConfigResponse,
+    AxiosError<ValidatePipelineConfigError>,
+    Options<ValidatePipelineConfigData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await validatePipelineConfig({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getPipelineActionsQueryKey = (
+  options?: Options<GetPipelineActionsData>,
+) => createQueryKey('getPipelineActions', options)
+
+/**
+ * Get Pipeline Actions
+ * Get available pipeline actions.
+ *
+ * Returns:
+ * List of available pipeline actions with labels, values,
+ * and descriptions
+ */
+export const getPipelineActionsOptions = (
+  options?: Options<GetPipelineActionsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getPipelineActions({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getPipelineActionsQueryKey(options),
+  })
+}
+
+export const getPipelinePlatformsQueryKey = (
+  options?: Options<GetPipelinePlatformsData>,
+) => createQueryKey('getPipelinePlatforms', options)
+
+/**
+ * Get Pipeline Platforms
+ * Get available pipeline platforms.
+ *
+ * Returns:
+ * List of available platforms with labels, values, and descriptions
+ */
+export const getPipelinePlatformsOptions = (
+  options?: Options<GetPipelinePlatformsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getPipelinePlatforms({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getPipelinePlatformsQueryKey(options),
+  })
+}
+
+export const getPipelineTypesQueryKey = (
+  options: Options<GetPipelineTypesData>,
+) => createQueryKey('getPipelineTypes', options)
+
+/**
+ * Get Pipeline Types
+ * Get available pipeline types based on action and platform.
+ *
+ * Args:
+ * action: The pipeline action
+ * platform: The platform
+ *
+ * Returns:
+ * List of pipeline types with label, value, and project_type
+ */
+export const getPipelineTypesOptions = (
+  options: Options<GetPipelineTypesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getPipelineTypes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getPipelineTypesQueryKey(options),
+  })
 }
 
 export const getRunsQueryKey = (options?: Options<GetRunsData>) =>

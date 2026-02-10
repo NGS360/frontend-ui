@@ -766,6 +766,12 @@ export type PasswordResetRequest = {
 }
 
 /**
+ * PipelineAction
+ * Pipeline action types
+ */
+export type PipelineAction = 'create-project' | 'export-project-results'
+
+/**
  * PipelineConfig
  * Model for pipeline workflow configuration.
  */
@@ -796,21 +802,7 @@ export type PipelineConfig = {
    * Export Command
    */
   export_command?: string | null
-}
-
-/**
- * PipelineConfigsResponse
- * Response model for list of pipeline workflow configurations.
- */
-export type PipelineConfigsResponse = {
-  /**
-   * Configs
-   */
-  configs: Array<PipelineConfig>
-  /**
-   * Total
-   */
-  total: number
+  aws_batch?: AwsBatchConfig | null
 }
 
 /**
@@ -837,10 +829,60 @@ export type PipelineInput = {
 }
 
 /**
+ * PipelineOption
+ * Model for pipeline option
+ */
+export type PipelineOption = {
+  /**
+   * Label
+   */
+  label: string
+  /**
+   * Value
+   */
+  value: string
+  /**
+   * Description
+   */
+  description: string
+}
+
+/**
+ * PipelinePlatform
+ * Pipeline platform types
+ */
+export type PipelinePlatform = 'Arvados' | 'SevenBridges'
+
+/**
+ * PipelineSubmitRequest
+ * Request model for submitting a pipeline job to AWS Batch
+ */
+export type PipelineSubmitRequest = {
+  action: PipelineAction
+  platform: PipelinePlatform
+  /**
+   * Project Type
+   */
+  project_type: string
+  /**
+   * Reference
+   */
+  reference?: string | null
+  /**
+   * Auto Release
+   */
+  auto_release?: boolean | null
+}
+
+/**
  * PlatformConfig
  * Model for platform-specific configuration (Arvados, SevenBridges, etc).
  */
 export type PlatformConfig = {
+  /**
+   * Create Project Command
+   */
+  create_project_command?: string | null
   /**
    * Launchers
    */
@@ -869,25 +911,6 @@ export type ProjectCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
-}
-
-/**
- * ProjectOption
- * Model for project option
- */
-export type ProjectOption = {
-  /**
-   * Label
-   */
-  label: string
-  /**
-   * Value
-   */
-  value: string
-  /**
-   * Description
-   */
-  description: string
 }
 
 /**
@@ -2443,150 +2466,6 @@ export type ReindexProjectsResponses = {
   201: unknown
 }
 
-export type ListWorkflowConfigsData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/v1/projects/workflows'
-}
-
-export type ListWorkflowConfigsResponses = {
-  /**
-   * Response List Workflow Configs
-   * Successful Response
-   */
-  200: Array<string>
-}
-
-export type ListWorkflowConfigsResponse =
-  ListWorkflowConfigsResponses[keyof ListWorkflowConfigsResponses]
-
-export type GetAllWorkflowConfigsData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/v1/projects/workflows/configs'
-}
-
-export type GetAllWorkflowConfigsResponses = {
-  /**
-   * Successful Response
-   */
-  200: PipelineConfigsResponse
-}
-
-export type GetAllWorkflowConfigsResponse =
-  GetAllWorkflowConfigsResponses[keyof GetAllWorkflowConfigsResponses]
-
-export type GetWorkflowConfigData = {
-  body?: never
-  path: {
-    /**
-     * Workflow Id
-     */
-    workflow_id: string
-  }
-  query?: never
-  url: '/api/v1/projects/workflows/{workflow_id}'
-}
-
-export type GetWorkflowConfigErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type GetWorkflowConfigError =
-  GetWorkflowConfigErrors[keyof GetWorkflowConfigErrors]
-
-export type GetWorkflowConfigResponses = {
-  /**
-   * Successful Response
-   */
-  200: PipelineConfig
-}
-
-export type GetWorkflowConfigResponse =
-  GetWorkflowConfigResponses[keyof GetWorkflowConfigResponses]
-
-export type GetProjectActionsData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/v1/projects/actions'
-}
-
-export type GetProjectActionsResponses = {
-  /**
-   * Response Get Project Actions
-   * Successful Response
-   */
-  200: Array<ProjectOption>
-}
-
-export type GetProjectActionsResponse =
-  GetProjectActionsResponses[keyof GetProjectActionsResponses]
-
-export type GetProjectPlatformsData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/v1/projects/platforms'
-}
-
-export type GetProjectPlatformsResponses = {
-  /**
-   * Response Get Project Platforms
-   * Successful Response
-   */
-  200: Array<ProjectOption>
-}
-
-export type GetProjectPlatformsResponse =
-  GetProjectPlatformsResponses[keyof GetProjectPlatformsResponses]
-
-export type GetProjectTypesData = {
-  body?: never
-  path?: never
-  query: {
-    /**
-     * Action
-     * Project action
-     */
-    action: 'create-project' | 'export-project-results'
-    /**
-     * Platform
-     * Project platform
-     */
-    platform: 'arvados' | 'sevenbridges'
-  }
-  url: '/api/v1/projects/types'
-}
-
-export type GetProjectTypesErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type GetProjectTypesError =
-  GetProjectTypesErrors[keyof GetProjectTypesErrors]
-
-export type GetProjectTypesResponses = {
-  /**
-   * Response Get Project Types
-   * Successful Response
-   */
-  200: Array<{
-    [key: string]: unknown
-  }>
-}
-
-export type GetProjectTypesResponse =
-  GetProjectTypesResponses[keyof GetProjectTypesResponses]
-
 export type GetProjectByProjectIdData = {
   body?: never
   path: {
@@ -2650,7 +2529,7 @@ export type UpdateProjectResponses = {
 export type UpdateProjectResponse =
   UpdateProjectResponses[keyof UpdateProjectResponses]
 
-export type GetSamplesData = {
+export type GetProjectSamplesData = {
   body?: never
   path: {
     /**
@@ -2683,23 +2562,25 @@ export type GetSamplesData = {
   url: '/api/v1/projects/{project_id}/samples'
 }
 
-export type GetSamplesErrors = {
+export type GetProjectSamplesErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetSamplesError = GetSamplesErrors[keyof GetSamplesErrors]
+export type GetProjectSamplesError =
+  GetProjectSamplesErrors[keyof GetProjectSamplesErrors]
 
-export type GetSamplesResponses = {
+export type GetProjectSamplesResponses = {
   /**
    * Successful Response
    */
   200: SamplesPublic
 }
 
-export type GetSamplesResponse = GetSamplesResponses[keyof GetSamplesResponses]
+export type GetProjectSamplesResponse =
+  GetProjectSamplesResponses[keyof GetProjectSamplesResponses]
 
 export type AddSampleToProjectData = {
   body: SampleCreate
@@ -2737,13 +2618,13 @@ export type UpdateSampleInProjectData = {
   body: Attribute
   path: {
     /**
-     * Project Id
-     */
-    project_id: string
-    /**
      * Sample Id
      */
     sample_id: string
+    /**
+     * Project Id
+     */
+    project_id: string
   }
   query?: never
   url: '/api/v1/projects/{project_id}/samples/{sample_id}'
@@ -2768,6 +2649,146 @@ export type UpdateSampleInProjectResponses = {
 
 export type UpdateSampleInProjectResponse =
   UpdateSampleInProjectResponses[keyof UpdateSampleInProjectResponses]
+
+export type SubmitPipelineJobData = {
+  body: PipelineSubmitRequest
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/pipelines/submit'
+}
+
+export type SubmitPipelineJobErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SubmitPipelineJobError =
+  SubmitPipelineJobErrors[keyof SubmitPipelineJobErrors]
+
+export type SubmitPipelineJobResponses = {
+  /**
+   * Successful Response
+   */
+  201: BatchJobPublic
+}
+
+export type SubmitPipelineJobResponse =
+  SubmitPipelineJobResponses[keyof SubmitPipelineJobResponses]
+
+export type ValidatePipelineConfigData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * S3 Path
+     * S3 path to pipeline config (s3://bucket/path/to/config.yaml or relative path)
+     */
+    s3_path: string
+  }
+  url: '/api/v1/pipelines/validate'
+}
+
+export type ValidatePipelineConfigErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ValidatePipelineConfigError =
+  ValidatePipelineConfigErrors[keyof ValidatePipelineConfigErrors]
+
+export type ValidatePipelineConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: PipelineConfig
+}
+
+export type ValidatePipelineConfigResponse =
+  ValidatePipelineConfigResponses[keyof ValidatePipelineConfigResponses]
+
+export type GetPipelineActionsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/pipelines/actions'
+}
+
+export type GetPipelineActionsResponses = {
+  /**
+   * Response Get Pipeline Actions
+   * Successful Response
+   */
+  200: Array<PipelineOption>
+}
+
+export type GetPipelineActionsResponse =
+  GetPipelineActionsResponses[keyof GetPipelineActionsResponses]
+
+export type GetPipelinePlatformsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/pipelines/platforms'
+}
+
+export type GetPipelinePlatformsResponses = {
+  /**
+   * Response Get Pipeline Platforms
+   * Successful Response
+   */
+  200: Array<PipelineOption>
+}
+
+export type GetPipelinePlatformsResponse =
+  GetPipelinePlatformsResponses[keyof GetPipelinePlatformsResponses]
+
+export type GetPipelineTypesData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Pipeline action
+     */
+    action: PipelineAction
+    /**
+     * Pipeline platform
+     */
+    platform: PipelinePlatform
+  }
+  url: '/api/v1/pipelines/types'
+}
+
+export type GetPipelineTypesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetPipelineTypesError =
+  GetPipelineTypesErrors[keyof GetPipelineTypesErrors]
+
+export type GetPipelineTypesResponses = {
+  /**
+   * Response Get Pipeline Types
+   * Successful Response
+   */
+  200: Array<{
+    [key: string]: unknown
+  }>
+}
+
+export type GetPipelineTypesResponse =
+  GetPipelineTypesResponses[keyof GetPipelineTypesResponses]
 
 export type GetRunsData = {
   body?: never
