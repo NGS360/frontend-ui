@@ -4,7 +4,7 @@ import { useMemo, useReducer, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type React from 'react'
 import type { JSX } from 'react'
-import type { PipelineAction, PipelineOption, PipelinePlatform  } from '@/client/types.gen'
+import type { ActionOption, ActionPlatform  } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
 import { ComboBox } from '@/components/combobox'
 import { Spinner } from '@/components/spinner'
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { getPipelineActionsOptions, getPipelinePlatformsOptions, getPipelineTypesOptions, submitPipelineJobMutation } from '@/client/@tanstack/react-query.gen'
+import { getActionOptionsOptions, getActionPlatformsOptions, getActionTypesOptions, submitPipelineJobMutation } from '@/client/@tanstack/react-query.gen'
 
 interface ExecuteActionFormProps {
   /** Trigger for the Sheet component */
@@ -30,22 +30,22 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   // Stepper state managed by useReducer
   type State = {
     activeStep: number;
-    projectAction: { value: PipelineAction | ''; label?: string };
-    projectPlatform: { value: PipelinePlatform | ''; label?: string };
+    projectAction: { value: ActionOption | ''; label?: string };
+    projectPlatform: { value: ActionPlatform | ''; label?: string };
     projectType: { value: string; label?: string };
     autoRelease: boolean;
   };
   type Action =
-    | { type: 'SET_ACTION'; value: PipelineAction; label?: string }
-    | { type: 'SET_PLATFORM'; value: PipelinePlatform; label?: string }
+    | { type: 'SET_ACTION'; value: ActionOption; label?: string }
+    | { type: 'SET_PLATFORM'; value: ActionPlatform; label?: string }
     | { type: 'SET_TYPE'; value: string; label?: string }
     | { type: 'SET_ACTIVE_STEP'; value: number }
     | { type: 'SET_AUTO_RELEASE'; value: boolean };
 
   const initialState: State = {
     activeStep: 0,
-    projectAction: { value: '' as PipelineAction, label: '' },
-    projectPlatform: { value: '' as PipelinePlatform, label: '' },
+    projectAction: { value: '' as ActionOption, label: '' },
+    projectPlatform: { value: '' as ActionPlatform, label: '' },
     projectType: { value: '', label: '' },
     autoRelease: false,
   };
@@ -56,7 +56,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
         return {
           ...state,
           projectAction: { value: action.value, label: action.label },
-          projectPlatform: { value: '' as PipelinePlatform, label: '' },
+          projectPlatform: { value: '' as ActionPlatform, label: '' },
           projectType: { value: '', label: '' },
           activeStep: action.value ? 1 : 0,
         };
@@ -119,7 +119,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
 
   // Handle reset - clear form state
   const handleReset = () => {
-    dispatch({ type: 'SET_ACTION', value: '' as PipelineAction, label: '' });
+    dispatch({ type: 'SET_ACTION', value: '' as ActionOption, label: '' });
     dispatch({ type: 'SET_ACTIVE_STEP', value: 0 });
     dispatch({ type: 'SET_AUTO_RELEASE', value: false });
   };
@@ -132,17 +132,17 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   };
 
   // Project action options
-  const { data: projectActionsData } = useQuery(getPipelineActionsOptions());
+  const { data: projectActionsData } = useQuery(getActionOptionsOptions());
   const projectActionOptions = useMemo<Array<ComboBoxOption>>(() => {
-    return (projectActionsData)?.map(option => ({
+    return (projectActionsData ?? []).map(option => ({
       value: option.value,
       label: option.label,
       description: option.description,
-    })) ?? [];
+    }));
   }, [projectActionsData]);
 
   // Project platform options
-  const { data: projectPlatformsData } = useQuery(getPipelinePlatformsOptions());
+  const { data: projectPlatformsData } = useQuery(getActionPlatformsOptions());
   const projectPlatformOptions = useMemo<Array<ComboBoxOption>>(() => {
     return (projectPlatformsData ?? []).map(option => ({
       value: option.value,
@@ -153,20 +153,21 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
 
   // Project type options
   const { data: projectTypesData, isFetching: isLoadingProjectTypes } = useQuery({
-    ...getPipelineTypesOptions({
+    ...getActionTypesOptions({
       query: {
-        action: state.projectAction.value as PipelineAction,
-        platform: state.projectPlatform.value as PipelinePlatform,
+        action: state.projectAction.value as ActionOption,
+        platform: state.projectPlatform.value as ActionPlatform,
       },
     }),
     enabled: !!state.projectAction.value && !!state.projectPlatform.value,
   });
   const projectTypeOptions = useMemo<Array<ComboBoxOption>>(() => {
-    return (projectTypesData as Array<PipelineOption> | undefined)?.map(option => ({
+    if (!projectTypesData) return [];
+    return (projectTypesData as Array<{ label: string; value: string; description: string }>).map(option => ({
       value: option.label, // Use label as unique identifier since values can be duplicated
       label: option.label,
       description: option.description,
-    })) ?? [];
+    }));
   }, [projectTypesData]);
 
   return (
@@ -194,7 +195,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
                         options={projectActionOptions}
                         placeholder="Select project action"
                         value={state.projectAction.value}
-                        onChange={(value: string, label?: string) => dispatch({ type: 'SET_ACTION', value: value as PipelineAction, label })}
+                        onChange={(value: string, label?: string) => dispatch({ type: 'SET_ACTION', value: value as ActionOption, label })}
                       />
                     </div>
                   </>
@@ -212,7 +213,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
                         placeholder="Select project platform"
                         value={state.projectPlatform.value}
                         disabled={!state.projectAction.value}
-                        onChange={(value: string, label?: string) => dispatch({ type: 'SET_PLATFORM', value: value as PipelinePlatform, label })}
+                        onChange={(value: string, label?: string) => dispatch({ type: 'SET_PLATFORM', value: value as ActionPlatform, label })}
                       />
                     </div>
                   </>
@@ -286,8 +287,8 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
                   project_id: projectId,
                 },
                 body: {
-                  action: state.projectAction.value as PipelineAction,
-                  platform: state.projectPlatform.value as PipelinePlatform,
+                  action: state.projectAction.value as ActionOption,
+                  platform: state.projectPlatform.value as ActionPlatform,
                   project_type: projectType,
                   reference: reference,
                   auto_release: state.autoRelease,

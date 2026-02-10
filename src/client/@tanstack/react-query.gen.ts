@@ -19,15 +19,15 @@ import {
   createWorkflow,
   deleteVendor,
   downloadFile,
+  getActionOptions,
+  getActionPlatforms,
+  getActionTypes,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
   getFile,
   getJob,
   getJobs,
   getLatestManifest,
-  getPipelineActions,
-  getPipelinePlatforms,
-  getPipelineTypes,
   getProjectByProjectId,
   getProjectSamples,
   getProjects,
@@ -72,8 +72,8 @@ import {
   updateSetting,
   updateVendor,
   uploadManifest,
+  validateActionConfig,
   validateManifest,
-  validatePipelineConfig,
   verifyEmail
 } from '../sdk.gen'
 import { client as _heyApiClient } from '../client.gen'
@@ -108,15 +108,15 @@ import type {
   DeleteVendorError,
   DeleteVendorResponse,
   DownloadFileData,
+  GetActionOptionsData,
+  GetActionPlatformsData,
+  GetActionTypesData,
   GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
   GetFileData,
   GetJobData,
   GetJobsData,
   GetLatestManifestData,
-  GetPipelineActionsData,
-  GetPipelinePlatformsData,
-  GetPipelineTypesData,
   GetProjectByProjectIdData,
   GetProjectSamplesData,
   GetProjectSamplesError,
@@ -213,12 +213,12 @@ import type {
   UploadManifestData,
   UploadManifestError,
   UploadManifestResponse,
+  ValidateActionConfigData,
+  ValidateActionConfigError,
+  ValidateActionConfigResponse,
   ValidateManifestData,
   ValidateManifestError,
   ValidateManifestResponse,
-  ValidatePipelineConfigData,
-  ValidatePipelineConfigError,
-  ValidatePipelineConfigResponse,
   VerifyEmailData,
   VerifyEmailError,
   VerifyEmailResponse,
@@ -1227,6 +1227,175 @@ export const unlinkOauthProviderMutation = (
   return mutationOptions
 }
 
+export const validateActionConfigQueryKey = (
+  options: Options<ValidateActionConfigData>,
+) => createQueryKey('validateActionConfig', options)
+
+/**
+ * Validate Action Config
+ * Validate an action configuration file from S3.
+ *
+ * Accepts an S3 path to an action configuration file and validates it
+ * against the ActionConfig schema. Returns the parsed config if valid,
+ * or error details if invalid.
+ *
+ * Args:
+ * s3_path: S3 path to the config file. Can be:
+ * - Full S3 URI: s3://bucket/path/to/config.yaml
+ * - Relative path: config.yaml or path/to/config.yaml
+ * (uses default action configs bucket)
+ *
+ * Examples:
+ * - s3://my-bucket/configs/rna-seq_pipeline.yaml
+ * - rna-seq_pipeline.yaml
+ * - custom/wgs_pipeline.yaml
+ */
+export const validateActionConfigOptions = (
+  options: Options<ValidateActionConfigData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await validateActionConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: validateActionConfigQueryKey(options),
+  })
+}
+
+/**
+ * Validate Action Config
+ * Validate an action configuration file from S3.
+ *
+ * Accepts an S3 path to an action configuration file and validates it
+ * against the ActionConfig schema. Returns the parsed config if valid,
+ * or error details if invalid.
+ *
+ * Args:
+ * s3_path: S3 path to the config file. Can be:
+ * - Full S3 URI: s3://bucket/path/to/config.yaml
+ * - Relative path: config.yaml or path/to/config.yaml
+ * (uses default action configs bucket)
+ *
+ * Examples:
+ * - s3://my-bucket/configs/rna-seq_pipeline.yaml
+ * - rna-seq_pipeline.yaml
+ * - custom/wgs_pipeline.yaml
+ */
+export const validateActionConfigMutation = (
+  options?: Partial<Options<ValidateActionConfigData>>,
+): UseMutationOptions<
+  ValidateActionConfigResponse,
+  AxiosError<ValidateActionConfigError>,
+  Options<ValidateActionConfigData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ValidateActionConfigResponse,
+    AxiosError<ValidateActionConfigError>,
+    Options<ValidateActionConfigData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await validateActionConfig({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getActionOptionsQueryKey = (
+  options?: Options<GetActionOptionsData>,
+) => createQueryKey('getActionOptions', options)
+
+/**
+ * Get Action Options
+ * Get available action options.
+ *
+ * Returns:
+ * List of available action options with labels, values,
+ * and descriptions
+ */
+export const getActionOptionsOptions = (
+  options?: Options<GetActionOptionsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getActionOptions({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getActionOptionsQueryKey(options),
+  })
+}
+
+export const getActionPlatformsQueryKey = (
+  options?: Options<GetActionPlatformsData>,
+) => createQueryKey('getActionPlatforms', options)
+
+/**
+ * Get Action Platforms
+ * Get available action platforms.
+ *
+ * Returns:
+ * List of available platforms with labels, values, and descriptions
+ */
+export const getActionPlatformsOptions = (
+  options?: Options<GetActionPlatformsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getActionPlatforms({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getActionPlatformsQueryKey(options),
+  })
+}
+
+export const getActionTypesQueryKey = (options: Options<GetActionTypesData>) =>
+  createQueryKey('getActionTypes', options)
+
+/**
+ * Get Action Types
+ * Get available action types based on action and platform.
+ *
+ * Args:
+ * action: The action type
+ * platform: The platform
+ *
+ * Returns:
+ * List of action types with label, value, and project_type
+ */
+export const getActionTypesOptions = (options: Options<GetActionTypesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getActionTypes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getActionTypesQueryKey(options),
+  })
+}
+
 export const createFileQueryKey = (options: Options<CreateFileData>) =>
   createQueryKey('createFile', options)
 
@@ -2160,178 +2329,6 @@ export const submitPipelineJobMutation = (
     },
   }
   return mutationOptions
-}
-
-export const validatePipelineConfigQueryKey = (
-  options: Options<ValidatePipelineConfigData>,
-) => createQueryKey('validatePipelineConfig', options)
-
-/**
- * Validate Pipeline Config
- * Validate a pipeline configuration file from S3.
- *
- * Accepts an S3 path to a pipeline configuration file and validates it
- * against the PipelineConfig schema. Returns the parsed config if valid,
- * or error details if invalid.
- *
- * Args:
- * s3_path: S3 path to the config file. Can be:
- * - Full S3 URI: s3://bucket/path/to/config.yaml
- * - Relative path: config.yaml or path/to/config.yaml
- * (uses default pipeline configs bucket)
- *
- * Examples:
- * - s3://my-bucket/configs/rna-seq_pipeline.yaml
- * - rna-seq_pipeline.yaml
- * - custom/wgs_pipeline.yaml
- */
-export const validatePipelineConfigOptions = (
-  options: Options<ValidatePipelineConfigData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await validatePipelineConfig({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: validatePipelineConfigQueryKey(options),
-  })
-}
-
-/**
- * Validate Pipeline Config
- * Validate a pipeline configuration file from S3.
- *
- * Accepts an S3 path to a pipeline configuration file and validates it
- * against the PipelineConfig schema. Returns the parsed config if valid,
- * or error details if invalid.
- *
- * Args:
- * s3_path: S3 path to the config file. Can be:
- * - Full S3 URI: s3://bucket/path/to/config.yaml
- * - Relative path: config.yaml or path/to/config.yaml
- * (uses default pipeline configs bucket)
- *
- * Examples:
- * - s3://my-bucket/configs/rna-seq_pipeline.yaml
- * - rna-seq_pipeline.yaml
- * - custom/wgs_pipeline.yaml
- */
-export const validatePipelineConfigMutation = (
-  options?: Partial<Options<ValidatePipelineConfigData>>,
-): UseMutationOptions<
-  ValidatePipelineConfigResponse,
-  AxiosError<ValidatePipelineConfigError>,
-  Options<ValidatePipelineConfigData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    ValidatePipelineConfigResponse,
-    AxiosError<ValidatePipelineConfigError>,
-    Options<ValidatePipelineConfigData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await validatePipelineConfig({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      })
-      return data
-    },
-  }
-  return mutationOptions
-}
-
-export const getPipelineActionsQueryKey = (
-  options?: Options<GetPipelineActionsData>,
-) => createQueryKey('getPipelineActions', options)
-
-/**
- * Get Pipeline Actions
- * Get available pipeline actions.
- *
- * Returns:
- * List of available pipeline actions with labels, values,
- * and descriptions
- */
-export const getPipelineActionsOptions = (
-  options?: Options<GetPipelineActionsData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getPipelineActions({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getPipelineActionsQueryKey(options),
-  })
-}
-
-export const getPipelinePlatformsQueryKey = (
-  options?: Options<GetPipelinePlatformsData>,
-) => createQueryKey('getPipelinePlatforms', options)
-
-/**
- * Get Pipeline Platforms
- * Get available pipeline platforms.
- *
- * Returns:
- * List of available platforms with labels, values, and descriptions
- */
-export const getPipelinePlatformsOptions = (
-  options?: Options<GetPipelinePlatformsData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getPipelinePlatforms({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getPipelinePlatformsQueryKey(options),
-  })
-}
-
-export const getPipelineTypesQueryKey = (
-  options: Options<GetPipelineTypesData>,
-) => createQueryKey('getPipelineTypes', options)
-
-/**
- * Get Pipeline Types
- * Get available pipeline types based on action and platform.
- *
- * Args:
- * action: The pipeline action
- * platform: The platform
- *
- * Returns:
- * List of pipeline types with label, value, and project_type
- */
-export const getPipelineTypesOptions = (
-  options: Options<GetPipelineTypesData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getPipelineTypes({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getPipelineTypesQueryKey(options),
-  })
 }
 
 export const getRunsQueryKey = (options?: Options<GetRunsData>) =>

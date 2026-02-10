@@ -40,6 +40,13 @@ import type {
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
+  GetActionOptionsData,
+  GetActionOptionsResponses,
+  GetActionPlatformsData,
+  GetActionPlatformsResponses,
+  GetActionTypesData,
+  GetActionTypesErrors,
+  GetActionTypesResponses,
   GetCurrentUserInfoData,
   GetCurrentUserInfoResponses,
   GetDemultiplexWorkflowConfigData,
@@ -57,13 +64,6 @@ import type {
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
-  GetPipelineActionsData,
-  GetPipelineActionsResponses,
-  GetPipelinePlatformsData,
-  GetPipelinePlatformsResponses,
-  GetPipelineTypesData,
-  GetPipelineTypesErrors,
-  GetPipelineTypesResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
@@ -190,12 +190,12 @@ import type {
   UploadManifestData,
   UploadManifestErrors,
   UploadManifestResponses,
+  ValidateActionConfigData,
+  ValidateActionConfigErrors,
+  ValidateActionConfigResponses,
   ValidateManifestData,
   ValidateManifestErrors,
   ValidateManifestResponses,
-  ValidatePipelineConfigData,
-  ValidatePipelineConfigErrors,
-  ValidatePipelineConfigResponses,
   VerifyEmailData,
   VerifyEmailErrors,
   VerifyEmailResponses,
@@ -757,6 +757,107 @@ export const unlinkOauthProvider = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Validate Action Config
+ * Validate an action configuration file from S3.
+ *
+ * Accepts an S3 path to an action configuration file and validates it
+ * against the ActionConfig schema. Returns the parsed config if valid,
+ * or error details if invalid.
+ *
+ * Args:
+ * s3_path: S3 path to the config file. Can be:
+ * - Full S3 URI: s3://bucket/path/to/config.yaml
+ * - Relative path: config.yaml or path/to/config.yaml
+ * (uses default action configs bucket)
+ *
+ * Examples:
+ * - s3://my-bucket/configs/rna-seq_pipeline.yaml
+ * - rna-seq_pipeline.yaml
+ * - custom/wgs_pipeline.yaml
+ */
+export const validateActionConfig = <ThrowOnError extends boolean = false>(
+  options: Options<ValidateActionConfigData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ValidateActionConfigResponses,
+    ValidateActionConfigErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/actions/config/validate',
+    ...options,
+  })
+}
+
+/**
+ * Get Action Options
+ * Get available action options.
+ *
+ * Returns:
+ * List of available action options with labels, values,
+ * and descriptions
+ */
+export const getActionOptions = <ThrowOnError extends boolean = false>(
+  options?: Options<GetActionOptionsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetActionOptionsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/actions/options',
+    ...options,
+  })
+}
+
+/**
+ * Get Action Platforms
+ * Get available action platforms.
+ *
+ * Returns:
+ * List of available platforms with labels, values, and descriptions
+ */
+export const getActionPlatforms = <ThrowOnError extends boolean = false>(
+  options?: Options<GetActionPlatformsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetActionPlatformsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/actions/platforms',
+    ...options,
+  })
+}
+
+/**
+ * Get Action Types
+ * Get available action types based on action and platform.
+ *
+ * Args:
+ * action: The action type
+ * platform: The platform
+ *
+ * Returns:
+ * List of action types with label, value, and project_type
+ */
+export const getActionTypes = <ThrowOnError extends boolean = false>(
+  options: Options<GetActionTypesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetActionTypesResponses,
+    GetActionTypesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/actions/types',
+    ...options,
+  })
+}
+
+/**
  * Create a new file record
  * Create a new file record with optional file content upload.
  * - **filename**: Name of the file
@@ -1203,113 +1304,12 @@ export const submitPipelineJob = <ThrowOnError extends boolean = false>(
         type: 'http',
       },
     ],
-    url: '/api/v1/projects/{project_id}/pipelines/submit',
+    url: '/api/v1/projects/{project_id}/actions/submit',
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  })
-}
-
-/**
- * Validate Pipeline Config
- * Validate a pipeline configuration file from S3.
- *
- * Accepts an S3 path to a pipeline configuration file and validates it
- * against the PipelineConfig schema. Returns the parsed config if valid,
- * or error details if invalid.
- *
- * Args:
- * s3_path: S3 path to the config file. Can be:
- * - Full S3 URI: s3://bucket/path/to/config.yaml
- * - Relative path: config.yaml or path/to/config.yaml
- * (uses default pipeline configs bucket)
- *
- * Examples:
- * - s3://my-bucket/configs/rna-seq_pipeline.yaml
- * - rna-seq_pipeline.yaml
- * - custom/wgs_pipeline.yaml
- */
-export const validatePipelineConfig = <ThrowOnError extends boolean = false>(
-  options: Options<ValidatePipelineConfigData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    ValidatePipelineConfigResponses,
-    ValidatePipelineConfigErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/pipelines/validate',
-    ...options,
-  })
-}
-
-/**
- * Get Pipeline Actions
- * Get available pipeline actions.
- *
- * Returns:
- * List of available pipeline actions with labels, values,
- * and descriptions
- */
-export const getPipelineActions = <ThrowOnError extends boolean = false>(
-  options?: Options<GetPipelineActionsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    GetPipelineActionsResponses,
-    unknown,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/pipelines/actions',
-    ...options,
-  })
-}
-
-/**
- * Get Pipeline Platforms
- * Get available pipeline platforms.
- *
- * Returns:
- * List of available platforms with labels, values, and descriptions
- */
-export const getPipelinePlatforms = <ThrowOnError extends boolean = false>(
-  options?: Options<GetPipelinePlatformsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    GetPipelinePlatformsResponses,
-    unknown,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/pipelines/platforms',
-    ...options,
-  })
-}
-
-/**
- * Get Pipeline Types
- * Get available pipeline types based on action and platform.
- *
- * Args:
- * action: The pipeline action
- * platform: The platform
- *
- * Returns:
- * List of pipeline types with label, value, and project_type
- */
-export const getPipelineTypes = <ThrowOnError extends boolean = false>(
-  options: Options<GetPipelineTypesData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetPipelineTypesResponses,
-    GetPipelineTypesErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/pipelines/types',
-    ...options,
   })
 }
 
