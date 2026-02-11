@@ -9,7 +9,8 @@ interface AuthState {
   accessToken: string | null
   refreshToken: string | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
+  basicLogin: (email: string, password: string) => Promise<void>
+  oauthLogin: (provider: string, code: string, state: string, redirectUri: string) => Promise<void>
   logout: () => Promise<void>
 }
 

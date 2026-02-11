@@ -44,6 +44,7 @@ import { Route as AuthAdminVendorsIndexImport } from './routes/_auth.admin.vendo
 import { Route as AuthAdminRunSettingsIndexImport } from './routes/_auth.admin.run-settings.index'
 import { Route as AuthAdminProjectSettingsIndexImport } from './routes/_auth.admin.project-settings.index'
 import { Route as AuthAdminJobsIndexImport } from './routes/_auth.admin.jobs.index'
+import { Route as UserOauthProviderCallbackImport } from './routes/_user.oauth.$provider.callback'
 import { Route as AuthRunsRunbarcodeSamplesheetRouteImport } from './routes/_auth.runs.$run_barcode.samplesheet.route'
 import { Route as AuthRunsRunbarcodeIndexqcRouteImport } from './routes/_auth.runs.$run_barcode.indexqc.route'
 import { Route as AuthRunsRunbarcodeSamplesheetIndexImport } from './routes/_auth.runs.$run_barcode.samplesheet.index'
@@ -251,6 +252,12 @@ const AuthAdminJobsIndexRoute = AuthAdminJobsIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthAdminJobsRouteRoute,
+} as any)
+
+const UserOauthProviderCallbackRoute = UserOauthProviderCallbackImport.update({
+  id: '/oauth/$provider/callback',
+  path: '/oauth/$provider/callback',
+  getParentRoute: () => UserRouteRoute,
 } as any)
 
 const AuthRunsRunbarcodeSamplesheetRouteRoute =
@@ -481,6 +488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRunsRunbarcodeSamplesheetRouteImport
       parentRoute: typeof AuthRunsRunbarcodeRouteImport
     }
+    '/_user/oauth/$provider/callback': {
+      id: '/_user/oauth/$provider/callback'
+      path: '/oauth/$provider/callback'
+      fullPath: '/oauth/$provider/callback'
+      preLoaderRoute: typeof UserOauthProviderCallbackImport
+      parentRoute: typeof UserRouteImport
+    }
     '/_auth/admin/jobs/': {
       id: '/_auth/admin/jobs/'
       path: '/'
@@ -556,6 +570,7 @@ interface UserRouteRouteChildren {
   UserForgotPasswordIndexRoute: typeof UserForgotPasswordIndexRoute
   UserLoginIndexRoute: typeof UserLoginIndexRoute
   UserRegisterIndexRoute: typeof UserRegisterIndexRoute
+  UserOauthProviderCallbackRoute: typeof UserOauthProviderCallbackRoute
 }
 
 const UserRouteRouteChildren: UserRouteRouteChildren = {
@@ -565,6 +580,7 @@ const UserRouteRouteChildren: UserRouteRouteChildren = {
   UserForgotPasswordIndexRoute: UserForgotPasswordIndexRoute,
   UserLoginIndexRoute: UserLoginIndexRoute,
   UserRegisterIndexRoute: UserRegisterIndexRoute,
+  UserOauthProviderCallbackRoute: UserOauthProviderCallbackRoute,
 }
 
 const UserRouteRouteWithChildren = UserRouteRoute._addFileChildren(
@@ -818,6 +834,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof UserRegisterIndexRoute
   '/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
   '/admin/jobs/': typeof AuthAdminJobsIndexRoute
   '/admin/project-settings/': typeof AuthAdminProjectSettingsIndexRoute
   '/admin/run-settings/': typeof AuthAdminRunSettingsIndexRoute
@@ -843,6 +860,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof UserForgotPasswordIndexRoute
   '/login': typeof UserLoginIndexRoute
   '/register': typeof UserRegisterIndexRoute
+  '/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
   '/admin/jobs': typeof AuthAdminJobsIndexRoute
   '/admin/project-settings': typeof AuthAdminProjectSettingsIndexRoute
   '/admin/run-settings': typeof AuthAdminRunSettingsIndexRoute
@@ -884,6 +902,7 @@ export interface FileRoutesById {
   '/_user/register/': typeof UserRegisterIndexRoute
   '/_auth/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
   '/_auth/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/_user/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
   '/_auth/admin/jobs/': typeof AuthAdminJobsIndexRoute
   '/_auth/admin/project-settings/': typeof AuthAdminProjectSettingsIndexRoute
   '/_auth/admin/run-settings/': typeof AuthAdminRunSettingsIndexRoute
@@ -925,6 +944,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/runs/$run_barcode/indexqc'
     | '/runs/$run_barcode/samplesheet'
+    | '/oauth/$provider/callback'
     | '/admin/jobs/'
     | '/admin/project-settings/'
     | '/admin/run-settings/'
@@ -949,6 +969,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
+    | '/oauth/$provider/callback'
     | '/admin/jobs'
     | '/admin/project-settings'
     | '/admin/run-settings'
@@ -988,6 +1009,7 @@ export interface FileRouteTypes {
     | '/_user/register/'
     | '/_auth/runs/$run_barcode/indexqc'
     | '/_auth/runs/$run_barcode/samplesheet'
+    | '/_user/oauth/$provider/callback'
     | '/_auth/admin/jobs/'
     | '/_auth/admin/project-settings/'
     | '/_auth/admin/run-settings/'
@@ -1032,7 +1054,8 @@ export const routeTree = rootRoute
         "/_user/access-denied/",
         "/_user/forgot-password/",
         "/_user/login/",
-        "/_user/register/"
+        "/_user/register/",
+        "/_user/oauth/$provider/callback"
       ]
     },
     "/_auth": {
@@ -1200,6 +1223,10 @@ export const routeTree = rootRoute
       "children": [
         "/_auth/runs/$run_barcode/samplesheet/"
       ]
+    },
+    "/_user/oauth/$provider/callback": {
+      "filePath": "_user.oauth.$provider.callback.tsx",
+      "parent": "/_user"
     },
     "/_auth/admin/jobs/": {
       "filePath": "_auth.admin.jobs.index.tsx",

@@ -32,7 +32,7 @@ export function LoginForm({
   ...props
 }: ComponentPropsWithoutRef<'form'>) {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { basicLogin } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, '')
 
@@ -54,7 +54,7 @@ export function LoginForm({
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     setIsLoading(true)
     try {
-      await login(data.username, data.password)
+      await basicLogin(data.username, data.password)
       toast.success('Login successful')
       navigate({ to: '/' })
     } catch (error: any) {
@@ -66,7 +66,9 @@ export function LoginForm({
   }
 
   const handleOAuthLogin = (authorizeUrl: string) => {
-    window.location.href = authorizeUrl
+    const redirectUri = `${window.location.origin}/oauth/github/callback`
+    const separator = authorizeUrl.includes('?') ? '&' : '?'
+    window.location.href = `${authorizeUrl}${separator}redirect_uri=${encodeURIComponent(redirectUri)}`
   }
 
   return (
@@ -169,7 +171,7 @@ export function LoginForm({
                         key={provider.name}
                         type="button"
                         variant="outline"
-                        onClick={() => handleOAuthLogin(provider.authorize_url)}
+                        onClick={() => handleOAuthLogin(`${apiUrl}${provider.authorize_url}`)}
                         className="flex items-center gap-2"
                       >
                         {provider.logo_url && (
