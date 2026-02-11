@@ -24,10 +24,6 @@ export type AvailableProvidersResponse = {
    */
   count: number
   /**
-   * Use Corporate Sso
-   */
-  use_corporate_sso?: boolean
-  /**
    * Providers
    */
   providers: Array<OAuthProviderInfo>
@@ -1369,6 +1365,16 @@ export type ValidationError = {
    * Error Type
    */
   type: string
+  /**
+   * Input
+   */
+  input?: unknown
+  /**
+   * Context
+   */
+  ctx?: {
+    [key: string]: unknown
+  }
 }
 
 /**
