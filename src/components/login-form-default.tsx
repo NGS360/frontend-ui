@@ -20,7 +20,7 @@ import { useAuth } from '@/context/auth-context'
 // Define the schema for the form fields
 // This is used to perform client-side validation
 const schema = z.object({
-  username: z.string().email('Please enter a valid email address'),
+  username: z.email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters').max(50),
 })
 
@@ -28,7 +28,7 @@ type FormFields = z.infer<typeof schema>
 
 interface LoginFormDefaultProps extends ComponentPropsWithoutRef<'form'> {
   oauthProviders?: Array<OAuthProviderInfo>
-  onOAuthLogin: (authorizeUrl: string) => void
+  onOAuthLogin: (provider: string, authorizeUrl: string) => void
   apiUrl: string
 }
 
@@ -170,12 +170,12 @@ export function LoginFormDefault({
                         key={provider.name}
                         type="button"
                         variant="outline"
-                        onClick={() => onOAuthLogin(`${apiUrl}${provider.authorize_url}`)}
+                        onClick={() => onOAuthLogin(provider.name, `${apiUrl}${provider.authorize_url}`)}
                         className="flex items-center gap-2"
                       >
                         {provider.logo_url && (
                           <img
-                            src={`${apiUrl}${provider.logo_url}`}
+                            src={`${provider.logo_url}`}
                             alt={`${provider.display_name} logo`}
                             className="h-5 w-5"
                           />

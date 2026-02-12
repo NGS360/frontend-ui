@@ -5,7 +5,7 @@ import { NGS360Logo } from '@/components/ngs360-logo'
 
 interface LoginFormCorporateProps {
   provider: OAuthProviderInfo
-  onLogin: (authorizeUrl: string) => void
+  onLogin: (provider: string, authorizeUrl: string) => void
   apiUrl: string
 }
 
@@ -29,7 +29,7 @@ export function LoginFormCorporate({ provider, onLogin, apiUrl }: LoginFormCorpo
               {/* Corporate SSO Button */}
               <Button
                 type="button"
-                onClick={() => onLogin(`${apiUrl}${provider.authorize_url}`)}
+                onClick={() => onLogin(provider.name, `${apiUrl}${provider.authorize_url}`)}
                 className="flex items-center gap-2 w-full"
                 size="lg"
               >

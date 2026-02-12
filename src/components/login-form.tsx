@@ -7,8 +7,8 @@ export function LoginForm() {
   const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, '')
   const { data: oauthProviders } = useQuery(getAvailableOauthProvidersOptions())
 
-  const handleOAuthLogin = (authorizeUrl: string) => {
-    const redirectUri = `${window.location.origin}/oauth/github/callback`
+  const handleOAuthLogin = (provider: string, authorizeUrl: string) => {
+    const redirectUri = `${window.location.origin}/oauth/${provider}/callback`
     const separator = authorizeUrl.includes('?') ? '&' : '?'
     window.location.href = `${authorizeUrl}${separator}redirect_uri=${encodeURIComponent(redirectUri)}`
   }
