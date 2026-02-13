@@ -12,11 +12,14 @@ import {
   addRun,
   addSampleToProject,
   addVendor,
+  browseS3,
   changePassword,
   confirmPasswordReset,
   createFile,
   createProject,
+  createQcrecord,
   createWorkflow,
+  deleteQcrecord,
   deleteVendor,
   downloadFile,
   getActionOptions,
@@ -26,12 +29,14 @@ import {
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
   getFile,
+  getFileVersions,
   getJob,
   getJobs,
   getLatestManifest,
   getProjectByProjectId,
   getProjectSamples,
   getProjects,
+  getQcrecord,
   getRun,
   getRunMetrics,
   getRunSamplesheet,
@@ -61,6 +66,8 @@ import {
   root,
   search,
   searchProjects,
+  searchQcrecordsGet,
+  searchQcrecordsPost,
   searchRuns,
   submitDemultiplexWorkflowJob,
   submitJob,
@@ -72,6 +79,7 @@ import {
   updateSampleInProject,
   updateSetting,
   updateVendor,
+  uploadFile,
   uploadManifest,
   validateActionConfig,
   validateManifest,
@@ -90,6 +98,7 @@ import type {
   AddVendorData,
   AddVendorError,
   AddVendorResponse,
+  BrowseS3Data,
   ChangePasswordData,
   ChangePasswordError,
   ChangePasswordResponse,
@@ -102,9 +111,15 @@ import type {
   CreateProjectData,
   CreateProjectError,
   CreateProjectResponse,
+  CreateQcrecordData,
+  CreateQcrecordError,
+  CreateQcrecordResponse,
   CreateWorkflowData,
   CreateWorkflowError,
   CreateWorkflowResponse,
+  DeleteQcrecordData,
+  DeleteQcrecordError,
+  DeleteQcrecordResponse,
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
@@ -116,6 +131,7 @@ import type {
   GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
   GetFileData,
+  GetFileVersionsData,
   GetJobData,
   GetJobsData,
   GetLatestManifestData,
@@ -126,6 +142,7 @@ import type {
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
+  GetQcrecordData,
   GetRunData,
   GetRunMetricsData,
   GetRunSamplesheetData,
@@ -148,6 +165,8 @@ import type {
   LinkOauthProviderResponse,
   ListDemultiplexWorkflowsData,
   ListFilesData,
+  ListFilesError,
+  ListFilesResponse,
   LoginData,
   LoginError,
   LoginResponse,
@@ -179,6 +198,12 @@ import type {
   SearchProjectsData,
   SearchProjectsError,
   SearchProjectsResponse,
+  SearchQcrecordsGetData,
+  SearchQcrecordsGetError,
+  SearchQcrecordsGetResponse,
+  SearchQcrecordsPostData,
+  SearchQcrecordsPostError,
+  SearchQcrecordsPostResponse,
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
@@ -212,6 +237,9 @@ import type {
   UpdateVendorData,
   UpdateVendorError,
   UpdateVendorResponse,
+  UploadFileData,
+  UploadFileError,
+  UploadFileResponse,
   UploadManifestData,
   UploadManifestError,
   UploadManifestResponse,
@@ -1426,34 +1454,146 @@ export const getActionTypesOptions = (options: Options<GetActionTypesData>) => {
   })
 }
 
+export const listFilesQueryKey = (options?: Options<ListFilesData>) =>
+  createQueryKey('listFiles', options)
+
+/**
+ * List/search files
+ * List or search files.
+ *
+ * Filter options:
+ * - By URI: Returns latest version of the file with that URI
+ * - By entity: Returns all files associated with the entity
+ *
+ * If no filters provided, returns all files (paginated).
+ */
+export const listFilesOptions = (options?: Options<ListFilesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listFiles({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listFilesQueryKey(options),
+  })
+}
+
+const createInfiniteParams = <
+  K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>,
+>(
+  queryKey: QueryKey<Options>,
+  page: K,
+) => {
+  const params = {
+    ...queryKey[0],
+  }
+  if (page.body) {
+    params.body = {
+      ...(queryKey[0].body as any),
+      ...(page.body as any),
+    }
+  }
+  if (page.headers) {
+    params.headers = {
+      ...queryKey[0].headers,
+      ...page.headers,
+    }
+  }
+  if (page.path) {
+    params.path = {
+      ...(queryKey[0].path as any),
+      ...(page.path as any),
+    }
+  }
+  if (page.query) {
+    params.query = {
+      ...(queryKey[0].query as any),
+      ...(page.query as any),
+    }
+  }
+  return params as unknown as typeof page
+}
+
+export const listFilesInfiniteQueryKey = (
+  options?: Options<ListFilesData>,
+): QueryKey<Options<ListFilesData>> =>
+  createQueryKey('listFiles', options, true)
+
+/**
+ * List/search files
+ * List or search files.
+ *
+ * Filter options:
+ * - By URI: Returns latest version of the file with that URI
+ * - By entity: Returns all files associated with the entity
+ *
+ * If no filters provided, returns all files (paginated).
+ */
+export const listFilesInfiniteOptions = (options?: Options<ListFilesData>) => {
+  return infiniteQueryOptions<
+    ListFilesResponse,
+    AxiosError<ListFilesError>,
+    InfiniteData<ListFilesResponse>,
+    QueryKey<Options<ListFilesData>>,
+    | number
+    | Pick<
+        QueryKey<Options<ListFilesData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListFilesData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await listFiles({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: listFilesInfiniteQueryKey(options),
+    },
+  )
+}
+
 export const createFileQueryKey = (options: Options<CreateFileData>) =>
   createQueryKey('createFile', options)
 
 /**
  * Create a new file record
- * Create a new file record with optional file content upload.
- * - **filename**: Name of the file
- * - **description**: Optional description of the file
- * - **file_type**: Type of file (fastq, bam, vcf, etc.)
- * - **entity_type**: Whether this file belongs to a project or run
- * - **entity_id**: ID of the project or run this file belongs to
- * - **relative_path**: Optional subdirectory path within the entity folder
- * (e.g., "raw_data/sample1" or "results/qc")
- * - **overwrite**: If True, replace existing file with same name/location (default: False)
- * - **is_public**: Whether the file is publicly accessible
- * - **created_by**: User who created the file
+ * Create a new file record (external reference).
  *
- * Returns:
- * FilePublic with metadata including the assigned file_id
+ * This endpoint is for registering files that already exist in storage
+ * (e.g., pipeline outputs). For file uploads, use the form-data endpoint.
  *
- * Raises:
- * 409 Conflict: If file already exists and overwrite=False
+ * - **uri**: Required. File location (s3://, file://, etc.)
+ * - **original_filename**: Optional. Original filename before any renaming
+ * - **source**: Where this file record originated from
+ * - **entities**: Entity associations (QCRECORD, SAMPLE, PROJECT, RUN)
+ * - **samples**: Sample associations with optional roles (tumor/normal)
+ * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
+ * - **tags**: Key-value metadata (type, format, description, etc.)
  *
- * Examples:
- * - File at entity root: relative_path=None
- * => s3://bucket/project/P-20260109-0001/abc123_file.txt
- * - File in subdirectory: relative_path="raw_data/sample1"
- * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ * Note: Same URI can be registered multiple times with different timestamps,
+ * enabling versioning. Each POST creates a new version.
  */
 export const createFileOptions = (options: Options<CreateFileData>) => {
   return queryOptions({
@@ -1472,29 +1612,21 @@ export const createFileOptions = (options: Options<CreateFileData>) => {
 
 /**
  * Create a new file record
- * Create a new file record with optional file content upload.
- * - **filename**: Name of the file
- * - **description**: Optional description of the file
- * - **file_type**: Type of file (fastq, bam, vcf, etc.)
- * - **entity_type**: Whether this file belongs to a project or run
- * - **entity_id**: ID of the project or run this file belongs to
- * - **relative_path**: Optional subdirectory path within the entity folder
- * (e.g., "raw_data/sample1" or "results/qc")
- * - **overwrite**: If True, replace existing file with same name/location (default: False)
- * - **is_public**: Whether the file is publicly accessible
- * - **created_by**: User who created the file
+ * Create a new file record (external reference).
  *
- * Returns:
- * FilePublic with metadata including the assigned file_id
+ * This endpoint is for registering files that already exist in storage
+ * (e.g., pipeline outputs). For file uploads, use the form-data endpoint.
  *
- * Raises:
- * 409 Conflict: If file already exists and overwrite=False
+ * - **uri**: Required. File location (s3://, file://, etc.)
+ * - **original_filename**: Optional. Original filename before any renaming
+ * - **source**: Where this file record originated from
+ * - **entities**: Entity associations (QCRECORD, SAMPLE, PROJECT, RUN)
+ * - **samples**: Sample associations with optional roles (tumor/normal)
+ * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
+ * - **tags**: Key-value metadata (type, format, description, etc.)
  *
- * Examples:
- * - File at entity root: relative_path=None
- * => s3://bucket/project/P-20260109-0001/abc123_file.txt
- * - File in subdirectory: relative_path="raw_data/sample1"
- * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ * Note: Same URI can be registered multiple times with different timestamps,
+ * enabling versioning. Each POST creates a new version.
  */
 export const createFileMutation = (
   options?: Partial<Options<CreateFileData>>,
@@ -1520,21 +1652,34 @@ export const createFileMutation = (
   return mutationOptions
 }
 
-export const listFilesQueryKey = (options: Options<ListFilesData>) =>
-  createQueryKey('listFiles', options)
+export const uploadFileQueryKey = (options: Options<UploadFileData>) =>
+  createQueryKey('uploadFile', options)
 
 /**
- * List Files
- * Browse files and folders at the specified URI.
+ * Upload a file
+ * Upload a file with optional content.
  *
- * For S3:
- * - Full s3:// URI is required
- * - No navigation outside the initial uri is allowed
+ * - **filename**: Name of the file
+ * - **entity_type**: Entity type (PROJECT, RUN)
+ * - **entity_id**: ID of the entity this file belongs to
+ * - **relative_path**: Optional subdirectory path within entity folder
+ * - **overwrite**: If True, creates a new version if file exists
+ * - **description**: Optional file description
+ * - **is_public**: Whether file is publicly accessible
+ * - **created_by**: User who uploaded the file
+ * - **role**: Optional role (e.g., samplesheet)
+ * - **content**: Optional file content
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-123/filename.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-123/raw_data/sample1/filename.txt
  */
-export const listFilesOptions = (options: Options<ListFilesData>) => {
+export const uploadFileOptions = (options: Options<UploadFileData>) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await listFiles({
+      const { data } = await uploadFile({
         ...options,
         ...queryKey[0],
         signal,
@@ -1542,7 +1687,77 @@ export const listFilesOptions = (options: Options<ListFilesData>) => {
       })
       return data
     },
-    queryKey: listFilesQueryKey(options),
+    queryKey: uploadFileQueryKey(options),
+  })
+}
+
+/**
+ * Upload a file
+ * Upload a file with optional content.
+ *
+ * - **filename**: Name of the file
+ * - **entity_type**: Entity type (PROJECT, RUN)
+ * - **entity_id**: ID of the entity this file belongs to
+ * - **relative_path**: Optional subdirectory path within entity folder
+ * - **overwrite**: If True, creates a new version if file exists
+ * - **description**: Optional file description
+ * - **is_public**: Whether file is publicly accessible
+ * - **created_by**: User who uploaded the file
+ * - **role**: Optional role (e.g., samplesheet)
+ * - **content**: Optional file content
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-123/filename.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-123/raw_data/sample1/filename.txt
+ */
+export const uploadFileMutation = (
+  options?: Partial<Options<UploadFileData>>,
+): UseMutationOptions<
+  UploadFileResponse,
+  AxiosError<UploadFileError>,
+  Options<UploadFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadFileResponse,
+    AxiosError<UploadFileError>,
+    Options<UploadFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const browseS3QueryKey = (options: Options<BrowseS3Data>) =>
+  createQueryKey('browseS3', options)
+
+/**
+ * Browse S3 bucket/folder
+ * Browse files and folders at the specified S3 URI.
+ *
+ * Returns a list of folders and files at the given path.
+ * For S3, the full s3:// URI is required.
+ */
+export const browseS3Options = (options: Options<BrowseS3Data>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await browseS3({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: browseS3QueryKey(options),
   })
 }
 
@@ -1550,16 +1765,11 @@ export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
   createQueryKey('downloadFile', options)
 
 /**
- * Download File
+ * Download file from S3
  * Download a file from S3.
  *
- * Returns the file as a streaming download with appropriate content type and filename.
- *
- * Args:
- * path: Full S3 URI to the file (e.g., s3://bucket/folder/file.txt)
- *
- * Returns:
- * StreamingResponse with the file content
+ * Returns the file as a streaming download with appropriate
+ * content type and filename.
  */
 export const downloadFileOptions = (options: Options<DownloadFileData>) => {
   return queryOptions({
@@ -1580,8 +1790,10 @@ export const getFileQueryKey = (options: Options<GetFileData>) =>
   createQueryKey('getFile', options)
 
 /**
- * Get File
- * Retrieve file metadata by file ID.
+ * Get file by UUID
+ * Retrieve file metadata by UUID.
+ *
+ * Returns the specific file version identified by the UUID.
  */
 export const getFileOptions = (options: Options<GetFileData>) => {
   return queryOptions({
@@ -1595,6 +1807,33 @@ export const getFileOptions = (options: Options<GetFileData>) => {
       return data
     },
     queryKey: getFileQueryKey(options),
+  })
+}
+
+export const getFileVersionsQueryKey = (
+  options: Options<GetFileVersionsData>,
+) => createQueryKey('getFileVersions', options)
+
+/**
+ * Get all versions of a file
+ * Get all versions of a file by looking up the URI from the given file_id.
+ *
+ * Returns all versions ordered by created_on descending (newest first).
+ */
+export const getFileVersionsOptions = (
+  options: Options<GetFileVersionsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getFileVersions({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getFileVersionsQueryKey(options),
   })
 }
 
@@ -1769,6 +2008,192 @@ export const updateJobMutation = (
   return mutationOptions
 }
 
+export const getLatestManifestQueryKey = (
+  options: Options<GetLatestManifestData>,
+) => createQueryKey('getLatestManifest', options)
+
+/**
+ * Get Latest Manifest
+ * Retrieve the latest manifest file path from the specified S3 bucket.
+ *
+ * Searches recursively through the bucket/prefix for files that:
+ * - Contain "manifest" (case-insensitive)
+ * - End with ".csv"
+ *
+ * Returns the full S3 path of the most recent matching file.
+ *
+ * Args:
+ * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
+ *
+ * Returns:
+ * Full S3 path to the latest manifest file
+ */
+export const getLatestManifestOptions = (
+  options: Options<GetLatestManifestData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getLatestManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getLatestManifestQueryKey(options),
+  })
+}
+
+export const uploadManifestQueryKey = (options: Options<UploadManifestData>) =>
+  createQueryKey('uploadManifest', options)
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded
+ * (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifestOptions = (options: Options<UploadManifestData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadManifestQueryKey(options),
+  })
+}
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded
+ * (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifestMutation = (
+  options?: Partial<Options<UploadManifestData>>,
+): UseMutationOptions<
+  UploadManifestResponse,
+  AxiosError<UploadManifestError>,
+  Options<UploadManifestData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadManifestResponse,
+    AxiosError<UploadManifestError>,
+    Options<UploadManifestData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadManifest({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const validateManifestQueryKey = (
+  options: Options<ValidateManifestData>,
+) => createQueryKey('validateManifest', options)
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3 using the ngs360-manifest-validator Lambda.
+ *
+ * The Lambda function checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ * - File existence verification
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * manifest_version: Optional manifest version to validate against
+ * files_bucket: Optional S3 bucket where manifest files are located
+ * files_prefix: Optional S3 prefix/path for file existence checks
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifestOptions = (
+  options: Options<ValidateManifestData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await validateManifest({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: validateManifestQueryKey(options),
+  })
+}
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3 using the ngs360-manifest-validator Lambda.
+ *
+ * The Lambda function checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ * - File existence verification
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * manifest_version: Optional manifest version to validate against
+ * files_bucket: Optional S3 bucket where manifest files are located
+ * files_prefix: Optional S3 prefix/path for file existence checks
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifestMutation = (
+  options?: Partial<Options<ValidateManifestData>>,
+): UseMutationOptions<
+  ValidateManifestResponse,
+  AxiosError<ValidateManifestError>,
+  Options<ValidateManifestData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ValidateManifestResponse,
+    AxiosError<ValidateManifestError>,
+    Options<ValidateManifestData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await validateManifest({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const getProjectsQueryKey = (options?: Options<GetProjectsData>) =>
   createQueryKey('getProjects', options)
 
@@ -1789,42 +2214,6 @@ export const getProjectsOptions = (options?: Options<GetProjectsData>) => {
     },
     queryKey: getProjectsQueryKey(options),
   })
-}
-
-const createInfiniteParams = <
-  K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>,
->(
-  queryKey: QueryKey<Options>,
-  page: K,
-) => {
-  const params = {
-    ...queryKey[0],
-  }
-  if (page.body) {
-    params.body = {
-      ...(queryKey[0].body as any),
-      ...(page.body as any),
-    }
-  }
-  if (page.headers) {
-    params.headers = {
-      ...queryKey[0].headers,
-      ...page.headers,
-    }
-  }
-  if (page.path) {
-    params.path = {
-      ...(queryKey[0].path as any),
-      ...(page.path as any),
-    }
-  }
-  if (page.query) {
-    params.query = {
-      ...(queryKey[0].query as any),
-      ...(page.query as any),
-    }
-  }
-  return params as unknown as typeof page
 }
 
 export const getProjectsInfiniteQueryKey = (
@@ -2359,6 +2748,552 @@ export const submitPipelineJobMutation = (
     },
   }
   return mutationOptions
+}
+
+export const createQcrecordQueryKey = (options: Options<CreateQcrecordData>) =>
+  createQueryKey('createQcrecord', options)
+
+/**
+ * Create a new QC record
+ * Create a new QC record with metrics and output files.
+ *
+ * The record stores quality control metrics from a pipeline execution.
+ * The `created_by` field is automatically set from the authenticated user.
+ *
+ * **Authentication required:** Bearer token must be provided.
+ *
+ * **Example curl command:**
+ *
+ * ```bash
+ * curl -X POST "http://localhost:8000/api/v1/qcmetrics" \
+ * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+ * -H "Content-Type: application/json" \
+ * -d '{
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq",
+ * "version": "2.0.0"
+ * },
+ * "metrics": [
+ * {
+ * "name": "alignment_stats",
+ * "samples": [{"sample_name": "Sample1"}],
+ * "values": {"reads": "50000000", "alignment_rate": "95.5"}
+ * }
+ * ],
+ * "output_files": [
+ * {
+ * "uri": "s3://bucket/path/file.bam",
+ * "size": 123456789,
+ * "samples": [{"sample_name": "Sample1"}],
+ * "hash": {"md5": "abc123def456"},
+ * "tags": {"type": "alignment"}
+ * }
+ * ]
+ * }'
+ * ```
+ *
+ * **Request body format:**
+ *
+ * ```json
+ * {
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq",
+ * "version": "2.0.0"
+ * },
+ * "metrics": [
+ * {
+ * "name": "alignment_stats",
+ * "samples": [{"sample_name": "Sample1"}],
+ * "values": {"reads": "50000000", "alignment_rate": "95.5"}
+ * }
+ * ],
+ * "output_files": [
+ * {
+ * "uri": "s3://bucket/path/file.bam",
+ * "size": 123456789,
+ * "samples": [{"sample_name": "Sample1"}],
+ * "hash": {"md5": "abc123..."},
+ * "tags": {"type": "alignment"}
+ * }
+ * ]
+ * }
+ * ```
+ *
+ * **Sample association patterns:**
+ * - **Workflow-level**: Omit `samples` array (applies to entire pipeline run)
+ * - **Single sample**: One entry in `samples` array
+ * - **Sample pair**: Two entries with roles, e.g.,
+ * `[{"sample_name": "T1", "role": "tumor"}, {"sample_name": "N1", "role": "normal"}]`
+ *
+ * **Duplicate detection:**
+ * If an equivalent record already exists for the project (same metadata),
+ * the existing record is returned instead of creating a duplicate.
+ */
+export const createQcrecordOptions = (options: Options<CreateQcrecordData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createQcrecord({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createQcrecordQueryKey(options),
+  })
+}
+
+/**
+ * Create a new QC record
+ * Create a new QC record with metrics and output files.
+ *
+ * The record stores quality control metrics from a pipeline execution.
+ * The `created_by` field is automatically set from the authenticated user.
+ *
+ * **Authentication required:** Bearer token must be provided.
+ *
+ * **Example curl command:**
+ *
+ * ```bash
+ * curl -X POST "http://localhost:8000/api/v1/qcmetrics" \
+ * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+ * -H "Content-Type: application/json" \
+ * -d '{
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq",
+ * "version": "2.0.0"
+ * },
+ * "metrics": [
+ * {
+ * "name": "alignment_stats",
+ * "samples": [{"sample_name": "Sample1"}],
+ * "values": {"reads": "50000000", "alignment_rate": "95.5"}
+ * }
+ * ],
+ * "output_files": [
+ * {
+ * "uri": "s3://bucket/path/file.bam",
+ * "size": 123456789,
+ * "samples": [{"sample_name": "Sample1"}],
+ * "hash": {"md5": "abc123def456"},
+ * "tags": {"type": "alignment"}
+ * }
+ * ]
+ * }'
+ * ```
+ *
+ * **Request body format:**
+ *
+ * ```json
+ * {
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq",
+ * "version": "2.0.0"
+ * },
+ * "metrics": [
+ * {
+ * "name": "alignment_stats",
+ * "samples": [{"sample_name": "Sample1"}],
+ * "values": {"reads": "50000000", "alignment_rate": "95.5"}
+ * }
+ * ],
+ * "output_files": [
+ * {
+ * "uri": "s3://bucket/path/file.bam",
+ * "size": 123456789,
+ * "samples": [{"sample_name": "Sample1"}],
+ * "hash": {"md5": "abc123..."},
+ * "tags": {"type": "alignment"}
+ * }
+ * ]
+ * }
+ * ```
+ *
+ * **Sample association patterns:**
+ * - **Workflow-level**: Omit `samples` array (applies to entire pipeline run)
+ * - **Single sample**: One entry in `samples` array
+ * - **Sample pair**: Two entries with roles, e.g.,
+ * `[{"sample_name": "T1", "role": "tumor"}, {"sample_name": "N1", "role": "normal"}]`
+ *
+ * **Duplicate detection:**
+ * If an equivalent record already exists for the project (same metadata),
+ * the existing record is returned instead of creating a duplicate.
+ */
+export const createQcrecordMutation = (
+  options?: Partial<Options<CreateQcrecordData>>,
+): UseMutationOptions<
+  CreateQcrecordResponse,
+  AxiosError<CreateQcrecordError>,
+  Options<CreateQcrecordData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateQcrecordResponse,
+    AxiosError<CreateQcrecordError>,
+    Options<CreateQcrecordData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await createQcrecord({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const searchQcrecordsGetQueryKey = (
+  options?: Options<SearchQcrecordsGetData>,
+) => createQueryKey('searchQcrecordsGet', options)
+
+/**
+ * Search QC records (GET)
+ * Search QC records using query parameters.
+ *
+ * **Parameters:**
+ * - `project_id`: Filter to specific project(s)
+ * - `latest`: If true (default), returns only the most recent QC record per project
+ * - `page`: Page number for pagination (starts at 1)
+ * - `per_page`: Number of results per page (max 1000)
+ *
+ * **Example:**
+ * ```
+ * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
+ * ```
+ */
+export const searchQcrecordsGetOptions = (
+  options?: Options<SearchQcrecordsGetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchQcrecordsGet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchQcrecordsGetQueryKey(options),
+  })
+}
+
+export const searchQcrecordsGetInfiniteQueryKey = (
+  options?: Options<SearchQcrecordsGetData>,
+): QueryKey<Options<SearchQcrecordsGetData>> =>
+  createQueryKey('searchQcrecordsGet', options, true)
+
+/**
+ * Search QC records (GET)
+ * Search QC records using query parameters.
+ *
+ * **Parameters:**
+ * - `project_id`: Filter to specific project(s)
+ * - `latest`: If true (default), returns only the most recent QC record per project
+ * - `page`: Page number for pagination (starts at 1)
+ * - `per_page`: Number of results per page (max 1000)
+ *
+ * **Example:**
+ * ```
+ * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
+ * ```
+ */
+export const searchQcrecordsGetInfiniteOptions = (
+  options?: Options<SearchQcrecordsGetData>,
+) => {
+  return infiniteQueryOptions<
+    SearchQcrecordsGetResponse,
+    AxiosError<SearchQcrecordsGetError>,
+    InfiniteData<SearchQcrecordsGetResponse>,
+    QueryKey<Options<SearchQcrecordsGetData>>,
+    | number
+    | Pick<
+        QueryKey<Options<SearchQcrecordsGetData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<SearchQcrecordsGetData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await searchQcrecordsGet({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: searchQcrecordsGetInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const searchQcrecordsPostQueryKey = (
+  options: Options<SearchQcrecordsPostData>,
+) => createQueryKey('searchQcrecordsPost', options)
+
+/**
+ * Search QC records (POST)
+ * Search QC records using a JSON body for advanced filtering.
+ *
+ * **Request body format:**
+ *
+ * ```json
+ * {
+ * "filter_on": {
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 100,
+ * "latest": true
+ * }
+ * ```
+ *
+ * **Filter options:**
+ * - `project_id`: Single value or list of project IDs
+ * - `metadata`: Key-value pairs to match against pipeline metadata
+ *
+ * **Pagination:**
+ * - `page`: Page number (starts at 1)
+ * - `per_page`: Results per page (max 1000)
+ *
+ * **Latest filtering:**
+ * - `latest: true` (default): Returns only the newest QC record per project
+ * - `latest: false`: Returns all matching records (full history)
+ */
+export const searchQcrecordsPostOptions = (
+  options: Options<SearchQcrecordsPostData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchQcrecordsPost({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchQcrecordsPostQueryKey(options),
+  })
+}
+
+export const searchQcrecordsPostInfiniteQueryKey = (
+  options: Options<SearchQcrecordsPostData>,
+): QueryKey<Options<SearchQcrecordsPostData>> =>
+  createQueryKey('searchQcrecordsPost', options, true)
+
+/**
+ * Search QC records (POST)
+ * Search QC records using a JSON body for advanced filtering.
+ *
+ * **Request body format:**
+ *
+ * ```json
+ * {
+ * "filter_on": {
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 100,
+ * "latest": true
+ * }
+ * ```
+ *
+ * **Filter options:**
+ * - `project_id`: Single value or list of project IDs
+ * - `metadata`: Key-value pairs to match against pipeline metadata
+ *
+ * **Pagination:**
+ * - `page`: Page number (starts at 1)
+ * - `per_page`: Results per page (max 1000)
+ *
+ * **Latest filtering:**
+ * - `latest: true` (default): Returns only the newest QC record per project
+ * - `latest: false`: Returns all matching records (full history)
+ */
+export const searchQcrecordsPostInfiniteOptions = (
+  options: Options<SearchQcrecordsPostData>,
+) => {
+  return infiniteQueryOptions<
+    SearchQcrecordsPostResponse,
+    AxiosError<SearchQcrecordsPostError>,
+    InfiniteData<SearchQcrecordsPostResponse>,
+    QueryKey<Options<SearchQcrecordsPostData>>,
+    | number
+    | Pick<
+        QueryKey<Options<SearchQcrecordsPostData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<SearchQcrecordsPostData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                body: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await searchQcrecordsPost({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: searchQcrecordsPostInfiniteQueryKey(options),
+    },
+  )
+}
+
+/**
+ * Search QC records (POST)
+ * Search QC records using a JSON body for advanced filtering.
+ *
+ * **Request body format:**
+ *
+ * ```json
+ * {
+ * "filter_on": {
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 100,
+ * "latest": true
+ * }
+ * ```
+ *
+ * **Filter options:**
+ * - `project_id`: Single value or list of project IDs
+ * - `metadata`: Key-value pairs to match against pipeline metadata
+ *
+ * **Pagination:**
+ * - `page`: Page number (starts at 1)
+ * - `per_page`: Results per page (max 1000)
+ *
+ * **Latest filtering:**
+ * - `latest: true` (default): Returns only the newest QC record per project
+ * - `latest: false`: Returns all matching records (full history)
+ */
+export const searchQcrecordsPostMutation = (
+  options?: Partial<Options<SearchQcrecordsPostData>>,
+): UseMutationOptions<
+  SearchQcrecordsPostResponse,
+  AxiosError<SearchQcrecordsPostError>,
+  Options<SearchQcrecordsPostData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SearchQcrecordsPostResponse,
+    AxiosError<SearchQcrecordsPostError>,
+    Options<SearchQcrecordsPostData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await searchQcrecordsPost({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete QC record
+ * Delete a QC record and all associated data.
+ *
+ * This permanently removes:
+ * - The QC record
+ * - All associated metadata
+ * - All associated metrics and metric values
+ * - All associated output file records
+ *
+ * **Warning:** This action cannot be undone.
+ */
+export const deleteQcrecordMutation = (
+  options?: Partial<Options<DeleteQcrecordData>>,
+): UseMutationOptions<
+  DeleteQcrecordResponse,
+  AxiosError<DeleteQcrecordError>,
+  Options<DeleteQcrecordData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteQcrecordResponse,
+    AxiosError<DeleteQcrecordError>,
+    Options<DeleteQcrecordData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteQcrecord({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getQcrecordQueryKey = (options: Options<GetQcrecordData>) =>
+  createQueryKey('getQcrecord', options)
+
+/**
+ * Get QC record by ID
+ * Retrieve a specific QC record by its UUID.
+ *
+ * Returns the full QC record including metadata, metrics, and output files.
+ */
+export const getQcrecordOptions = (options: Options<GetQcrecordData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getQcrecord({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getQcrecordQueryKey(options),
+  })
 }
 
 export const getRunsQueryKey = (options?: Options<GetRunsData>) =>
@@ -3224,192 +4159,6 @@ export const updateVendorMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await updateVendor({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      })
-      return data
-    },
-  }
-  return mutationOptions
-}
-
-export const getLatestManifestQueryKey = (
-  options: Options<GetLatestManifestData>,
-) => createQueryKey('getLatestManifest', options)
-
-/**
- * Get Latest Manifest
- * Retrieve the latest manifest file path from the specified S3 bucket.
- *
- * Searches recursively through the bucket/prefix for files that:
- * - Contain "manifest" (case-insensitive)
- * - End with ".csv"
- *
- * Returns the full S3 path of the most recent matching file.
- *
- * Args:
- * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
- *
- * Returns:
- * Full S3 path to the latest manifest file
- */
-export const getLatestManifestOptions = (
-  options: Options<GetLatestManifestData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getLatestManifest({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: getLatestManifestQueryKey(options),
-  })
-}
-
-export const uploadManifestQueryKey = (options: Options<UploadManifestData>) =>
-  createQueryKey('uploadManifest', options)
-
-/**
- * Upload Manifest
- * Upload a manifest CSV file to the specified S3 path.
- *
- * Args:
- * s3_path: S3 path where the file should be uploaded
- * (e.g., "s3://bucket-name/path/to/manifest.csv")
- * file: The manifest CSV file to upload
- *
- * Returns:
- * ManifestUploadResponse with the uploaded file path and status
- */
-export const uploadManifestOptions = (options: Options<UploadManifestData>) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await uploadManifest({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: uploadManifestQueryKey(options),
-  })
-}
-
-/**
- * Upload Manifest
- * Upload a manifest CSV file to the specified S3 path.
- *
- * Args:
- * s3_path: S3 path where the file should be uploaded
- * (e.g., "s3://bucket-name/path/to/manifest.csv")
- * file: The manifest CSV file to upload
- *
- * Returns:
- * ManifestUploadResponse with the uploaded file path and status
- */
-export const uploadManifestMutation = (
-  options?: Partial<Options<UploadManifestData>>,
-): UseMutationOptions<
-  UploadManifestResponse,
-  AxiosError<UploadManifestError>,
-  Options<UploadManifestData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    UploadManifestResponse,
-    AxiosError<UploadManifestError>,
-    Options<UploadManifestData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await uploadManifest({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      })
-      return data
-    },
-  }
-  return mutationOptions
-}
-
-export const validateManifestQueryKey = (
-  options: Options<ValidateManifestData>,
-) => createQueryKey('validateManifest', options)
-
-/**
- * Validate Manifest
- * Validate a manifest CSV file from S3 using the ngs360-manifest-validator Lambda.
- *
- * The Lambda function checks the manifest file for:
- * - Required fields
- * - Data format compliance
- * - Value constraints
- * - File existence verification
- *
- * Args:
- * s3_path: S3 path to the manifest CSV file to validate
- * manifest_version: Optional manifest version to validate against
- * files_bucket: Optional S3 bucket where manifest files are located
- * files_prefix: Optional S3 prefix/path for file existence checks
- *
- * Returns:
- * ManifestValidationResponse with validation status and any errors found
- */
-export const validateManifestOptions = (
-  options: Options<ValidateManifestData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await validateManifest({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      })
-      return data
-    },
-    queryKey: validateManifestQueryKey(options),
-  })
-}
-
-/**
- * Validate Manifest
- * Validate a manifest CSV file from S3 using the ngs360-manifest-validator Lambda.
- *
- * The Lambda function checks the manifest file for:
- * - Required fields
- * - Data format compliance
- * - Value constraints
- * - File existence verification
- *
- * Args:
- * s3_path: S3 path to the manifest CSV file to validate
- * manifest_version: Optional manifest version to validate against
- * files_bucket: Optional S3 bucket where manifest files are located
- * files_prefix: Optional S3 prefix/path for file existence checks
- *
- * Returns:
- * ManifestValidationResponse with validation status and any errors found
- */
-export const validateManifestMutation = (
-  options?: Partial<Options<ValidateManifestData>>,
-): UseMutationOptions<
-  ValidateManifestResponse,
-  AxiosError<ValidateManifestError>,
-  Options<ValidateManifestData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    ValidateManifestResponse,
-    AxiosError<ValidateManifestError>,
-    Options<ValidateManifestData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await validateManifest({
         ...options,
         ...localOptions,
         throwOnError: true,

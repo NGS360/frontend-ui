@@ -19,6 +19,9 @@ import type {
   AddVendorData,
   AddVendorErrors,
   AddVendorResponses,
+  BrowseS3Data,
+  BrowseS3Errors,
+  BrowseS3Responses,
   ChangePasswordData,
   ChangePasswordErrors,
   ChangePasswordResponses,
@@ -31,9 +34,15 @@ import type {
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
+  CreateQcrecordData,
+  CreateQcrecordErrors,
+  CreateQcrecordResponses,
   CreateWorkflowData,
   CreateWorkflowErrors,
   CreateWorkflowResponses,
+  DeleteQcrecordData,
+  DeleteQcrecordErrors,
+  DeleteQcrecordResponses,
   DeleteVendorData,
   DeleteVendorErrors,
   DeleteVendorResponses,
@@ -57,6 +66,9 @@ import type {
   GetFileData,
   GetFileErrors,
   GetFileResponses,
+  GetFileVersionsData,
+  GetFileVersionsErrors,
+  GetFileVersionsResponses,
   GetJobData,
   GetJobErrors,
   GetJobResponses,
@@ -75,6 +87,9 @@ import type {
   GetProjectsData,
   GetProjectsErrors,
   GetProjectsResponses,
+  GetQcrecordData,
+  GetQcrecordErrors,
+  GetQcrecordResponses,
   GetRunData,
   GetRunErrors,
   GetRunMetricsData,
@@ -155,6 +170,12 @@ import type {
   SearchProjectsData,
   SearchProjectsErrors,
   SearchProjectsResponses,
+  SearchQcrecordsGetData,
+  SearchQcrecordsGetErrors,
+  SearchQcrecordsGetResponses,
+  SearchQcrecordsPostData,
+  SearchQcrecordsPostErrors,
+  SearchQcrecordsPostResponses,
   SearchResponses,
   SearchRunsData,
   SearchRunsErrors,
@@ -189,6 +210,9 @@ import type {
   UpdateVendorData,
   UpdateVendorErrors,
   UpdateVendorResponses,
+  UploadFileData,
+  UploadFileErrors,
+  UploadFileResponses,
   UploadManifestData,
   UploadManifestErrors,
   UploadManifestResponses,
@@ -883,30 +907,46 @@ export const getActionTypes = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * List/search files
+ * List or search files.
+ *
+ * Filter options:
+ * - By URI: Returns latest version of the file with that URI
+ * - By entity: Returns all files associated with the entity
+ *
+ * If no filters provided, returns all files (paginated).
+ */
+export const listFiles = <ThrowOnError extends boolean = false>(
+  options?: Options<ListFilesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListFilesResponses,
+    ListFilesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/files',
+    ...options,
+  })
+}
+
+/**
  * Create a new file record
- * Create a new file record with optional file content upload.
- * - **filename**: Name of the file
- * - **description**: Optional description of the file
- * - **file_type**: Type of file (fastq, bam, vcf, etc.)
- * - **entity_type**: Whether this file belongs to a project or run
- * - **entity_id**: ID of the project or run this file belongs to
- * - **relative_path**: Optional subdirectory path within the entity folder
- * (e.g., "raw_data/sample1" or "results/qc")
- * - **overwrite**: If True, replace existing file with same name/location (default: False)
- * - **is_public**: Whether the file is publicly accessible
- * - **created_by**: User who created the file
+ * Create a new file record (external reference).
  *
- * Returns:
- * FilePublic with metadata including the assigned file_id
+ * This endpoint is for registering files that already exist in storage
+ * (e.g., pipeline outputs). For file uploads, use the form-data endpoint.
  *
- * Raises:
- * 409 Conflict: If file already exists and overwrite=False
+ * - **uri**: Required. File location (s3://, file://, etc.)
+ * - **original_filename**: Optional. Original filename before any renaming
+ * - **source**: Where this file record originated from
+ * - **entities**: Entity associations (QCRECORD, SAMPLE, PROJECT, RUN)
+ * - **samples**: Sample associations with optional roles (tumor/normal)
+ * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
+ * - **tags**: Key-value metadata (type, format, description, etc.)
  *
- * Examples:
- * - File at entity root: relative_path=None
- * => s3://bucket/project/P-20260109-0001/abc123_file.txt
- * - File in subdirectory: relative_path="raw_data/sample1"
- * => s3://bucket/project/P-20260109-0001/raw_data/sample1/abc123_file.txt
+ * Note: Same URI can be registered multiple times with different timestamps,
+ * enabling versioning. Each POST creates a new version.
  */
 export const createFile = <ThrowOnError extends boolean = false>(
   options: Options<CreateFileData, ThrowOnError>,
@@ -916,9 +956,48 @@ export const createFile = <ThrowOnError extends boolean = false>(
     CreateFileErrors,
     ThrowOnError
   >({
-    ...formDataBodySerializer,
     responseType: 'json',
     url: '/api/v1/files',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Upload a file
+ * Upload a file with optional content.
+ *
+ * - **filename**: Name of the file
+ * - **entity_type**: Entity type (PROJECT, RUN)
+ * - **entity_id**: ID of the entity this file belongs to
+ * - **relative_path**: Optional subdirectory path within entity folder
+ * - **overwrite**: If True, creates a new version if file exists
+ * - **description**: Optional file description
+ * - **is_public**: Whether file is publicly accessible
+ * - **created_by**: User who uploaded the file
+ * - **role**: Optional role (e.g., samplesheet)
+ * - **content**: Optional file content
+ *
+ * Examples:
+ * - File at entity root: relative_path=None
+ * => s3://bucket/project/P-123/filename.txt
+ * - File in subdirectory: relative_path="raw_data/sample1"
+ * => s3://bucket/project/P-123/raw_data/sample1/filename.txt
+ */
+export const uploadFile = <ThrowOnError extends boolean = false>(
+  options: Options<UploadFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    UploadFileResponses,
+    UploadFileErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/files/upload',
     ...options,
     headers: {
       'Content-Type': null,
@@ -928,19 +1007,18 @@ export const createFile = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * List Files
- * Browse files and folders at the specified URI.
+ * Browse S3 bucket/folder
+ * Browse files and folders at the specified S3 URI.
  *
- * For S3:
- * - Full s3:// URI is required
- * - No navigation outside the initial uri is allowed
+ * Returns a list of folders and files at the given path.
+ * For S3, the full s3:// URI is required.
  */
-export const listFiles = <ThrowOnError extends boolean = false>(
-  options: Options<ListFilesData, ThrowOnError>,
+export const browseS3 = <ThrowOnError extends boolean = false>(
+  options: Options<BrowseS3Data, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<
-    ListFilesResponses,
-    ListFilesErrors,
+    BrowseS3Responses,
+    BrowseS3Errors,
     ThrowOnError
   >({
     responseType: 'json',
@@ -950,16 +1028,11 @@ export const listFiles = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Download File
+ * Download file from S3
  * Download a file from S3.
  *
- * Returns the file as a streaming download with appropriate content type and filename.
- *
- * Args:
- * path: Full S3 URI to the file (e.g., s3://bucket/folder/file.txt)
- *
- * Returns:
- * StreamingResponse with the file content
+ * Returns the file as a streaming download with appropriate
+ * content type and filename.
  */
 export const downloadFile = <ThrowOnError extends boolean = false>(
   options: Options<DownloadFileData, ThrowOnError>,
@@ -976,8 +1049,10 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get File
- * Retrieve file metadata by file ID.
+ * Get file by UUID
+ * Retrieve file metadata by UUID.
+ *
+ * Returns the specific file version identified by the UUID.
  */
 export const getFile = <ThrowOnError extends boolean = false>(
   options: Options<GetFileData, ThrowOnError>,
@@ -989,6 +1064,26 @@ export const getFile = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/files/{file_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get all versions of a file
+ * Get all versions of a file by looking up the URI from the given file_id.
+ *
+ * Returns all versions ordered by created_on descending (newest first).
+ */
+export const getFileVersions = <ThrowOnError extends boolean = false>(
+  options: Options<GetFileVersionsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetFileVersionsResponses,
+    GetFileVersionsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/files/{file_id}/versions',
     ...options,
   })
 }
@@ -1108,6 +1203,100 @@ export const updateJob = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Get Latest Manifest
+ * Retrieve the latest manifest file path from the specified S3 bucket.
+ *
+ * Searches recursively through the bucket/prefix for files that:
+ * - Contain "manifest" (case-insensitive)
+ * - End with ".csv"
+ *
+ * Returns the full S3 path of the most recent matching file.
+ *
+ * Args:
+ * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
+ *
+ * Returns:
+ * Full S3 path to the latest manifest file
+ */
+export const getLatestManifest = <ThrowOnError extends boolean = false>(
+  options: Options<GetLatestManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetLatestManifestResponses,
+    GetLatestManifestErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/manifest',
+    ...options,
+  })
+}
+
+/**
+ * Upload Manifest
+ * Upload a manifest CSV file to the specified S3 path.
+ *
+ * Args:
+ * s3_path: S3 path where the file should be uploaded
+ * (e.g., "s3://bucket-name/path/to/manifest.csv")
+ * file: The manifest CSV file to upload
+ *
+ * Returns:
+ * ManifestUploadResponse with the uploaded file path and status
+ */
+export const uploadManifest = <ThrowOnError extends boolean = false>(
+  options: Options<UploadManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    UploadManifestResponses,
+    UploadManifestErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    url: '/api/v1/manifest',
+    ...options,
+    headers: {
+      'Content-Type': null,
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Validate Manifest
+ * Validate a manifest CSV file from S3 using the ngs360-manifest-validator Lambda.
+ *
+ * The Lambda function checks the manifest file for:
+ * - Required fields
+ * - Data format compliance
+ * - Value constraints
+ * - File existence verification
+ *
+ * Args:
+ * s3_path: S3 path to the manifest CSV file to validate
+ * manifest_version: Optional manifest version to validate against
+ * files_bucket: Optional S3 bucket where manifest files are located
+ * files_prefix: Optional S3 prefix/path for file existence checks
+ *
+ * Returns:
+ * ManifestValidationResponse with validation status and any errors found
+ */
+export const validateManifest = <ThrowOnError extends boolean = false>(
+  options: Options<ValidateManifestData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ValidateManifestResponses,
+    ValidateManifestErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/manifest/validate',
+    ...options,
   })
 }
 
@@ -1335,6 +1524,233 @@ export const submitPipelineJob = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Create a new QC record
+ * Create a new QC record with metrics and output files.
+ *
+ * The record stores quality control metrics from a pipeline execution.
+ * The `created_by` field is automatically set from the authenticated user.
+ *
+ * **Authentication required:** Bearer token must be provided.
+ *
+ * **Example curl command:**
+ *
+ * ```bash
+ * curl -X POST "http://localhost:8000/api/v1/qcmetrics" \
+ * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+ * -H "Content-Type: application/json" \
+ * -d '{
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq",
+ * "version": "2.0.0"
+ * },
+ * "metrics": [
+ * {
+ * "name": "alignment_stats",
+ * "samples": [{"sample_name": "Sample1"}],
+ * "values": {"reads": "50000000", "alignment_rate": "95.5"}
+ * }
+ * ],
+ * "output_files": [
+ * {
+ * "uri": "s3://bucket/path/file.bam",
+ * "size": 123456789,
+ * "samples": [{"sample_name": "Sample1"}],
+ * "hash": {"md5": "abc123def456"},
+ * "tags": {"type": "alignment"}
+ * }
+ * ]
+ * }'
+ * ```
+ *
+ * **Request body format:**
+ *
+ * ```json
+ * {
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq",
+ * "version": "2.0.0"
+ * },
+ * "metrics": [
+ * {
+ * "name": "alignment_stats",
+ * "samples": [{"sample_name": "Sample1"}],
+ * "values": {"reads": "50000000", "alignment_rate": "95.5"}
+ * }
+ * ],
+ * "output_files": [
+ * {
+ * "uri": "s3://bucket/path/file.bam",
+ * "size": 123456789,
+ * "samples": [{"sample_name": "Sample1"}],
+ * "hash": {"md5": "abc123..."},
+ * "tags": {"type": "alignment"}
+ * }
+ * ]
+ * }
+ * ```
+ *
+ * **Sample association patterns:**
+ * - **Workflow-level**: Omit `samples` array (applies to entire pipeline run)
+ * - **Single sample**: One entry in `samples` array
+ * - **Sample pair**: Two entries with roles, e.g.,
+ * `[{"sample_name": "T1", "role": "tumor"}, {"sample_name": "N1", "role": "normal"}]`
+ *
+ * **Duplicate detection:**
+ * If an equivalent record already exists for the project (same metadata),
+ * the existing record is returned instead of creating a duplicate.
+ */
+export const createQcrecord = <ThrowOnError extends boolean = false>(
+  options: Options<CreateQcrecordData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateQcrecordResponses,
+    CreateQcrecordErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/qcmetrics',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Search QC records (GET)
+ * Search QC records using query parameters.
+ *
+ * **Parameters:**
+ * - `project_id`: Filter to specific project(s)
+ * - `latest`: If true (default), returns only the most recent QC record per project
+ * - `page`: Page number for pagination (starts at 1)
+ * - `per_page`: Number of results per page (max 1000)
+ *
+ * **Example:**
+ * ```
+ * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
+ * ```
+ */
+export const searchQcrecordsGet = <ThrowOnError extends boolean = false>(
+  options?: Options<SearchQcrecordsGetData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    SearchQcrecordsGetResponses,
+    SearchQcrecordsGetErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/qcmetrics/search',
+    ...options,
+  })
+}
+
+/**
+ * Search QC records (POST)
+ * Search QC records using a JSON body for advanced filtering.
+ *
+ * **Request body format:**
+ *
+ * ```json
+ * {
+ * "filter_on": {
+ * "project_id": "P-1234",
+ * "metadata": {
+ * "pipeline": "RNA-Seq"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 100,
+ * "latest": true
+ * }
+ * ```
+ *
+ * **Filter options:**
+ * - `project_id`: Single value or list of project IDs
+ * - `metadata`: Key-value pairs to match against pipeline metadata
+ *
+ * **Pagination:**
+ * - `page`: Page number (starts at 1)
+ * - `per_page`: Results per page (max 1000)
+ *
+ * **Latest filtering:**
+ * - `latest: true` (default): Returns only the newest QC record per project
+ * - `latest: false`: Returns all matching records (full history)
+ */
+export const searchQcrecordsPost = <ThrowOnError extends boolean = false>(
+  options: Options<SearchQcrecordsPostData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    SearchQcrecordsPostResponses,
+    SearchQcrecordsPostErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/qcmetrics/search',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Delete QC record
+ * Delete a QC record and all associated data.
+ *
+ * This permanently removes:
+ * - The QC record
+ * - All associated metadata
+ * - All associated metrics and metric values
+ * - All associated output file records
+ *
+ * **Warning:** This action cannot be undone.
+ */
+export const deleteQcrecord = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteQcrecordData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteQcrecordResponses,
+    DeleteQcrecordErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/qcmetrics/{qcrecord_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get QC record by ID
+ * Retrieve a specific QC record by its UUID.
+ *
+ * Returns the full QC record including metadata, metrics, and output files.
+ */
+export const getQcrecord = <ThrowOnError extends boolean = false>(
+  options: Options<GetQcrecordData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetQcrecordResponses,
+    GetQcrecordErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/qcmetrics/{qcrecord_id}',
+    ...options,
   })
 }
 
@@ -1788,100 +2204,6 @@ export const updateVendor = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  })
-}
-
-/**
- * Get Latest Manifest
- * Retrieve the latest manifest file path from the specified S3 bucket.
- *
- * Searches recursively through the bucket/prefix for files that:
- * - Contain "manifest" (case-insensitive)
- * - End with ".csv"
- *
- * Returns the full S3 path of the most recent matching file.
- *
- * Args:
- * s3_path: S3 path to search (e.g., "s3://bucket-name/path/to/manifests")
- *
- * Returns:
- * Full S3 path to the latest manifest file
- */
-export const getLatestManifest = <ThrowOnError extends boolean = false>(
-  options: Options<GetLatestManifestData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetLatestManifestResponses,
-    GetLatestManifestErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/manifest',
-    ...options,
-  })
-}
-
-/**
- * Upload Manifest
- * Upload a manifest CSV file to the specified S3 path.
- *
- * Args:
- * s3_path: S3 path where the file should be uploaded
- * (e.g., "s3://bucket-name/path/to/manifest.csv")
- * file: The manifest CSV file to upload
- *
- * Returns:
- * ManifestUploadResponse with the uploaded file path and status
- */
-export const uploadManifest = <ThrowOnError extends boolean = false>(
-  options: Options<UploadManifestData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    UploadManifestResponses,
-    UploadManifestErrors,
-    ThrowOnError
-  >({
-    ...formDataBodySerializer,
-    responseType: 'json',
-    url: '/api/v1/manifest',
-    ...options,
-    headers: {
-      'Content-Type': null,
-      ...options.headers,
-    },
-  })
-}
-
-/**
- * Validate Manifest
- * Validate a manifest CSV file from S3 using the ngs360-manifest-validator Lambda.
- *
- * The Lambda function checks the manifest file for:
- * - Required fields
- * - Data format compliance
- * - Value constraints
- * - File existence verification
- *
- * Args:
- * s3_path: S3 path to the manifest CSV file to validate
- * manifest_version: Optional manifest version to validate against
- * files_bucket: Optional S3 bucket where manifest files are located
- * files_prefix: Optional S3 prefix/path for file existence checks
- *
- * Returns:
- * ManifestValidationResponse with validation status and any errors found
- */
-export const validateManifest = <ThrowOnError extends boolean = false>(
-  options: Options<ValidateManifestData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    ValidateManifestResponses,
-    ValidateManifestErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/manifest/validate',
-    ...options,
   })
 }
 

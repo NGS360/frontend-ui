@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Folder, Undo2 } from "lucide-react";
 import { ClientDataTable } from "./data-table/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
-import { listFilesOptions } from '@/client/@tanstack/react-query.gen';
+import { browseS3Options } from '@/client/@tanstack/react-query.gen';
+import type { FileBrowserFile, FileBrowserFolder } from '@/client/types.gen';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SortableHeader } from "@/components/data-table/sortable-header";
@@ -86,7 +87,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
   // Query for file/folder data using browseFilesystem
   const { data, isLoading, isError, error } = useQuery({
-    ...listFilesOptions({
+    ...browseS3Options({
       query: {
         uri: currentDirectoryPath
       },
@@ -96,13 +97,13 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
   // Reformat the data into a structure suitable for rendering to a table
   const tableData: Array<FileBrowserColumns> = [
-    ...(data?.folders.map((d) => ({
+    ...(data?.folders.map((d: FileBrowserFolder) => ({
       name: normalizeFileName(d.name, currentDirectoryPath),
       fullPath: d.name,
       date: d.date,
       dir: true,
     })) || []),
-    ...(data?.files.map((d) => ({
+    ...(data?.files.map((d: FileBrowserFile) => ({
       name: normalizeFileName(d.name, currentDirectoryPath),
       fullPath: d.name,
       date: d.date,
