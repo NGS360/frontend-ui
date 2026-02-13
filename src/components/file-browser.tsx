@@ -3,8 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Folder, Undo2 } from "lucide-react";
 import { ClientDataTable } from "./data-table/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
-import { browseS3Options } from '@/client/@tanstack/react-query.gen';
 import type { FileBrowserFile, FileBrowserFolder } from '@/client/types.gen';
+import { browseS3Options } from '@/client/@tanstack/react-query.gen';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SortableHeader } from "@/components/data-table/sortable-header";
@@ -73,6 +73,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 }) => {
   // Manage directory path internally, but initialize with directoryPath
   const [currentDirectoryPath, setCurrentDirectoryPath] = useState<string>(directoryPath);
+  
+  // Manage search filter state
+  const [globalFilter, setGlobalFilter] = useState<string>('');
 
   // Update internal state when directoryPath prop changes
   useEffect(() => {
@@ -82,6 +85,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   // Wrapper for setDirectoryPath that also calls the callback
   const handleDirectoryChange = (newPath: string) => {
     setCurrentDirectoryPath(newPath);
+    setGlobalFilter(''); // Clear search filter when changing directories
     onDirectoryChange?.(newPath);
   };
 
@@ -228,6 +232,8 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
           </span>
         )}
         isLoading={isLoading}
+        globalFilter={globalFilter}
+        onFilterChange={setGlobalFilter}
       />
     </div>
   );
