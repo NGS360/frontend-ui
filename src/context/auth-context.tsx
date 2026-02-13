@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { TokenResponse, UserPublic } from '@/client/types.gen'
-import { getCurrentUserInfo, login as loginApi, logout as logoutApi } from '@/client/sdk.gen'
+import { getCurrentUserInfo, login as loginApi, logout as logoutApi, oauthCallback } from '@/client/sdk.gen'
 
 interface AuthState {
   isAuthenticated: boolean
@@ -8,7 +8,8 @@ interface AuthState {
   accessToken: string | null
   refreshToken: string | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
+  basicLogin: (email: string, password: string) => Promise<void>
+  oauthLogin: (provider: string, code: string, state: string, redirectUri: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -29,39 +30,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Restore auth state on app load
   useEffect(() => {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-    const refreshTok = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
-    const expiresAt = localStorage.getItem(STORAGE_KEYS.EXPIRES_AT)
+    const restoreAuth = async () => {
+      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+      const refreshTok = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
+      const expiresAt = localStorage.getItem(STORAGE_KEYS.EXPIRES_AT)
 
-    if (token && refreshTok && expiresAt) {
-      const expiresAtNum = parseInt(expiresAt, 10)
-      
+      // Early exit if no stored credentials
+      if (!token || !refreshTok || !expiresAt) {
+        setIsLoading(false)
+        return
+      }
+
       // Check if token is expired
-      if (Date.now() < expiresAtNum) {
-        setAccessToken(token)
-        setRefreshToken(refreshTok)
-        setIsAuthenticated(true)
-
-        // Validate token by fetching user info
-        getCurrentUserInfo()
-          .then((response) => {
-            setUser(response.data as UserPublic)
-          })
-          .catch(() => {
-            // Token invalid, clear everything
-            clearAuthData()
-          })
-          .finally(() => {
-            setIsLoading(false)
-          })
-      } else {
-        // Token expired, clear it
+      if (Date.now() >= parseInt(expiresAt, 10)) {
         clearAuthData()
         setIsLoading(false)
+        return
       }
-    } else {
-      setIsLoading(false)
+
+      // Restore state and validate token
+      setAccessToken(token)
+      setRefreshToken(refreshTok)
+      setIsAuthenticated(true)
+
+      try {
+        const response = await getCurrentUserInfo()
+        setUser(response.data as UserPublic)
+      } catch {
+        // Token invalid, clear everything
+        clearAuthData()
+      } finally {
+        setIsLoading(false)
+      }
     }
+
+    restoreAuth()
   }, [])
 
   const clearAuthData = () => {
@@ -86,7 +89,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
   }
 
-  const login = async (email: string, password: string) => {
+  // Helper function to store tokens and fetch user info
+  const storeTokensAndFetchUser = async (tokenData: TokenResponse) => {
+    // Calculate token expiration timestamp
+    const expiresAt = Date.now() + tokenData.expires_in * 1000
+
+    // Save tokens to localStorage
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.access_token)
+    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenData.refresh_token)
+    localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, expiresAt.toString())
+
+    // Update state
+    setAccessToken(tokenData.access_token)
+    setRefreshToken(tokenData.refresh_token)
+    setIsAuthenticated(true)
+
+    // Fetch user information
+    const userResponse = await getCurrentUserInfo()
+    setUser(userResponse.data as UserPublic)
+  }
+
+  const basicLogin = async (email: string, password: string) => {
     try {
       const response = await loginApi({
         body: {
@@ -97,27 +120,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       const tokenData = response.data as TokenResponse
-
-      // Calculate token expiration timestamp
-      const expiresAt = Date.now() + tokenData.expires_in * 1000
-
-      // Save tokens to localStorage
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.access_token)
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenData.refresh_token)
-      localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, expiresAt.toString())
-
-      // Update state
-      setAccessToken(tokenData.access_token)
-      setRefreshToken(tokenData.refresh_token)
-      setIsAuthenticated(true)
-
-      // Fetch user information
-      const userResponse = await getCurrentUserInfo()
-      setUser(userResponse.data as UserPublic)
+      await storeTokensAndFetchUser(tokenData)
     } catch (error: any) {
       clearAuthData()
       throw new Error(
         error?.response?.data?.detail || 'Login failed. Please check your credentials.'
+      )
+    }
+  }
+
+  const oauthLogin = async (
+    provider: string,
+    code: string,
+    state: string,
+    redirectUri: string
+  ) => {
+    try {
+      // Exchange OAuth code for tokens
+      const response = await oauthCallback({
+        path: { provider },
+        query: { code, state, redirect_uri: redirectUri },
+      })
+
+      const tokenData = response.data as TokenResponse
+      await storeTokensAndFetchUser(tokenData)
+    } catch (error: any) {
+      clearAuthData()
+      throw new Error(
+        error?.response?.data?.detail ||
+        error?.message ||
+        'Authentication failed. Please try again.'
       )
     }
   }
@@ -148,7 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accessToken,
         refreshToken,
         isLoading,
-        login,
+        basicLogin,
+        oauthLogin,
         logout,
       }}
     >

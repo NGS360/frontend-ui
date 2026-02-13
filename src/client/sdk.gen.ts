@@ -47,6 +47,8 @@ import type {
   GetActionTypesData,
   GetActionTypesErrors,
   GetActionTypesResponses,
+  GetAvailableOauthProvidersData,
+  GetAvailableOauthProvidersResponses,
   GetCurrentUserInfoData,
   GetCurrentUserInfoResponses,
   GetDemultiplexWorkflowConfigData,
@@ -603,6 +605,29 @@ export const resendVerification = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Get Available Oauth Providers
+ * Get list of available OAuth providers
+ *
+ * Returns:
+ * List of supported OAuth providers
+ */
+export const getAvailableOauthProviders = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<GetAvailableOauthProvidersData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAvailableOauthProvidersResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/auth/oauth/providers',
+    ...options,
   })
 }
 
