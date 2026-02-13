@@ -11,6 +11,7 @@
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix",
+    "typecheck": "tsc --noEmit",
     "generate-client": "openapi-ts"
   },
   "dependencies": {
