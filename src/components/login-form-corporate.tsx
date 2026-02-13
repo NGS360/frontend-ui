@@ -29,6 +29,7 @@ export function LoginFormCorporate({ provider, onLogin, apiUrl }: LoginFormCorpo
               {/* Corporate SSO Button */}
               <Button
                 type="button"
+                variant='outline'
                 onClick={() => onLogin(provider.name, `${apiUrl}${provider.authorize_url}`)}
                 className="flex items-center gap-2 w-full"
                 size="lg"
