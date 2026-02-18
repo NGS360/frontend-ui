@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -8,10 +8,9 @@ import type { SubmitHandler } from "react-hook-form";
 import type { BatchJobPublic, DemuxWorkflowConfig, HttpValidationError } from "@/client";
 import type { AxiosError } from "axios";
 import { 
-  getJobsQueryKey,
   submitDemultiplexWorkflowJobMutation,
 } from "@/client/@tanstack/react-query.gen";
-import { DEFAULT_JOBS_QUERY_OPTIONS, useViewJob } from "@/hooks/use-job-queries";
+import { useInvalidateJobQueries, useViewJob } from "@/hooks/use-job-queries";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -52,9 +51,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   onOpenChange,
 }) => {
   const { viewJob } = useViewJob();
-  const queryClient = useQueryClient();
-
-  const queryKey = getJobsQueryKey(DEFAULT_JOBS_QUERY_OPTIONS);
+  const { invalidateJobQueries } = useInvalidateJobQueries();
 
   // Mutation for submitting workflow
   const { mutate, isPending } = useMutation({
@@ -65,10 +62,10 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
     },
     onSuccess: (data: BatchJobPublic) => {
       // Invalidate jobs list query to show the new job
-      queryClient.invalidateQueries({ queryKey, refetchType: 'all' });
+      invalidateJobQueries();
       
       // Show success toast with a button to view the job
-      toast.success("Demux workflow submitted successfully", {
+      toast.success("Demux job submitted successfully", {
         description: (
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">

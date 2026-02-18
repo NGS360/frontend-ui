@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { getActionOptionsOptions, getActionPlatformsOptions, getActionTypesOptions, submitPipelineJobMutation } from '@/client/@tanstack/react-query.gen'
+import { useInvalidateJobQueries, useViewJob } from '@/hooks/use-job-queries'
 
 interface ExecuteActionFormProps {
   /** Trigger for the Sheet component */
@@ -27,6 +28,8 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   projectId
 }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { invalidateJobQueries } = useInvalidateJobQueries();
+  const { viewJob } = useViewJob();
   // Stepper state managed by useReducer
   type State = {
     activeStep: number;
@@ -36,16 +39,16 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
     autoRelease: boolean;
   };
   type Action =
-    | { type: 'SET_ACTION'; value: ActionOption; label?: string }
-    | { type: 'SET_PLATFORM'; value: ActionPlatform; label?: string }
+    | { type: 'SET_ACTION'; value: ActionOption | ''; label?: string }
+    | { type: 'SET_PLATFORM'; value: ActionPlatform | ''; label?: string }
     | { type: 'SET_TYPE'; value: string; label?: string }
     | { type: 'SET_ACTIVE_STEP'; value: number }
     | { type: 'SET_AUTO_RELEASE'; value: boolean };
 
   const initialState: State = {
     activeStep: 0,
-    projectAction: { value: '' as ActionOption, label: '' },
-    projectPlatform: { value: '' as ActionPlatform, label: '' },
+    projectAction: { value: '', label: '' },
+    projectPlatform: { value: '', label: '' },
     projectType: { value: '', label: '' },
     autoRelease: false,
   };
@@ -56,16 +59,16 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
         return {
           ...state,
           projectAction: { value: action.value, label: action.label },
-          projectPlatform: { value: '' as ActionPlatform, label: '' },
+          projectPlatform: { value: '', label: '' },
           projectType: { value: '', label: '' },
-          activeStep: action.value ? 1 : 0,
+          activeStep: action.value !== '' ? 1 : 0,
         };
       case 'SET_PLATFORM':
         return {
           ...state,
           projectPlatform: { value: action.value, label: action.label },
           projectType: { value: '', label: '' },
-          activeStep: action.value ? 2 : 1,
+          activeStep: action.value !== '' ? 2 : 1,
         };
       case 'SET_TYPE':
         return {
@@ -94,19 +97,34 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   const submitPipelineJob = useMutation({
     ...submitPipelineJobMutation(),
     onSuccess: (data) => {
-      toast.success('Pipeline job submitted successfully!', {
+      invalidateJobQueries();
+
+      toast.success('Project action submitted successfully', {
         description: (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-mono text-foreground">{data.id}</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="flex-1"
+                onClick={() => viewJob(data.id)}
+              >
+                View Job
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="flex-1"
+                onClick={() => toast.dismiss()}
+              >
+                Dismiss
+              </Button>
+            </div>
           </div>
         ),
       });
-      // Give user time to see the completed state before closing
-      setTimeout(() => {
-        setSheetOpen(false);
-        // Ensure state is cleared after the sheet closes
-        setTimeout(() => handleReset(), 300);
-      }, 700);
+
+      setSheetOpen(false);
+      handleReset();
     },
     onError: (error) => {
       toast.error('Failed to submit pipeline job', {
@@ -119,7 +137,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
 
   // Handle reset - clear form state
   const handleReset = () => {
-    dispatch({ type: 'SET_ACTION', value: '' as ActionOption, label: '' });
+    dispatch({ type: 'SET_ACTION', value: '', label: '' });
     dispatch({ type: 'SET_ACTIVE_STEP', value: 0 });
     dispatch({ type: 'SET_AUTO_RELEASE', value: false });
   };

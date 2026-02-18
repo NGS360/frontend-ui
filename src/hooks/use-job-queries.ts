@@ -20,27 +20,53 @@ export const DEFAULT_JOBS_QUERY_OPTIONS = {
   },
 } as const;
 
+interface InvalidateJobQueriesOptions {
+  jobId?: string
+  additionalQueryKeysToInvalidate?: Array<ReadonlyArray<unknown>>
+}
+
+/**
+ * Shared helper to invalidate job-related queries.
+ * Invalidates all jobs list variants plus optional job/details and additional keys.
+ */
+export function useInvalidateJobQueries() {
+  const queryClient = useQueryClient()
+
+  const invalidateJobQueries = ({
+    jobId,
+    additionalQueryKeysToInvalidate,
+  }: InvalidateJobQueriesOptions = {}) => {
+    queryClient.invalidateQueries({ queryKey: getJobsQueryKey(), refetchType: 'all' })
+
+    if (jobId) {
+      const jobQueryKey = getJobQueryKey({
+        path: { job_id: jobId },
+      })
+      queryClient.invalidateQueries({ queryKey: jobQueryKey, refetchType: 'all' })
+    }
+
+    if (additionalQueryKeysToInvalidate) {
+      for (const queryKey of additionalQueryKeysToInvalidate) {
+        queryClient.invalidateQueries({ queryKey, refetchType: 'all' })
+      }
+    }
+  }
+
+  return {
+    invalidateJobQueries,
+  }
+}
+
 /**
  * Custom hook to handle viewing a job (marking as viewed and navigating)
  * Centralizes the logic for updating job viewed status and invalidating queries
  */
 export function useViewJob() {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const { invalidateJobQueries } = useInvalidateJobQueries()
 
   const updateJobMutationInstance = useMutation({
     ...updateJobMutation(),
-    onSuccess: (_data, variables) => {
-      // Invalidate the jobs list query with default options
-      const jobsQueryKey = getJobsQueryKey(DEFAULT_JOBS_QUERY_OPTIONS)
-      queryClient.invalidateQueries({ queryKey: jobsQueryKey, refetchType: 'all' })
-      
-      // Invalidate the specific job query
-      const jobQueryKey = getJobQueryKey({
-        path: { job_id: variables.path.job_id },
-      })
-      queryClient.invalidateQueries({ queryKey: jobQueryKey, refetchType: 'all' })
-    },
   })
 
   /**
@@ -55,12 +81,10 @@ export function useViewJob() {
       body: { viewed: true },
     })
 
-    // Invalidate any additional query keys if provided
-    if (additionalQueryKeysToInvalidate) {
-      for (const queryKey of additionalQueryKeysToInvalidate) {
-        queryClient.invalidateQueries({ queryKey, refetchType: 'all' })
-      }
-    }
+    invalidateJobQueries({
+      jobId,
+      additionalQueryKeysToInvalidate,
+    })
 
     // Navigate to job details
     navigate({ to: '/jobs/$job_id', params: { job_id: jobId } })
