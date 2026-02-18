@@ -1,11 +1,11 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import z from 'zod'
-import { ListChecks, User } from 'lucide-react'
+import { ListChecks, RefreshCw, User } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import type { BatchJobPublic, JobStatus } from '@/client'
-import { getJobsOptions } from '@/client/@tanstack/react-query.gen'
+import { getJobsOptions, getJobsQueryKey } from '@/client/@tanstack/react-query.gen'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
@@ -13,6 +13,7 @@ import { FullscreenSpinner } from '@/components/spinner'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { SelectFilter } from '@/components/data-table/select-filter'
 import { TextFilter } from '@/components/data-table/text-filter'
+import { Button } from '@/components/ui/button'
 
 // Define the search schema for jobs
 const jobsSearchSchema = z.object({
@@ -45,6 +46,7 @@ function RouteComponent() {
   // Manage the state of search params
   const search = Route.useSearch()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   // Local table state
   // Pagination (0-based for Tanstack Table)
@@ -97,8 +99,19 @@ function RouteComponent() {
     })
   }
 
+  const jobsQueryKey = getJobsQueryKey({
+    query: {
+      skip: (search.page - 1) * search.per_page,
+      limit: search.per_page,
+      sort_by: search.sort_by,
+      sort_order: search.sort_order,
+      status_filter: search.status_filter as JobStatus | null,
+      user: search.user_filter,
+    },
+  })
+
   // Query jobs
-  const { data, error } = useQuery({
+  const { data, error, isFetching } = useQuery({
     ...getJobsOptions({
       query: {
         skip: (search.page - 1) * search.per_page,
@@ -111,6 +124,10 @@ function RouteComponent() {
     }),
     placeholderData: keepPreviousData
   })
+
+  const handleRefreshJobs = () => {
+    queryClient.invalidateQueries({ queryKey: jobsQueryKey, refetchType: 'all' })
+  }
 
   // Handle job row click - navigate without updating view status (admin only)
   const handleJobClick = (jobId: string) => {
@@ -202,8 +219,8 @@ function RouteComponent() {
     },
   ]
 
-  // Define filter components
-  const filterComponents = (
+  // Define table tools
+  const toolbar = (
     <>
       <SelectFilter
         label="Status"
@@ -219,12 +236,22 @@ function RouteComponent() {
         onChange={handleUserChange}
         placeholder="Filter by user..."
       />
+      <Button
+        type="button"
+        variant="outline"
+        size="default"
+        onClick={handleRefreshJobs}
+        disabled={isFetching}
+      >
+        <RefreshCw className={`${isFetching ? 'animate-spin' : ''}`} />
+        Refresh
+      </Button>
     </>
   )
 
   return (
     <div className='flex flex-col gap-6'>
-      <div className='flex flex-col gap-4 md:flex-row md:items-end md:justify-between'>
+      <div className='flex flex-col gap-2'>
         <div className='flex flex-col gap-2'>
           <h1 className="text-3xl">Jobs</h1>
           <p className="text-muted-foreground">
@@ -241,7 +268,7 @@ function RouteComponent() {
         totalItems={data.count}
         sorting={sorting}
         onSortingChange={setSorting}
-        filterComponents={filterComponents}
+        tableTools={toolbar}
         columnVisibility={{ id: false }}
         rowClickCallback={(row) => handleJobClick(row.original.id)}
       />
