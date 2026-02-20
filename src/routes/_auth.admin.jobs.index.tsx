@@ -140,13 +140,13 @@ function RouteComponent() {
 
   // Status options for filter
   const statusOptions = [
-    { label: 'Submitted', value: 'Submitted' },
-    { label: 'Pending', value: 'Pending' },
-    { label: 'Runnable', value: 'Runnable' },
-    { label: 'Starting', value: 'Starting' },
-    { label: 'Running', value: 'Running' },
-    { label: 'Succeeded', value: 'Succeeded' },
-    { label: 'Failed', value: 'Failed' },
+    { label: 'SUBMITTED', value: 'SUBMITTED' },
+    { label: 'PENDING', value: 'PENDING' },
+    { label: 'RUNNABLE', value: 'RUNNABLE' },
+    { label: 'STARTING', value: 'STARTING' },
+    { label: 'RUNNING', value: 'RUNNING' },
+    { label: 'SUCCEEDED', value: 'SUCCEEDED' },
+    { label: 'FAILED', value: 'FAILED' },
   ]
   // Calculate total pages from count and per_page
   const totalPages = Math.ceil(data.count / search.per_page)

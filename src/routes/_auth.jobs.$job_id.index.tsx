@@ -6,7 +6,7 @@ import { CopyableText } from '@/components/copyable-text'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { getJobLogOptions } from '@/client/@tanstack/react-query.gen'
+import { getJobLogOptions, getJobOptions } from '@/client/@tanstack/react-query.gen'
 
 export const Route = createFileRoute('/_auth/jobs/$job_id/')({
   component: RouteComponent,
@@ -14,7 +14,18 @@ export const Route = createFileRoute('/_auth/jobs/$job_id/')({
 
 function RouteComponent() {
   const routeApi = getRouteApi('/_auth/jobs/$job_id')
-  const { job } = routeApi.useLoaderData()
+  const { job: initialJob } = routeApi.useLoaderData()
+
+  const { data: job = initialJob } = useQuery({
+    ...getJobOptions({
+      path: {
+        job_id: initialJob.id,
+      }
+    }),
+    initialData: initialJob,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
+  })
 
   const shouldPollJobLog = ['SUBMITTED', 'PENDING', 'RUNNABLE', 'STARTING', 'RUNNING'].includes(job.status)
 
