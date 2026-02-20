@@ -41,7 +41,7 @@ interface DataTableProps<TData> {
   loadingComponent?: JSX.Element,
   showSearch?: boolean,
   enableColumnFilters?: boolean,
-  filterComponents?: React.ReactNode
+  tableTools?: React.ReactNode
 }
 
 export function DataTable<TData>({
@@ -55,7 +55,7 @@ export function DataTable<TData>({
   loadingComponent = <ContainedSpinner variant='ellipsis' />,
   showSearch = true,
   enableColumnFilters = false,
-  filterComponents
+  tableTools
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -183,7 +183,7 @@ export function DataTable<TData>({
             />
           )}
           <div className="flex flex-wrap justify-end items-center gap-2">
-            {filterComponents}
+            {tableTools}
             <DataTableColumnToggle table={table} />
           </div>
         </div>
@@ -219,8 +219,8 @@ interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
 
   // Column visibility,
 
-  // Custom filter components
-  filterComponents?: React.ReactNode
+  // Custom table tools
+  tableTools?: React.ReactNode
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
 }
 
@@ -246,8 +246,8 @@ export function ServerDataTable<TData, TValue>({
   // Sorting
   sorting,
 
-  // Custom filter components
-  filterComponents,
+  // Custom table tools
+  tableTools,
   onSortingChange: setSorting,
 
   // Column visibility
@@ -300,7 +300,7 @@ export function ServerDataTable<TData, TValue>({
   return (
     <DataTable
       table={table}
-      filterComponents={filterComponents}
+      tableTools={tableTools}
       totalItems={totalItems}
       notFoundComponent={notFoundComponent}
       isLoading={isLoading}
@@ -318,7 +318,8 @@ interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
   rowSelection?: RowSelectionState,
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>,
   globalFilter?: string,
-  onFilterChange?: (value: string) => void
+  onFilterChange?: (value: string) => void,
+  tableTools?: React.ReactNode
 }
 
 export function ClientDataTable<TData, TValue>({
@@ -334,7 +335,8 @@ export function ClientDataTable<TData, TValue>({
   loadingComponent,
   onColumnVisibilityChange,
   globalFilter,
-  onFilterChange
+  onFilterChange,
+  tableTools
 }: ClientDataTableProps<TData, TValue>) {
 
   // Determine if column visibility is controlled or uncontrolled
@@ -383,6 +385,7 @@ export function ClientDataTable<TData, TValue>({
   return (
     <DataTable
       table={table}
+      tableTools={tableTools}
       totalItems={data.length}
       notFoundComponent={notFoundComponent}
       rowClickCallback={rowClickCallback}

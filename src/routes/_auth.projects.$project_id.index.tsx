@@ -1,33 +1,41 @@
 import { useEffect, useState } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { Building2, Cog, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Zap } from 'lucide-react'
-import { createFileRoute, getRouteApi } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import type { SamplePublic } from '@/client/types.gen'
 import type { ColumnDef } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
-import { ExecuteWorkflowForm } from '@/components/execute-workflow-form'
+import { ExecuteActionForm } from '@/components/execute-action-form'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
+import { UpdateProjectForm } from '@/components/update-project-form'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 // tooltip no longer needed for vendor card
 import { highlightMatch, isValidHttpURL } from '@/lib/utils'
-import { getSamples } from '@/client/sdk.gen'
+import { getProjectSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
+import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
 
 export const Route = createFileRoute('/_auth/projects/$project_id/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  // Load project data
-  const routeApi = getRouteApi('/_auth/projects/$project_id')
-  const { project } = routeApi.useLoaderData()
+  const { project_id } = Route.useParams()
+  
+  // Load project data using React Query for automatic refetching
+  const { data: project } = useSuspenseQuery(
+    getProjectByProjectIdOptions({
+      path: { project_id }
+    })
+  )
 
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
@@ -46,7 +54,7 @@ function RouteComponent() {
   // Fetch all samples using the use-all-paginated hook
   const { data: allSamples, isLoading, error } = useAllPaginated({
     queryKey: ['samples', 'all', project.project_id],
-    fetcher: ({ query }) => getSamples({
+    fetcher: ({ query }) => getProjectSamples({
       path: { project_id: project.project_id },
       query
     }),
@@ -166,19 +174,26 @@ function RouteComponent() {
                   </Card>
                 ))}
               </div>
-              <Button variant='outline' className='w-full md:w-fit'>
-                {!project.attributes || project.attributes.length === 0 ? (
-                  <>
-                    <Plus />
-                    <span>Add attributes</span>
-                  </>
-                ) : (
-                  <>
-                    <Pencil />
-                    <span>Edit attributes</span>
-                  </>
-                )}
-              </Button>
+              <UpdateProjectForm
+                projectId={project.project_id}
+                projectName={project.name}
+                projectAttributes={project.attributes}
+                trigger={
+                  <Button variant='outline' className='w-full md:w-fit'>
+                    {!project.attributes || project.attributes.length === 0 ? (
+                      <>
+                        <Plus />
+                        <span>Add attributes</span>
+                      </>
+                    ) : (
+                      <>
+                        <Pencil />
+                        <span>Edit attributes</span>
+                      </>
+                    )}
+                  </Button>
+                }
+              />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -252,17 +267,18 @@ function RouteComponent() {
                   )}
                 />
 
-                {/* Execute Workflow */}
-                <ExecuteWorkflowForm
+                {/* Execute Action */}
+                <ExecuteActionForm
+                  projectId={project_id}
                   trigger={(
                     <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
                       <CardHeader>
                         <CardTitle className='flex items-center gap-2 text-lg'>
                           <Cog className='size-5 text-primary' />
-                          Execute Workflow
+                          Execute Action
                         </CardTitle>
                         <CardDescription className='text-sm'>
-                          Execute workflows and actions on this project
+                          Execute pipelines and actions on this project
                         </CardDescription>
                       </CardHeader>
                     </Card>

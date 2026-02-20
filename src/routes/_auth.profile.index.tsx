@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { KeyRound, Mail, ShieldCheck } from 'lucide-react'
+import { KeyRound, Mail, RefreshCw, ShieldCheck } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import type { BatchJobPublic } from '@/client'
 import { getJobsOptions, getJobsQueryKey, resendVerificationMutation } from '@/client/@tanstack/react-query.gen'
@@ -25,6 +25,7 @@ export const Route = createFileRoute('/_auth/profile/')({
 function RouteComponent() {
   const { user } = useAuth()
   const { viewJob } = useViewJob()
+  const queryClient = useQueryClient()
 
   const username = user?.username || 'system'
 
@@ -71,7 +72,7 @@ function RouteComponent() {
   })
 
   // Query user-specific jobs
-  const { data: jobsData, error } = useQuery({
+  const { data: jobsData, error, isFetching } = useQuery({
     ...getJobsOptions({
       query: {
         skip: pagination.pageIndex * pagination.pageSize,
@@ -88,6 +89,10 @@ function RouteComponent() {
   const handleJobClick = (jobId: string) => {
     // Mark as viewed and navigate, also invalidate the profile-specific jobs query
     viewJob(jobId, [jobsQueryKey])
+  }
+
+  const handleRefreshJobs = () => {
+    queryClient.invalidateQueries({ queryKey: jobsQueryKey, refetchType: 'all' })
   }
 
   // Define job columns
@@ -153,6 +158,22 @@ function RouteComponent() {
   if (!jobsData) return <FullscreenSpinner variant='ellipsis' />
 
   const totalPages = Math.ceil(jobsData.count / pagination.pageSize)
+
+  // Define table tools
+  const toolbar = (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="default"
+        onClick={handleRefreshJobs}
+        disabled={isFetching}
+      >
+        <RefreshCw className={`${isFetching ? 'animate-spin' : ''}`} />
+        Refresh
+      </Button>
+    </>
+  )
 
   return (
     <div className='flex flex-col gap-8 pb-8'>
@@ -260,6 +281,7 @@ function RouteComponent() {
             sorting={sorting}
             onSortingChange={setSorting}
             columnVisibility={{ id: false }}
+            tableTools={toolbar}
             rowClickCallback={(row) => handleJobClick(row.original.id)}
             notFoundComponent={
               <div className="text-center py-8 text-muted-foreground">

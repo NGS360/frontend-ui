@@ -32,6 +32,18 @@ export function DataTablePagination<TData>({
   const rowsOnPage = table.getPaginationRowModel().rows.length;
   const rowsFiltered = table.getFilteredRowModel().rows.length;
   const rowsDisplayed = rowsOnPage < rowsFiltered ? rowsOnPage : rowsFiltered
+  const currentPageSize = table.getState().pagination.pageSize;
+  
+  // Detect if this is a server-side paginated table
+  const isServerSide = table.options.manualPagination === true;
+  
+  // Only show "All" logic for client-side tables
+  const isShowingAll = !isServerSide && currentPageSize >= rowsFiltered;
+  
+  // For server-side, totalItems already represents the filtered count from the server
+  // For client-side, use filtered count if filtering is active, otherwise use totalItems
+  const isFiltered = !isServerSide && rowsFiltered !== totalItems;
+  const displayTotal = isServerSide ? totalItems : (isFiltered ? rowsFiltered : totalItems);
 
   return (
     <div className="flex items-center justify-end md:justify-between">
@@ -39,21 +51,25 @@ export function DataTablePagination<TData>({
         <div className="text-muted-foreground flex-1 text-sm">
           Showing {" "}
           {rowsDisplayed} out of {" "}
-          {totalItems} row(s)
+          {displayTotal} row(s)
         </div>
       )}
       <div className="flex items-center space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
           {!isMobile && <p className="text-sm font-medium">Rows per page</p>}
           <Select
-            value={`${table.getState().pagination.pageSize}`}
+            value={isShowingAll ? 'all' : `${currentPageSize}`}
             onValueChange={(value) => {
-              table.setPageSize(Number(value))
+              if (value === 'all' && !isServerSide) {
+                table.setPageSize(rowsFiltered || totalItems || 9999)
+              } else {
+                table.setPageSize(Number(value))
+              }
               table.setPageIndex(0)
             }}
           >
             <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={table.getState().pagination.pageSize} />
+              <SelectValue placeholder={isShowingAll ? 'All' : currentPageSize} />
             </SelectTrigger>
             <SelectContent side="top">
               {[5, 10, 20, 25, 30, 40, 50].map((pageSize) => (
@@ -61,6 +77,7 @@ export function DataTablePagination<TData>({
                   {pageSize}
                 </SelectItem>
               ))}
+              {!isServerSide && <SelectItem value="all">All</SelectItem>}
             </SelectContent>
           </Select>
         </div>
