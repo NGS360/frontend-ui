@@ -22,6 +22,7 @@ import {
   deleteQcrecord,
   deleteVendor,
   downloadFile,
+  findAndUpdateJob,
   getActionOptions,
   getActionPlatforms,
   getActionTypes,
@@ -31,6 +32,7 @@ import {
   getFile,
   getFileVersions,
   getJob,
+  getJobLog,
   getJobs,
   getLatestManifest,
   getProjectByProjectId,
@@ -124,6 +126,9 @@ import type {
   DeleteVendorError,
   DeleteVendorResponse,
   DownloadFileData,
+  FindAndUpdateJobData,
+  FindAndUpdateJobError,
+  FindAndUpdateJobResponse,
   GetActionOptionsData,
   GetActionPlatformsData,
   GetActionTypesData,
@@ -133,6 +138,7 @@ import type {
   GetFileData,
   GetFileVersionsData,
   GetJobData,
+  GetJobLogData,
   GetJobsData,
   GetLatestManifestData,
   GetProjectByProjectIdData,
@@ -1943,6 +1949,41 @@ export const submitJobMutation = (
   return mutationOptions
 }
 
+/**
+ * Find And Update Job
+ * Find and Update a batch job.
+ *
+ * Args:
+ * session: Database session
+ * job_update: Job update data
+ *
+ * Returns:
+ * Updated job information
+ */
+export const findAndUpdateJobMutation = (
+  options?: Partial<Options<FindAndUpdateJobData>>,
+): UseMutationOptions<
+  FindAndUpdateJobResponse,
+  AxiosError<FindAndUpdateJobError>,
+  Options<FindAndUpdateJobData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    FindAndUpdateJobResponse,
+    AxiosError<FindAndUpdateJobError>,
+    Options<FindAndUpdateJobData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await findAndUpdateJob({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const getJobQueryKey = (options: Options<GetJobData>) =>
   createQueryKey('getJob', options)
 
@@ -2006,6 +2047,35 @@ export const updateJobMutation = (
     },
   }
   return mutationOptions
+}
+
+export const getJobLogQueryKey = (options: Options<GetJobLogData>) =>
+  createQueryKey('getJobLog', options)
+
+/**
+ * Get Job Log
+ * Retrieve log for a specific batch job.
+ *
+ * Args:
+ * session: Database session
+ * job_id: Job UUID
+ *
+ * Returns:
+ * List of log lines
+ */
+export const getJobLogOptions = (options: Options<GetJobLogData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getJobLog({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getJobLogQueryKey(options),
+  })
 }
 
 export const getLatestManifestQueryKey = (

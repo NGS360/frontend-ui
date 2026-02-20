@@ -538,10 +538,7 @@ export type EmailVerificationRequest = {
  * Entity association input for file creation.
  */
 export type EntityInput = {
-  /**
-   * Entity Type
-   */
-  entity_type: string
+  entity_type: FileEntityType
   /**
    * Entity Id
    */
@@ -557,10 +554,7 @@ export type EntityInput = {
  * Public representation of an entity association.
  */
 export type EntityPublic = {
-  /**
-   * Entity Type
-   */
-  entity_type: string
+  entity_type: FileEntityType
   /**
    * Entity Id
    */
@@ -679,6 +673,12 @@ export type FileCreate = {
 }
 
 /**
+ * FileEntityType
+ * Entity types that can have files associated.
+ */
+export type FileEntityType = 'PROJECT' | 'RUN' | 'SAMPLE' | 'QCRECORD'
+
+/**
  * FilePublic
  * Public representation of a file.
  */
@@ -726,7 +726,7 @@ export type FilePublic = {
   /**
    * Samples
    */
-  samples: Array<ApiFilesModelsSamplePublic>
+  samples: Array<FileSamplePublic>
   /**
    * Hashes
    */
@@ -735,6 +735,21 @@ export type FilePublic = {
    * Tags
    */
   tags: Array<TagPublic>
+}
+
+/**
+ * FileSamplePublic
+ * Public representation of a file-sample association.
+ */
+export type FileSamplePublic = {
+  /**
+   * Sample Name
+   */
+  sample_name: string
+  /**
+   * Role
+   */
+  role: string | null
 }
 
 /**
@@ -775,7 +790,7 @@ export type FileSummary = {
   /**
    * Samples
    */
-  samples?: Array<ApiFilesModelsSamplePublic>
+  samples?: Array<FileSamplePublic>
 }
 
 /**
@@ -920,13 +935,13 @@ export type InputType = 'Enum' | 'String' | 'Integer' | 'Boolean'
  * Enumeration of valid batch job statuses
  */
 export type JobStatus =
-  | 'Submitted'
-  | 'Pending'
-  | 'Runnable'
-  | 'Starting'
-  | 'Running'
-  | 'Succeeded'
-  | 'Failed'
+  | 'SUBMITTED'
+  | 'PENDING'
+  | 'RUNNABLE'
+  | 'STARTING'
+  | 'RUNNING'
+  | 'SUCCEEDED'
+  | 'FAILED'
 
 /**
  * ManifestUploadResponse
@@ -2109,21 +2124,6 @@ export type WorkflowPublic = {
   attributes: Array<Attribute> | null
 }
 
-/**
- * SamplePublic
- * Public representation of a sample association.
- */
-export type ApiFilesModelsSamplePublic = {
-  /**
-   * Sample Name
-   */
-  sample_name: string
-  /**
-   * Role
-   */
-  role: string | null
-}
-
 export type RootData = {
   body?: never
   path?: never
@@ -3002,6 +3002,33 @@ export type SubmitJobResponses = {
 
 export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses]
 
+export type FindAndUpdateJobData = {
+  body: BatchJobUpdate
+  path?: never
+  query?: never
+  url: '/api/v1/jobs'
+}
+
+export type FindAndUpdateJobErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type FindAndUpdateJobError =
+  FindAndUpdateJobErrors[keyof FindAndUpdateJobErrors]
+
+export type FindAndUpdateJobResponses = {
+  /**
+   * Successful Response
+   */
+  200: BatchJobPublic
+}
+
+export type FindAndUpdateJobResponse =
+  FindAndUpdateJobResponses[keyof FindAndUpdateJobResponses]
+
 export type GetJobData = {
   body?: never
   path: {
@@ -3061,6 +3088,37 @@ export type UpdateJobResponses = {
 }
 
 export type UpdateJobResponse = UpdateJobResponses[keyof UpdateJobResponses]
+
+export type GetJobLogData = {
+  body?: never
+  path: {
+    /**
+     * Job Id
+     */
+    job_id: string
+  }
+  query?: never
+  url: '/api/v1/jobs/{job_id}/log'
+}
+
+export type GetJobLogErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetJobLogError = GetJobLogErrors[keyof GetJobLogErrors]
+
+export type GetJobLogResponses = {
+  /**
+   * Response Get Job Log
+   * Successful Response
+   */
+  200: Array<string>
+}
+
+export type GetJobLogResponse = GetJobLogResponses[keyof GetJobLogResponses]
 
 export type GetLatestManifestData = {
   body?: never

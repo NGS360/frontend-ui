@@ -49,6 +49,9 @@ import type {
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
+  FindAndUpdateJobData,
+  FindAndUpdateJobErrors,
+  FindAndUpdateJobResponses,
   GetActionOptionsData,
   GetActionOptionsResponses,
   GetActionPlatformsData,
@@ -71,6 +74,9 @@ import type {
   GetFileVersionsResponses,
   GetJobData,
   GetJobErrors,
+  GetJobLogData,
+  GetJobLogErrors,
+  GetJobLogResponses,
   GetJobResponses,
   GetJobsData,
   GetJobsErrors,
@@ -1152,6 +1158,35 @@ export const submitJob = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Find And Update Job
+ * Find and Update a batch job.
+ *
+ * Args:
+ * session: Database session
+ * job_update: Job update data
+ *
+ * Returns:
+ * Updated job information
+ */
+export const findAndUpdateJob = <ThrowOnError extends boolean = false>(
+  options: Options<FindAndUpdateJobData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    FindAndUpdateJobResponses,
+    FindAndUpdateJobErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/jobs',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
  * Get Job
  * Retrieve information about a specific batch job.
  *
@@ -1203,6 +1238,31 @@ export const updateJob = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Get Job Log
+ * Retrieve log for a specific batch job.
+ *
+ * Args:
+ * session: Database session
+ * job_id: Job UUID
+ *
+ * Returns:
+ * List of log lines
+ */
+export const getJobLog = <ThrowOnError extends boolean = false>(
+  options: Options<GetJobLogData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetJobLogResponses,
+    GetJobLogErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/jobs/{job_id}/log',
+    ...options,
   })
 }
 
