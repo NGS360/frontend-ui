@@ -27,7 +27,7 @@ function RouteComponent() {
     refetchIntervalInBackground: true,
   })
 
-  const shouldPollJobLog = ['SUBMITTED', 'PENDING', 'RUNNABLE', 'STARTING', 'RUNNING'].includes(job.status)
+  const shouldPollJobLog = ['RUNNING'].includes(job.status)
 
   const { data: jobLog, isLoading: isJobLogLoading, error: jobLogError } = useQuery({
     ...getJobLogOptions({
@@ -39,7 +39,9 @@ function RouteComponent() {
     refetchIntervalInBackground: true,
   })
 
-  const jobLogText = jobLog?.join('\n')
+  const jobLogText = jobLog
+    ?.map((line, index) => `${index + 1}: ${line}`)
+    .join('\n')
   const jobLogErrorMessage = jobLogError instanceof Error
     ? jobLogError.message
     : 'Unable to load job log.'
