@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import type { ChangeEvent } from 'react';
 import type { DemuxWorkflowConfig } from '@/client'
 import { getDemultiplexWorkflowConfig, getRun, listDemultiplexWorkflows } from '@/client'
-import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from '@/client/@tanstack/react-query.gen'
+import { getRunQueryKey, getRunSamplesheetQueryKey, postRunSamplesheetMutation, updateRunMutation } from '@/client/@tanstack/react-query.gen'
 import { ExecuteToolForm } from '@/components/execute-demux-job-form'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
@@ -103,6 +103,24 @@ function RouteComponent() {
     }
   })
 
+  const { mutate: mutateRunStatus, isPending: isRunStatusPending } = useMutation({
+    ...updateRunMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: getRunQueryKey({
+          path: {
+            run_barcode: run.barcode as string
+          }
+        })
+      })
+      toast.success(`Run ${run.barcode} status updated to Resync`)
+    },
+    onError: (updateError) => {
+      console.error(updateError)
+      toast.error('Failed to re-sync run')
+    }
+  })
+
   // Samplesheet file upload
   const inputRef = useRef<HTMLInputElement>(null)
   const handleClick = () => {
@@ -177,8 +195,16 @@ function RouteComponent() {
                       <Button
                         variant='ghost'
                         size='icon'
+                        disabled={isRunStatusPending}
                         onClick={() => {
-                          console.log('Re-sync run')
+                          mutateRunStatus({
+                            path: {
+                              run_barcode: run.barcode as string
+                            },
+                            body: {
+                              run_status: 'Resync'
+                            }
+                          })
                         }}
                       >
                         <RotateCw />
