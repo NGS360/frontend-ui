@@ -50,6 +50,24 @@ function RouteComponent() {
   const { run } = routeApi.useLoaderData()
   const queryClient = useQueryClient()
 
+  const runQuery = useQuery({
+    queryKey: getRunQueryKey({
+      path: {
+        run_barcode: run.barcode as string
+      }
+    }),
+    queryFn: async () => {
+      const response = await getRun({
+        path: {
+          run_barcode: run.barcode as string
+        },
+        throwOnError: true
+      })
+      return response.data
+    },
+    initialData: run
+  })
+
   // Fetch available demultiplex workflows
   const toolsQuery = useQuery({
     queryKey: ['listDemultiplexWorkflows'],
@@ -186,7 +204,7 @@ function RouteComponent() {
             <div className='md:flex md:gap-2'>
               <div className='flex gap-2 items-center'>
                 <span>
-                  Status: {run.status}
+                  Status: {runQuery.data.status}
                 </span>
                 <div className='h-4'><Separator orientation='vertical' /></div>
                 <div className='flex gap-0 items-center'>
