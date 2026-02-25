@@ -651,6 +651,10 @@ export type FileCreate = {
    */
   storage_backend?: string | null
   /**
+   * Project Id
+   */
+  project_id?: string | null
+  /**
    * Entities
    */
   entities?: Array<EntityInput> | null
@@ -3192,25 +3196,20 @@ export type ValidateManifestData = {
   path?: never
   query: {
     /**
-     * S3 Path
-     * S3 path to the manifest CSV file to validate
+     * Manifest Uri
+     * (S3, GS) path to the manifest CSV file to validate
      */
-    s3_path: string
+    manifest_uri: string
     /**
      * Manifest Version
      * Manifest version to validate against (e.g., 'DTS12.1')
      */
     manifest_version?: string | null
     /**
-     * Files Bucket
-     * S3 bucket where manifest files are located
+     * Files Uri
+     * (S3, GS) path where files described in manifest are located (e.g. s3://vendorbucket/path/to/files/)
      */
-    files_bucket?: string | null
-    /**
-     * Files Prefix
-     * S3 prefix/path where manifest files are located
-     */
-    files_prefix?: string | null
+    files_uri?: string
   }
   url: '/api/v1/manifest/validate'
 }
@@ -3590,6 +3589,49 @@ export type SubmitPipelineJobResponses = {
 
 export type SubmitPipelineJobResponse =
   SubmitPipelineJobResponses[keyof SubmitPipelineJobResponses]
+
+export type IngestVendorDataData = {
+  body?: never
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query: {
+    /**
+     * Files Uri
+     * Source Bucket/Prefix of the data to be ingested
+     */
+    files_uri: string
+    /**
+     * Manifest Uri
+     * URI (S3) path to the vendor manifest
+     */
+    manifest_uri: string
+  }
+  url: '/api/v1/projects/{project_id}/ingest'
+}
+
+export type IngestVendorDataErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type IngestVendorDataError =
+  IngestVendorDataErrors[keyof IngestVendorDataErrors]
+
+export type IngestVendorDataResponses = {
+  /**
+   * Successful Response
+   */
+  201: BatchJobPublic
+}
+
+export type IngestVendorDataResponse =
+  IngestVendorDataResponses[keyof IngestVendorDataResponses]
 
 export type CreateQcrecordData = {
   body: QcRecordCreate

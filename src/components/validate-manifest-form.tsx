@@ -9,7 +9,7 @@ import type { JSX } from 'react'
 import type { ManifestValidationResponse, VendorPublic } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
 import { getLatestManifest, getVendors } from '@/client'
-import { getLatestManifestQueryKey, uploadManifestMutation, validateManifestMutation } from '@/client/@tanstack/react-query.gen'
+import { getLatestManifestQueryKey, ingestVendorDataMutation, uploadManifestMutation, validateManifestMutation } from '@/client/@tanstack/react-query.gen'
 import { ComboBox } from '@/components/combobox'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
+import { useInvalidateJobQueries, useViewJob } from '@/hooks/use-job-queries'
 
 interface ValidateManifestFormProps {
   /** Trigger for the Sheet component */
@@ -35,6 +36,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
   projectId
 }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { invalidateJobQueries } = useInvalidateJobQueries();
+  const { viewJob } = useViewJob();
   // Stepper state managed by useReducer
   type State = {
     selectedVendor: { value: string; label?: string };
@@ -249,6 +252,51 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     }
   });
 
+  const { mutate: ingestVendorData, isPending: isIngesting } = useMutation({
+    ...ingestVendorDataMutation(),
+    onSuccess: (data) => {
+      invalidateJobQueries();
+      dispatch({ type: 'SET_INGESTED', value: true });
+
+      toast.success('Vendor data ingest submitted successfully', {
+        description: (
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="flex-1"
+                onClick={() => viewJob(data.id)}
+              >
+                View Job
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="flex-1"
+                onClick={() => toast.dismiss()}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        ),
+      });
+
+      setTimeout(() => {
+        setSheetOpen(false);
+        setTimeout(() => handleCancel(), 300);
+      }, 700);
+    },
+    onError: (error) => {
+      toast.error('Failed to submit ingest job', {
+        description: (
+          <span className="text-sm text-foreground">{error.message || 'An unexpected error occurred'}</span>
+        ),
+      });
+      console.error(error);
+    }
+  });
+
   // Handle cancel - reset form state
   const handleCancel = () => {
     dispatch({ type: 'SET_VENDOR', value: '', label: '' });
@@ -272,14 +320,24 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
   };
 
   const handleIngestClick = () => {
-    dispatch({ type: 'SET_INGESTED', value: true });
-    toast.success(`Successfully ingested data from ${state.selectedVendor.label} into project ${projectId}`);
-    // Give user time to see the completed state before closing
-    setTimeout(() => {
-      setSheetOpen(false);
-      // Ensure state is cleared after the sheet closes
-      setTimeout(() => handleCancel(), 300);
-    }, 700);
+    const manifestUri = state.manifestOption === 'existing'
+      ? state.latestManifestPath
+      : state.uploadedFile;
+
+    if (!manifestUri || !state.selectedVendor.value) {
+      toast.error('Manifest and vendor source are required before ingesting data');
+      return;
+    }
+
+    ingestVendorData({
+      path: {
+        project_id: projectId,
+      },
+      query: {
+        files_uri: state.selectedVendor.value,
+        manifest_uri: manifestUri,
+      }
+    });
   };
 
   // Fetch all vendors using sequential page fetch
@@ -493,9 +551,10 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           {state.activeStep === 3 && state.validationResponse?.valid && (
             <Button
               onClick={handleIngestClick}
+              disabled={isIngesting}
               className='w-full md:w-auto'
             >
-              <FileInput /> Ingest data & update manifest metadata
+              <FileInput /> {isIngesting ? 'Submitting...' : 'Ingest data & update manifest metadata'}
             </Button>
           )}
           <SheetClose asChild>

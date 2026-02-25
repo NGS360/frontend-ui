@@ -50,6 +50,7 @@ import {
   getWorkflowByWorkflowId,
   getWorkflows,
   healthCheck,
+  ingestVendorData,
   linkOauthProvider,
   listDemultiplexWorkflows,
   listFiles,
@@ -166,6 +167,9 @@ import type {
   GetWorkflowsError,
   GetWorkflowsResponse,
   HealthCheckData,
+  IngestVendorDataData,
+  IngestVendorDataError,
+  IngestVendorDataResponse,
   LinkOauthProviderData,
   LinkOauthProviderError,
   LinkOauthProviderResponse,
@@ -2196,11 +2200,10 @@ export const validateManifestQueryKey = (
  * - File existence verification
  *
  * Args:
- * s3_path: S3 path to the manifest CSV file to validate
+ * manifest_uri: (S3, GS) path to the manifest CSV file to validate
  * manifest_version: Optional manifest version to validate against
- * files_bucket: Optional S3 bucket where manifest files are located
- * files_prefix: Optional S3 prefix/path for file existence checks
- *
+ * files_uri: (S3, GS) path where files described in manifest are located.
+ * If not provided, the bucket from manifest_uri will be used.
  * Returns:
  * ManifestValidationResponse with validation status and any errors found
  */
@@ -2232,11 +2235,10 @@ export const validateManifestOptions = (
  * - File existence verification
  *
  * Args:
- * s3_path: S3 path to the manifest CSV file to validate
+ * manifest_uri: (S3, GS) path to the manifest CSV file to validate
  * manifest_version: Optional manifest version to validate against
- * files_bucket: Optional S3 bucket where manifest files are located
- * files_prefix: Optional S3 prefix/path for file existence checks
- *
+ * files_uri: (S3, GS) path where files described in manifest are located.
+ * If not provided, the bucket from manifest_uri will be used.
  * Returns:
  * ManifestValidationResponse with validation status and any errors found
  */
@@ -2810,6 +2812,65 @@ export const submitPipelineJobMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await submitPipelineJob({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const ingestVendorDataQueryKey = (
+  options: Options<IngestVendorDataData>,
+) => createQueryKey('ingestVendorData', options)
+
+/**
+ * Ingest Vendor Data
+ * Ingest vendor data for a project.
+ *
+ * Returns:
+ * BatchJobPublic: The created batch job information
+ */
+export const ingestVendorDataOptions = (
+  options: Options<IngestVendorDataData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await ingestVendorData({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: ingestVendorDataQueryKey(options),
+  })
+}
+
+/**
+ * Ingest Vendor Data
+ * Ingest vendor data for a project.
+ *
+ * Returns:
+ * BatchJobPublic: The created batch job information
+ */
+export const ingestVendorDataMutation = (
+  options?: Partial<Options<IngestVendorDataData>>,
+): UseMutationOptions<
+  IngestVendorDataResponse,
+  AxiosError<IngestVendorDataError>,
+  Options<IngestVendorDataData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    IngestVendorDataResponse,
+    AxiosError<IngestVendorDataError>,
+    Options<IngestVendorDataData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await ingestVendorData({
         ...options,
         ...localOptions,
         throwOnError: true,

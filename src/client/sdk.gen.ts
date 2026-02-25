@@ -128,6 +128,9 @@ import type {
   GetWorkflowsResponses,
   HealthCheckData,
   HealthCheckResponses,
+  IngestVendorDataData,
+  IngestVendorDataErrors,
+  IngestVendorDataResponses,
   LinkOauthProviderData,
   LinkOauthProviderErrors,
   LinkOauthProviderResponses,
@@ -1338,11 +1341,10 @@ export const uploadManifest = <ThrowOnError extends boolean = false>(
  * - File existence verification
  *
  * Args:
- * s3_path: S3 path to the manifest CSV file to validate
+ * manifest_uri: (S3, GS) path to the manifest CSV file to validate
  * manifest_version: Optional manifest version to validate against
- * files_bucket: Optional S3 bucket where manifest files are located
- * files_prefix: Optional S3 prefix/path for file existence checks
- *
+ * files_uri: (S3, GS) path where files described in manifest are located.
+ * If not provided, the bucket from manifest_uri will be used.
  * Returns:
  * ManifestValidationResponse with validation status and any errors found
  */
@@ -1584,6 +1586,33 @@ export const submitPipelineJob = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Ingest Vendor Data
+ * Ingest vendor data for a project.
+ *
+ * Returns:
+ * BatchJobPublic: The created batch job information
+ */
+export const ingestVendorData = <ThrowOnError extends boolean = false>(
+  options: Options<IngestVendorDataData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    IngestVendorDataResponses,
+    IngestVendorDataErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/projects/{project_id}/ingest',
+    ...options,
   })
 }
 
