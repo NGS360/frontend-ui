@@ -450,9 +450,11 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                             (state.manifestOption === 'upload' && state.uploadedFile)) && (
                             <Button
                               onClick={() => {
+                                console.log(state.selectedVendor.value)
                                 validateManifest({
                                   query: {
-                                    s3_path: state.manifestOption === 'existing' ? (state.latestManifestPath as string) : state.uploadedFile
+                                    manifest_uri: state.manifestOption === 'existing' ? (state.latestManifestPath as string) : state.uploadedFile,
+                                    files_uri: state.selectedVendor.value,
                                   }
                                 })
                                 dispatch({ type: 'SET_ACTIVE_STEP', value: 2 });

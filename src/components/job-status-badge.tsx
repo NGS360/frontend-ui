@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 
 const jobStatusVariants = cva(
-  "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold transition-colors",
+  "inline-flex items-center font-semibold transition-colors",
   {
     variants: {
       status: {
@@ -25,15 +25,20 @@ const jobStatusVariants = cva(
         SUCCEEDED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 border-green-200 dark:border-green-800",
         FAILED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200 border-red-200 dark:border-red-800",
       },
+      size: {
+        default: "gap-1.5 px-2.5 py-0.5 text-xs",
+        compact: "gap-1 px-1.5 py-0 text-[10px] leading-4",
+      },
     },
     defaultVariants: {
       status: "PENDING",
+      size: "default",
     },
   }
 )
 
-const getStatusIcon = (status: JobStatus) => {
-  const iconClass = "w-3.5 h-3.5"
+const getStatusIcon = (status: JobStatus, size: "default" | "compact") => {
+  const iconClass = size === "compact" ? "w-3 h-3" : "w-3.5 h-3.5"
   
   switch (status) {
     case "SUBMITTED":
@@ -57,19 +62,21 @@ const getStatusIcon = (status: JobStatus) => {
 
 interface JobStatusBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   status: JobStatus
+  size?: "default" | "compact"
 }
 
 export const JobStatusBadge: React.FC<JobStatusBadgeProps> = ({ 
   status, 
+  size = "default",
   className,
   ...props 
 }) => {
   return (
     <Badge
-      className={cn(jobStatusVariants({ status }), className)}
+      className={cn(jobStatusVariants({ status, size }), className)}
       {...props}
     >
-      {getStatusIcon(status)}
+      {getStatusIcon(status, size)}
       <span>{status}</span>
     </Badge>
   )

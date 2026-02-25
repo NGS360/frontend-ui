@@ -11,9 +11,10 @@ import {
 import { Badge } from "@/components/ui/badge"
 
 interface SelectFilterOption {
-  label: string
+  label: React.ReactNode
   value: string
   icon?: React.ComponentType<{ className?: string }>
+  selectedLabel?: React.ReactNode
 }
 
 interface SelectFilterProps {
@@ -44,9 +45,13 @@ export function SelectFilter({
           {hasSelection && (
             <>
               <div className="h-4 w-[1px] bg-border" />
-              <Badge variant="secondary" className="px-1.5 font-normal">
-                {selectedOption?.label || value}
-              </Badge>
+              {selectedOption?.selectedLabel ? (
+                <span>{selectedOption.selectedLabel}</span>
+              ) : (
+                <Badge variant="secondary" className="px-1.5 font-normal">
+                  {selectedOption?.label || value}
+                </Badge>
+              )}
             </>
           )}
         </Button>
@@ -85,7 +90,6 @@ export function SelectFilter({
             >
               {OptionIcon && <OptionIcon className="h-4 w-4" />}
               <span className="flex-1">{option.label}</span>
-              {isSelected && <Check className="h-4 w-4" />}
             </DropdownMenuCheckboxItem>
           )
         })}

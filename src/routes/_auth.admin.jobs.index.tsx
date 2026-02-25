@@ -139,15 +139,21 @@ function RouteComponent() {
 
 
   // Status options for filter
-  const statusOptions = [
-    { label: 'SUBMITTED', value: 'SUBMITTED' },
-    { label: 'PENDING', value: 'PENDING' },
-    { label: 'RUNNABLE', value: 'RUNNABLE' },
-    { label: 'STARTING', value: 'STARTING' },
-    { label: 'RUNNING', value: 'RUNNING' },
-    { label: 'SUCCEEDED', value: 'SUCCEEDED' },
-    { label: 'FAILED', value: 'FAILED' },
+  const statuses: Array<JobStatus> = [
+    'SUBMITTED',
+    'PENDING',
+    'RUNNABLE',
+    'STARTING',
+    'RUNNING',
+    'SUCCEEDED',
+    'FAILED',
   ]
+
+  const statusOptions = statuses.map((status) => ({
+    label: <JobStatusBadge status={status} size='compact' />,
+    selectedLabel: <JobStatusBadge status={status} size='compact' />,
+    value: status,
+  }))
   // Calculate total pages from count and per_page
   const totalPages = Math.ceil(data.count / search.per_page)
 
@@ -191,7 +197,7 @@ function RouteComponent() {
       header: ({ column }) => <SortableHeader column={column} name="Status" />,
       cell: ({ cell }) => {
         const status = cell.getValue() as BatchJobPublic['status']
-        return <JobStatusBadge status={status} />
+        return <JobStatusBadge status={status} size='compact' />
       }
     },
     {

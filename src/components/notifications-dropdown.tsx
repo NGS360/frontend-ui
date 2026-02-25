@@ -13,6 +13,7 @@ import {
 import { getJobsOptions } from '@/client/@tanstack/react-query.gen'
 import { DEFAULT_JOBS_QUERY_OPTIONS, useViewJob } from '@/hooks/use-job-queries'
 import { useAuth } from '@/context/auth-context'
+import { JobStatusBadge } from '@/components/job-status-badge'
 
 export function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
@@ -85,8 +86,9 @@ export function NotificationsDropdown() {
                     </div>
                     <div className="flex flex-col gap-1 flex-1 min-w-0">
                       <div className="font-medium text-sm whitespace-nowrap">{job.name}</div>
-                      <div className="text-xs text-muted-foreground whitespace-nowrap">
-                        Status: <span className="capitalize">{job.status}</span>
+                      <div className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
+                        <span>Status:</span>
+                        <JobStatusBadge status={job.status} size="compact" />
                       </div>
                       <div className="text-xs text-muted-foreground whitespace-nowrap">
                         {new Date(job.submitted_on).toLocaleString()}
