@@ -1,4 +1,5 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import { consumePostLoginRedirect } from '@/lib/post-login-redirect'
 
 export const Route = createFileRoute('/_user/oauth/$provider/callback')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -21,8 +22,9 @@ export const Route = createFileRoute('/_user/oauth/$provider/callback')({
       // Auth provider handles the API call and token storage
       await context.auth.oauthLogin(provider, code, state, redirectUri)
       
-      // Redirect to the main app
-      throw redirect({ to: '/' })
+      // Redirect to saved destination if available
+      window.location.assign(consumePostLoginRedirect())
+      return
     } catch (err: any) {
       // If it's a redirect, re-throw it
       if (err.isRedirect) {
