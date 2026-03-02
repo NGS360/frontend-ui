@@ -271,6 +271,7 @@ function RouteComponent() {
           </p>
         </div>
         <AddVendorForm
+          idPrefix="admin-vendors-add-vendor"
           trigger={
             <Button
               variant='primary2'

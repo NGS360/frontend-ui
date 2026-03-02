@@ -41,6 +41,7 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
   trigger,
   vendor
 }) => {
+  const vendorIdSlug = vendor.vendor_id.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
   // Control sheet open/close state
   const [isOpen, setIsOpen] = useState(false);
   const handleOnOpenChange = (willOpen: boolean) => {
@@ -100,19 +101,19 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
     <>
       <Sheet open={isOpen} onOpenChange={handleOnOpenChange}>
         <SheetTrigger asChild>{trigger}</SheetTrigger>
-        <SheetContent>
+        <SheetContent id={`update-vendor-sheet-${vendorIdSlug}`}>
           <SheetHeader>
-            <SheetTitle>Update Vendor</SheetTitle>
+            <SheetTitle id={`update-vendor-title-${vendorIdSlug}`}>Update Vendor</SheetTitle>
             <SheetDescription>
               Update vendor information and settings.
             </SheetDescription>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form id={`update-vendor-form-${vendorIdSlug}`} onSubmit={handleSubmit(onSubmit)}>
               <div className="flex-1 overflow-y-auto">
                 <div className="grid gap-6 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="vendor-id">Vendor ID</Label>
+                    <Label htmlFor={`update-vendor-id-${vendorIdSlug}`}>Vendor ID</Label>
                     <Input
-                      id="vendor-id"
+                      id={`update-vendor-id-${vendorIdSlug}`}
                       type="text"
                       value={vendor.vendor_id}
                       disabled
@@ -123,10 +124,10 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
                     </p>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="name">Name</Label>
+                    <Label htmlFor={`update-vendor-name-${vendorIdSlug}`}>Name</Label>
                     <Input
                       {...register("name")}
-                      id="name"
+                      id={`update-vendor-name-${vendorIdSlug}`}
                       type="text"
                       placeholder="Vendor Name"
                       required
@@ -138,10 +139,10 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor={`update-vendor-description-${vendorIdSlug}`}>Description</Label>
                     <Textarea
                       {...register("description")}
-                      id="description"
+                      id={`update-vendor-description-${vendorIdSlug}`}
                       placeholder="Description about the vendor"
                       required
                     />
@@ -152,10 +153,10 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="bucket">Bucket (Optional)</Label>
+                    <Label htmlFor={`update-vendor-bucket-${vendorIdSlug}`}>Bucket (Optional)</Label>
                     <Input
                       {...register("bucket")}
-                      id="bucket"
+                      id={`update-vendor-bucket-${vendorIdSlug}`}
                       type="text"
                       placeholder="s3://bucket-name"
                     />
@@ -176,6 +177,7 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
           </SheetHeader>
           <SheetFooter className="mt-auto">
             <Button 
+              id={`update-vendor-submit-${vendorIdSlug}`}
               disabled={isSubmitting || isPending} 
               type="submit"
               onClick={handleSubmit(onSubmit)}
@@ -187,6 +189,7 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
             </Button>
             <SheetClose asChild>
               <Button
+                id={`update-vendor-cancel-${vendorIdSlug}`}
                 type="button"
                 variant='secondary'
                 onClick={() => { reset() }}

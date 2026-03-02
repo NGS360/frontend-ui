@@ -74,18 +74,19 @@ export function RegisterForm({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
+    <div id="register-page" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
       <RegisterSuccessDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         data={{ username: email, password: password }}
       />
       
-      <div className="w-full max-w-md">
-        <Card>
+      <div id="register-container" className="w-full max-w-md">
+        <Card id="register-card">
           <CardHeader></CardHeader>
           <CardContent>
             <form
+              id="register-form"
               onSubmit={handleSubmit(onSubmit)}
               className={cn('flex flex-col gap-6', className)}
               {...props}
@@ -182,6 +183,7 @@ export function RegisterForm({
               </div>
 
               <Button
+                id="register-submit-button"
                 disabled={isSubmitting || isPending}
                 type="submit"
                 className="flex items-center gap-2"
@@ -200,7 +202,7 @@ export function RegisterForm({
 
               <div className="text-center text-sm">
                 Already have an account?{' '}
-                <Link to="/login" className="underline underline-offset-4">
+                <Link id="register-login-link" to="/login" className="underline underline-offset-4">
                   Log in
                 </Link>
               </div>

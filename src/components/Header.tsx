@@ -43,12 +43,15 @@ export default function Header() {
     { to: apiDocsUrl, label: 'API Docs', icon: <BookOpen className="inline mr-1" />, isExternal: true }
   ]
 
+  const navId = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+
   return (
-    <header className="sticky top-0 left-0 w-full flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
+    <header id="app-header" className="sticky top-0 left-0 w-full flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
       {/* Logo and Nav Items - Left Side */}
-      <div className="flex items-center">
+      <div id="header-left" className="flex items-center">
         {/* Logo */}
         <div
+          id="header-logo"
           className="pl-2 cursor-pointer"
           onClick={() => navigate({ to: '/' })}
         >
@@ -56,21 +59,21 @@ export default function Header() {
         </div>
 
         {/* Desktop Nav Items */}
-        <div className="hidden xl:block ml-4">
+        <div id="header-nav-desktop" className="hidden xl:block ml-4">
           <NavigationMenu>
             <NavigationMenuList className="gap-4">
               {navItems.map(({ to, label, icon, search, isExternal }) => (
                 <NavigationMenuItem key={to}>
                   <NavigationMenuLink asChild>
                     {isExternal ? (
-                      <a href={to} target="_blank" rel="noopener noreferrer">
+                      <a id={`header-nav-${navId(label)}`} href={to} target="_blank" rel="noopener noreferrer">
                         <div className='flex items-center gap-1'>
                           {icon}
                           {label}
                         </div>
                       </a>
                     ) : (
-                      <Link to={to} search={search}>
+                      <Link id={`header-nav-${navId(label)}`} to={to} search={search}>
                         <div className='flex items-center gap-1'>
                           {icon}
                           {label}
@@ -86,35 +89,36 @@ export default function Header() {
       </div>
 
       {/* Search bar and Create Button - Right Side */}
-      <div className="flex items-center gap-3 ml-auto pr-2">
+      <div id="header-right" className="flex items-center gap-3 ml-auto pr-2">
         {/* Search bar - narrower version for header */}
-        <div className="hidden xl:block w-64 xl:w-80">
-          <SearchBar />
+        <div id="header-search" className="hidden xl:block w-64 xl:w-80">
+          <SearchBar idPrefix="header-search" />
         </div>
 
         {/* Desktop Create Button */}
-        <div className="hidden xl:block">
+        <div id="header-create-project" className="hidden xl:block">
           <CreateProjectForm
+            idPrefix="header-create-project"
             trigger={(
-              <Button>Create Project</Button>
+              <Button id="header-create-project-button">Create Project</Button>
             )}
           />
         </div>
 
         {/* Notifications Dropdown - Only show when authenticated */}
         {isAuthenticated && (
-          <div className="hidden xl:block">
+          <div id="header-notifications" className="hidden xl:block">
             <NotificationsDropdown />
           </div>
         )}
 
         {/* Avatar or Sign In */}
-        <div>
+        <div id="header-user-actions">
           {isAuthenticated ? (
             <UserAvatar />
           ) : (
-            <Link to="/login">
-              <Button variant="outline">
+            <Link id="header-sign-in-link" to="/login">
+              <Button id="header-sign-in-button" variant="outline">
                 Sign In
               </Button>
             </Link>
@@ -125,6 +129,7 @@ export default function Header() {
         <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger asChild>
             <Button
+              id="header-mobile-menu-toggle"
               variant="outline"
               className="xl:hidden"
               aria-label="Toggle navigation"
@@ -138,18 +143,18 @@ export default function Header() {
           </DropdownMenuTrigger>
 
           {/* Mobile menu (using DropdownMenu) */}
-          <DropdownMenuContent align="end" sideOffset={4} className="w-screen flex flex-col gap-2">
+          <DropdownMenuContent id="header-mobile-menu" align="end" sideOffset={4} className="w-screen flex flex-col gap-2">
             {navItems.map(({ to, label, icon, search, isExternal }) => (
               <DropdownMenuItem asChild key={to} className='w-full justify-center'>
                 {isExternal ? (
-                  <a href={to} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>
+                  <a id={`header-mobile-nav-${navId(label)}`} href={to} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>
                     <div className='flex items-center gap-1'>
                       {icon}
                       {label}
                     </div>
                   </a>
                 ) : (
-                  <Link to={to} search={search} onClick={() => setMenuOpen(false)}>
+                  <Link id={`header-mobile-nav-${navId(label)}`} to={to} search={search} onClick={() => setMenuOpen(false)}>
                     <div className='flex items-center gap-1'>
                       {icon}
                       {label}
@@ -158,13 +163,14 @@ export default function Header() {
                 )}
               </DropdownMenuItem>
             ))}
-            <div className="px-2 py-2">
-              <SearchBar onResultClick={() => setMenuOpen(false)} />
+            <div id="header-mobile-search" className="px-2 py-2">
+              <SearchBar idPrefix="header-mobile-search" onResultClick={() => setMenuOpen(false)} />
             </div>
             <DropdownMenuItem asChild>
               <CreateProjectForm
+                idPrefix="header-mobile-create-project"
                 trigger={(
-                  <Button className='w-full'>Create ProjectID</Button>
+                  <Button id="header-mobile-create-project-button" className='w-full'>Create ProjectID</Button>
                 )}
               />
             </DropdownMenuItem>

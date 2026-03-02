@@ -73,13 +73,14 @@ export function LoginFormDefault({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
-      <div className="w-full max-w-md">
+    <div id="login-page" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
+      <div id="login-container" className="w-full max-w-md">
         {/* Login Card */}
-        <Card>
+        <Card id="login-card">
           <CardHeader></CardHeader>
           <CardContent>
             <form
+              id="login-form"
               onSubmit={handleSubmit(onSubmit)}
               className={cn('flex flex-col gap-6', className)}
               {...props}
@@ -114,6 +115,7 @@ export function LoginFormDefault({
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
                     <Link
+                      id="login-forgot-password-link"
                       to="/forgot-password"
                       className="text-xs underline-offset-4 hover:underline"
                     >
@@ -136,6 +138,7 @@ export function LoginFormDefault({
               </div>
 
               <Button
+                id="login-submit-button"
                 disabled={isLoading}
                 type="submit"
                 className="flex items-center gap-2"
@@ -169,6 +172,7 @@ export function LoginFormDefault({
                   <div className="grid gap-2">
                     {oauthProviders.map((provider) => (
                       <Button
+                        id={`login-oauth-${provider.name}`}
                         key={provider.name}
                         type="button"
                         variant="outline"
@@ -191,7 +195,7 @@ export function LoginFormDefault({
 
               <div className="text-center text-sm">
                 Don't have an account?{' '}
-                <Link to="/register" className="underline underline-offset-4">
+                <Link id="login-register-link" to="/register" className="underline underline-offset-4">
                   Create an account
                 </Link>
               </div>

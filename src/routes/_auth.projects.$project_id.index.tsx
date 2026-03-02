@@ -175,6 +175,7 @@ function RouteComponent() {
                 ))}
               </div>
               <UpdateProjectForm
+                idPrefix={`project-${project.project_id}-update-project`}
                 projectId={project.project_id}
                 projectName={project.name}
                 projectAttributes={project.attributes}
@@ -251,6 +252,7 @@ function RouteComponent() {
 
                 {/* Vendor Data */}
                 <ValidateManifestForm
+                  idPrefix={`project-${project.project_id}-validate-manifest`}
                   projectId={project.project_id}
                   trigger={(
                     <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
@@ -269,6 +271,7 @@ function RouteComponent() {
 
                 {/* Execute Action */}
                 <ExecuteActionForm
+                  idPrefix={`project-${project_id}-execute-action`}
                   projectId={project_id}
                   trigger={(
                     <Card className='cursor-pointer transition-colors hover:bg-accent/50'>

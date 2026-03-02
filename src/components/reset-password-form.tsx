@@ -80,7 +80,7 @@ export function ResetPasswordForm({
   // Show success state
   if (isSuccess) {
     return (
-      <Card className="w-full max-w-md">
+      <Card id="reset-password-success-card" className="w-full max-w-md">
         <CardHeader></CardHeader>
         <CardContent className="flex flex-col items-center gap-6">
           <CheckCircle2 className="h-16 w-16 text-green-500" />
@@ -92,6 +92,7 @@ export function ResetPasswordForm({
               </p>
             </div>
             <Button 
+              id="reset-password-success-login-button"
               onClick={() => navigate({ to: '/login' })} 
               className="w-full"
             >
@@ -106,7 +107,7 @@ export function ResetPasswordForm({
   // Show error state
   if (isError) {
     return (
-      <Card className="w-full max-w-md">
+      <Card id="reset-password-error-card" className="w-full max-w-md">
         <CardHeader></CardHeader>
         <CardContent className="flex flex-col items-center gap-6">
           <XCircle className="h-16 w-16 text-destructive" />
@@ -119,6 +120,7 @@ export function ResetPasswordForm({
               </p>
             </div>
             <Button 
+              id="reset-password-request-new-link-button"
               onClick={() => navigate({ to: '/forgot-password' })} 
               className="w-full"
               variant="outline"
@@ -132,10 +134,11 @@ export function ResetPasswordForm({
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card id="reset-password-card" className="w-full max-w-md">
       <CardHeader></CardHeader>
       <CardContent>
         <form
+          id="reset-password-form"
           onSubmit={handleSubmit(onSubmit)}
           className={cn('flex flex-col gap-6', className)}
           {...props}
@@ -192,6 +195,7 @@ export function ResetPasswordForm({
 
           {/* Submit Button */}
           <Button
+            id="reset-password-submit-button"
             disabled={isSubmitting || isPending}
             type="submit"
             className="flex items-center gap-2"

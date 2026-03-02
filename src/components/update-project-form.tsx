@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LoaderCircle, PlusIcon, Trash2Icon } from "lucide-react";
 import { toast } from 'sonner';
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { JSX } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import type { HttpValidationError, ProjectPublic } from "@/client"
@@ -52,14 +52,19 @@ interface UpdateProjectFormProps {
   projectName: string | null
   /** The current project attributes */
   projectAttributes?: Array<{ key: string | null; value: string | null }> | null
+  /** Optional DOM id prefix for this form instance */
+  idPrefix?: string
 }
 
 export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({ 
   trigger, 
   projectId, 
   projectName, 
-  projectAttributes 
+  projectAttributes,
+  idPrefix,
 }) => {
+  const generatedId = useId();
+  const baseId = (idPrefix || `update-project-${projectId}-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
 
   // Control dialog open/close state
   const [isOpen, setIsOpen] = useState(false);
@@ -150,20 +155,20 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
         <DialogTrigger asChild>
           {trigger}
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent id={`${baseId}-dialog`}>
           <DialogHeader>
             <DialogTitle>Update Project</DialogTitle>
             <DialogDescription>
               Update the project name and attributes.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form id={`${baseId}-form`} onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="project-name">Name</Label>
+                <Label htmlFor={`${baseId}-name`}>Name</Label>
                 <Input
                   {...register("name")}
-                  id="project-name"
+                  id={`${baseId}-name`}
                   type="text"
                   placeholder="My Project"
                   required
@@ -181,6 +186,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                     <div className="flex gap-2">
                       <div className="flex flex-col flex-1">
                         <Input
+                          id={`${baseId}-attribute-key-${index}`}
                           {...register(`attributes.${index}.key` as const)}
                           placeholder="Key"
                         />
@@ -192,6 +198,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                       </div>
                       <div className="flex flex-col flex-1">
                         <Input
+                          id={`${baseId}-attribute-value-${index}`}
                           {...register(`attributes.${index}.value` as const)}
                           placeholder="Value"
                         />
@@ -202,6 +209,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                         )}
                       </div>
                       <Button
+                        id={`${baseId}-remove-attribute-${index}`}
                         variant='ghost'
                         className='hover:bg-destructive/10 group'
                         disabled={watchAttributes.length < 2}
@@ -214,6 +222,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                 ))}
                 <div>
                   <Button
+                    id={`${baseId}-add-attribute`}
                     variant="outline"
                     type="button"
                     disabled={
@@ -236,6 +245,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
             <DialogFooter>
               <DialogClose asChild>
                 <Button
+                  id={`${baseId}-cancel`}
                   type="button"
                   variant="secondary"
                   onClick={() => { reset() }}
@@ -243,7 +253,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button disabled={isSubmitting || isPending} type="submit">
+              <Button id={`${baseId}-submit`} disabled={isSubmitting || isPending} type="submit">
                 {isSubmitting || isPending ? (
                   <LoaderCircle className="animate-spin h-4 w-4 text-white" />
                 ) : null}

@@ -1,6 +1,6 @@
 import { Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { useMemo, useReducer, useState } from 'react'
+import { useId, useMemo, useReducer, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type React from 'react'
 import type { JSX } from 'react'
@@ -21,12 +21,17 @@ interface ExecuteActionFormProps {
   trigger: JSX.Element
   /** Project ID for pipeline submission */
   projectId: string
+  /** Optional DOM id prefix for this form instance */
+  idPrefix?: string
 }
 
 export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   trigger,
-  projectId
+  projectId,
+  idPrefix,
 }) => {
+  const generatedId = useId();
+  const baseId = (idPrefix || `execute-action-${projectId}-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
   const [sheetOpen, setSheetOpen] = useState(false);
   const { invalidateJobQueries } = useInvalidateJobQueries();
   const { viewJob } = useViewJob();
@@ -191,13 +196,13 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   return (
     <Sheet open={sheetOpen} onOpenChange={(open) => { setSheetOpen(open); handleOpenChange(open); }}>
       <SheetTrigger asChild onClick={() => setSheetOpen(true)}>{trigger}</SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent id={`${baseId}-sheet`} side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Execute Action</SheetTitle>
+          <SheetTitle id={`${baseId}-title`}>Execute Action</SheetTitle>
           <SheetDescription>
             Execute pipelines and actions on this project
           </SheetDescription>
-        <div className='flex flex-col gap-12 mt-6'>
+        <div id={`${baseId}-stepper`} className='flex flex-col gap-12 mt-6'>
           <Stepper
             activeStep={state.activeStep}
             showFutureSteps={true}
@@ -209,7 +214,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
                   <>
                     <div className='flex flex-col flex-1'>
                       <ComboBox
-                        id="projectAction"
+                        id={`${baseId}-project-action`}
                         options={projectActionOptions}
                         placeholder="Select project action"
                         value={state.projectAction.value}
@@ -226,7 +231,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
                   <>
                     <div className='flex flex-col flex-1'>
                       <ComboBox
-                        id="projectPlatform"
+                        id={`${baseId}-project-platform`}
                         options={projectPlatformOptions}
                         placeholder="Select project platform"
                         value={state.projectPlatform.value}
@@ -251,7 +256,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
                       ) : (
                         <>
                           <ComboBox
-                            id="projectType"
+                            id={`${baseId}-project-type`}
                             options={projectTypeOptions}
                             placeholder="Select project type"
                             value={state.projectType.value}
@@ -261,12 +266,12 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
                           {state.projectAction.value === 'export-project-results' && state.projectType.value && (
                             <div className="flex items-center space-x-2">
                               <Checkbox
-                                id="autoRelease"
+                                id={`${baseId}-auto-release`}
                                 checked={state.autoRelease}
                                 onCheckedChange={(checked) => dispatch({ type: 'SET_AUTO_RELEASE', value: checked as boolean })}
                               />
                               <Label
-                                htmlFor="autoRelease"
+                                htmlFor={`${baseId}-auto-release`}
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
                                 Auto-release Xpress Project
@@ -285,6 +290,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
         </SheetHeader>
         <SheetFooter>
           <Button
+            id={`${baseId}-submit`}
             variant="default"
             disabled={!state.projectType.value || submitPipelineJob.isPending}
             className="flex items-center gap-2 w-full sm:w-auto"
@@ -323,6 +329,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
           </Button>
           <SheetClose asChild>
             <Button
+              id={`${baseId}-close`}
               variant='secondary'
               onClick={handleReset}
             >

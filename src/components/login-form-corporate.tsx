@@ -11,12 +11,12 @@ interface LoginFormCorporateProps {
 
 export function LoginFormCorporate({ provider, onLogin, apiUrl }: LoginFormCorporateProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
-      <div className="w-full max-w-md">
-        <Card>
+    <div id="login-corporate-page" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
+      <div id="login-corporate-container" className="w-full max-w-md">
+        <Card id="login-corporate-card">
           <CardHeader></CardHeader>
           <CardContent>
-            <div className="flex flex-col gap-6">
+            <div id="login-corporate-content" className="flex flex-col gap-6">
               {/* Logo and Title Section */}
               <div className="flex flex-col items-center gap-2 text-center">
                 <NGS360Logo className="mb-2" />
@@ -28,6 +28,7 @@ export function LoginFormCorporate({ provider, onLogin, apiUrl }: LoginFormCorpo
 
               {/* Corporate SSO Button */}
               <Button
+                id="login-corporate-submit"
                 type="button"
                 variant='outline'
                 onClick={() => onLogin(provider.name, `${apiUrl}${provider.authorize_url}`)}

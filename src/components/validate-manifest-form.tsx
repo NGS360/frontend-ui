@@ -1,5 +1,5 @@
 import { Check, FileInput, Folder } from 'lucide-react'
-import { useCallback, useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useId, useReducer, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -29,12 +29,17 @@ interface ValidateManifestFormProps {
   trigger: JSX.Element
   /** Project ID for file paths */
   projectId: string
+  /** Optional DOM id prefix for this form instance */
+  idPrefix?: string
 }
 
 export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
   trigger,
-  projectId
+  projectId,
+  idPrefix,
 }) => {
+  const generatedId = useId();
+  const baseId = (idPrefix || `validate-manifest-${projectId}-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
   const [sheetOpen, setSheetOpen] = useState(false);
   const { invalidateJobQueries } = useInvalidateJobQueries();
   const { viewJob } = useViewJob();
@@ -357,13 +362,13 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
   return (
     <Sheet open={sheetOpen} onOpenChange={(open) => { setSheetOpen(open); handleOpenChange(open); }}>
       <SheetTrigger asChild onClick={() => setSheetOpen(true)}>{trigger}</SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent id={`${baseId}-sheet`} side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Ingest Vendor Data</SheetTitle>
+          <SheetTitle id={`${baseId}-title`}>Ingest Vendor Data</SheetTitle>
           <SheetDescription>
             Validate and ingest data from vendor manifests into this project
           </SheetDescription>
-          <div className='flex flex-col gap-12 mt-6'>
+          <div id={`${baseId}-stepper`} className='flex flex-col gap-12 mt-6'>
             <Stepper
               activeStep={state.activeStep}
               showFutureSteps={true}
@@ -378,7 +383,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                           <div className='flex flex-col gap-2 md:flex-row md:gap-2'>
                             <div className='flex flex-col flex-1'>
                               <ComboBox
-                                id="vendorBucket"
+                                id={`${baseId}-vendor-bucket`}
                                 options={vendorOptions}
                                 placeholder={isLoadingVendors ? "Loading vendors..." : "Select source bucket"}
                                 value={state.selectedVendor.value}
@@ -388,6 +393,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                               <div className='flex flex-col gap-1 text-xs text-muted-foreground mt-1 md:flex-row md:justify-end md:items-center'>
                                 <span>Not seeing your vendor's bucket? </span>
                                 <Link
+                                  id={`${baseId}-add-vendor-link`}
                                   to='/admin/vendors'
                                   className="text-primary hover:underline"
                                 >
@@ -401,6 +407,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                                 trigger={(
                                   <TooltipTrigger asChild>
                                     <Button
+                                      id={`${baseId}-browse-button`}
                                       variant='outline'
                                       disabled={state.selectedVendor.value === ''}
                                       className='w-full md:w-auto'
@@ -429,6 +436,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                       {(state.activeStep >= 1) && (
                         <div className='flex flex-col gap-4'>
                           <RadioGroup
+                            id={`${baseId}-option`}
                             value={state.manifestOption}
                             onValueChange={(value) => {
                               dispatch({ type: 'SET_MANIFEST_OPTION', value: value as 'existing' | 'upload' });
@@ -438,8 +446,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                           >
                             <Card className={`relative cursor-pointer ${state.manifestOption === 'existing' ? 'border-primary ring-2 ring-primary ring-offset-2' : ''}`}>
                               <CardHeader>
-                                <Label htmlFor='existing' className='flex items-start gap-3 cursor-pointer'>
-                                  <RadioGroupItem value='existing' id='existing' className='mt-1' />
+                                <Label htmlFor={`${baseId}-existing`} className='flex items-start gap-3 cursor-pointer'>
+                                  <RadioGroupItem value='existing' id={`${baseId}-existing`} className='mt-1' />
                                   <div className='flex flex-col gap-1.5'>
                                     <CardTitle className='text-base'>Use existing manifest</CardTitle>
                                     <CardDescription className='text-xs'>
@@ -452,8 +460,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
 
                             <Card className={`relative cursor-pointer ${state.manifestOption === 'upload' ? 'border-primary ring-2 ring-primary ring-offset-2' : ''}`}>
                               <CardHeader>
-                                <Label htmlFor='upload' className='flex items-start gap-3 cursor-pointer'>
-                                  <RadioGroupItem value='upload' id='upload' className='mt-1' />
+                                <Label htmlFor={`${baseId}-upload`} className='flex items-start gap-3 cursor-pointer'>
+                                  <RadioGroupItem value='upload' id={`${baseId}-upload`} className='mt-1' />
                                   <div className='flex flex-col gap-1.5'>
                                     <CardTitle className='text-base'>Upload new manifest</CardTitle>
                                     <CardDescription className='text-xs'>
@@ -469,6 +477,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                             <div className='flex flex-col gap-2'>
                               {state.isLoadingManifest ? (
                                 <Input
+                                  id={`${baseId}-existing-path`}
                                   readOnly
                                   disabled
                                   value="Loading latest manifest..."
@@ -476,6 +485,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                                 />
                               ) : (
                                 <Input
+                                  id={`${baseId}-existing-path`}
                                   readOnly
                                   value={state.latestManifestPath || ''}
                                 />
@@ -485,6 +495,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                             <div className="flex flex-col gap-2">
                               {state.uploadedFile ? (
                                 <Input
+                                  id={`${baseId}-uploaded-path`}
                                   readOnly
                                   value={state.uploadedFile}
                                 />
@@ -507,6 +518,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
                           {((state.manifestOption === 'existing' && state.latestManifestPath && !state.manifestError) ||
                             (state.manifestOption === 'upload' && state.uploadedFile)) && (
                             <Button
+                              id={`${baseId}-validate`}
                               onClick={() => {
                                 console.log(state.selectedVendor.value)
                                 validateManifest({
@@ -550,6 +562,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
         <SheetFooter>
           {state.activeStep === 3 && state.validationResponse?.valid && (
             <Button
+              id={`${baseId}-ingest`}
               onClick={handleIngestClick}
               disabled={isIngesting}
               className='w-full md:w-auto'
@@ -559,6 +572,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           )}
           <SheetClose asChild>
             <Button
+              id={`${baseId}-close`}
               variant='secondary'
               className='w-full md:w-auto'
               onClick={handleCancel}

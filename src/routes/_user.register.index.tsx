@@ -6,5 +6,9 @@ export const Route = createFileRoute('/_user/register/')({
 })
 
 function RouteComponent() {
-  return <RegisterForm />
+  return (
+    <div id="register-route-page">
+      <RegisterForm />
+    </div>
+  )
 }

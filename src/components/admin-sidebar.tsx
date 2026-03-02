@@ -26,21 +26,22 @@ export const AdminSidebar = () => {
   ]
 
   return (
-    <Sidebar variant="inset" collapsible="none" className="w-full md:w-auto">
-      <SidebarHeader className="p-4">
-        <h2 className="text-lg">Admin Panel</h2>
+    <Sidebar id="admin-sidebar" variant="inset" collapsible="none" className="w-full md:w-auto">
+      <SidebarHeader id="admin-sidebar-header" className="p-4">
+        <h2 id="admin-sidebar-title" className="text-lg">Admin Panel</h2>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel id="admin-sidebar-nav-label">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="md:space-y-1">
+            <SidebarMenu id="admin-sidebar-menu" className="md:space-y-1">
               {menuItems.map((item) => {
                 const isActive = currentPath === item.url
+                const itemId = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild className="w-full" isActive={isActive}>
-                      <Link to={item.url}>
+                      <Link id={`admin-sidebar-link-${itemId}`} to={item.url}>
                         <item.icon className="w-4 h-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -52,8 +53,8 @@ export const AdminSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-4">
-        <p className="text-xs text-muted-foreground">NGS360 v1.0</p>
+      <SidebarFooter id="admin-sidebar-footer" className="p-4">
+        <p id="admin-sidebar-version" className="text-xs text-muted-foreground">NGS360 v1.0</p>
       </SidebarFooter>
     </Sidebar>
   )

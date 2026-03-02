@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LoaderCircle } from "lucide-react";
 import { toast } from 'sonner';
-import { useState } from "react";
+import { useId, useState } from "react";
 import type React from "react";
 import type { JSX } from "react";
 import type { SubmitHandler } from "react-hook-form";
@@ -34,11 +34,16 @@ type FormFields = z.infer<typeof AddVendorSchema>
 interface AddVendorFormProps {
   /** Trigger for the Sheet component */
   trigger: JSX.Element
+  /** Optional DOM id prefix for this form instance */
+  idPrefix?: string
 }
 
 export const AddVendorForm: React.FC<AddVendorFormProps> = ({
-  trigger
+  trigger,
+  idPrefix,
 }) => {
+  const generatedId = useId();
+  const baseId = (idPrefix || `add-vendor-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
   // Control sheet open/close state
   const [isOpen, setIsOpen] = useState(false);
   const handleOnOpenChange = (willOpen: boolean) => {
@@ -97,20 +102,20 @@ export const AddVendorForm: React.FC<AddVendorFormProps> = ({
     <>
       <Sheet open={isOpen} onOpenChange={handleOnOpenChange}>
         <SheetTrigger asChild>{trigger}</SheetTrigger>
-        <SheetContent>
+        <SheetContent id={`${baseId}-sheet`}>
           <SheetHeader>
-            <SheetTitle>Add Vendor</SheetTitle>
+            <SheetTitle id={`${baseId}-title`}>Add Vendor</SheetTitle>
             <SheetDescription>
               Link an s3 vendor bucket to NGS360 for data ingestion.
             </SheetDescription>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form id={`${baseId}-form`} onSubmit={handleSubmit(onSubmit)}>
               <div className="flex-1 overflow-y-auto">
                 <div className="grid gap-6 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="vendor-id">Vendor ID</Label>
+                    <Label htmlFor={`${baseId}-id`}>Vendor ID</Label>
                     <Input
                       {...register("vendor_id")}
-                      id="vendor-id"
+                      id={`${baseId}-id`}
                       type="text"
                       placeholder="vendor-123"
                       required
@@ -122,10 +127,10 @@ export const AddVendorForm: React.FC<AddVendorFormProps> = ({
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="name">Name</Label>
+                    <Label htmlFor={`${baseId}-name`}>Name</Label>
                     <Input
                       {...register("name")}
-                      id="name"
+                      id={`${baseId}-name`}
                       type="text"
                       placeholder="Vendor Name"
                       required
@@ -137,10 +142,10 @@ export const AddVendorForm: React.FC<AddVendorFormProps> = ({
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor={`${baseId}-description`}>Description</Label>
                     <Textarea
                       {...register("description")}
-                      id="description"
+                      id={`${baseId}-description`}
                       placeholder="Description about the vendor"
                       required
                     />
@@ -151,10 +156,10 @@ export const AddVendorForm: React.FC<AddVendorFormProps> = ({
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="bucket">Bucket (Optional)</Label>
+                    <Label htmlFor={`${baseId}-bucket`}>Bucket (Optional)</Label>
                     <Input
                       {...register("bucket")}
-                      id="bucket"
+                      id={`${baseId}-bucket`}
                       type="text"
                       placeholder="s3://bucket-name"
                     />
@@ -175,6 +180,7 @@ export const AddVendorForm: React.FC<AddVendorFormProps> = ({
           </SheetHeader>
           <SheetFooter className="mt-auto">
             <Button 
+              id={`${baseId}-submit`}
               disabled={isSubmitting || isPending} 
               type="submit"
               onClick={handleSubmit(onSubmit)}
@@ -186,6 +192,7 @@ export const AddVendorForm: React.FC<AddVendorFormProps> = ({
             </Button>
             <SheetClose asChild>
               <Button
+                id={`${baseId}-cancel`}
                 type="button"
                 variant='secondary'
                 onClick={() => { reset() }}

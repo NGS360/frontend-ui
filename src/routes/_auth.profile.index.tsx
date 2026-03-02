@@ -248,6 +248,7 @@ function RouteComponent() {
               </div>
               <div className="pt-4 border-t">           
                 <ChangePasswordForm
+                  idPrefix="profile-change-password"
                   trigger={
                     <Button variant="outline" size="sm">
                       <KeyRound className="mr-2 h-4 w-4" />

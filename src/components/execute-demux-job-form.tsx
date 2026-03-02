@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
+import { useId } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -42,6 +43,8 @@ interface ExecuteToolFormProps {
   isOpen: boolean;
   /** Callback when dialog open state changes */
   onOpenChange: (open: boolean) => void;
+  /** Optional DOM id prefix for this form instance */
+  idPrefix?: string;
 }
 
 export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
@@ -49,7 +52,10 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   runBarcode,
   isOpen,
   onOpenChange,
+  idPrefix,
 }) => {
+  const generatedId = useId();
+  const baseId = (idPrefix || `execute-demux-${toolConfig.workflow_id}-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
   const { viewJob } = useViewJob();
   const { invalidateJobQueries } = useInvalidateJobQueries();
 
@@ -212,17 +218,17 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOnOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent id={`${baseId}-dialog`} className="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{toolConfig.workflow_name}</DialogTitle>
+          <DialogTitle id={`${baseId}-title`}>{toolConfig.workflow_name}</DialogTitle>
           <DialogDescription>{toolConfig.workflow_description}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form id={`${baseId}-form`} onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-6 py-4">
             {toolConfig.inputs.map((input) => (
               <div key={input.name} className="grid gap-2">
                 {input.type !== "Boolean" && (
-                  <Label htmlFor={input.desc}>
+                  <Label htmlFor={`${baseId}-${input.name}`}>
                     {input.desc}
                     {input.required && <span className="text-red-500">*</span>}
                   </Label>
@@ -232,7 +238,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                 {input.type === "String" && (
                   <Input
                     {...register(input.name)}
-                    id={input.name}
+                    id={`${baseId}-${input.name}`}
                     type="text"
                     placeholder={input.default?.toString() || ""}
                   />
@@ -241,7 +247,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                 {input.type === "Integer" && (
                   <Input
                     {...register(input.name)}
-                    id={input.name}
+                    id={`${baseId}-${input.name}`}
                     type="number"
                     step="1"
                     placeholder={input.default?.toString() || ""}
@@ -251,13 +257,13 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                 {input.type === "Boolean" && (
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={input.name}
+                      id={`${baseId}-${input.name}`}
                       checked={watch(input.name) as boolean}
                       onCheckedChange={(checked) => {
                         setValue(input.name, checked as any);
                       }}
                     />
-                    <Label htmlFor={input.name} className="!mt-0">
+                    <Label htmlFor={`${baseId}-${input.name}`} className="!mt-0">
                       {input.desc}
                       {input.required && <span className="text-red-500 ml-1">*</span>}
                     </Label>
@@ -269,7 +275,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                     value={watch(input.name) as string}
                     onValueChange={(value) => setValue(input.name, value as any)}
                   >
-                    <SelectTrigger id={input.name}>
+                    <SelectTrigger id={`${baseId}-${input.name}`}>
                       <SelectValue placeholder="Select an option..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -301,6 +307,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
 
           <DialogFooter>
             <Button
+              id={`${baseId}-reset`}
               type="button"
               variant="outline"
               onClick={() => {
@@ -311,6 +318,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
             </Button>
             <DialogClose asChild>
               <Button
+                id={`${baseId}-cancel`}
                 type="button"
                 variant="secondary"
                 onClick={() => {
@@ -320,7 +328,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
                 Cancel
               </Button>
             </DialogClose>
-            <Button disabled={isPending} type="submit">
+            <Button id={`${baseId}-submit`} disabled={isPending} type="submit">
               {isPending ? (
                 <>
                   <LoaderCircle className="animate-spin h-4 w-4 mr-2" />

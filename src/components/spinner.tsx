@@ -4,6 +4,7 @@ import {
   LoaderPinwheelIcon
 } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
+import { useId } from 'react';
 import { cn } from '@/lib/utils';
 
 type SpinnerVariantProps = Omit<SpinnerProps, 'variant'>;
@@ -37,6 +38,11 @@ const CircleFilled = ({
   </div>
 );
 const Ellipsis = ({ size = 24, ...props }: SpinnerVariantProps) => {
+  const generatedId = useId();
+  const instanceId = generatedId.replace(/:/g, '');
+  const ellipsis1Id = `ellipsis1-${instanceId}`;
+  const ellipsis3Id = `ellipsis3-${instanceId}`;
+
   return (
     <svg
       height={size}
@@ -49,10 +55,10 @@ const Ellipsis = ({ size = 24, ...props }: SpinnerVariantProps) => {
       <circle cx="4" cy="12" fill="currentColor" r="2">
         <animate
           attributeName="cy"
-          begin="0;ellipsis3.end+0.25s"
+          begin={`0;${ellipsis3Id}.end+0.25s`}
           calcMode="spline"
           dur="0.6s"
-          id="ellipsis1"
+          id={ellipsis1Id}
           keySplines=".33,.66,.66,1;.33,0,.66,.33"
           values="12;6;12"
         />
@@ -60,7 +66,7 @@ const Ellipsis = ({ size = 24, ...props }: SpinnerVariantProps) => {
       <circle cx="12" cy="12" fill="currentColor" r="2">
         <animate
           attributeName="cy"
-          begin="ellipsis1.begin+0.1s"
+          begin={`${ellipsis1Id}.begin+0.1s`}
           calcMode="spline"
           dur="0.6s"
           keySplines=".33,.66,.66,1;.33,0,.66,.33"
@@ -70,10 +76,10 @@ const Ellipsis = ({ size = 24, ...props }: SpinnerVariantProps) => {
       <circle cx="20" cy="12" fill="currentColor" r="2">
         <animate
           attributeName="cy"
-          begin="ellipsis1.begin+0.2s"
+          begin={`${ellipsis1Id}.begin+0.2s`}
           calcMode="spline"
           dur="0.6s"
-          id="ellipsis3"
+          id={ellipsis3Id}
           keySplines=".33,.66,.66,1;.33,0,.66,.33"
           values="12;6;12"
         />

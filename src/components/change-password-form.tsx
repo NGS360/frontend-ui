@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LoaderCircle } from "lucide-react";
 import { toast } from 'sonner';
-import { useState } from "react";
+import { useId, useState } from "react";
 import type React from "react";
 import type { JSX } from "react";
 import type { SubmitHandler } from "react-hook-form";
@@ -35,11 +35,16 @@ type FormFields = z.infer<typeof ChangePasswordSchema>
 interface ChangePasswordFormProps {
   /** Trigger for the Sheet component */
   trigger: JSX.Element
+  /** Optional DOM id prefix for this form instance */
+  idPrefix?: string
 }
 
 export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
-  trigger
+  trigger,
+  idPrefix,
 }) => {
+  const generatedId = useId();
+  const baseId = (idPrefix || `change-password-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
   // Control sheet open/close state
   const [isOpen, setIsOpen] = useState(false);
   const handleOnOpenChange = (willOpen: boolean) => {
@@ -92,20 +97,20 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     <>
       <Sheet open={isOpen} onOpenChange={handleOnOpenChange}>
         <SheetTrigger asChild>{trigger}</SheetTrigger>
-        <SheetContent>
+        <SheetContent id={`${baseId}-sheet`}>
           <SheetHeader>
-            <SheetTitle>Change Password</SheetTitle>
+            <SheetTitle id={`${baseId}-title`}>Change Password</SheetTitle>
             <SheetDescription>
               Update your account password. Make sure it's strong and secure.
             </SheetDescription>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form id={`${baseId}-form`} onSubmit={handleSubmit(onSubmit)}>
               <div className="flex-1 overflow-y-auto">
                 <div className="grid gap-6 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="current_password">Current Password</Label>
+                    <Label htmlFor={`${baseId}-current-password`}>Current Password</Label>
                     <Input
                       {...register("current_password")}
-                      id="current_password"
+                      id={`${baseId}-current-password`}
                       type="password"
                       placeholder="Enter your current password"
                       required
@@ -117,10 +122,10 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="new_password">New Password</Label>
+                    <Label htmlFor={`${baseId}-new-password`}>New Password</Label>
                     <Input
                       {...register("new_password")}
-                      id="new_password"
+                      id={`${baseId}-new-password`}
                       type="password"
                       placeholder="Enter your new password"
                       required
@@ -135,10 +140,10 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
                     </p>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="confirm_password">Confirm New Password</Label>
+                    <Label htmlFor={`${baseId}-confirm-password`}>Confirm New Password</Label>
                     <Input
                       {...register("confirm_password")}
-                      id="confirm_password"
+                      id={`${baseId}-confirm-password`}
                       type="password"
                       placeholder="Confirm your new password"
                       required
@@ -160,6 +165,7 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
           </SheetHeader>
           <SheetFooter className="mt-auto">
             <Button
+              id={`${baseId}-submit`}
               disabled={isSubmitting || isPending}
               type="submit"
               onClick={handleSubmit(onSubmit)}
@@ -171,6 +177,7 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
             </Button>
             <SheetClose asChild>
               <Button
+                id={`${baseId}-cancel`}
                 type="button"
                 variant='secondary'
                 onClick={() => { reset() }}

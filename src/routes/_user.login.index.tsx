@@ -7,5 +7,9 @@ export const Route = createFileRoute('/_user/login/')({
 
 function RouteComponent() {
   const redirect = new URLSearchParams(window.location.search).get('redirect') ?? undefined
-  return <LoginForm redirectTo={redirect} />
+  return (
+    <div id="login-route-page">
+      <LoginForm redirectTo={redirect} />
+    </div>
+  )
 }

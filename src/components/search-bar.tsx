@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { DeleteIcon, ExternalLink, Search } from 'lucide-react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -49,10 +49,13 @@ const SearchGroup: FC<SearchGroupProps> = ({ children, heading }) => (
 // Main SearchBar component
 interface SearchBarProps {
   onResultClick?: () => void
+  idPrefix?: string
 }
 
-export const SearchBar: FC<SearchBarProps> = ({ onResultClick }) => {
+export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
   const navigate = useNavigate();
+  const reactId = useId()
+  const baseId = idPrefix || `search-bar-${reactId.replace(/:/g, '')}`
 
   // State to control popover
   const [openResults, setOpenResults] = useState(false);
@@ -158,16 +161,17 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick }) => {
   return (
     <>
       {/* Search bar */}
-      <div className="flex gap-2 items-center pl-3 rounded-md h-9 border-1">
+      <div id={`${baseId}-container`} className="flex gap-2 items-center pl-3 rounded-md h-9 border-1">
         <Search size={16} className="text-muted-foreground" />
         <input
-          id="es-input"
+          id={`${baseId}-input`}
           className="w-full text-sm focus:outline-none"
           placeholder="Search for projects or runs..."
           {...register('search')}
           onKeyDown={handleKeyDown}
         />
         <Button
+          id={`${baseId}-clear-button`}
           variant="link"
           className="text-muted-foreground hover:text-foreground"
           onClick={() => setValue('search', '')}
@@ -181,6 +185,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick }) => {
       <Popover open={openResults}>
         <PopoverAnchor />
         <PopoverContent
+          id={`${baseId}-results`}
           onOpenAutoFocus={(e) => e.preventDefault()}
           className="w-[var(--radix-popper-anchor-width)] p-1"
         >
@@ -199,7 +204,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick }) => {
                         }))}
                         isHighlighted={selectedIndex === index}
                       >
-                        <div ref={selectedIndex === index ? selectedItemRef : null}>
+                        <div id={`${baseId}-project-${p.project_id}`} ref={selectedIndex === index ? selectedItemRef : null}>
                           <span className='text-sm'>
                             {highlightMatch(p.project_id, debouncedInput)}
                           </span>
@@ -211,6 +216,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick }) => {
                     ))}
                     <SearchItem>
                       <Link 
+                        id={`${baseId}-view-all-projects`}
                         className="flex items-center gap-2 text-primary cursor-pointer"
                         to="/projects"
                         search={{ 
@@ -242,7 +248,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick }) => {
                         }))}
                         isHighlighted={selectedIndex === runIndex}
                       >
-                        <div ref={selectedIndex === runIndex ? selectedItemRef : null}>
+                        <div id={`${baseId}-run-${r.barcode || 'unknown'}`} ref={selectedIndex === runIndex ? selectedItemRef : null}>
                           <span className='text-sm'>
                             {highlightMatch(r.barcode || '', debouncedInput)}
                           </span>
@@ -256,6 +262,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick }) => {
                   <SearchItem>
                     {/* TODO: update to runs page */}
                     <Link
+                      id={`${baseId}-view-all-runs`}
                       className="flex items-center gap-2 text-primary cursor-pointer"
                       to="/runs"
                       search={{ query: debouncedInput }}

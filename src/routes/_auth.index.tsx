@@ -12,7 +12,7 @@ export const Route = createFileRoute('/_auth/')({
 function App() {
   return (
     <>
-      <div className="text-center relative">
+      <div id="home-page" className="text-center relative">
         {/* Large background logo with very low opacity */}
         {/* <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <img 
@@ -22,23 +22,23 @@ function App() {
           />
         </div> */}
         
-        <div className="min-h-[85vh] flex flex-col items-center justify-center gap-6 px-4 relative z-10">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl animate-fade-in-up flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+        <div id="home-content" className="min-h-[85vh] flex flex-col items-center justify-center gap-6 px-4 relative z-10">
+        <h1 id="home-title" className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl animate-fade-in-up flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
           <span className="font-normal text-muted-foreground">Welcome to</span>
           <NGS360Logo showIcon={false} textSize="text-3xl sm:text-4xl md:text-5xl lg:text-6xl" gap="gap-0" />
         </h1>
-        <h2 className="text-sm sm:text-base md:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0, animationFillMode: 'forwards' }}>
+        <h2 id="home-subtitle" className="text-sm sm:text-base md:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0, animationFillMode: 'forwards' }}>
           Your comprehensive next-generation sequencing data management platform.
           Search, analyze, and manage your genomic data with ease.
         </h2>
-        <div className="max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.2s', opacity: 0, animationFillMode: 'forwards' }}>
-          <SearchBar />
+        <div id="home-search" className="max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.2s', opacity: 0, animationFillMode: 'forwards' }}>
+          <SearchBar idPrefix="home-search" />
         </div>
         
         {/* Quick Access Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-[95%] mt-8 animate-fade-in-up" style={{ animationDelay: '0.3s', opacity: 0, animationFillMode: 'forwards' }}>
-          <Link to="/runs" className="group">
-            <Card className="h-full transition-all duration-300 hover:border-accent3 hover:scale-[1.01] cursor-pointer border-2 shadow-none relative overflow-hidden">
+        <div id="home-quick-access" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-[95%] mt-8 animate-fade-in-up" style={{ animationDelay: '0.3s', opacity: 0, animationFillMode: 'forwards' }}>
+          <Link id="home-runs-link" to="/runs" className="group">
+            <Card id="home-runs-card" className="h-full transition-all duration-300 hover:border-accent3 hover:scale-[1.01] cursor-pointer border-2 shadow-none relative overflow-hidden">
               <CardHeader className="relative z-10">
                 <div className="flex items-center gap-3">
                   <div className="rounded-lg">
@@ -72,8 +72,8 @@ function App() {
             </Card>
           </Link>
 
-          <Link to="/projects" search={{sort_by: undefined, sort_order: undefined}} className="group">
-            <Card className="h-full transition-all duration-300 hover:border-accent2 hover:scale-[1.01] cursor-pointer border-2 shadow-none relative overflow-hidden">
+          <Link id="home-projects-link" to="/projects" search={{sort_by: undefined, sort_order: undefined}} className="group">
+            <Card id="home-projects-card" className="h-full transition-all duration-300 hover:border-accent2 hover:scale-[1.01] cursor-pointer border-2 shadow-none relative overflow-hidden">
               <CardHeader className="relative z-10">
                 <div className="flex items-center gap-3">
                   <div className="rounded-lg">

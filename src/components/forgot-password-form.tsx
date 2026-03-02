@@ -69,12 +69,13 @@ export function ForgotPasswordForm({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
-      <div className="w-full max-w-md">
-        <Card>
+    <div id="forgot-password-page" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-2/5 p-4">
+      <div id="forgot-password-container" className="w-full max-w-md">
+        <Card id="forgot-password-card">
           <CardHeader></CardHeader>
           <CardContent>
             <form
+              id="forgot-password-form"
               onSubmit={handleSubmit(onSubmit)}
               className={cn('flex flex-col gap-6', className)}
               {...props}
@@ -105,6 +106,7 @@ export function ForgotPasswordForm({
               </div>
 
               <Button
+                id="forgot-password-submit-button"
                 disabled={isSubmitting || isPending}
                 type="submit"
                 className="flex items-center gap-2"
@@ -132,9 +134,9 @@ export function ForgotPasswordForm({
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent>
+        <DialogContent id="forgot-password-success-dialog">
           <DialogHeader>
-            <DialogTitle>Success!</DialogTitle>
+            <DialogTitle id="forgot-password-success-title">Success!</DialogTitle>
             <DialogDescription>
               A password reset link has been sent to <strong>{sentEmail}</strong>.<br />
               Please check your inbox and follow the instructions to reset your password.
@@ -142,6 +144,7 @@ export function ForgotPasswordForm({
           </DialogHeader>
           <DialogFooter>
             <Button
+              id="forgot-password-success-continue"
               onClick={() => {
                 setShowSuccessDialog(false)
                 navigate({ to: '/login' })

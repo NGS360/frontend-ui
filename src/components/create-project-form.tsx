@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LoaderCircle, PlusIcon, Trash2Icon } from "lucide-react";
 import { toast } from 'sonner';
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import type { JSX } from "react";
 import type { SubmitHandler } from "react-hook-form";
@@ -47,9 +47,14 @@ type FormFields = z.infer<typeof CreateProjectSchema>
 interface CreateProjectFormProps {
   /** Trigger for the Dialog component */
   trigger: JSX.Element
+  /** Optional DOM id prefix for this form instance */
+  idPrefix?: string
 }
 
-export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger }) => {
+export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, idPrefix }) => {
+
+  const generatedId = useId();
+  const baseId = (idPrefix || `create-project-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
 
   const navigate = useNavigate();
 
@@ -127,20 +132,20 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger })
         <DialogTrigger asChild>
           {trigger}
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent id={`${baseId}-dialog`}>
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
             <DialogDescription>
               Add an NGS360 project with the desired attributes.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form id={`${baseId}-form`} onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="project-name">Name</Label>
+                <Label htmlFor={`${baseId}-name`}>Name</Label>
                 <Input
                   {...register("name")}
-                  id="project-name"
+                  id={`${baseId}-name`}
                   type="text"
                   placeholder="My Project"
                   required
@@ -158,6 +163,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger })
                     <div className="flex gap-2">
                       <div className="flex flex-col flex-1">
                         <Input
+                          id={`${baseId}-attribute-key-${index}`}
                           {...register(`attributes.${index}.key` as const)}
                           placeholder="Key"
                         />
@@ -169,6 +175,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger })
                       </div>
                       <div className="flex flex-col flex-1">
                         <Input
+                          id={`${baseId}-attribute-value-${index}`}
                           {...register(`attributes.${index}.value` as const)}
                           placeholder="Value"
                         />
@@ -179,6 +186,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger })
                         )}
                       </div>
                       <Button
+                        id={`${baseId}-remove-attribute-${index}`}
                         variant='ghost'
                         className='hover:bg-destructive/10 group'
                         disabled={watchAttributes.length < 2}
@@ -191,6 +199,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger })
                 ))}
                 <div>
                   <Button
+                    id={`${baseId}-add-attribute`}
                     variant="outline"
                     type="button"
                     disabled={
@@ -213,6 +222,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger })
             <DialogFooter>
               <DialogClose asChild>
                 <Button
+                  id={`${baseId}-cancel`}
                   type="button"
                   variant="secondary"
                   onClick={() => { reset() }}
@@ -220,7 +230,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger })
                   Cancel
                 </Button>
               </DialogClose>
-              <Button disabled={isSubmitting || isPending} type="submit">
+              <Button id={`${baseId}-submit`} disabled={isSubmitting || isPending} type="submit">
                 {isSubmitting || isPending ? (
                   <LoaderCircle className="animate-spin h-4 w-4 text-white" />
                 ) : null}
