@@ -23,7 +23,10 @@ function RouteComponent() {
       }
     }),
     initialData: initialJob,
-    refetchInterval: 5000,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status ?? initialJob.status
+      return ['SUCCEEDED', 'FAILED'].includes(status) ? false : 5000
+    },
     refetchIntervalInBackground: true,
   })
 
