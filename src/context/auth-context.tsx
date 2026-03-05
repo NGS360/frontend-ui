@@ -111,20 +111,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const basicLogin = async (email: string, password: string) => {
     try {
-      const response = await loginApi({
+      const { data } = await loginApi({
+        throwOnError: true,
         body: {
           username: email, // API expects 'username' field but uses email
           password,
           grant_type: 'password',
         },
       })
-
-      const tokenData = response.data as TokenResponse
-      await storeTokensAndFetchUser(tokenData)
+      await storeTokensAndFetchUser(data)
     } catch (error: any) {
       clearAuthData()
       throw new Error(
-        error?.response?.data?.detail || 'Login failed. Please check your credentials.'
+        error?.response?.data?.detail || error?.message || 'Login failed. Please check your credentials.'
       )
     }
   }
@@ -137,13 +136,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       // Exchange OAuth code for tokens
-      const response = await oauthCallback({
+      const { data } = await oauthCallback({
+        throwOnError: true,
         path: { provider },
         query: { code, state, redirect_uri: redirectUri },
       })
-
-      const tokenData = response.data as TokenResponse
-      await storeTokensAndFetchUser(tokenData)
+      await storeTokensAndFetchUser(data)
     } catch (error: any) {
       clearAuthData()
       throw new Error(
