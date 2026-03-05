@@ -1,6 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { consumePostLoginRedirect } from '@/lib/post-login-redirect'
 
+// OAuth codes are single-use. Track codes that have been sent for exchange
+// to prevent duplicate exchanges from StrictMode double-mounts or
+// TanStack Router re-evaluating the route after auth state changes.
+const exchangedCodes = new Set<string>()
+
 export const Route = createFileRoute('/_user/oauth/$provider/callback')({
   validateSearch: (search: Record<string, unknown>) => {
     return {
@@ -16,12 +21,17 @@ export const Route = createFileRoute('/_user/oauth/$provider/callback')({
       throw new Error('Missing authentication parameters')
     }
 
+    if (exchangedCodes.has(code)) {
+      return
+    }
+    exchangedCodes.add(code)
+
     try {
       const redirectUri = `${window.location.origin}/oauth/${provider}/callback`
-      
+
       // Auth provider handles the API call and token storage
       await context.auth.oauthLogin(provider, code, state, redirectUri)
-      
+
       // Redirect to saved destination if available
       window.location.assign(consumePostLoginRedirect())
       return
@@ -30,7 +40,7 @@ export const Route = createFileRoute('/_user/oauth/$provider/callback')({
       if (err.isRedirect) {
         throw err
       }
-      
+
       // Otherwise, throw error for error component
       throw err
     }

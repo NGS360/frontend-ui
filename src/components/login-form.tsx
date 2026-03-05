@@ -16,7 +16,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     storePostLoginRedirect(redirectTo)
     const redirectUri = `${window.location.origin}/oauth/${provider}/callback`
     const separator = authorizeUrl.includes('?') ? '&' : '?'
-    window.location.href = `${authorizeUrl}${separator}redirect_uri=${encodeURIComponent(redirectUri)}`
+    // Cache-bust with timestamp to prevent browsers from serving a cached 302
+    // redirect chain with a stale code
+    window.location.href = `${authorizeUrl}${separator}redirect_uri=${encodeURIComponent(redirectUri)}&_=${Date.now()}`
   }
 
   // Check for corporate SSO provider
