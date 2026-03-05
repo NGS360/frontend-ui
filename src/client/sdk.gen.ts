@@ -28,6 +28,9 @@ import type {
   ConfirmPasswordResetData,
   ConfirmPasswordResetErrors,
   ConfirmPasswordResetResponses,
+  CreateApiKeyData,
+  CreateApiKeyErrors,
+  CreateApiKeyResponses,
   CreateFileData,
   CreateFileErrors,
   CreateFileResponses,
@@ -40,6 +43,9 @@ import type {
   CreateWorkflowData,
   CreateWorkflowErrors,
   CreateWorkflowResponses,
+  DeleteApiKeyData,
+  DeleteApiKeyErrors,
+  DeleteApiKeyResponses,
   DeleteQcrecordData,
   DeleteQcrecordErrors,
   DeleteQcrecordResponses,
@@ -134,6 +140,9 @@ import type {
   LinkOauthProviderData,
   LinkOauthProviderErrors,
   LinkOauthProviderResponses,
+  ListApiKeysData,
+  ListApiKeysErrors,
+  ListApiKeysResponses,
   ListDemultiplexWorkflowsData,
   ListDemultiplexWorkflowsResponses,
   ListFilesData,
@@ -172,6 +181,9 @@ import type {
   ResendVerificationData,
   ResendVerificationErrors,
   ResendVerificationResponses,
+  RevokeApiKeyData,
+  RevokeApiKeyErrors,
+  RevokeApiKeyResponses,
   RootData,
   RootResponses,
   SearchData,
@@ -638,6 +650,105 @@ export const resendVerification = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * List Api Keys
+ * List API keys for the authenticated user.
+ */
+export const listApiKeys = <ThrowOnError extends boolean = false>(
+  options?: Options<ListApiKeysData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListApiKeysResponses,
+    ListApiKeysErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/auth/api-keys',
+    ...options,
+  })
+}
+
+/**
+ * Create Api Key
+ * Create a new API key for the authenticated user.
+ */
+export const createApiKey = <ThrowOnError extends boolean = false>(
+  options: Options<CreateApiKeyData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateApiKeyResponses,
+    CreateApiKeyErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/auth/api-keys',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Delete Api Key
+ * Delete an API key.
+ */
+export const deleteApiKey = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteApiKeyData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteApiKeyResponses,
+    DeleteApiKeyErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/auth/api-keys/{key_id}',
+    ...options,
+  })
+}
+
+/**
+ * Revoke Api Key
+ * Revoke an API key (soft-disable).
+ */
+export const revokeApiKey = <ThrowOnError extends boolean = false>(
+  options: Options<RevokeApiKeyData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    RevokeApiKeyResponses,
+    RevokeApiKeyErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/auth/api-keys/{key_id}/revoke',
+    ...options,
   })
 }
 
