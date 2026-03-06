@@ -1,5 +1,4 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { consumePostLoginRedirect } from '@/lib/post-login-redirect'
 
 export const Route = createFileRoute('/_user/oauth/$provider/callback')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -22,7 +21,7 @@ export const Route = createFileRoute('/_user/oauth/$provider/callback')({
     // throw redirect() immediately exits beforeLoad and navigates away,
     // preventing TanStack Router from re-evaluating this route when
     // the auth context updates (which would replay the single-use code).
-    throw redirect({ to: consumePostLoginRedirect() })
+    throw redirect({ to: '/' })
   },
   component: () => <div>Redirecting...</div>, // Never renders - beforeLoad always redirects
   errorComponent: OAuthErrorComponent,
