@@ -16,7 +16,6 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { NGS360Logo } from '@/components/ngs360-logo'
 import { useAuth } from '@/context/auth-context'
-import { resolvePostLoginRedirect } from '@/lib/post-login-redirect'
 
 // Define the schema for the form fields
 // This is used to perform client-side validation
@@ -31,7 +30,6 @@ interface LoginFormDefaultProps extends ComponentPropsWithoutRef<'form'> {
   oauthProviders?: Array<OAuthProviderInfo>
   onOAuthLogin: (provider: string, authorizeUrl: string) => void
   apiUrl: string
-  redirectTo?: string
 }
 
 export function LoginFormDefault({
@@ -39,7 +37,6 @@ export function LoginFormDefault({
   oauthProviders,
   onOAuthLogin,
   apiUrl,
-  redirectTo,
   ...props
 }: LoginFormDefaultProps) {
   const { basicLogin } = useAuth()
@@ -63,7 +60,7 @@ export function LoginFormDefault({
     try {
       await basicLogin(data.username, data.password)
       toast.success('Login successful')
-      window.location.assign(resolvePostLoginRedirect(redirectTo))
+      window.location.assign('/')
     } catch (error: any) {
       const message = error?.message || 'An unknown error occurred.'
       setError('root', { message })

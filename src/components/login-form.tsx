@@ -2,18 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { getAvailableOauthProvidersOptions } from '@/client/@tanstack/react-query.gen'
 import { LoginFormCorporate } from '@/components/login-form-corporate'
 import { LoginFormDefault } from '@/components/login-form-default'
-import { storePostLoginRedirect } from '@/lib/post-login-redirect'
 
-interface LoginFormProps {
-  redirectTo?: string
-}
-
-export function LoginForm({ redirectTo }: LoginFormProps) {
+export function LoginForm() {
   const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, '')
   const { data: oauthProviders } = useQuery(getAvailableOauthProvidersOptions())
 
   const handleOAuthLogin = (provider: string, authorizeUrl: string) => {
-    storePostLoginRedirect(redirectTo)
     const redirectUri = `${window.location.origin}/oauth/${provider}/callback`
     const separator = authorizeUrl.includes('?') ? '&' : '?'
     window.location.href = `${authorizeUrl}${separator}redirect_uri=${encodeURIComponent(redirectUri)}`
@@ -39,7 +33,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       oauthProviders={oauthProviders?.providers}
       onOAuthLogin={handleOAuthLogin}
       apiUrl={apiUrl}
-      redirectTo={redirectTo}
     />
   )
 }
