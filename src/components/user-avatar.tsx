@@ -17,8 +17,8 @@ export function UserAvatar() {
   const avatarUrl = getGravatarUrl(userEmail)
   
   const handleLogout = async () => {
+    await navigate({ to: '/login' });
     await logout();
-    navigate({ to: '/' });
   }
 
   return (
