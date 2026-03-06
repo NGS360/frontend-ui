@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { KeyRound, Mail, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Mail, RefreshCw, ShieldCheck, KeyRound } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import type { BatchJobPublic } from '@/client'
 import { getJobsOptions, getJobsQueryKey, resendVerificationMutation } from '@/client/@tanstack/react-query.gen'
@@ -17,6 +17,7 @@ import { useAuth } from '@/context/auth-context'
 import { ChangePasswordForm } from '@/components/change-password-form'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { APIKeysSection } from '@/components/api-keys-section'
 
 export const Route = createFileRoute('/_auth/profile/')({
   component: RouteComponent,
@@ -293,25 +294,17 @@ function RouteComponent() {
         </div>
       </section>
 
-      {/* Settings Section */}
-      <section id="settings" className="scroll-mt-20">
+      {/* API Keys Section */}
+      <section id="api-keys" className="scroll-mt-20">
         <div className='flex flex-col gap-4'>
           <div className='flex flex-col gap-2'>
-            <h1 className="text-3xl">Settings</h1>
+            <h1 className="text-3xl">API Keys</h1>
             <p className="text-muted-foreground">
-              Manage your account preferences and settings.
+              Manage API keys for programmatic access.
             </p>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>Update your account preferences</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Settings configuration coming soon...</p>
-            </CardContent>
-          </Card>
+          <APIKeysSection />
         </div>
       </section>
     </div>

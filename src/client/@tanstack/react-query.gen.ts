@@ -15,10 +15,12 @@ import {
   browseS3,
   changePassword,
   confirmPasswordReset,
+  createApiKey,
   createFile,
   createProject,
   createQcrecord,
   createWorkflow,
+  deleteApiKey,
   deleteQcrecord,
   deleteVendor,
   downloadFile,
@@ -52,6 +54,7 @@ import {
   healthCheck,
   ingestVendorData,
   linkOauthProvider,
+  listApiKeys,
   listDemultiplexWorkflows,
   listFiles,
   login,
@@ -66,6 +69,7 @@ import {
   reindexSamples,
   requestPasswordReset,
   resendVerification,
+  revokeApiKey,
   root,
   search,
   searchProjects,
@@ -108,6 +112,9 @@ import type {
   ConfirmPasswordResetData,
   ConfirmPasswordResetError,
   ConfirmPasswordResetResponse,
+  CreateApiKeyData,
+  CreateApiKeyError,
+  CreateApiKeyResponse,
   CreateFileData,
   CreateFileError,
   CreateFileResponse,
@@ -120,6 +127,9 @@ import type {
   CreateWorkflowData,
   CreateWorkflowError,
   CreateWorkflowResponse,
+  DeleteApiKeyData,
+  DeleteApiKeyError,
+  DeleteApiKeyResponse,
   DeleteQcrecordData,
   DeleteQcrecordError,
   DeleteQcrecordResponse,
@@ -173,6 +183,9 @@ import type {
   LinkOauthProviderData,
   LinkOauthProviderError,
   LinkOauthProviderResponse,
+  ListApiKeysData,
+  ListApiKeysError,
+  ListApiKeysResponse,
   ListDemultiplexWorkflowsData,
   ListFilesData,
   ListFilesError,
@@ -203,6 +216,9 @@ import type {
   ResendVerificationData,
   ResendVerificationError,
   ResendVerificationResponse,
+  RevokeApiKeyData,
+  RevokeApiKeyError,
+  RevokeApiKeyResponse,
   RootData,
   SearchData,
   SearchProjectsData,
@@ -1064,6 +1080,244 @@ export const resendVerificationMutation = (
   return mutationOptions
 }
 
+export const listApiKeysQueryKey = (options?: Options<ListApiKeysData>) =>
+  createQueryKey('listApiKeys', options)
+
+/**
+ * List Api Keys
+ * List API keys for the authenticated user.
+ */
+export const listApiKeysOptions = (options?: Options<ListApiKeysData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listApiKeys({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listApiKeysQueryKey(options),
+  })
+}
+
+const createInfiniteParams = <
+  K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>,
+>(
+  queryKey: QueryKey<Options>,
+  page: K,
+) => {
+  const params = {
+    ...queryKey[0],
+  }
+  if (page.body) {
+    params.body = {
+      ...(queryKey[0].body as any),
+      ...(page.body as any),
+    }
+  }
+  if (page.headers) {
+    params.headers = {
+      ...queryKey[0].headers,
+      ...page.headers,
+    }
+  }
+  if (page.path) {
+    params.path = {
+      ...(queryKey[0].path as any),
+      ...(page.path as any),
+    }
+  }
+  if (page.query) {
+    params.query = {
+      ...(queryKey[0].query as any),
+      ...(page.query as any),
+    }
+  }
+  return params as unknown as typeof page
+}
+
+export const listApiKeysInfiniteQueryKey = (
+  options?: Options<ListApiKeysData>,
+): QueryKey<Options<ListApiKeysData>> =>
+  createQueryKey('listApiKeys', options, true)
+
+/**
+ * List Api Keys
+ * List API keys for the authenticated user.
+ */
+export const listApiKeysInfiniteOptions = (
+  options?: Options<ListApiKeysData>,
+) => {
+  return infiniteQueryOptions<
+    ListApiKeysResponse,
+    AxiosError<ListApiKeysError>,
+    InfiniteData<ListApiKeysResponse>,
+    QueryKey<Options<ListApiKeysData>>,
+    | number
+    | Pick<
+        QueryKey<Options<ListApiKeysData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<ListApiKeysData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await listApiKeys({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: listApiKeysInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const createApiKeyQueryKey = (options: Options<CreateApiKeyData>) =>
+  createQueryKey('createApiKey', options)
+
+/**
+ * Create Api Key
+ * Create a new API key for the authenticated user.
+ */
+export const createApiKeyOptions = (options: Options<CreateApiKeyData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createApiKey({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createApiKeyQueryKey(options),
+  })
+}
+
+/**
+ * Create Api Key
+ * Create a new API key for the authenticated user.
+ */
+export const createApiKeyMutation = (
+  options?: Partial<Options<CreateApiKeyData>>,
+): UseMutationOptions<
+  CreateApiKeyResponse,
+  AxiosError<CreateApiKeyError>,
+  Options<CreateApiKeyData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateApiKeyResponse,
+    AxiosError<CreateApiKeyError>,
+    Options<CreateApiKeyData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await createApiKey({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete Api Key
+ * Delete an API key.
+ */
+export const deleteApiKeyMutation = (
+  options?: Partial<Options<DeleteApiKeyData>>,
+): UseMutationOptions<
+  DeleteApiKeyResponse,
+  AxiosError<DeleteApiKeyError>,
+  Options<DeleteApiKeyData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteApiKeyResponse,
+    AxiosError<DeleteApiKeyError>,
+    Options<DeleteApiKeyData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteApiKey({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const revokeApiKeyQueryKey = (options: Options<RevokeApiKeyData>) =>
+  createQueryKey('revokeApiKey', options)
+
+/**
+ * Revoke Api Key
+ * Revoke an API key (soft-disable).
+ */
+export const revokeApiKeyOptions = (options: Options<RevokeApiKeyData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await revokeApiKey({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: revokeApiKeyQueryKey(options),
+  })
+}
+
+/**
+ * Revoke Api Key
+ * Revoke an API key (soft-disable).
+ */
+export const revokeApiKeyMutation = (
+  options?: Partial<Options<RevokeApiKeyData>>,
+): UseMutationOptions<
+  RevokeApiKeyResponse,
+  AxiosError<RevokeApiKeyError>,
+  Options<RevokeApiKeyData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    RevokeApiKeyResponse,
+    AxiosError<RevokeApiKeyError>,
+    Options<RevokeApiKeyData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await revokeApiKey({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const getAvailableOauthProvidersQueryKey = (
   options?: Options<GetAvailableOauthProvidersData>,
 ) => createQueryKey('getAvailableOauthProviders', options)
@@ -1490,42 +1744,6 @@ export const listFilesOptions = (options?: Options<ListFilesData>) => {
     },
     queryKey: listFilesQueryKey(options),
   })
-}
-
-const createInfiniteParams = <
-  K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>,
->(
-  queryKey: QueryKey<Options>,
-  page: K,
-) => {
-  const params = {
-    ...queryKey[0],
-  }
-  if (page.body) {
-    params.body = {
-      ...(queryKey[0].body as any),
-      ...(page.body as any),
-    }
-  }
-  if (page.headers) {
-    params.headers = {
-      ...queryKey[0].headers,
-      ...page.headers,
-    }
-  }
-  if (page.path) {
-    params.path = {
-      ...(queryKey[0].path as any),
-      ...(page.path as any),
-    }
-  }
-  if (page.query) {
-    params.query = {
-      ...(queryKey[0].query as any),
-      ...(page.query as any),
-    }
-  }
-  return params as unknown as typeof page
 }
 
 export const listFilesInfiniteQueryKey = (

@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute, useLocation, useNavigate } from '@tanstack/react-router'
-import { ListChecks, Mail, Settings, User } from 'lucide-react'
+import { KeyRound, ListChecks, Mail, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Sidebar,
   SidebarContent,
@@ -33,7 +33,7 @@ function RouteComponent() {
   const menuItems = [
     { id: 'user-info', title: 'Account Info', icon: User },
     { id: 'jobs', title: 'Jobs', icon: ListChecks },
-    { id: 'settings', title: 'Settings', icon: Settings },
+    { id: 'api-keys', title: 'API Keys', icon: KeyRound },
   ]
 
   // Handle hash navigation on mount and location changes
