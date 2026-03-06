@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute, useLocation, useNavigate } from '@tanstack/react-router'
-import { KeyRound, ListChecks, Mail, User } from 'lucide-react'
+import { KeyRound, Mail, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Sidebar,
   SidebarContent,
@@ -32,7 +32,6 @@ function RouteComponent() {
 
   const menuItems = [
     { id: 'user-info', title: 'Account Info', icon: User },
-    { id: 'jobs', title: 'Jobs', icon: ListChecks },
     { id: 'api-keys', title: 'API Keys', icon: KeyRound },
   ]
 

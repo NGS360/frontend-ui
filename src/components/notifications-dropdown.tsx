@@ -103,7 +103,7 @@ export function NotificationsDropdown() {
         </ScrollArea>
         <Separator />
         <div className="p-2">
-          <Link to="/profile" hash="jobs" className="block">
+          <Link to="/jobs" className="block">
             <Button variant="ghost" className="w-full justify-center text-sm">
               View All Jobs
             </Button>

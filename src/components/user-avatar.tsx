@@ -1,4 +1,4 @@
-import { LogOut, User } from 'lucide-react'
+import { ListChecks, LogOut, User } from 'lucide-react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { getGravatarUrl } from '@/lib/utils'
@@ -34,6 +34,12 @@ export function UserAvatar() {
           <Link to="/profile" className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/jobs" className="cursor-pointer">
+            <ListChecks className="mr-2 h-4 w-4" />
+            <span>My Jobs</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout}>

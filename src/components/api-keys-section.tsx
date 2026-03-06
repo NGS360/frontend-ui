@@ -20,7 +20,7 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -438,12 +438,6 @@ export function APIKeysSection() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>API Keys</CardTitle>
-        <CardDescription>
-          Manage API keys for programmatic access to the NGS360 API.
-        </CardDescription>
-      </CardHeader>
       <CardContent className="space-y-4">
         {newlyCreatedKey && (
           <NewKeyBanner
