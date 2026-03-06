@@ -1,10 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { consumePostLoginRedirect } from '@/lib/post-login-redirect'
-
-// OAuth codes are single-use. Track codes that have been sent for exchange
-// to prevent duplicate exchanges from StrictMode double-mounts or
-// TanStack Router re-evaluating the route after auth state changes.
-const exchangedCodes = new Set<string>()
 
 export const Route = createFileRoute('/_user/oauth/$provider/callback')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -21,29 +16,13 @@ export const Route = createFileRoute('/_user/oauth/$provider/callback')({
       throw new Error('Missing authentication parameters')
     }
 
-    if (exchangedCodes.has(code)) {
-      return
-    }
-    exchangedCodes.add(code)
+    const redirectUri = `${window.location.origin}/oauth/${provider}/callback`
+    await context.auth.oauthLogin(provider, code, state, redirectUri)
 
-    try {
-      const redirectUri = `${window.location.origin}/oauth/${provider}/callback`
-
-      // Auth provider handles the API call and token storage
-      await context.auth.oauthLogin(provider, code, state, redirectUri)
-
-      // Redirect to saved destination if available
-      window.location.assign(consumePostLoginRedirect())
-      return
-    } catch (err: any) {
-      // If it's a redirect, re-throw it
-      if (err.isRedirect) {
-        throw err
-      }
-
-      // Otherwise, throw error for error component
-      throw err
-    }
+    // throw redirect() immediately exits beforeLoad and navigates away,
+    // preventing TanStack Router from re-evaluating this route when
+    // the auth context updates (which would replay the single-use code).
+    throw redirect({ to: consumePostLoginRedirect() })
   },
   component: () => <div>Redirecting...</div>, // Never renders - beforeLoad always redirects
   errorComponent: OAuthErrorComponent,
