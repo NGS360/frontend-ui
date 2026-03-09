@@ -6,7 +6,7 @@ export default function Footer() {
           <div id="app-footer-links" className="flex items-center justify-center gap-4 mb-2">
             <a 
               id="app-footer-docs-link"
-              href={`${import.meta.env.VITE_API_URL}docs`} 
+              href={`${import.meta.env.VITE_API_URL}/docs`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:text-primary transition-colors font-medium"
