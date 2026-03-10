@@ -9,9 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/context/auth-context'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 export function UserAvatar() {
-  const { user, logout } = useAuth(); 
+  const { logout } = useAuth();
+  const { data: user } = useCurrentUser();
   const navigate = useNavigate();
   const userEmail = user?.email || '';
   const avatarUrl = getGravatarUrl(userEmail)

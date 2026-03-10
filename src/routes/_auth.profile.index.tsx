@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { KeyRound, Mail, ShieldCheck } from 'lucide-react'
 import { resendVerificationMutation } from '@/client/@tanstack/react-query.gen'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/context/auth-context'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { ChangePasswordForm } from '@/components/change-password-form'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_auth/profile/')({
 })
 
 function RouteComponent() {
-  const { user } = useAuth()
+  const { data: user } = useCurrentUser()
 
   // Resend verification email mutation
   const resendVerificationEmail = useMutation({

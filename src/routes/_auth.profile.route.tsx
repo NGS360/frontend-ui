@@ -12,7 +12,7 @@ import { Sidebar,
   SidebarProvider } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getGravatarUrl } from '@/lib/utils'
-import { useAuth } from '@/context/auth-context'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 export const Route = createFileRoute('/_auth/profile')({
   component: RouteComponent,
@@ -23,7 +23,7 @@ export const Route = createFileRoute('/_auth/profile')({
 })
 
 function RouteComponent() {
-  const { user } = useAuth()
+  const { data: user } = useCurrentUser()
   const userEmail = user?.email || ''
   const avatarUrl = getGravatarUrl(userEmail)
   const [activeSection, setActiveSection] = useState('user-info')

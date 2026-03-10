@@ -12,13 +12,13 @@ import {
 } from '@/components/ui/popover'
 import { getJobsOptions } from '@/client/@tanstack/react-query.gen'
 import { DEFAULT_JOBS_QUERY_OPTIONS, useViewJob } from '@/hooks/use-job-queries'
-import { useAuth } from '@/context/auth-context'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { JobStatusBadge } from '@/components/job-status-badge'
 
 export function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
   const { viewJob } = useViewJob()
-  const { user } = useAuth() 
+  const { data: user } = useCurrentUser()
 
   const username = user?.username || 'system'
 

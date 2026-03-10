@@ -61,9 +61,6 @@ api.interceptors.response.use(
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token);
       localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, expiresAt.toString());
 
-      // Notify the auth context so in-memory state stays in sync
-      window.dispatchEvent(new CustomEvent('auth:tokens-refreshed', { detail: data }));
-
       // Drain queued requests and retry the original
       refreshSubscribers.forEach(({ resolve }) => resolve(data.access_token));
       refreshSubscribers = [];
