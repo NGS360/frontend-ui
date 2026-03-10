@@ -4,6 +4,7 @@ import Header from '../components/Header'
 
 import { BreadcrumbNav } from '@/components/breadcrumb-nav.tsx'
 import { Toaster } from '@/components/ui/sonner.tsx'
+import { useAuth } from '@/context/auth-context'
 import { currentUserQueryOptions } from '@/hooks/use-current-user'
 
 export const Route = createFileRoute('/_auth')({
@@ -23,6 +24,10 @@ export const Route = createFileRoute('/_auth')({
 })
 
 function AuthLayout() {
+  const { isAuthenticated } = useAuth()
+
+  if (!isAuthenticated) return null
+
   return (
     <>
       <Header />
