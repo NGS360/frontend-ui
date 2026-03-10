@@ -2002,7 +2002,7 @@ export type UserPublic = {
   /**
    * Email
    */
-  email: string
+  email: string | null
   /**
    * Username
    */
@@ -3602,8 +3602,11 @@ export type ReindexProjectsResponses = {
   /**
    * Successful Response
    */
-  201: unknown
+  201: ProjectsPublic
 }
+
+export type ReindexProjectsResponse =
+  ReindexProjectsResponses[keyof ReindexProjectsResponses]
 
 export type GetProjectByProjectIdData = {
   body?: never

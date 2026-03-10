@@ -208,6 +208,7 @@ import type {
   RegisterError,
   RegisterResponse,
   ReindexProjectsData,
+  ReindexProjectsResponse,
   ReindexRunsData,
   ReindexSamplesData,
   RequestPasswordResetData,
@@ -2714,12 +2715,12 @@ export const reindexProjectsOptions = (
 export const reindexProjectsMutation = (
   options?: Partial<Options<ReindexProjectsData>>,
 ): UseMutationOptions<
-  unknown,
+  ReindexProjectsResponse,
   AxiosError<DefaultError>,
   Options<ReindexProjectsData>
 > => {
   const mutationOptions: UseMutationOptions<
-    unknown,
+    ReindexProjectsResponse,
     AxiosError<DefaultError>,
     Options<ReindexProjectsData>
   > = {
