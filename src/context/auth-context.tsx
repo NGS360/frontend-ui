@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { TokenResponse, UserPublic } from '@/client/types.gen'
-import { getCurrentUserInfo, login as loginApi, logout as logoutApi, oauthCallback } from '@/client/sdk.gen'
+import { getCurrentUserInfo, login as loginApi, logout as logoutApi, oauthCallback, refreshToken as refreshTokenApi } from '@/client/sdk.gen'
+
+export const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'access_token',
+  REFRESH_TOKEN: 'refresh_token',
+  EXPIRES_AT: 'expires_at',
+} as const
 
 interface AuthState {
   isAuthenticated: boolean
@@ -14,12 +20,6 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined)
-
-const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'access_token',
-  REFRESH_TOKEN: 'refresh_token',
-  EXPIRES_AT: 'expires_at',
-} as const
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserPublic | null>(null)
@@ -41,10 +41,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Check if token is expired
-      if (Date.now() >= parseInt(expiresAt, 10)) {
-        clearAuthData()
-        setIsLoading(false)
+      const expiresAtMs = parseInt(expiresAt, 10)
+
+      // If the access token is already expired, try a silent refresh before giving up
+      if (Date.now() >= expiresAtMs) {
+        try {
+          const { data } = await refreshTokenApi({
+            throwOnError: true,
+            body: { refresh_token: refreshTok },
+          })
+          await storeTokensAndFetchUser(data)
+        } catch {
+          clearAuthData()
+        } finally {
+          setIsLoading(false)
+        }
         return
       }
 
@@ -65,6 +76,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     restoreAuth()
+  }, [])
+
+  // Listen for session-expired events dispatched by the response interceptor
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      clearAuthData()
+    }
+    // Keep in-memory token state in sync when the interceptor silently refreshes
+    const handleTokensRefreshed = (e: Event) => {
+      const data = (e as CustomEvent<TokenResponse>).detail
+      setAccessToken(data.access_token)
+      setRefreshToken(data.refresh_token)
+    }
+    window.addEventListener('auth:session-expired', handleSessionExpired)
+    window.addEventListener('auth:tokens-refreshed', handleTokensRefreshed)
+    return () => {
+      window.removeEventListener('auth:session-expired', handleSessionExpired)
+      window.removeEventListener('auth:tokens-refreshed', handleTokensRefreshed)
+    }
+  }, [])
+
+  // Cross-tab sync: the native `storage` event fires when another tab modifies localStorage.
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)) {
+        clearAuthData()
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   const clearAuthData = () => {
