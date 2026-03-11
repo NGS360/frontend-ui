@@ -97,7 +97,7 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     <>
       <Sheet open={isOpen} onOpenChange={handleOnOpenChange}>
         <SheetTrigger asChild>{trigger}</SheetTrigger>
-        <SheetContent id={`${baseId}-sheet`}>
+        <SheetContent id={`${baseId}-sheet`} srTitle="Change Password">
           <SheetHeader>
             <SheetTitle id={`${baseId}-title`}>Change Password</SheetTitle>
             <SheetDescription>

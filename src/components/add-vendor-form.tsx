@@ -102,7 +102,7 @@ export const AddVendorForm: React.FC<AddVendorFormProps> = ({
     <>
       <Sheet open={isOpen} onOpenChange={handleOnOpenChange}>
         <SheetTrigger asChild>{trigger}</SheetTrigger>
-        <SheetContent id={`${baseId}-sheet`}>
+        <SheetContent id={`${baseId}-sheet`} srTitle="Add Vendor">
           <SheetHeader>
             <SheetTitle id={`${baseId}-title`}>Add Vendor</SheetTitle>
             <SheetDescription>

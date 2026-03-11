@@ -101,7 +101,7 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
     <>
       <Sheet open={isOpen} onOpenChange={handleOnOpenChange}>
         <SheetTrigger asChild>{trigger}</SheetTrigger>
-        <SheetContent id={`update-vendor-sheet-${vendorIdSlug}`}>
+        <SheetContent id={`update-vendor-sheet-${vendorIdSlug}`} srTitle="Update Vendor">
           <SheetHeader>
             <SheetTitle id={`update-vendor-title-${vendorIdSlug}`}>Update Vendor</SheetTitle>
             <SheetDescription>

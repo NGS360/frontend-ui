@@ -194,6 +194,7 @@ function Sidebar({
             } as React.CSSProperties
           }
           side={side}
+          srTitle="Sidebar"
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>

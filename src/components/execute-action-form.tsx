@@ -196,7 +196,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   return (
     <Sheet open={sheetOpen} onOpenChange={(open) => { setSheetOpen(open); handleOpenChange(open); }}>
       <SheetTrigger asChild onClick={() => setSheetOpen(true)}>{trigger}</SheetTrigger>
-      <SheetContent id={`${baseId}-sheet`} side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent id={`${baseId}-sheet`} srTitle="Execute Action" side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle id={`${baseId}-title`}>Execute Action</SheetTitle>
           <SheetDescription>

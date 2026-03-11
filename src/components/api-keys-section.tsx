@@ -108,7 +108,7 @@ function CreateApiKeyButton({
           Create API Key
         </Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent srTitle="Create API Key">
         <SheetHeader>
           <SheetTitle>Create API Key</SheetTitle>
           <SheetDescription>
