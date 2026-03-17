@@ -12,6 +12,7 @@ export const Route = createFileRoute('/_auth/runs/$run_barcode/samplesheet')({
     return ({
       crumb: 'Samplesheet',
       includeCrumbLink: true,
+      pageTitle: null,
     })
   }
 })
