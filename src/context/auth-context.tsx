@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import type { TokenResponse, UserPublic } from '@/client/types.gen'
-import { getCurrentUserInfo, login as loginApi, logout as logoutApi, oauthCallback } from '@/client/sdk.gen'
+import { flushSync } from 'react-dom'
+import type { TokenResponse } from '@/client/types.gen'
+import { login as loginApi, logout as logoutApi, oauthCallback, refreshToken as refreshTokenApi } from '@/client/sdk.gen'
+
+export const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'access_token',
+  REFRESH_TOKEN: 'refresh_token',
+  EXPIRES_AT: 'expires_at',
+} as const
 
 interface AuthState {
   isAuthenticated: boolean
-  user: UserPublic | null
-  accessToken: string | null
-  refreshToken: string | null
   isLoading: boolean
   basicLogin: (email: string, password: string) => Promise<void>
   oauthLogin: (provider: string, code: string, state: string, redirectUri: string) => Promise<void>
@@ -15,16 +19,7 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | undefined>(undefined)
 
-const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'access_token',
-  REFRESH_TOKEN: 'refresh_token',
-  EXPIRES_AT: 'expires_at',
-} as const
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserPublic | null>(null)
-  const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [refreshToken, setRefreshToken] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -35,42 +30,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const refreshTok = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
       const expiresAt = localStorage.getItem(STORAGE_KEYS.EXPIRES_AT)
 
-      // Early exit if no stored credentials
       if (!token || !refreshTok || !expiresAt) {
         setIsLoading(false)
         return
       }
 
-      // Check if token is expired
-      if (Date.now() >= parseInt(expiresAt, 10)) {
-        clearAuthData()
-        setIsLoading(false)
+      const expiresAtMs = parseInt(expiresAt, 10)
+
+      // If the access token is already expired, try a silent refresh before giving up
+      if (Date.now() >= expiresAtMs) {
+        try {
+          const { data } = await refreshTokenApi({
+            throwOnError: true,
+            body: { refresh_token: refreshTok },
+          })
+          storeTokens(data)
+        } catch {
+          clearAuthData()
+        } finally {
+          setIsLoading(false)
+        }
         return
       }
 
-      // Restore state and validate token
-      setAccessToken(token)
-      setRefreshToken(refreshTok)
+      // Token exists and isn't expired — trust it.
+      // If it turns out to be revoked server-side, the interceptor will
+      // catch the 401 on the first API call and handle refresh/logout.
       setIsAuthenticated(true)
-
-      try {
-        const response = await getCurrentUserInfo()
-        setUser(response.data as UserPublic)
-      } catch {
-        // Token invalid, clear everything
-        clearAuthData()
-      } finally {
-        setIsLoading(false)
-      }
+      setIsLoading(false)
     }
 
     restoreAuth()
   }, [])
 
+  // Listen for session-expired events dispatched by the response interceptor
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      clearAuthData()
+    }
+    window.addEventListener('auth:session-expired', handleSessionExpired)
+    return () => window.removeEventListener('auth:session-expired', handleSessionExpired)
+  }, [])
+
+  // Cross-tab sync: the native `storage` event fires when another tab modifies localStorage.
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)) {
+        clearAuthData()
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
   const clearAuthData = () => {
-    setUser(null)
-    setAccessToken(null)
-    setRefreshToken(null)
     setIsAuthenticated(false)
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
@@ -89,24 +102,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Helper function to store tokens and fetch user info
-  const storeTokensAndFetchUser = async (tokenData: TokenResponse) => {
-    // Calculate token expiration timestamp
+  const storeTokens = (tokenData: TokenResponse) => {
     const expiresAt = Date.now() + tokenData.expires_in * 1000
-
-    // Save tokens to localStorage
     localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.access_token)
     localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenData.refresh_token)
     localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, expiresAt.toString())
-
-    // Update state
-    setAccessToken(tokenData.access_token)
-    setRefreshToken(tokenData.refresh_token)
     setIsAuthenticated(true)
-
-    // Fetch user information
-    const userResponse = await getCurrentUserInfo()
-    setUser(userResponse.data as UserPublic)
   }
 
   const basicLogin = async (email: string, password: string) => {
@@ -119,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           grant_type: 'password',
         },
       })
-      await storeTokensAndFetchUser(data)
+      storeTokens(data)
     } catch (error: any) {
       clearAuthData()
       throw new Error(
@@ -141,7 +142,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         path: { provider },
         query: { code, state, redirect_uri: redirectUri },
       })
-      await storeTokensAndFetchUser(data)
+      // flushSync forces React to synchronously commit isAuthenticated=true.
+      // Without it, the callback's throw redirect fires before the batched
+      // state update commits, so the router evaluates _auth's beforeLoad
+      // with stale context (isAuthenticated still false) and bounces to /login.
+      flushSync(() => storeTokens(data))
     } catch (error: any) {
       clearAuthData()
       throw new Error(
@@ -154,11 +159,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      // Call logout API if we have a refresh token
-      if (refreshToken) {
+      const storedRefreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
+      if (storedRefreshToken) {
         await logoutApi({
           body: {
-            refresh_token: refreshToken,
+            refresh_token: storedRefreshToken,
           },
         })
       }
@@ -174,9 +179,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         isAuthenticated,
-        user,
-        accessToken,
-        refreshToken,
         isLoading,
         basicLogin,
         oauthLogin,

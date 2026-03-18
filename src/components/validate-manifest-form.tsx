@@ -362,7 +362,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
   return (
     <Sheet open={sheetOpen} onOpenChange={(open) => { setSheetOpen(open); handleOpenChange(open); }}>
       <SheetTrigger asChild onClick={() => setSheetOpen(true)}>{trigger}</SheetTrigger>
-      <SheetContent id={`${baseId}-sheet`} side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent id={`${baseId}-sheet`} srTitle="Ingest Vendor Data" side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle id={`${baseId}-title`}>Ingest Vendor Data</SheetTitle>
           <SheetDescription>

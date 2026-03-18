@@ -11,7 +11,7 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { FullscreenSpinner } from '@/components/spinner'
-import { useAuth } from '@/context/auth-context'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/_auth/jobs/')({
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_auth/jobs/')({
 })
 
 function RouteComponent() {
-  const { user } = useAuth()
+  const { data: user } = useCurrentUser()
   const { viewJob } = useViewJob()
   const queryClient = useQueryClient()
 

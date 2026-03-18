@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 
@@ -37,6 +37,23 @@ declare module '@tanstack/react-router' {
 
 function InnerApp() {
   const auth = useAuth()
+
+  // Re-evaluate route guards when the user logs out or their session expires
+  // (true → false transition). Clears the query cache so the next user
+  // doesn't see stale data, then invalidates so _auth's beforeLoad
+  // redirects to login.
+  // Skips initial mount (where isAuthenticated starts false) and login
+  // transitions (false → true) — those are handled by the login route's
+  // own redirect.
+  const wasAuthenticated = useRef(auth.isAuthenticated)
+  useEffect(() => {
+    if (wasAuthenticated.current && !auth.isAuthenticated) {
+      TanStackQueryProvider.getContext().queryClient.clear()
+      router.invalidate()
+    }
+    wasAuthenticated.current = auth.isAuthenticated
+  }, [auth.isAuthenticated])
+
   return <RouterProvider router={router} context={{ ...TanStackQueryProvider.getContext(), auth }} />
 }
 

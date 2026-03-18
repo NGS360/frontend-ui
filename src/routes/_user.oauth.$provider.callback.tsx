@@ -1,6 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { consumePostLoginRedirect } from '@/lib/post-login-redirect'
 
+// Module-level guard to prevent TanStack Router from replaying the single-use
+// OAuth code when it re-evaluates beforeLoad due to auth context changes.
+let exchangingCode: string | null = null
+let pendingRedirectTo: string | null = null
+
 export const Route = createFileRoute('/_user/oauth/$provider/callback')({
   validateSearch: (search: Record<string, unknown>) => {
     return {
@@ -16,13 +21,22 @@ export const Route = createFileRoute('/_user/oauth/$provider/callback')({
       throw new Error('Missing authentication parameters')
     }
 
-    const redirectUri = `${window.location.origin}/oauth/${provider}/callback`
-    await context.auth.oauthLogin(provider, code, state, redirectUri)
+    if (code === exchangingCode) {
+      throw redirect({ to: pendingRedirectTo || '/' })
+    }
 
-    // throw redirect() immediately exits beforeLoad and navigates away,
-    // preventing TanStack Router from re-evaluating this route when
-    // the auth context updates (which would replay the single-use code).
-    throw redirect({ to: consumePostLoginRedirect() })
+    exchangingCode = code
+    pendingRedirectTo = consumePostLoginRedirect()
+
+    try {
+      const redirectUri = `${window.location.origin}/oauth/${provider}/callback`
+      await context.auth.oauthLogin(provider, code, state, redirectUri)
+
+      throw redirect({ to: pendingRedirectTo || '/' })
+    } finally {
+      exchangingCode = null
+      pendingRedirectTo = null
+    }
   },
   component: () => <div>Redirecting...</div>, // Never renders - beforeLoad always redirects
   errorComponent: OAuthErrorComponent,

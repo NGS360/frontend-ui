@@ -1,6 +1,7 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { AdminSidebar } from '@/components/admin-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { currentUserQueryOptions } from '@/hooks/use-current-user'
 
 export const RouteComponent = () => (
   <SidebarProvider>
@@ -16,9 +17,10 @@ export const RouteComponent = () => (
 )
 
 export const Route = createFileRoute('/_auth/admin')({
-  beforeLoad: ({ context }) => {
-    // Check if user is authenticated and is a superuser
-    if (!context.auth.user?.is_superuser) {
+  beforeLoad: async ({ context }) => {
+    // Parent _auth loader already cached the user — read from query cache
+    const user = await context.queryClient.ensureQueryData(currentUserQueryOptions())
+    if (!user.is_superuser) {
       throw redirect({
         to: '/access-denied',
       })

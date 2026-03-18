@@ -12,6 +12,7 @@ export const Route = createFileRoute('/_auth/runs/$run_barcode/indexqc')({
       return ({
         crumb: 'IndexQC',
         includeCrumbLink: true,
+        pageTitle: null,
       })
     },
 })
