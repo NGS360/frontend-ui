@@ -109,17 +109,19 @@ function RouteComponent() {
                   <p className="text-sm capitalize">{user?.is_active ? 'Active' : 'Inactive'}</p>
                 </div>
               </div>
-              <div className="pt-4 border-t">
-                <ChangePasswordForm
-                  idPrefix="profile-change-password"
-                  trigger={
-                    <Button variant="outline" size="sm">
-                      <KeyRound className="mr-2 h-4 w-4" />
-                      Change Password
-                    </Button>
-                  }
-                />
-              </div>
+              {(!user?.oauth_providers || user.oauth_providers.length === 0) && (
+                <div className="pt-4 border-t">
+                  <ChangePasswordForm
+                    idPrefix="profile-change-password"
+                    trigger={
+                      <Button variant="outline" size="sm">
+                        <KeyRound className="mr-2 h-4 w-4" />
+                        Change Password
+                      </Button>
+                    }
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
