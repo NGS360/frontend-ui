@@ -20,8 +20,8 @@ interface IndexQCBarChartProps {
   barChartData: Array<BarChartData>,
   title?: string,
   isMobile?: boolean
-  width?: string | number
-  height?: string | number
+  width?: number | `${number}%`
+  height?: number | `${number}%`
 }
 
 export const IndexQCBarChart: React.FC<IndexQCBarChartProps> = ({
@@ -75,8 +75,8 @@ export const IndexQCBarChart: React.FC<IndexQCBarChartProps> = ({
         />
 
         <Tooltip
-          formatter={(value: string) => `${value}%`}
-          labelFormatter={(label: string) => `Sample: ${label}`}
+          formatter={(value) => `${value}%`}
+          labelFormatter={(label) => `Sample: ${label}`}
           cursor={false}
         />
 
