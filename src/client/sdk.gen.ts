@@ -19,12 +19,21 @@ import type {
   AddVendorData,
   AddVendorErrors,
   AddVendorResponses,
+  AddWorkflowToPipelineData,
+  AddWorkflowToPipelineErrors,
+  AddWorkflowToPipelineResponses,
+  AssociateSampleWithRunData,
+  AssociateSampleWithRunErrors,
+  AssociateSampleWithRunResponses,
   BrowseS3Data,
   BrowseS3Errors,
   BrowseS3Responses,
   ChangePasswordData,
   ChangePasswordErrors,
   ChangePasswordResponses,
+  ClearSamplesForRunData,
+  ClearSamplesForRunErrors,
+  ClearSamplesForRunResponses,
   ConfirmPasswordResetData,
   ConfirmPasswordResetErrors,
   ConfirmPasswordResetResponses,
@@ -34,6 +43,12 @@ import type {
   CreateFileData,
   CreateFileErrors,
   CreateFileResponses,
+  CreatePipelineData,
+  CreatePipelineErrors,
+  CreatePipelineResponses,
+  CreatePlatformData,
+  CreatePlatformErrors,
+  CreatePlatformResponses,
   CreateProjectData,
   CreateProjectErrors,
   CreateProjectResponses,
@@ -42,7 +57,13 @@ import type {
   CreateQcrecordResponses,
   CreateWorkflowData,
   CreateWorkflowErrors,
+  CreateWorkflowRegistrationData,
+  CreateWorkflowRegistrationErrors,
+  CreateWorkflowRegistrationResponses,
   CreateWorkflowResponses,
+  CreateWorkflowRunData,
+  CreateWorkflowRunErrors,
+  CreateWorkflowRunResponses,
   DeleteApiKeyData,
   DeleteApiKeyErrors,
   DeleteApiKeyResponses,
@@ -52,12 +73,12 @@ import type {
   DeleteVendorData,
   DeleteVendorErrors,
   DeleteVendorResponses,
+  DeleteWorkflowRegistrationData,
+  DeleteWorkflowRegistrationErrors,
+  DeleteWorkflowRegistrationResponses,
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
-  FindAndUpdateJobData,
-  FindAndUpdateJobErrors,
-  FindAndUpdateJobResponses,
   GetActionOptionsData,
   GetActionOptionsResponses,
   GetActionPlatformsData,
@@ -90,6 +111,17 @@ import type {
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
+  GetPipelineByIdData,
+  GetPipelineByIdErrors,
+  GetPipelineByIdResponses,
+  GetPipelinesData,
+  GetPipelinesErrors,
+  GetPipelinesResponses,
+  GetPlatformByNameData,
+  GetPlatformByNameErrors,
+  GetPlatformByNameResponses,
+  GetPlatformsData,
+  GetPlatformsResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
@@ -114,6 +146,9 @@ import type {
   GetRunsData,
   GetRunsErrors,
   GetRunsResponses,
+  GetSamplesForRunData,
+  GetSamplesForRunErrors,
+  GetSamplesForRunResponses,
   GetSettingData,
   GetSettingErrors,
   GetSettingResponses,
@@ -126,9 +161,18 @@ import type {
   GetVendorsData,
   GetVendorsErrors,
   GetVendorsResponses,
-  GetWorkflowByWorkflowIdData,
-  GetWorkflowByWorkflowIdErrors,
-  GetWorkflowByWorkflowIdResponses,
+  GetWorkflowByIdData,
+  GetWorkflowByIdErrors,
+  GetWorkflowByIdResponses,
+  GetWorkflowRegistrationsData,
+  GetWorkflowRegistrationsErrors,
+  GetWorkflowRegistrationsResponses,
+  GetWorkflowRunByIdData,
+  GetWorkflowRunByIdErrors,
+  GetWorkflowRunByIdResponses,
+  GetWorkflowRunsData,
+  GetWorkflowRunsErrors,
+  GetWorkflowRunsResponses,
   GetWorkflowsData,
   GetWorkflowsErrors,
   GetWorkflowsResponses,
@@ -175,6 +219,12 @@ import type {
   ReindexRunsResponses,
   ReindexSamplesData,
   ReindexSamplesResponses,
+  RemoveSampleFromRunData,
+  RemoveSampleFromRunErrors,
+  RemoveSampleFromRunResponses,
+  RemoveWorkflowFromPipelineData,
+  RemoveWorkflowFromPipelineErrors,
+  RemoveWorkflowFromPipelineResponses,
   RequestPasswordResetData,
   RequestPasswordResetErrors,
   RequestPasswordResetResponses,
@@ -447,6 +497,7 @@ export const logout = <ThrowOnError extends boolean = false>(
  * Returns information about the authenticated user.
  *
  * Args:
+ * session: Database session
  * current_user: Current authenticated user
  *
  * Returns:
@@ -1060,7 +1111,11 @@ export const listFiles = <ThrowOnError extends boolean = false>(
  * - **uri**: Required. File location (s3://, file://, etc.)
  * - **original_filename**: Optional. Original filename before any renaming
  * - **source**: Where this file record originated from
- * - **entities**: Entity associations (QCRECORD, SAMPLE, PROJECT, RUN)
+ * - **project_id**: Project business key (string)
+ * - **sequencing_run_id**: SequencingRun UUID
+ * - **qcrecord_id**: QCRecord UUID
+ * - **workflow_run_id**: WorkflowRun UUID
+ * - **pipeline_id**: Pipeline UUID
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
  * - **tags**: Key-value metadata (type, format, description, etc.)
@@ -1091,8 +1146,11 @@ export const createFile = <ThrowOnError extends boolean = false>(
  * Upload a file with optional content.
  *
  * - **filename**: Name of the file
- * - **entity_type**: Entity type (PROJECT, RUN)
- * - **entity_id**: ID of the entity this file belongs to
+ * - **project_id**: Project business key (exactly one entity ID required)
+ * - **sequencing_run_id**: SequencingRun UUID
+ * - **qcrecord_id**: QCRecord UUID
+ * - **workflow_run_id**: WorkflowRun UUID
+ * - **pipeline_id**: Pipeline UUID
  * - **relative_path**: Optional subdirectory path within entity folder
  * - **overwrite**: If True, creates a new version if file exists
  * - **description**: Optional file description
@@ -1272,41 +1330,12 @@ export const submitJob = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Find And Update Job
- * Find and Update a batch job.
- *
- * Args:
- * session: Database session
- * job_update: Job update data
- *
- * Returns:
- * Updated job information
- */
-export const findAndUpdateJob = <ThrowOnError extends boolean = false>(
-  options: Options<FindAndUpdateJobData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).put<
-    FindAndUpdateJobResponses,
-    FindAndUpdateJobErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/jobs',
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-}
-
-/**
  * Get Job
  * Retrieve information about a specific batch job.
  *
  * Args:
  * session: Database session
- * job_id: Job UUID
+ * job_id: string representation of the job UUID
  *
  * Returns:
  * Job information
@@ -1327,7 +1356,7 @@ export const getJob = <ThrowOnError extends boolean = false>(
 
 /**
  * Update Job
- * Update a batch job.
+ * Find and Update a batch job.
  *
  * Args:
  * session: Database session
@@ -1736,7 +1765,10 @@ export const ingestVendorData = <ThrowOnError extends boolean = false>(
  *
  * **Authentication required:** Bearer token must be provided.
  *
- * **Example curl command:**
+ * **Scoping:** Provide exactly one of `project_id` (project-scoped) or
+ * `sequencing_run_barcode` (run-scoped, e.g. demux stats).
+ *
+ * **Example — project-scoped:**
  *
  * ```bash
  * curl -X POST "http://localhost:8000/api/v1/qcmetrics" \
@@ -1744,65 +1776,40 @@ export const ingestVendorData = <ThrowOnError extends boolean = false>(
  * -H "Content-Type: application/json" \
  * -d '{
  * "project_id": "P-1234",
- * "metadata": {
- * "pipeline": "RNA-Seq",
- * "version": "2.0.0"
- * },
- * "metrics": [
- * {
+ * "metadata": { "pipeline": "RNA-Seq", "version": "2.0.0" },
+ * "metrics": [{
  * "name": "alignment_stats",
  * "samples": [{"sample_name": "Sample1"}],
- * "values": {"reads": "50000000", "alignment_rate": "95.5"}
- * }
- * ],
- * "output_files": [
- * {
- * "uri": "s3://bucket/path/file.bam",
- * "size": 123456789,
- * "samples": [{"sample_name": "Sample1"}],
- * "hash": {"md5": "abc123def456"},
- * "tags": {"type": "alignment"}
- * }
- * ]
+ * "values": {"reads": 50000000, "alignment_rate": 95.5}
+ * }]
  * }'
  * ```
  *
- * **Request body format:**
+ * **Example — run-scoped (demux stats):**
  *
- * ```json
- * {
- * "project_id": "P-1234",
- * "metadata": {
- * "pipeline": "RNA-Seq",
- * "version": "2.0.0"
- * },
- * "metrics": [
- * {
- * "name": "alignment_stats",
- * "samples": [{"sample_name": "Sample1"}],
- * "values": {"reads": "50000000", "alignment_rate": "95.5"}
- * }
- * ],
- * "output_files": [
- * {
- * "uri": "s3://bucket/path/file.bam",
- * "size": 123456789,
- * "samples": [{"sample_name": "Sample1"}],
- * "hash": {"md5": "abc123..."},
- * "tags": {"type": "alignment"}
- * }
- * ]
- * }
+ * ```bash
+ * curl -X POST "http://localhost:8000/api/v1/qcmetrics" \
+ * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+ * -H "Content-Type: application/json" \
+ * -d '{
+ * "sequencing_run_barcode": "240101_A00000_0001_FLOWCELLID",
+ * "metadata": { "pipeline": "bcl-convert", "version": "4.3" },
+ * "metrics": [{
+ * "name": "demux_summary",
+ * "values": {"total_reads": 800000000, "pf_reads": 750000000}
+ * }]
+ * }'
  * ```
  *
  * **Sample association patterns:**
  * - **Workflow-level**: Omit `samples` array (applies to entire pipeline run)
  * - **Single sample**: One entry in `samples` array
  * - **Sample pair**: Two entries with roles, e.g.,
- * `[{"sample_name": "T1", "role": "tumor"}, {"sample_name": "N1", "role": "normal"}]`
+ * `[{"sample_name": "T1", "role": "tumor"},
+ * {"sample_name": "N1", "role": "normal"}]`
  *
  * **Duplicate detection:**
- * If an equivalent record already exists for the project (same metadata),
+ * If an equivalent record already exists for the same scope (same metadata),
  * the existing record is returned instead of creating a duplicate.
  */
 export const createQcrecord = <ThrowOnError extends boolean = false>(
@@ -1834,14 +1841,20 @@ export const createQcrecord = <ThrowOnError extends boolean = false>(
  * Search QC records using query parameters.
  *
  * **Parameters:**
- * - `project_id`: Filter to specific project(s)
- * - `latest`: If true (default), returns only the most recent QC record per project
+ * - `project_id`: Filter to records scoped to a specific project
+ * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `workflow_run_id`: Filter by the workflow run that produced the QC data
+ * - `sequencing_run_id`: Filter by sequencing run UUID (record or metric level)
+ * - `latest`: If true (default), returns only the most recent record per scope
  * - `page`: Page number for pagination (starts at 1)
  * - `per_page`: Number of results per page (max 1000)
  *
  * **Example:**
  * ```
  * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
+ * GET /api/v1/qcmetrics/search?sequencing_run_barcode=240101_A00000_0001_XYZ
+ * GET /api/v1/qcmetrics/search?workflow_run_id=<uuid>&latest=false
+ * GET /api/v1/qcmetrics/search?sequencing_run_id=<uuid>
  * ```
  */
 export const searchQcrecordsGet = <ThrowOnError extends boolean = false>(
@@ -1880,6 +1893,7 @@ export const searchQcrecordsGet = <ThrowOnError extends boolean = false>(
  *
  * **Filter options:**
  * - `project_id`: Single value or list of project IDs
+ * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
  * - `metadata`: Key-value pairs to match against pipeline metadata
  *
  * **Pagination:**
@@ -1887,7 +1901,7 @@ export const searchQcrecordsGet = <ThrowOnError extends boolean = false>(
  * - `per_page`: Results per page (max 1000)
  *
  * **Latest filtering:**
- * - `latest: true` (default): Returns only the newest QC record per project
+ * - `latest: true` (default): Returns only the newest QC record per scope
  * - `latest: false`: Returns all matching records (full history)
  */
 export const searchQcrecordsPost = <ThrowOnError extends boolean = false>(
@@ -2215,6 +2229,98 @@ export const getRunMetrics = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Clear Samples For Run
+ * Remove all sample associations, run-linked files, and orphaned samples for a run.
+ *
+ * Used before re-demultiplexing to clean up database records from a previous
+ * (possibly incorrect) demux. Deletes File records associated with the run,
+ * removes all SampleSequencingRun associations, and deletes orphaned Sample
+ * records that have no other associations.
+ */
+export const clearSamplesForRun = <ThrowOnError extends boolean = false>(
+  options: Options<ClearSamplesForRunData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    ClearSamplesForRunResponses,
+    ClearSamplesForRunErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/runs/{run_barcode}/samples',
+    ...options,
+  })
+}
+
+/**
+ * Get Samples For Run
+ * List sample associations for a sequencing run.
+ */
+export const getSamplesForRun = <ThrowOnError extends boolean = false>(
+  options: Options<GetSamplesForRunData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetSamplesForRunResponses,
+    GetSamplesForRunErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/runs/{run_barcode}/samples',
+    ...options,
+  })
+}
+
+/**
+ * Associate Sample With Run
+ * Associate a sample with a sequencing run.
+ */
+export const associateSampleWithRun = <ThrowOnError extends boolean = false>(
+  options: Options<AssociateSampleWithRunData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    AssociateSampleWithRunResponses,
+    AssociateSampleWithRunErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/runs/{run_barcode}/samples',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Remove Sample From Run
+ * Remove a single sample association from a run.
+ */
+export const removeSampleFromRun = <ThrowOnError extends boolean = false>(
+  options: Options<RemoveSampleFromRunData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    RemoveSampleFromRunResponses,
+    RemoveSampleFromRunErrors,
+    ThrowOnError
+  >({
+    url: '/api/v1/runs/{run_barcode}/samples/{sample_id}',
+    ...options,
+  })
+}
+
+/**
  * Reindex Samples
  * Reindex samples in database with OpenSearch
  */
@@ -2438,6 +2544,12 @@ export const createWorkflow = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
     url: '/api/v1/workflows',
     ...options,
     headers: {
@@ -2448,20 +2560,315 @@ export const createWorkflow = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Workflow By Workflow Id
- * Returns a single workflow by its workflow_id.
- * Note: This is different from its internal "id".
+ * Get Workflow By Id
+ * Returns a single workflow by its ID.
  */
-export const getWorkflowByWorkflowId = <ThrowOnError extends boolean = false>(
-  options: Options<GetWorkflowByWorkflowIdData, ThrowOnError>,
+export const getWorkflowById = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowByIdData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<
-    GetWorkflowByWorkflowIdResponses,
-    GetWorkflowByWorkflowIdErrors,
+    GetWorkflowByIdResponses,
+    GetWorkflowByIdErrors,
     ThrowOnError
   >({
     responseType: 'json',
     url: '/api/v1/workflows/{workflow_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Workflow Registrations
+ * List platform registrations for a workflow.
+ */
+export const getWorkflowRegistrations = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowRegistrationsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowRegistrationsResponses,
+    GetWorkflowRegistrationsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows/{workflow_id}/registrations',
+    ...options,
+  })
+}
+
+/**
+ * Create Workflow Registration
+ * Register a workflow on a specific platform.
+ */
+export const createWorkflowRegistration = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<CreateWorkflowRegistrationData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateWorkflowRegistrationResponses,
+    CreateWorkflowRegistrationErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/workflows/{workflow_id}/registrations',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Delete Workflow Registration
+ * Remove a platform registration.
+ */
+export const deleteWorkflowRegistration = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteWorkflowRegistrationData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteWorkflowRegistrationResponses,
+    DeleteWorkflowRegistrationErrors,
+    ThrowOnError
+  >({
+    url: '/api/v1/workflows/{workflow_id}/registrations/{registration_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Workflow Runs
+ * List runs for a workflow (paginated).
+ */
+export const getWorkflowRuns = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowRunsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowRunsResponses,
+    GetWorkflowRunsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows/{workflow_id}/runs',
+    ...options,
+  })
+}
+
+/**
+ * Create Workflow Run
+ * Create a workflow execution record.
+ */
+export const createWorkflowRun = <ThrowOnError extends boolean = false>(
+  options: Options<CreateWorkflowRunData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateWorkflowRunResponses,
+    CreateWorkflowRunErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/workflows/{workflow_id}/runs',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Workflow Run By Id
+ * Get a single workflow run by its ID.
+ */
+export const getWorkflowRunById = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowRunByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowRunByIdResponses,
+    GetWorkflowRunByIdErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflow-runs/{run_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Pipelines
+ * Returns a paginated list of pipelines.
+ */
+export const getPipelines = <ThrowOnError extends boolean = false>(
+  options?: Options<GetPipelinesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetPipelinesResponses,
+    GetPipelinesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/pipelines',
+    ...options,
+  })
+}
+
+/**
+ * Create Pipeline
+ * Create a pipeline with optional attributes and workflow links.
+ */
+export const createPipeline = <ThrowOnError extends boolean = false>(
+  options: Options<CreatePipelineData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreatePipelineResponses,
+    CreatePipelineErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/pipelines',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Pipeline By Id
+ * Returns a single pipeline by its ID.
+ */
+export const getPipelineById = <ThrowOnError extends boolean = false>(
+  options: Options<GetPipelineByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetPipelineByIdResponses,
+    GetPipelineByIdErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/pipelines/{pipeline_id}',
+    ...options,
+  })
+}
+
+/**
+ * Add Workflow To Pipeline
+ * Add a workflow to a pipeline.
+ */
+export const addWorkflowToPipeline = <ThrowOnError extends boolean = false>(
+  options: Options<AddWorkflowToPipelineData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    AddWorkflowToPipelineResponses,
+    AddWorkflowToPipelineErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/pipelines/{pipeline_id}/workflows',
+    ...options,
+  })
+}
+
+/**
+ * Remove Workflow From Pipeline
+ * Remove a workflow from a pipeline.
+ */
+export const removeWorkflowFromPipeline = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<RemoveWorkflowFromPipelineData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    RemoveWorkflowFromPipelineResponses,
+    RemoveWorkflowFromPipelineErrors,
+    ThrowOnError
+  >({
+    url: '/api/v1/pipelines/{pipeline_id}/workflows/{workflow_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Platforms
+ * Returns all registered platforms.
+ */
+export const getPlatforms = <ThrowOnError extends boolean = false>(
+  options?: Options<GetPlatformsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetPlatformsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/platforms',
+    ...options,
+  })
+}
+
+/**
+ * Create Platform
+ * Create a new platform.
+ */
+export const createPlatform = <ThrowOnError extends boolean = false>(
+  options: Options<CreatePlatformData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreatePlatformResponses,
+    CreatePlatformErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/platforms',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Platform By Name
+ * Returns a single platform by name.
+ */
+export const getPlatformByName = <ThrowOnError extends boolean = false>(
+  options: Options<GetPlatformByNameData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetPlatformByNameResponses,
+    GetPlatformByNameErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/platforms/{name}',
     ...options,
   })
 }

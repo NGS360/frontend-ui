@@ -210,19 +210,6 @@ function RouteComponent() {
         return <span className='text-sm text-muted-foreground'>{date.toLocaleString(undefined, { timeZoneName: 'short' })}</span>
       }
     },
-    {
-      accessorKey: 'aws_job_id',
-      meta: { alias: 'AWS Job ID' },
-      header: 'AWS Job ID',
-      cell: ({ cell }) => {
-        const awsJobId = cell.getValue() as string | null
-        return awsJobId ? (
-          <CopyableText text={awsJobId} variant='hoverLight' />
-        ) : (
-          <span className='text-xs text-muted-foreground'>—</span>
-        )
-      }
-    },
   ]
 
   // Define table tools
@@ -275,7 +262,6 @@ function RouteComponent() {
         sorting={sorting}
         onSortingChange={setSorting}
         tableTools={toolbar}
-        columnVisibility={{ id: false }}
         rowClickCallback={(row) => handleJobClick(row.original.id)}
       />
     </div>

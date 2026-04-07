@@ -295,10 +295,6 @@ export type BatchJobPublic = {
    */
   submitted_on: string
   /**
-   * Aws Job Id
-   */
-  aws_job_id: string | null
-  /**
    * Log Stream Name
    */
   log_stream_name: string | null
@@ -345,18 +341,6 @@ export type BatchJobSubmit = {
  * Schema for updating a batch job
  */
 export type BatchJobUpdate = {
-  /**
-   * Name
-   */
-  name?: string | null
-  /**
-   * Command
-   */
-  command?: string | null
-  /**
-   * Aws Job Id
-   */
-  aws_job_id?: string | null
   /**
    * Log Stream Name
    */
@@ -433,13 +417,30 @@ export type BodyUploadFile = {
    */
   filename: string
   /**
-   * Entity Type
+   * Project Id
+   * Project business key
    */
-  entity_type: string
+  project_id?: string | null
   /**
-   * Entity Id
+   * Sequencing Run Id
+   * SequencingRun UUID
    */
-  entity_id: string
+  sequencing_run_id?: string | null
+  /**
+   * Qcrecord Id
+   * QCRecord UUID
+   */
+  qcrecord_id?: string | null
+  /**
+   * Workflow Run Id
+   * WorkflowRun UUID
+   */
+  workflow_run_id?: string | null
+  /**
+   * Pipeline Id
+   * Pipeline UUID
+   */
+  pipeline_id?: string | null
   /**
    * Relative Path
    */
@@ -642,27 +643,17 @@ export type EmailVerificationRequest = {
 }
 
 /**
- * EntityInput
- * Entity association input for file creation.
+ * FileAssociationPublic
+ * Typed entity association in file responses.
+ *
+ * Unifies all typed junction tables into a single response format.
+ * The underlying storage uses proper FK-backed junction tables.
  */
-export type EntityInput = {
-  entity_type: FileEntityType
+export type FileAssociationPublic = {
   /**
-   * Entity Id
+   * Entity Type
    */
-  entity_id: string
-  /**
-   * Role
-   */
-  role?: string | null
-}
-
-/**
- * EntityPublic
- * Public representation of an entity association.
- */
-export type EntityPublic = {
-  entity_type: FileEntityType
+  entity_type: string
   /**
    * Entity Id
    */
@@ -728,6 +719,9 @@ export type FileBrowserFolder = {
  *
  * For uploads, file_content is provided separately.
  * For external references, just the metadata is needed.
+ *
+ * Entity associations use scalar UUID fields — a file typically belongs to
+ * one entity of each type (one project, one run, one QCRecord, etc.).
  */
 export type FileCreate = {
   /**
@@ -763,9 +757,21 @@ export type FileCreate = {
    */
   project_id?: string | null
   /**
-   * Entities
+   * Sequencing Run Id
    */
-  entities?: Array<EntityInput> | null
+  sequencing_run_id?: string | null
+  /**
+   * Qcrecord Id
+   */
+  qcrecord_id?: string | null
+  /**
+   * Workflow Run Id
+   */
+  workflow_run_id?: string | null
+  /**
+   * Pipeline Id
+   */
+  pipeline_id?: string | null
   /**
    * Samples
    */
@@ -783,12 +789,6 @@ export type FileCreate = {
     [key: string]: string
   } | null
 }
-
-/**
- * FileEntityType
- * Entity types that can have files associated.
- */
-export type FileEntityType = 'PROJECT' | 'RUN' | 'SAMPLE' | 'QCRECORD'
 
 /**
  * FilePublic
@@ -832,9 +832,9 @@ export type FilePublic = {
    */
   storage_backend: string | null
   /**
-   * Entities
+   * Associations
    */
-  entities: Array<EntityPublic>
+  associations: Array<FileAssociationPublic>
   /**
    * Samples
    */
@@ -1144,6 +1144,14 @@ export type MetricInput = {
    */
   samples?: Array<MetricSampleInput> | null
   /**
+   * Sequencing Run Barcode
+   */
+  sequencing_run_barcode?: string | null
+  /**
+   * Workflow Run Id
+   */
+  workflow_run_id?: string | null
+  /**
    * Values
    */
   values: {
@@ -1164,6 +1172,18 @@ export type MetricPublic = {
    * Samples
    */
   samples: Array<MetricSamplePublic>
+  /**
+   * Sequencing Run Id
+   */
+  sequencing_run_id?: string | null
+  /**
+   * Sequencing Run Barcode
+   */
+  sequencing_run_barcode?: string | null
+  /**
+   * Workflow Run Id
+   */
+  workflow_run_id?: string | null
   /**
    * Values
    */
@@ -1291,6 +1311,97 @@ export type PasswordResetRequest = {
 }
 
 /**
+ * PipelineCreate
+ */
+export type PipelineCreate = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Version
+   */
+  version?: string | null
+  /**
+   * Attributes
+   */
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  /**
+   * Workflow Ids
+   */
+  workflow_ids?: Array<string> | null
+}
+
+/**
+ * PipelinePublic
+ */
+export type PipelinePublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Version
+   */
+  version: string | null
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Created By
+   */
+  created_by: string
+  /**
+   * Attributes
+   */
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  /**
+   * Workflows
+   */
+  workflows?: Array<WorkflowSummary> | null
+}
+
+/**
+ * PipelinesPublic
+ * Paginated list of pipelines.
+ */
+export type PipelinesPublic = {
+  /**
+   * Data
+   */
+  data: Array<PipelinePublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
+
+/**
  * PlatformConfig
  * Model for platform-specific configuration (Arvados, SevenBridges, etc).
  */
@@ -1313,6 +1424,26 @@ export type PlatformConfig = {
    * Export Command
    */
   export_command?: string | null
+}
+
+/**
+ * PlatformCreate
+ */
+export type PlatformCreate = {
+  /**
+   * Name
+   */
+  name: string
+}
+
+/**
+ * PlatformPublic
+ */
+export type PlatformPublic = {
+  /**
+   * Name
+   */
+  name: string
 }
 
 /**
@@ -1353,6 +1484,10 @@ export type ProjectPublic = {
    * Attributes
    */
   attributes: Array<Attribute> | null
+  /**
+   * Sequencing Runs
+   */
+  sequencing_runs?: Array<SequencingRunPublic> | null
 }
 
 /**
@@ -1408,6 +1543,10 @@ export type ProjectsPublic = {
  * QCRecordCreate
  * Request model for creating a QC record.
  *
+ * Scoping: Provide exactly one of project_id or sequencing_run_barcode.
+ * - project_id: Project-scoped record (e.g., alignment QC, variant QC)
+ * - sequencing_run_barcode: Run-scoped record (e.g., demux stats)
+ *
  * Uses the explicit metrics format with sample associations supporting
  * workflow-level, single-sample, and paired-sample (tumor/normal) metrics.
  */
@@ -1415,7 +1554,15 @@ export type QcRecordCreate = {
   /**
    * Project Id
    */
-  project_id: string
+  project_id?: string | null
+  /**
+   * Sequencing Run Barcode
+   */
+  sequencing_run_barcode?: string | null
+  /**
+   * Workflow Run Id
+   */
+  workflow_run_id?: string | null
   /**
    * Metadata
    */
@@ -1455,7 +1602,19 @@ export type QcRecordCreated = {
   /**
    * Project Id
    */
-  project_id: string
+  project_id?: string | null
+  /**
+   * Sequencing Run Id
+   */
+  sequencing_run_id?: string | null
+  /**
+   * Sequencing Run Barcode
+   */
+  sequencing_run_barcode?: string | null
+  /**
+   * Workflow Run Id
+   */
+  workflow_run_id?: string | null
   /**
    * Is Duplicate
    */
@@ -1482,7 +1641,19 @@ export type QcRecordPublic = {
   /**
    * Project Id
    */
-  project_id: string
+  project_id?: string | null
+  /**
+   * Sequencing Run Id
+   */
+  sequencing_run_id?: string | null
+  /**
+   * Sequencing Run Barcode
+   */
+  sequencing_run_barcode?: string | null
+  /**
+   * Workflow Run Id
+   */
+  workflow_run_id?: string | null
   /**
    * Metadata
    */
@@ -1626,6 +1797,37 @@ export type ResendVerificationRequest = {
 }
 
 /**
+ * RunSampleCleanupResponse
+ * Response model for bulk sample/file cleanup on a run (re-demux scenario).
+ */
+export type RunSampleCleanupResponse = {
+  /**
+   * Run Barcode
+   */
+  run_barcode: string
+  /**
+   * Associations Removed
+   */
+  associations_removed: number
+  /**
+   * Files Deleted
+   */
+  files_deleted: number
+  /**
+   * Samples Deleted
+   */
+  samples_deleted: number
+  /**
+   * Samples Preserved
+   */
+  samples_preserved: number
+  /**
+   * Qcrecords Deleted
+   */
+  qcrecords_deleted?: number
+}
+
+/**
  * RunStatus
  * Enumeration of valid sequencing run statuses
  */
@@ -1642,7 +1844,7 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiSamplesModelsAttribute> | null
 }
 
 /**
@@ -1675,7 +1877,43 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiSamplesModelsAttribute> | null
+}
+
+/**
+ * SampleSequencingRunCreate
+ */
+export type SampleSequencingRunCreate = {
+  /**
+   * Sample Id
+   */
+  sample_id: string
+}
+
+/**
+ * SampleSequencingRunPublic
+ */
+export type SampleSequencingRunPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Sample Id
+   */
+  sample_id: string
+  /**
+   * Sequencing Run Id
+   */
+  sequencing_run_id: string
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Created By
+   */
+  created_by: string
 }
 
 /**
@@ -2002,7 +2240,7 @@ export type UserPublic = {
   /**
    * Email
    */
-  email: string | null
+  email: string
   /**
    * Username
    */
@@ -2197,17 +2435,17 @@ export type WorkflowCreate = {
    */
   name: string
   /**
+   * Version
+   */
+  version?: string | null
+  /**
    * Definition Uri
    */
   definition_uri: string
   /**
-   * Engine
-   */
-  engine: string
-  /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2223,17 +2461,216 @@ export type WorkflowPublic = {
    */
   name: string
   /**
-   * Engine
+   * Version
    */
-  engine: string | null
+  version: string | null
   /**
-   * Engine Id
+   * Definition Uri
    */
-  engine_id: string | null
+  definition_uri: string
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Created By
+   */
+  created_by: string
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  /**
+   * Registrations
+   */
+  registrations?: Array<WorkflowRegistrationPublic> | null
+}
+
+/**
+ * WorkflowRegistrationCreate
+ */
+export type WorkflowRegistrationCreate = {
+  /**
+   * Engine
+   */
+  engine: string
+  /**
+   * External Id
+   */
+  external_id: string
+}
+
+/**
+ * WorkflowRegistrationPublic
+ */
+export type WorkflowRegistrationPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Engine
+   */
+  engine: string
+  /**
+   * External Id
+   */
+  external_id: string
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Created By
+   */
+  created_by: string
+}
+
+/**
+ * WorkflowRunCreate
+ */
+export type WorkflowRunCreate = {
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Engine
+   */
+  engine: string
+  /**
+   * External Run Id
+   */
+  external_run_id: string
+  /**
+   * Attributes
+   */
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
+}
+
+/**
+ * WorkflowRunPublic
+ */
+export type WorkflowRunPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Workflow Name
+   */
+  workflow_name?: string | null
+  /**
+   * Engine
+   */
+  engine: string
+  /**
+   * External Run Id
+   */
+  external_run_id: string
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Created By
+   */
+  created_by: string
+  /**
+   * Attributes
+   */
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
+}
+
+/**
+ * WorkflowRunsPublic
+ * Paginated list of workflow runs.
+ */
+export type WorkflowRunsPublic = {
+  /**
+   * Data
+   */
+  data: Array<WorkflowRunPublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
+
+/**
+ * WorkflowSummary
+ * Lightweight workflow reference for inclusion in pipeline responses.
+ */
+export type WorkflowSummary = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Version
+   */
+  version?: string | null
+}
+
+/**
+ * Attribute
+ */
+export type ApiSamplesModelsAttribute = {
+  /**
+   * Key
+   */
+  key: string | null
+  /**
+   * Value
+   */
+  value: string | null
+}
+
+/**
+ * Attribute
+ * Reusable key-value pair for request/response payloads.
+ */
+export type ApiWorkflowModelsAttribute = {
+  /**
+   * Key
+   */
+  key: string | null
+  /**
+   * Value
+   */
+  value: string | null
 }
 
 export type RootData = {
@@ -2941,7 +3378,7 @@ export type ListFilesData = {
     uri?: string | null
     /**
      * Entity Type
-     * Filter by entity type (PROJECT, RUN, SAMPLE, QCRECORD)
+     * Filter by entity type (PROJECT, RUN, SEQUENCING_RUN, SAMPLE, QCRECORD, WORKFLOW_RUN, PIPELINE)
      */
     entity_type?: string | null
     /**
@@ -3236,33 +3673,6 @@ export type SubmitJobResponses = {
 }
 
 export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses]
-
-export type FindAndUpdateJobData = {
-  body: BatchJobUpdate
-  path?: never
-  query?: never
-  url: '/api/v1/jobs'
-}
-
-export type FindAndUpdateJobErrors = {
-  /**
-   * Validation Error
-   */
-  422: HttpValidationError
-}
-
-export type FindAndUpdateJobError =
-  FindAndUpdateJobErrors[keyof FindAndUpdateJobErrors]
-
-export type FindAndUpdateJobResponses = {
-  /**
-   * Successful Response
-   */
-  200: BatchJobPublic
-}
-
-export type FindAndUpdateJobResponse =
-  FindAndUpdateJobResponses[keyof FindAndUpdateJobResponses]
 
 export type GetJobData = {
   body?: never
@@ -3757,7 +4167,7 @@ export type AddSampleToProjectResponse =
   AddSampleToProjectResponses[keyof AddSampleToProjectResponses]
 
 export type UpdateSampleInProjectData = {
-  body: Attribute
+  body: ApiSamplesModelsAttribute
   path: {
     /**
      * Sample Id
@@ -3904,8 +4314,23 @@ export type SearchQcrecordsGetData = {
      */
     project_id?: string | null
     /**
+     * Sequencing Run Barcode
+     * Filter by sequencing run barcode (run-scoped records)
+     */
+    sequencing_run_barcode?: string | null
+    /**
+     * Workflow Run Id
+     * Filter by workflow run ID (provenance)
+     */
+    workflow_run_id?: string | null
+    /**
+     * Sequencing Run Id
+     * Filter by sequencing run UUID (metric-level)
+     */
+    sequencing_run_id?: string | null
+    /**
      * Latest
-     * Return only newest record per project
+     * Return only newest record per scope (project or run)
      */
     latest?: boolean
     /**
@@ -4409,6 +4834,139 @@ export type GetRunMetricsResponses = {
 export type GetRunMetricsResponse =
   GetRunMetricsResponses[keyof GetRunMetricsResponses]
 
+export type ClearSamplesForRunData = {
+  body?: never
+  path: {
+    /**
+     * Run Barcode
+     */
+    run_barcode: string
+  }
+  query?: never
+  url: '/api/v1/runs/{run_barcode}/samples'
+}
+
+export type ClearSamplesForRunErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ClearSamplesForRunError =
+  ClearSamplesForRunErrors[keyof ClearSamplesForRunErrors]
+
+export type ClearSamplesForRunResponses = {
+  /**
+   * Successful Response
+   */
+  200: RunSampleCleanupResponse
+}
+
+export type ClearSamplesForRunResponse =
+  ClearSamplesForRunResponses[keyof ClearSamplesForRunResponses]
+
+export type GetSamplesForRunData = {
+  body?: never
+  path: {
+    /**
+     * Run Barcode
+     */
+    run_barcode: string
+  }
+  query?: never
+  url: '/api/v1/runs/{run_barcode}/samples'
+}
+
+export type GetSamplesForRunErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetSamplesForRunError =
+  GetSamplesForRunErrors[keyof GetSamplesForRunErrors]
+
+export type GetSamplesForRunResponses = {
+  /**
+   * Response Get Samples For Run
+   * Successful Response
+   */
+  200: Array<SampleSequencingRunPublic>
+}
+
+export type GetSamplesForRunResponse =
+  GetSamplesForRunResponses[keyof GetSamplesForRunResponses]
+
+export type AssociateSampleWithRunData = {
+  body: SampleSequencingRunCreate
+  path: {
+    /**
+     * Run Barcode
+     */
+    run_barcode: string
+  }
+  query?: never
+  url: '/api/v1/runs/{run_barcode}/samples'
+}
+
+export type AssociateSampleWithRunErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type AssociateSampleWithRunError =
+  AssociateSampleWithRunErrors[keyof AssociateSampleWithRunErrors]
+
+export type AssociateSampleWithRunResponses = {
+  /**
+   * Successful Response
+   */
+  201: SampleSequencingRunPublic
+}
+
+export type AssociateSampleWithRunResponse =
+  AssociateSampleWithRunResponses[keyof AssociateSampleWithRunResponses]
+
+export type RemoveSampleFromRunData = {
+  body?: never
+  path: {
+    /**
+     * Run Barcode
+     */
+    run_barcode: string
+    /**
+     * Sample Id
+     */
+    sample_id: string
+  }
+  query?: never
+  url: '/api/v1/runs/{run_barcode}/samples/{sample_id}'
+}
+
+export type RemoveSampleFromRunErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type RemoveSampleFromRunError =
+  RemoveSampleFromRunErrors[keyof RemoveSampleFromRunErrors]
+
+export type RemoveSampleFromRunResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type RemoveSampleFromRunResponse =
+  RemoveSampleFromRunResponses[keyof RemoveSampleFromRunResponses]
+
 export type ReindexSamplesData = {
   body?: never
   path?: never
@@ -4797,7 +5355,7 @@ export type CreateWorkflowResponses = {
 export type CreateWorkflowResponse =
   CreateWorkflowResponses[keyof CreateWorkflowResponses]
 
-export type GetWorkflowByWorkflowIdData = {
+export type GetWorkflowByIdData = {
   body?: never
   path: {
     /**
@@ -4809,25 +5367,503 @@ export type GetWorkflowByWorkflowIdData = {
   url: '/api/v1/workflows/{workflow_id}'
 }
 
-export type GetWorkflowByWorkflowIdErrors = {
+export type GetWorkflowByIdErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetWorkflowByWorkflowIdError =
-  GetWorkflowByWorkflowIdErrors[keyof GetWorkflowByWorkflowIdErrors]
+export type GetWorkflowByIdError =
+  GetWorkflowByIdErrors[keyof GetWorkflowByIdErrors]
 
-export type GetWorkflowByWorkflowIdResponses = {
+export type GetWorkflowByIdResponses = {
   /**
    * Successful Response
    */
   200: WorkflowPublic
 }
 
-export type GetWorkflowByWorkflowIdResponse =
-  GetWorkflowByWorkflowIdResponses[keyof GetWorkflowByWorkflowIdResponses]
+export type GetWorkflowByIdResponse =
+  GetWorkflowByIdResponses[keyof GetWorkflowByIdResponses]
+
+export type GetWorkflowRegistrationsData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}/registrations'
+}
+
+export type GetWorkflowRegistrationsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetWorkflowRegistrationsError =
+  GetWorkflowRegistrationsErrors[keyof GetWorkflowRegistrationsErrors]
+
+export type GetWorkflowRegistrationsResponses = {
+  /**
+   * Response Get Workflow Registrations
+   * Successful Response
+   */
+  200: Array<WorkflowRegistrationPublic>
+}
+
+export type GetWorkflowRegistrationsResponse =
+  GetWorkflowRegistrationsResponses[keyof GetWorkflowRegistrationsResponses]
+
+export type CreateWorkflowRegistrationData = {
+  body: WorkflowRegistrationCreate
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}/registrations'
+}
+
+export type CreateWorkflowRegistrationErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateWorkflowRegistrationError =
+  CreateWorkflowRegistrationErrors[keyof CreateWorkflowRegistrationErrors]
+
+export type CreateWorkflowRegistrationResponses = {
+  /**
+   * Successful Response
+   */
+  201: WorkflowRegistrationPublic
+}
+
+export type CreateWorkflowRegistrationResponse =
+  CreateWorkflowRegistrationResponses[keyof CreateWorkflowRegistrationResponses]
+
+export type DeleteWorkflowRegistrationData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+    /**
+     * Registration Id
+     */
+    registration_id: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}/registrations/{registration_id}'
+}
+
+export type DeleteWorkflowRegistrationErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteWorkflowRegistrationError =
+  DeleteWorkflowRegistrationErrors[keyof DeleteWorkflowRegistrationErrors]
+
+export type DeleteWorkflowRegistrationResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteWorkflowRegistrationResponse =
+  DeleteWorkflowRegistrationResponses[keyof DeleteWorkflowRegistrationResponses]
+
+export type GetWorkflowRunsData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: string
+    /**
+     * Sort Order
+     * Sort order
+     */
+    sort_order?: 'asc' | 'desc'
+  }
+  url: '/api/v1/workflows/{workflow_id}/runs'
+}
+
+export type GetWorkflowRunsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetWorkflowRunsError =
+  GetWorkflowRunsErrors[keyof GetWorkflowRunsErrors]
+
+export type GetWorkflowRunsResponses = {
+  /**
+   * Successful Response
+   */
+  200: WorkflowRunsPublic
+}
+
+export type GetWorkflowRunsResponse =
+  GetWorkflowRunsResponses[keyof GetWorkflowRunsResponses]
+
+export type CreateWorkflowRunData = {
+  body: WorkflowRunCreate
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}/runs'
+}
+
+export type CreateWorkflowRunErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateWorkflowRunError =
+  CreateWorkflowRunErrors[keyof CreateWorkflowRunErrors]
+
+export type CreateWorkflowRunResponses = {
+  /**
+   * Successful Response
+   */
+  201: WorkflowRunPublic
+}
+
+export type CreateWorkflowRunResponse =
+  CreateWorkflowRunResponses[keyof CreateWorkflowRunResponses]
+
+export type GetWorkflowRunByIdData = {
+  body?: never
+  path: {
+    /**
+     * Run Id
+     */
+    run_id: string
+  }
+  query?: never
+  url: '/api/v1/workflow-runs/{run_id}'
+}
+
+export type GetWorkflowRunByIdErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetWorkflowRunByIdError =
+  GetWorkflowRunByIdErrors[keyof GetWorkflowRunByIdErrors]
+
+export type GetWorkflowRunByIdResponses = {
+  /**
+   * Successful Response
+   */
+  200: WorkflowRunPublic
+}
+
+export type GetWorkflowRunByIdResponse =
+  GetWorkflowRunByIdResponses[keyof GetWorkflowRunByIdResponses]
+
+export type GetPipelinesData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: string
+    /**
+     * Sort Order
+     * Sort order (asc or desc)
+     */
+    sort_order?: 'asc' | 'desc'
+  }
+  url: '/api/v1/pipelines'
+}
+
+export type GetPipelinesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetPipelinesError = GetPipelinesErrors[keyof GetPipelinesErrors]
+
+export type GetPipelinesResponses = {
+  /**
+   * Successful Response
+   */
+  200: PipelinesPublic
+}
+
+export type GetPipelinesResponse =
+  GetPipelinesResponses[keyof GetPipelinesResponses]
+
+export type CreatePipelineData = {
+  body: PipelineCreate
+  path?: never
+  query?: never
+  url: '/api/v1/pipelines'
+}
+
+export type CreatePipelineErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreatePipelineError =
+  CreatePipelineErrors[keyof CreatePipelineErrors]
+
+export type CreatePipelineResponses = {
+  /**
+   * Successful Response
+   */
+  201: PipelinePublic
+}
+
+export type CreatePipelineResponse =
+  CreatePipelineResponses[keyof CreatePipelineResponses]
+
+export type GetPipelineByIdData = {
+  body?: never
+  path: {
+    /**
+     * Pipeline Id
+     */
+    pipeline_id: string
+  }
+  query?: never
+  url: '/api/v1/pipelines/{pipeline_id}'
+}
+
+export type GetPipelineByIdErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetPipelineByIdError =
+  GetPipelineByIdErrors[keyof GetPipelineByIdErrors]
+
+export type GetPipelineByIdResponses = {
+  /**
+   * Successful Response
+   */
+  200: PipelinePublic
+}
+
+export type GetPipelineByIdResponse =
+  GetPipelineByIdResponses[keyof GetPipelineByIdResponses]
+
+export type AddWorkflowToPipelineData = {
+  body?: never
+  path: {
+    /**
+     * Pipeline Id
+     */
+    pipeline_id: string
+  }
+  query: {
+    /**
+     * Workflow Id
+     * UUID of the workflow to associate
+     */
+    workflow_id: string
+  }
+  url: '/api/v1/pipelines/{pipeline_id}/workflows'
+}
+
+export type AddWorkflowToPipelineErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type AddWorkflowToPipelineError =
+  AddWorkflowToPipelineErrors[keyof AddWorkflowToPipelineErrors]
+
+export type AddWorkflowToPipelineResponses = {
+  /**
+   * Response Add Workflow To Pipeline
+   * Successful Response
+   */
+  201: {
+    [key: string]: unknown
+  }
+}
+
+export type AddWorkflowToPipelineResponse =
+  AddWorkflowToPipelineResponses[keyof AddWorkflowToPipelineResponses]
+
+export type RemoveWorkflowFromPipelineData = {
+  body?: never
+  path: {
+    /**
+     * Pipeline Id
+     */
+    pipeline_id: string
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+  }
+  query?: never
+  url: '/api/v1/pipelines/{pipeline_id}/workflows/{workflow_id}'
+}
+
+export type RemoveWorkflowFromPipelineErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type RemoveWorkflowFromPipelineError =
+  RemoveWorkflowFromPipelineErrors[keyof RemoveWorkflowFromPipelineErrors]
+
+export type RemoveWorkflowFromPipelineResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type RemoveWorkflowFromPipelineResponse =
+  RemoveWorkflowFromPipelineResponses[keyof RemoveWorkflowFromPipelineResponses]
+
+export type GetPlatformsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/platforms'
+}
+
+export type GetPlatformsResponses = {
+  /**
+   * Response Get Platforms
+   * Successful Response
+   */
+  200: Array<PlatformPublic>
+}
+
+export type GetPlatformsResponse =
+  GetPlatformsResponses[keyof GetPlatformsResponses]
+
+export type CreatePlatformData = {
+  body: PlatformCreate
+  path?: never
+  query?: never
+  url: '/api/v1/platforms'
+}
+
+export type CreatePlatformErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreatePlatformError =
+  CreatePlatformErrors[keyof CreatePlatformErrors]
+
+export type CreatePlatformResponses = {
+  /**
+   * Successful Response
+   */
+  201: PlatformPublic
+}
+
+export type CreatePlatformResponse =
+  CreatePlatformResponses[keyof CreatePlatformResponses]
+
+export type GetPlatformByNameData = {
+  body?: never
+  path: {
+    /**
+     * Name
+     */
+    name: string
+  }
+  query?: never
+  url: '/api/v1/platforms/{name}'
+}
+
+export type GetPlatformByNameErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetPlatformByNameError =
+  GetPlatformByNameErrors[keyof GetPlatformByNameErrors]
+
+export type GetPlatformByNameResponses = {
+  /**
+   * Successful Response
+   */
+  200: PlatformPublic
+}
+
+export type GetPlatformByNameResponse =
+  GetPlatformByNameResponses[keyof GetPlatformByNameResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})

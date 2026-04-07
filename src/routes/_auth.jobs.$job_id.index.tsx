@@ -1,5 +1,5 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
-import { Calendar, Cloud, FileText, Server, Terminal, User } from 'lucide-react'
+import { Calendar, FileText, Server, Terminal, User } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CopyableText } from '@/components/copyable-text'
@@ -63,92 +63,77 @@ function RouteComponent() {
         </div>
       </div>
 
-      {/* Two Column Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Left Column - Job Details */}
-        <Card className="border-0 shadow-none">
-          <CardHeader>
-            <CardTitle>Job Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start gap-4">
-              <Server className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">Job ID</p>
-                <CopyableText text={job.id} className="text-sm text-muted-foreground" />
+      {/* Job Details */}
+      <Card className="border-0 shadow-none">
+        <CardHeader>
+          <CardTitle>Job Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <Server className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Job ID</p>
+                  <CopyableText text={job.id} className="text-sm text-muted-foreground font-mono" />
+                </div>
               </div>
+
+              <Separator />
+
+              <div className="flex items-start gap-4">
+                <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Submitted By</p>
+                  <p className="text-sm text-muted-foreground">{job.user}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-start gap-4">
+                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Submitted On</p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(job.submitted_on).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <Separator className="md:hidden" />
             </div>
 
-            <Separator />
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Log Stream Name</p>
+                  {job.log_stream_name ? (
+                    <CopyableText text={job.log_stream_name} className="text-sm text-muted-foreground font-mono break-all" />
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">Not available</p>
+                  )}
+                </div>
+              </div>
 
-            <div className="flex items-start gap-4">
-              <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">Submitted By</p>
-                <p className="text-sm text-muted-foreground">{job.user}</p>
+              <Separator />
+
+              <div className="flex items-start gap-4">
+                <Terminal className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Command</p>
+                  <code className="block text-sm text-muted-foreground bg-muted p-2 rounded break-all">
+                    {job.command}
+                  </code>
+                </div>
               </div>
             </div>
-
-            <Separator />
-
-            <div className="flex items-start gap-4">
-              <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">Submitted On</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(job.submitted_on).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Right Column - AWS Batch Info */}
-        <Card className="border-0 shadow-none">
-          <CardHeader>
-            <CardTitle>AWS Batch Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start gap-4">
-              <Cloud className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">AWS Job ID</p>
-                {job.aws_job_id ? (
-                  <CopyableText text={job.aws_job_id} className="text-sm text-muted-foreground font-mono" />
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">Not available</p>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-start gap-4">
-              <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">Log Stream Name</p>
-                {job.log_stream_name ? (
-                  <CopyableText text={job.log_stream_name} className="text-sm text-muted-foreground font-mono break-all" />
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">Not available</p>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-start gap-4">
-              <Terminal className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">Command</p>
-                <code className="block text-sm text-muted-foreground bg-muted p-2 rounded break-all">
-                  {job.command}
-                </code>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Job Log - Full Width */}
       <Card className="border-0 shadow-none">
