@@ -3,6 +3,7 @@ import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import Header from '../components/Header'
 
 import { BreadcrumbNav } from '@/components/breadcrumb-nav.tsx'
+import { ChatButton } from '@/components/chat/ChatButton.tsx'
 import { Toaster } from '@/components/ui/sonner.tsx'
 import { useAuth } from '@/context/auth-context'
 import { currentUserQueryOptions } from '@/hooks/use-current-user'
@@ -36,6 +37,7 @@ function AuthLayout() {
       </div>
       <Outlet />
       <Toaster />
+      <ChatButton />
     </>
   )
 }

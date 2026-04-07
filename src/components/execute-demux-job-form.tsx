@@ -45,6 +45,8 @@ interface ExecuteToolFormProps {
   onOpenChange: (open: boolean) => void;
   /** Optional DOM id prefix for this form instance */
   idPrefix?: string;
+  /** The S3 config filename ID (used for submission, may differ from toolConfig.workflow_id) */
+  configId?: string;
 }
 
 export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
@@ -53,6 +55,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   isOpen,
   onOpenChange,
   idPrefix,
+  configId,
 }) => {
   const generatedId = useId();
   const baseId = (idPrefix || `execute-demux-${toolConfig.workflow_id}-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
@@ -209,7 +212,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   const onSubmit: SubmitHandler<FormFields> = (data) => {
     mutate({
       body: {
-        workflow_id: toolConfig.workflow_id,
+        workflow_id: configId || toolConfig.workflow_id,
         run_barcode: runBarcode,
         inputs: data,
       }

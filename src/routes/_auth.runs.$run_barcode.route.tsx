@@ -78,6 +78,7 @@ function RouteComponent() {
   })
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [selectedToolConfig, setSelectedToolConfig] = useState<DemuxWorkflowConfig | null>(null)
+  const [selectedConfigId, setSelectedConfigId] = useState<string>('')
   const [toolDialogOpen, setToolDialogOpen] = useState(false)
 
   // Handle workflow selection
@@ -92,6 +93,7 @@ function RouteComponent() {
         },
         throwOnError: true
       })
+      setSelectedConfigId(workflow)
       setSelectedToolConfig(result.data)
       setToolDialogOpen(true)
     } catch (error) {
@@ -176,6 +178,7 @@ function RouteComponent() {
         <ExecuteToolForm
           idPrefix={`run-${run.barcode}-execute-demux-${selectedToolConfig.workflow_id}`}
           toolConfig={selectedToolConfig}
+          configId={selectedConfigId}
           runBarcode={run.barcode as string}
           isOpen={toolDialogOpen}
           onOpenChange={setToolDialogOpen}
@@ -245,7 +248,7 @@ function RouteComponent() {
                           </Button>
                         </TooltipTrigger>
                       )}
-                      rootPath={`${run.run_folder_uri}/`}
+                      rootPath={`${run.run_folder_uri?.replace(/\/+$/, '')}/`}
                     />
                     <TooltipContent>
                       Browse Run Folder
