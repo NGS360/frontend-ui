@@ -26,7 +26,7 @@ export type CreateClientConfig<T extends DefaultClientOptions = ClientOptions> =
 export const client = createClient(
   createClientConfig(
     createConfig<ClientOptions>({
-      baseURL: 'https://d1ppotnabp5hhr.cloudfront.net',
+      baseURL: '<yourUrlhere>',
     }),
   ),
 )
