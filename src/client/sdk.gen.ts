@@ -86,6 +86,8 @@ import type {
   GetActionTypesData,
   GetActionTypesErrors,
   GetActionTypesResponses,
+  GetAllConfigsData,
+  GetAllConfigsResponses,
   GetAvailableOauthProvidersData,
   GetAvailableOauthProvidersResponses,
   GetCurrentUserInfoData,
@@ -103,6 +105,9 @@ import type {
   GetJobErrors,
   GetJobLogData,
   GetJobLogErrors,
+  GetJobLogPaginatedData,
+  GetJobLogPaginatedErrors,
+  GetJobLogPaginatedResponses,
   GetJobLogResponses,
   GetJobResponses,
   GetJobsData,
@@ -977,6 +982,27 @@ export const unlinkOauthProvider = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Get All Configs
+ * Retrieve all action configurations from S3.
+ *
+ * Returns all parsed action configs with their project types,
+ * platform configurations, and admin lists.
+ */
+export const getAllConfigs = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAllConfigsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAllConfigsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/actions/configs',
+    ...options,
+  })
+}
+
+/**
  * Validate Action Config
  * Validate an action configuration file from S3.
  *
@@ -1393,7 +1419,7 @@ export const updateJob = <ThrowOnError extends boolean = false>(
  * job_id: Job UUID
  *
  * Returns:
- * List of log lines
+ * Log output as a list of strings
  */
 export const getJobLog = <ThrowOnError extends boolean = false>(
   options: Options<GetJobLogData, ThrowOnError>,
@@ -1405,6 +1431,41 @@ export const getJobLog = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/jobs/{job_id}/log',
+    ...options,
+  })
+}
+
+/**
+ * Get Job Log Paginated
+ * Get paginated logs for a specific batch job.
+ *
+ * This endpoint returns logs in pages, allowing clients to fetch large log files
+ * incrementally without timeouts.
+ *
+ * Args:
+ * session: Database session
+ * job_id: Job UUID
+ * limit: Maximum number of log lines to return (1-10000)
+ * next_token: Pagination token from previous response
+ * start_from_head: If true, start from oldest logs; if false, start from newest
+ *
+ * Returns:
+ * Paginated log response with events and next_token for subsequent requests
+ *
+ * Example usage:
+ * 1. First request: GET /jobs/{id}/log/paginated?limit=1000
+ * 2. Next page: GET /jobs/{id}/log/paginated?limit=1000&next_token={token}
+ */
+export const getJobLogPaginated = <ThrowOnError extends boolean = false>(
+  options: Options<GetJobLogPaginatedData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetJobLogPaginatedResponses,
+    GetJobLogPaginatedErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/jobs/{job_id}/log/paginated',
     ...options,
   })
 }

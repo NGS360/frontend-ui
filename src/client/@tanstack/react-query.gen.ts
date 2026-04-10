@@ -35,6 +35,7 @@ import {
   getActionOptions,
   getActionPlatforms,
   getActionTypes,
+  getAllConfigs,
   getAvailableOauthProviders,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
@@ -42,6 +43,7 @@ import {
   getFileVersions,
   getJob,
   getJobLog,
+  getJobLogPaginated,
   getJobs,
   getLatestManifest,
   getPipelineById,
@@ -181,6 +183,7 @@ import type {
   GetActionOptionsData,
   GetActionPlatformsData,
   GetActionTypesData,
+  GetAllConfigsData,
   GetAvailableOauthProvidersData,
   GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
@@ -188,6 +191,7 @@ import type {
   GetFileVersionsData,
   GetJobData,
   GetJobLogData,
+  GetJobLogPaginatedData,
   GetJobsData,
   GetLatestManifestData,
   GetPipelineByIdData,
@@ -1607,6 +1611,31 @@ export const unlinkOauthProviderMutation = (
   return mutationOptions
 }
 
+export const getAllConfigsQueryKey = (options?: Options<GetAllConfigsData>) =>
+  createQueryKey('getAllConfigs', options)
+
+/**
+ * Get All Configs
+ * Retrieve all action configurations from S3.
+ *
+ * Returns all parsed action configs with their project types,
+ * platform configurations, and admin lists.
+ */
+export const getAllConfigsOptions = (options?: Options<GetAllConfigsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAllConfigs({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getAllConfigsQueryKey(options),
+  })
+}
+
 export const validateActionConfigQueryKey = (
   options: Options<ValidateActionConfigData>,
 ) => createQueryKey('validateActionConfig', options)
@@ -2320,7 +2349,7 @@ export const getJobLogQueryKey = (options: Options<GetJobLogData>) =>
  * job_id: Job UUID
  *
  * Returns:
- * List of log lines
+ * Log output as a list of strings
  */
 export const getJobLogOptions = (options: Options<GetJobLogData>) => {
   return queryOptions({
@@ -2334,6 +2363,48 @@ export const getJobLogOptions = (options: Options<GetJobLogData>) => {
       return data
     },
     queryKey: getJobLogQueryKey(options),
+  })
+}
+
+export const getJobLogPaginatedQueryKey = (
+  options: Options<GetJobLogPaginatedData>,
+) => createQueryKey('getJobLogPaginated', options)
+
+/**
+ * Get Job Log Paginated
+ * Get paginated logs for a specific batch job.
+ *
+ * This endpoint returns logs in pages, allowing clients to fetch large log files
+ * incrementally without timeouts.
+ *
+ * Args:
+ * session: Database session
+ * job_id: Job UUID
+ * limit: Maximum number of log lines to return (1-10000)
+ * next_token: Pagination token from previous response
+ * start_from_head: If true, start from oldest logs; if false, start from newest
+ *
+ * Returns:
+ * Paginated log response with events and next_token for subsequent requests
+ *
+ * Example usage:
+ * 1. First request: GET /jobs/{id}/log/paginated?limit=1000
+ * 2. Next page: GET /jobs/{id}/log/paginated?limit=1000&next_token={token}
+ */
+export const getJobLogPaginatedOptions = (
+  options: Options<GetJobLogPaginatedData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getJobLogPaginated({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getJobLogPaginatedQueryKey(options),
   })
 }
 

@@ -1,12 +1,13 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
-import { Calendar, FileText, Server, Terminal, User } from 'lucide-react'
+import { Calendar, ChevronDown, FileText, Server, Terminal, User } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CopyableText } from '@/components/copyable-text'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { getJobLogOptions, getJobOptions } from '@/client/@tanstack/react-query.gen'
+import { getJobOptions } from '@/client/@tanstack/react-query.gen'
+import { useJobLog } from '@/hooks/use-job-log'
 
 export const Route = createFileRoute('/_auth/jobs/$job_id/')({
   component: RouteComponent,
@@ -30,20 +31,20 @@ function RouteComponent() {
     refetchIntervalInBackground: true,
   })
 
-  const shouldPollJobLog = ['RUNNING'].includes(job.status)
+  const isLive = job.status === 'RUNNING'
 
-  const { data: jobLog, isLoading: isJobLogLoading, error: jobLogError } = useQuery({
-    ...getJobLogOptions({
-      path: {
-        job_id: job.id,
-      }
-    }),
-    refetchInterval: shouldPollJobLog ? 5000 : false,
-    refetchIntervalInBackground: true,
-  })
+  const {
+    lines,
+    error: jobLogError,
+    status: jobLogStatus,
+    hasNextPage,
+    isFetchingNextPage,
+    isNearBottom,
+    scrollAreaRef,
+  } = useJobLog(job.id, isLive)
 
-  const jobLogText = jobLog
-    ?.map((line, index) => `${index + 1}: ${line}`)
+  const jobLogText = lines
+    .map((line, index) => `${index + 1}: ${line}`)
     .join('\n')
   const jobLogErrorMessage = jobLogError instanceof Error
     ? jobLogError.message
@@ -139,7 +140,7 @@ function RouteComponent() {
       <Card className="border-0 shadow-none">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>Job Log</CardTitle>
-          {shouldPollJobLog ? (
+          {isLive ? (
             <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
               Live updating
@@ -147,20 +148,39 @@ function RouteComponent() {
           ) : null}
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[500px] rounded-lg border border-border bg-muted">
-            {isJobLogLoading ? (
-              <div className="p-4 text-sm text-muted-foreground">Loading job log...</div>
-            ) : jobLogError ? (
-              <div className="p-4 text-sm text-destructive">Failed to load job log: {jobLogErrorMessage}</div>
-            ) : (
-              <div className="p-4 font-mono text-sm text-muted-foreground whitespace-pre">
-                {jobLogText && jobLogText.length > 0
-                  ? jobLogText
-                  : 'No job log output is available yet.'}
-              </div>
-            )}
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          <div className="relative">
+            <ScrollArea ref={scrollAreaRef} className="h-[500px] rounded-lg border border-border bg-muted">
+              {jobLogStatus === 'pending' ? (
+                <div className="p-4 text-sm text-muted-foreground">Loading job log...</div>
+              ) : jobLogError ? (
+                <div className="p-4 text-sm text-destructive">Failed to load job log: {jobLogErrorMessage}</div>
+              ) : (
+                <div className="p-4 font-mono text-sm text-muted-foreground whitespace-pre">
+                  {jobLogText.length > 0
+                    ? jobLogText
+                    : 'No job log output is available yet.'}
+                </div>
+              )}
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+            {!isLive && hasNextPage && (isNearBottom || isFetchingNextPage) ? (
+              <>
+                <div className="absolute inset-0 pointer-events-none rounded-lg bg-gradient-to-b from-transparent from-90% to-white" />
+                <div className="absolute inset-x-0 bottom-4 flex justify-center pointer-events-none">
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground shadow-sm">
+                    {isFetchingNextPage ? (
+                      <>Loading more...</>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-3.5 w-3.5" />
+                        Scroll to load more
+                      </>
+                    )}
+                  </span>
+                </div>
+              </>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
     </div>
