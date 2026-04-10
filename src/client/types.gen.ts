@@ -143,6 +143,21 @@ export type ActionConfig = {
 }
 
 /**
+ * ActionConfigsResponse
+ * Response model for list of action workflow configurations.
+ */
+export type ActionConfigsResponse = {
+  /**
+   * Configs
+   */
+  configs: Array<ActionConfig>
+  /**
+   * Total
+   */
+  total: number
+}
+
+/**
  * ActionInput
  * Model for action input configuration.
  */
@@ -929,6 +944,17 @@ export type FilesPublic = {
 }
 
 /**
+ * HTTPErrorResponse
+ * Schema matching FastAPI's HTTPException response body.
+ */
+export type HttpErrorResponse = {
+  /**
+   * Detail
+   */
+  detail: string
+}
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -1054,6 +1080,29 @@ export type JobStatus =
   | 'RUNNING'
   | 'SUCCEEDED'
   | 'FAILED'
+
+/**
+ * LogResponse
+ * Response model for paginated log retrieval.
+ */
+export type LogResponse = {
+  /**
+   * Events
+   */
+  events: Array<string>
+  /**
+   * Next Token
+   */
+  next_token?: string | null
+  /**
+   * Has More
+   */
+  has_more?: boolean
+  /**
+   * Total Events
+   */
+  total_events?: number
+}
 
 /**
  * ManifestUploadResponse
@@ -1457,7 +1506,7 @@ export type ProjectCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -1483,7 +1532,7 @@ export type ProjectPublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiProjectModelsAttribute> | null
   /**
    * Sequencing Runs
    */
@@ -1502,7 +1551,7 @@ export type ProjectUpdate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -1844,7 +1893,7 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiSamplesModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -1877,7 +1926,7 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiSamplesModelsAttribute> | null
+  attributes: Array<Attribute> | null
 }
 
 /**
@@ -2647,7 +2696,7 @@ export type WorkflowSummary = {
 /**
  * Attribute
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiProjectModelsAttribute = {
   /**
    * Key
    */
@@ -3259,6 +3308,23 @@ export type UnlinkOauthProviderResponses = {
 export type UnlinkOauthProviderResponse =
   UnlinkOauthProviderResponses[keyof UnlinkOauthProviderResponses]
 
+export type GetAllConfigsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/actions/configs'
+}
+
+export type GetAllConfigsResponses = {
+  /**
+   * Successful Response
+   */
+  200: ActionConfigsResponse
+}
+
+export type GetAllConfigsResponse =
+  GetAllConfigsResponses[keyof GetAllConfigsResponses]
+
 export type ValidateActionConfigData = {
   body?: never
   path?: never
@@ -3688,6 +3754,10 @@ export type GetJobData = {
 
 export type GetJobErrors = {
   /**
+   * Job not found
+   */
+  404: HttpErrorResponse
+  /**
    * Validation Error
    */
   422: HttpValidationError
@@ -3717,6 +3787,10 @@ export type UpdateJobData = {
 }
 
 export type UpdateJobErrors = {
+  /**
+   * Job not found
+   */
+  404: HttpErrorResponse
   /**
    * Validation Error
    */
@@ -3748,6 +3822,10 @@ export type GetJobLogData = {
 
 export type GetJobLogErrors = {
   /**
+   * Job not found
+   */
+  404: HttpErrorResponse
+  /**
    * Validation Error
    */
   422: HttpValidationError
@@ -3764,6 +3842,58 @@ export type GetJobLogResponses = {
 }
 
 export type GetJobLogResponse = GetJobLogResponses[keyof GetJobLogResponses]
+
+export type GetJobLogPaginatedData = {
+  body?: never
+  path: {
+    /**
+     * Job Id
+     */
+    job_id: string
+  }
+  query?: {
+    /**
+     * Limit
+     * Number of log lines to return
+     */
+    limit?: number
+    /**
+     * Next Token
+     * Token for next page of results
+     */
+    next_token?: string | null
+    /**
+     * Start From Head
+     * Start from beginning (true) or end (false)
+     */
+    start_from_head?: boolean
+  }
+  url: '/api/v1/jobs/{job_id}/log/paginated'
+}
+
+export type GetJobLogPaginatedErrors = {
+  /**
+   * Job not found
+   */
+  404: HttpErrorResponse
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetJobLogPaginatedError =
+  GetJobLogPaginatedErrors[keyof GetJobLogPaginatedErrors]
+
+export type GetJobLogPaginatedResponses = {
+  /**
+   * Successful Response
+   */
+  200: LogResponse
+}
+
+export type GetJobLogPaginatedResponse =
+  GetJobLogPaginatedResponses[keyof GetJobLogPaginatedResponses]
 
 export type GetLatestManifestData = {
   body?: never
@@ -4167,7 +4297,7 @@ export type AddSampleToProjectResponse =
   AddSampleToProjectResponses[keyof AddSampleToProjectResponses]
 
 export type UpdateSampleInProjectData = {
-  body: ApiSamplesModelsAttribute
+  body: Attribute
   path: {
     /**
      * Sample Id

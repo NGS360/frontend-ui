@@ -1,12 +1,26 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 import { Calendar, FileText, Server, Terminal, User } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import { useEffect, useMemo, useRef } from 'react'
+import type { InfiniteData } from '@tanstack/react-query'
+import type { LogResponse } from '@/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CopyableText } from '@/components/copyable-text'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { getJobLogOptions, getJobOptions } from '@/client/@tanstack/react-query.gen'
+import { getJobLogPaginated } from '@/client'
+import {
+  getJobLogPaginatedQueryKey,
+  getJobOptions,
+} from '@/client/@tanstack/react-query.gen'
+
+const LOG_PAGE_LIMIT = 1000
+const LOG_POLL_INTERVAL_MS = 5000
 
 export const Route = createFileRoute('/_auth/jobs/$job_id/')({
   component: RouteComponent,
@@ -32,18 +46,170 @@ function RouteComponent() {
 
   const shouldPollJobLog = ['RUNNING'].includes(job.status)
 
-  const { data: jobLog, isLoading: isJobLogLoading, error: jobLogError } = useQuery({
-    ...getJobLogOptions({
-      path: {
-        job_id: job.id,
-      }
-    }),
-    refetchInterval: shouldPollJobLog ? 5000 : false,
-    refetchIntervalInBackground: true,
+  const queryClient = useQueryClient()
+
+  const jobLogQueryKey = useMemo(
+    () =>
+      [
+        ...getJobLogPaginatedQueryKey({
+          path: { job_id: job.id },
+          query: { limit: LOG_PAGE_LIMIT, start_from_head: true },
+        }),
+        'infinite',
+      ] as const,
+    [job.id],
+  )
+
+  const {
+    data: jobLogData,
+    error: jobLogError,
+    status: jobLogStatus,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<
+    LogResponse,
+    Error,
+    InfiniteData<LogResponse, string | undefined>,
+    typeof jobLogQueryKey,
+    string | undefined
+  >({
+    queryKey: jobLogQueryKey,
+    queryFn: async ({ pageParam, signal }) => {
+      const { data } = await getJobLogPaginated({
+        path: { job_id: job.id },
+        query: {
+          limit: LOG_PAGE_LIMIT,
+          next_token: pageParam ?? undefined,
+          start_from_head: true,
+        },
+        signal,
+        throwOnError: true,
+      })
+      return data!
+    },
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.has_more && lastPage.next_token
+        ? lastPage.next_token
+        : undefined,
   })
 
-  const jobLogText = jobLog
-    ?.map((line, index) => `${index + 1}: ${line}`)
+  // Auto-walk: drain hasNextPage until the initial load reaches the tail.
+  // Also fires again after the polling effect appends a page whose has_more
+  // is true (a backlog built up between polls).
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Mirror isFetchingNextPage into a ref so the polling effect can read the
+  // latest value without tearing down its interval every time the flag toggles
+  // during the initial walk.
+  const isFetchingNextPageRef = useRef(isFetchingNextPage)
+  useEffect(() => {
+    isFetchingNextPageRef.current = isFetchingNextPage
+  }, [isFetchingNextPage])
+
+  // Append-only polling: while the job is running, every 5s fetch a single
+  // page starting from the last cached page's next_token and append it to
+  // the infinite query data. Previously loaded pages are never re-fetched.
+  useEffect(() => {
+    if (!shouldPollJobLog) return
+    if (jobLogStatus !== 'success') return
+
+    const controller = new AbortController()
+
+    const pollOnce = async () => {
+      // Don't interleave with the auto-walk effect.
+      if (isFetchingNextPageRef.current) return
+
+      const cache = queryClient.getQueryData<
+        InfiniteData<LogResponse, string | undefined>
+      >(jobLogQueryKey)
+      if (!cache || cache.pages.length === 0) return
+
+      const lastPage = cache.pages[cache.pages.length - 1]
+      const lastToken = lastPage.next_token
+      if (!lastToken) return
+
+      const { data } = await getJobLogPaginated({
+        path: { job_id: job.id },
+        query: {
+          limit: LOG_PAGE_LIMIT,
+          next_token: lastToken,
+          start_from_head: true,
+        },
+        signal: controller.signal,
+        throwOnError: true,
+      })
+      if (!data || data.events.length === 0) return
+
+      queryClient.setQueryData<
+        InfiniteData<LogResponse, string | undefined>
+      >(jobLogQueryKey, (old) => {
+        if (!old) return old
+        return {
+          pages: [...old.pages, data],
+          pageParams: [...old.pageParams, lastToken],
+        }
+      })
+    }
+
+    const id = setInterval(() => {
+      void pollOnce()
+    }, LOG_POLL_INTERVAL_MS)
+    return () => {
+      clearInterval(id)
+      controller.abort()
+    }
+  }, [
+    shouldPollJobLog,
+    jobLogStatus,
+    job.id,
+    queryClient,
+    jobLogQueryKey,
+  ])
+
+  // Auto-scroll: pin the log to the bottom while the user hasn't scrolled up.
+  // We track whether the viewport is "near the bottom" and only scroll when it is.
+  const logEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const isNearBottomRef = useRef(true)
+
+  useEffect(() => {
+    const viewport = scrollAreaRef.current?.querySelector<HTMLElement>(
+      '[data-slot="scroll-area-viewport"]',
+    )
+    if (!viewport) return
+
+    const onScroll = () => {
+      const threshold = 50
+      isNearBottomRef.current =
+        viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <
+        threshold
+    }
+
+    viewport.addEventListener('scroll', onScroll, { passive: true })
+    return () => viewport.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const isAutoWalking = hasNextPage || isFetchingNextPage
+  useEffect(() => {
+    if (isNearBottomRef.current) {
+      // Use instant scroll during rapid page loading so the smooth-scroll
+      // animation doesn't fall behind and accidentally un-pin the viewport.
+      logEndRef.current?.scrollIntoView({
+        behavior: isAutoWalking ? 'instant' : 'smooth',
+      })
+    }
+  })
+
+  const jobLogLines =
+    jobLogData?.pages.flatMap((page) => page.events) ?? []
+  const jobLogText = jobLogLines
+    .map((line, index) => `${index + 1}: ${line}`)
     .join('\n')
   const jobLogErrorMessage = jobLogError instanceof Error
     ? jobLogError.message
@@ -147,16 +313,20 @@ function RouteComponent() {
           ) : null}
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[500px] rounded-lg border border-border bg-muted">
-            {isJobLogLoading ? (
+          <ScrollArea ref={scrollAreaRef} className="h-[500px] rounded-lg border border-border bg-muted">
+            {jobLogStatus === 'pending' ? (
               <div className="p-4 text-sm text-muted-foreground">Loading job log...</div>
             ) : jobLogError ? (
               <div className="p-4 text-sm text-destructive">Failed to load job log: {jobLogErrorMessage}</div>
             ) : (
               <div className="p-4 font-mono text-sm text-muted-foreground whitespace-pre">
-                {jobLogText && jobLogText.length > 0
+                {jobLogText.length > 0
                   ? jobLogText
                   : 'No job log output is available yet.'}
+                {isFetchingNextPage && jobLogLines.length > 0 ? (
+                  <div className="pt-2 text-xs text-muted-foreground italic">Loading more...</div>
+                ) : null}
+                <div ref={logEndRef} />
               </div>
             )}
             <ScrollBar orientation="horizontal" />
