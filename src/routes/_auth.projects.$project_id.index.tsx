@@ -322,7 +322,7 @@ function RouteComponent() {
                 <FileUpload
                   displayComponent={(
                     <span className="text-primary hover:underline mx-2">
-                      Drag and drop your samplesheet.tsv here, or click to select
+                      No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file
                     </span>
                   )}
                 />

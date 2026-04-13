@@ -74,7 +74,7 @@ export function useJobLog(jobId: string, isLive: boolean) {
         signal,
         throwOnError: true,
       })
-      return logData!
+      return logData
     },
     initialPageParam: undefined,
     getNextPageParam: (lastPage) =>
@@ -185,7 +185,7 @@ export function useJobLog(jobId: string, isLive: boolean) {
         signal: controller.signal,
         throwOnError: true,
       })
-      if (!newPageData || newPageData.events.length === 0) return
+      if (newPageData.events.length === 0) return
 
       queryClient.setQueryData<
         InfiniteData<LogResponse, string | undefined>
