@@ -28,6 +28,9 @@ import type {
   BrowseS3Data,
   BrowseS3Errors,
   BrowseS3Responses,
+  BulkCreateSamplesData,
+  BulkCreateSamplesErrors,
+  BulkCreateSamplesResponses,
   ChangePasswordData,
   ChangePasswordErrors,
   ChangePasswordResponses,
@@ -1233,10 +1236,11 @@ export const browseS3 = <ThrowOnError extends boolean = false>(
 
 /**
  * Download file from S3
- * Download a file from S3.
+ * Download a file from S3 via presigned URL redirect.
  *
- * Returns the file as a streaming download with appropriate
- * content type and filename.
+ * Returns a 307 redirect to a time-limited presigned S3 URL.
+ * The client follows the redirect to download directly from S3,
+ * offloading bandwidth from the API server.
  */
 export const downloadFile = <ThrowOnError extends boolean = false>(
   options: Options<DownloadFileData, ThrowOnError>,
@@ -1683,6 +1687,8 @@ export const updateProject = <ThrowOnError extends boolean = false>(
 /**
  * Get Project Samples
  * Returns a paginated list of samples.
+ *
+ * Pass ``?include=files`` to eagerly load file metadata for each sample.
  */
 export const getProjectSamples = <ThrowOnError extends boolean = false>(
   options: Options<GetProjectSamplesData, ThrowOnError>,
@@ -1701,6 +1707,9 @@ export const getProjectSamples = <ThrowOnError extends boolean = false>(
 /**
  * Add Sample To Project
  * Create a new sample with optional attributes.
+ *
+ * If ``run_barcode`` is provided in the request body, the sample is also
+ * associated with the specified sequencing run in the same transaction.
  */
 export const addSampleToProject = <ThrowOnError extends boolean = false>(
   options: Options<AddSampleToProjectData, ThrowOnError>,
@@ -1711,7 +1720,45 @@ export const addSampleToProject = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
     url: '/api/v1/projects/{project_id}/samples',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Bulk Create Samples
+ * Create multiple samples in a single atomic transaction.
+ *
+ * Each sample in the list may optionally include a ``run_barcode``
+ * to associate the sample with a sequencing run at creation time.
+ * All samples succeed or fail together.
+ */
+export const bulkCreateSamples = <ThrowOnError extends boolean = false>(
+  options: Options<BulkCreateSamplesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    BulkCreateSamplesResponses,
+    BulkCreateSamplesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/projects/{project_id}/samples/bulk',
     ...options,
     headers: {
       'Content-Type': 'application/json',
