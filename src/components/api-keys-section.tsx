@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { endOfDay } from 'date-fns'
 import { Ban, Info, LoaderCircle, Plus, Trash2, X } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import type { SubmitHandler } from 'react-hook-form'
@@ -21,6 +22,7 @@ import { CopyableText } from '@/components/copyable-text'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -46,7 +48,7 @@ import {
 
 const CreateApiKeySchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
-  expires_at: z.string().optional(),
+  expires_at: z.date().optional(),
 })
 
 type CreateApiKeyFields = z.infer<typeof CreateApiKeySchema>
@@ -64,9 +66,10 @@ function CreateApiKeyButton({
     handleSubmit,
     reset,
     setError,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CreateApiKeyFields>({
-    defaultValues: { name: '', expires_at: '' },
+    defaultValues: { name: '', expires_at: undefined },
     resolver: zodResolver(CreateApiKeySchema),
   })
 
@@ -90,7 +93,7 @@ function CreateApiKeyButton({
     mutate({
       body: {
         name: data.name,
-        expires_at: data.expires_at || undefined,
+        expires_at: data.expires_at ? endOfDay(data.expires_at).toISOString() : undefined,
       },
     })
   }
@@ -130,11 +133,22 @@ function CreateApiKeyButton({
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="api-key-expires">Expiration Date (optional)</Label>
-                <Input
-                  {...register('expires_at')}
-                  id="api-key-expires"
-                  type="date"
-                  min={new Date().toISOString().split('T')[0]}
+                <Controller
+                  control={control}
+                  name="expires_at"
+                  render={({ field }) => {
+                    const startOfToday = new Date()
+                    startOfToday.setHours(0, 0, 0, 0)
+                    return (
+                      <DatePicker
+                        id="api-key-expires"
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={{ before: startOfToday }}
+                        placeholder="Pick an expiration date"
+                      />
+                    )
+                  }}
                 />
                 {errors.expires_at && (
                   <div className="text-xs text-red-500">{errors.expires_at.message}</div>
