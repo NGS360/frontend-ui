@@ -22,8 +22,8 @@ function App() {
           />
         </div> */}
         
-        <div id="home-content" className="min-h-[85vh] flex flex-col items-center justify-center gap-6 px-4 relative z-10">
-        <h1 id="home-title" className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl animate-fade-in-up flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+        <div id="home-content" className="@container min-h-[85vh] flex flex-col items-center justify-center gap-6 px-4 relative z-10">
+        <h1 id="home-title" className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl animate-fade-in-up flex flex-col @3xl:flex-row items-center justify-center gap-2 @3xl:gap-3">
           <span className="font-normal text-muted-foreground">Welcome to</span>
           <NGS360Logo showIcon={false} textSize="text-3xl sm:text-4xl md:text-5xl lg:text-6xl" gap="gap-0" />
         </h1>

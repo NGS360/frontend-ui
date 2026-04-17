@@ -79,9 +79,9 @@ function RouteComponent() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex flex-col md:flex-row w-full gap-4 ml-8 mr-8 mt-8">
-        <aside className="md:sticky md:top-14 md:self-start overflow-y-auto md:min-w-64 lg:min-w-72 md:max-w-64 lg:max-w-72 rounded-md flex-shrink-0 md:max-h-[calc(100vh-4rem)]">
+    <SidebarProvider className="@container min-w-0">
+      <div className="flex flex-col @3xl:flex-row w-full min-w-0 gap-4 ml-8 mr-8 mt-8">
+        <aside className="@3xl:sticky @3xl:top-14 @3xl:self-start overflow-y-auto @3xl:min-w-64 @5xl:min-w-72 @3xl:max-w-64 @5xl:max-w-72 rounded-md flex-shrink-0 @3xl:max-h-[calc(100vh-4rem)]">
           <div className="flex flex-col gap-6">
             {/* Profile Section */}
             <div className="flex flex-col gap-6 pt-6">
@@ -123,12 +123,12 @@ function RouteComponent() {
             </div>
 
             {/* Navigation Menu */}
-            <Sidebar variant="inset" collapsible="none" className="w-full md:w-auto border-0 bg-transparent">
+            <Sidebar variant="inset" collapsible="none" className="w-full @3xl:w-auto border-0 bg-transparent">
               <SidebarContent>
                 <SidebarGroup>
                   <SidebarGroupLabel>Navigation</SidebarGroupLabel>
                   <SidebarGroupContent>
-                    <SidebarMenu className="md:space-y-1">
+                    <SidebarMenu className="@3xl:space-y-1">
                       {menuItems.map((item) => (
                         <SidebarMenuItem key={item.id}>
                           <SidebarMenuButton 

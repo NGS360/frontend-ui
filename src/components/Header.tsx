@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { BookOpen, Database, Folder, MenuIcon, ShieldCheck, XIcon } from 'lucide-react'
+import { BookOpen, Database, Folder, MenuIcon, ShieldCheck, Sparkles, XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from './ui/button'
 import { CreateProjectForm } from './create-project-form'
@@ -20,6 +20,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useSidebar } from '@/components/ui/sidebar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 type NavItemType = {
   to: string
@@ -32,6 +34,8 @@ type NavItemType = {
 export default function Header() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
+  const { open: aiSidebarOpen, openMobile: aiSidebarOpenMobile, isMobile: isMobileViewport, toggleSidebar } = useSidebar()
+  const aiActive = isMobileViewport ? aiSidebarOpenMobile : aiSidebarOpen
   const [menuOpen, setMenuOpen] = useState(false)
 
   const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
@@ -46,7 +50,7 @@ export default function Header() {
   const navId = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
   return (
-    <header id="app-header" className="sticky top-0 left-0 w-full flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
+    <header id="app-header" className="sticky top-0 left-0 w-full h-14 flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
       {/* Logo and Nav Items - Left Side */}
       <div id="header-left" className="flex items-center">
         {/* Logo */}
@@ -111,6 +115,26 @@ export default function Header() {
             <NotificationsDropdown />
           </div>
         )}
+
+        {/* AI Assistant sidebar toggle */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              id="header-ai-button"
+              variant="ghost"
+              size="icon"
+              aria-label="AI Assistant"
+              aria-pressed={aiActive}
+              data-active={aiActive}
+              className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+              onClick={toggleSidebar}
+            >
+              <Sparkles className="h-5 w-5" />
+              <span className="sr-only">AI Assistant</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{aiActive ? 'Close AI Assistant' : 'Open AI Assistant'}</TooltipContent>
+        </Tooltip>
 
         {/* Avatar or Sign In */}
         <div id="header-user-actions">
