@@ -14,6 +14,13 @@ import reportWebVitals from './reportWebVitals.ts'
 // Import client interceptors
 // These add auth tokens to all requests
 import '@/lib/interceptors.ts';
+import type { ErrorComponentProps } from '@tanstack/react-router'
+import { ErrorState } from '@/components/error-state'
+
+
+function DefaultErrorComponent({ error, reset }: ErrorComponentProps) {
+  return <ErrorState error={error} onRetry={reset} />
+}
 
 // Create a new router instance
 const router = createRouter({
@@ -26,6 +33,7 @@ const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
+  defaultErrorComponent: DefaultErrorComponent,
 })
 
 // Register the router instance for type safety

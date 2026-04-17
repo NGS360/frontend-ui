@@ -1,6 +1,5 @@
-import { createFileRoute, getRouteApi, notFound, redirect } from '@tanstack/react-router'
+import { createFileRoute, getRouteApi, notFound } from '@tanstack/react-router'
 import { useState } from 'react';
-import { AxiosError } from 'axios';
 import type {ColumnDef, Row} from '@tanstack/react-table';
 import type {BarChartData} from '@/components/indexqc-barchart';
 import { CopyableText } from '@/components/copyable-text'
@@ -16,23 +15,13 @@ export const Route = createFileRoute('/_auth/runs/$run_barcode/indexqc/')({
   component: RouteComponent,
   loader: async ({ params }) => {
 
-    // Get run metrics data
+    // Get run metrics data (204 = metrics not available yet → NotFound; other errors throw)
     const res = await getRunMetrics({
-      path: {
-        run_barcode: params.run_barcode
-      }
+      path: { run_barcode: params.run_barcode },
+      throwOnError: true,
     });
 
-    if (!res.data) {
-      if (res.status === 204) throw notFound();
-      if (res instanceof AxiosError) {
-        const msg = "An error occurred: " + res.error.detail || "An unknown error occurred."
-        alert(msg)
-        throw redirect({ to: '/runs' })
-      }
-      alert('An unknown error occurred.')
-      throw redirect({ to: '/runs'})
-    }
+    if (!res.data || res.status === 204) throw notFound();
 
     return ({
       runMetrics: res.data

@@ -5,14 +5,16 @@ import { toast } from 'sonner'
 import z from 'zod'
 import { Plus, SquarePen, Trash2 } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
-import type { AxiosError } from 'axios'
-import type { HttpValidationError, Setting, VendorPublic } from '@/client'
+import type { Setting, VendorPublic } from '@/client'
 import { deleteVendorMutation, getSettingsByTagOptions, getSettingsByTagQueryKey, getVendorsOptions, getVendorsQueryKey, updateSettingMutation } from '@/client/@tanstack/react-query.gen'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { FullscreenSpinner } from '@/components/spinner'
+import { ErrorState } from '@/components/error-state'
+import { ErrorBanner } from '@/components/error-banner'
 import { AddVendorForm } from '@/components/add-vendor-form'
+import { toastApiError } from '@/lib/error-utils'
 import { UpdateVendorForm } from '@/components/update-vendor-form'
 import { SettingCard } from '@/components/app-setting-card'
 import { Button } from '@/components/ui/button'
@@ -73,7 +75,7 @@ function RouteComponent() {
       toast.success('Vendor deleted successfully')
     },
     onError: (error) => {
-      toast.error(`Failed to delete vendor: ${error.message}`)
+      toastApiError(error, 'Failed to delete vendor')
     }
   })
 
@@ -106,7 +108,7 @@ function RouteComponent() {
   }, [pagination, sorting])
 
   // Query vendors
-  const { data, error } = useQuery({
+  const { data, error, refetch } = useQuery({
     ...getVendorsOptions({
       query: {
         page: search.page,
@@ -119,7 +121,7 @@ function RouteComponent() {
   })
 
   // Query vendor settings
-  const { data: vendorSettings, error: settingsError } = useQuery(
+  const { data: vendorSettings, error: settingsError, refetch: refetchSettings } = useQuery(
     getSettingsByTagOptions({
       query: {
         tag_key: 'category',
@@ -131,10 +133,8 @@ function RouteComponent() {
   // Mutation for updating settings
   const { mutate: updateSetting, isPending: isSettingPending } = useMutation({
     ...updateSettingMutation(),
-    onError: (mutationError: AxiosError<HttpValidationError>) => {
-      const message = mutationError.response?.data.detail?.toString()
-        || "An unknown error occurred."
-      toast.error(`Failed to update setting: ${message}`)
+    onError: (mutationError) => {
+      toastApiError(mutationError, 'Failed to update setting')
     },
     onSuccess: (data: Setting) => {
       queryClient.invalidateQueries({ 
@@ -160,8 +160,8 @@ function RouteComponent() {
     })
   }
 
-  if (error) return 'An error has occurred: ' + error.message
-  if (settingsError) return 'An error has occurred loading settings: ' + settingsError.message
+  if (error && !data) return <ErrorState error={error} onRetry={() => { void refetch() }} />
+  if (settingsError && !vendorSettings) return <ErrorState error={settingsError} onRetry={() => { void refetchSettings() }} />
   if (!data) return <FullscreenSpinner variant='ellipsis' />
 
   // Define columns
@@ -283,6 +283,8 @@ function RouteComponent() {
           }
         />
       </div>
+      {error && <ErrorBanner error={error} onRetry={() => { void refetch() }} />}
+      {settingsError && <ErrorBanner error={settingsError} onRetry={() => { void refetchSettings() }} />}
       <ServerDataTable
         data={data.data}
         columns={columns}

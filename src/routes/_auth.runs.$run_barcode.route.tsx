@@ -1,6 +1,5 @@
-import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, getRouteApi } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
 import { ChartBar, ChevronDown, FileSpreadsheet, FolderOpen, Loader2, PlayCircle, RotateCw, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -8,6 +7,7 @@ import type { ChangeEvent } from 'react';
 import type { DemuxWorkflowConfig } from '@/client'
 import { getDemultiplexWorkflowConfig, getRun, listDemultiplexWorkflows } from '@/client'
 import { getRunQueryKey, getRunSamplesheetQueryKey, postRunSamplesheetMutation, updateRunMutation } from '@/client/@tanstack/react-query.gen'
+import { ErrorBanner } from '@/components/error-banner'
 import { ExecuteToolForm } from '@/components/execute-demux-job-form'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { FileBrowserDialog } from '@/components/file-browser';
 import { FullscreenSpinner } from '@/components/spinner'
+import { toastApiError } from '@/lib/error-utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,17 +26,10 @@ import {
 export const Route = createFileRoute('/_auth/runs/$run_barcode')({
   component: RouteComponent,
   loader: async ({ params }) => {
-    // Get run data
     const runData = await getRun({
-      path: {
-        run_barcode: params.run_barcode
-      }
+      path: { run_barcode: params.run_barcode },
+      throwOnError: true,
     })
-    if (runData.status !== 200 || runData instanceof AxiosError) {
-      alert("An error occurred: " + runData.error?.detail || "An unknown error occurred.")
-      throw redirect({ to: '/runs' })
-    }
-
     return ({
       crumb: runData.data.barcode,
       includeCrumbLink: false,
@@ -96,7 +90,7 @@ function RouteComponent() {
       setToolDialogOpen(true)
     } catch (error) {
       console.error('Error fetching workflow config:', error)
-      toast.error(`Failed to fetch config for workflow: ${workflow}`)
+      toastApiError(error, `Failed to fetch config for workflow: ${workflow}`)
     }
     setDropdownOpen(false)
   }
@@ -117,7 +111,7 @@ function RouteComponent() {
     },
     onError: (uploadError) => {
       console.error(uploadError);
-      toast.error('Failed to upload file');
+      toastApiError(uploadError, 'Failed to upload file');
     }
   })
 
@@ -135,7 +129,7 @@ function RouteComponent() {
     },
     onError: (updateError) => {
       console.error(updateError)
-      toast.error('Failed to re-sync run')
+      toastApiError(updateError, 'Failed to re-sync run')
     }
   })
 
@@ -294,14 +288,25 @@ function RouteComponent() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {toolsQuery.data?.map((tool) => (
-                      <DropdownMenuItem
-                        key={tool}
-                        onClick={() => handleToolSelect(tool)}
-                      >
-                        {tool}
-                      </DropdownMenuItem>
-                    ))}
+                    {toolsQuery.isError ? (
+                      <div className="p-1 w-80 max-w-[min(20rem,calc(100vw-2rem))]">
+                        <ErrorBanner
+                          error={toolsQuery.error}
+                          onRetry={() => { void toolsQuery.refetch() }}
+                        />
+                      </div>
+                    ) : toolsQuery.data && toolsQuery.data.length === 0 ? (
+                      <DropdownMenuItem disabled>No tools available</DropdownMenuItem>
+                    ) : (
+                      toolsQuery.data?.map((tool) => (
+                        <DropdownMenuItem
+                          key={tool}
+                          onClick={() => handleToolSelect(tool)}
+                        >
+                          {tool}
+                        </DropdownMenuItem>
+                      ))
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

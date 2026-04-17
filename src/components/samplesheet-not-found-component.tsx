@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { FullscreenSpinner } from "@/components/spinner";
 import { FileUpload } from "@/components/file-upload"
 import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from "@/client/@tanstack/react-query.gen";
+import { toastApiError } from "@/lib/error-utils";
 
 // Define error component for samplesheet path
 export const NotFoundComponent = () => {
@@ -31,6 +32,7 @@ export const NotFoundComponent = () => {
     },
     onError: (error) => {
       console.error(error);
+      toastApiError(error, 'Failed to upload samplesheet');
     }
   })
 

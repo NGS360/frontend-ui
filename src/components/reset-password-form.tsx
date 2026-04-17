@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { getFormApiErrorMessage } from '@/lib/error-utils'
 import { confirmPasswordResetMutation } from '@/client/@tanstack/react-query.gen'
 import { NGS360Logo } from '@/components/ngs360-logo'
 
@@ -57,9 +58,10 @@ export function ResetPasswordForm({
   const { mutate, isPending, isSuccess, isError, error } = useMutation({
     ...confirmPasswordResetMutation(),
     onError: (err) => {
-      const message =
-        err.response?.data.detail?.toString() || 
-        'The reset token is invalid or has expired. Please request a new password reset.'
+      const message = getFormApiErrorMessage(
+        err,
+        'The reset token is invalid or has expired. Please request a new password reset.',
+      )
       setError('root', { message })
       toast.error(message)
     },
@@ -115,8 +117,7 @@ export function ResetPasswordForm({
             <div>
               <h3 className="text-lg font-semibold mb-2">Reset Failed</h3>
               <p className="text-muted-foreground">
-                {error.response?.data.detail?.toString() || 
-                 'The reset token is invalid or has expired. Please request a new password reset.'}
+                {getFormApiErrorMessage(error, 'The reset token is invalid or has expired. Please request a new password reset.')}
               </p>
             </div>
             <Button 

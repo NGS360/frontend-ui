@@ -1,9 +1,8 @@
-import { Link, createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router'
+import { Link, createFileRoute, getRouteApi } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { AxiosError } from 'axios'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { IlluminaSampleSheetResponseModel as RunSamplesheet } from '@/client/types.gen'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
@@ -11,7 +10,9 @@ import { CopyableText } from '@/components/copyable-text'
 import { FullscreenDropzone } from '@/components/file-upload'
 import { NotFoundComponent } from '@/components/samplesheet-not-found-component'
 import { getRunSamplesheetOptions, getRunSamplesheetQueryKey, postRunSamplesheetMutation } from '@/client/@tanstack/react-query.gen'
+import { ErrorState } from '@/components/error-state'
 import { FullscreenSpinner } from '@/components/spinner'
+import { toastApiError } from '@/lib/error-utils'
 import { highlightMatch } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/runs/$run_barcode/samplesheet/')({
@@ -24,14 +25,13 @@ function RouteComponent() {
   // Get route params
   const routeApi = getRouteApi('/_auth/runs/$run_barcode/samplesheet/')
   const { run_barcode } = routeApi.useParams()
-  const navigate = useNavigate()
   const queryClient = useQueryClient();
   
   // Global filter for search
   const [globalFilter, setGlobalFilter] = useState<string>('')
   
   // Use TanStack Query to fetch samplesheet data with custom error handling
-  const { data: runInfo, isLoading, error, isError } = useQuery({
+  const { data: runInfo, isLoading, error, isError, refetch } = useQuery({
     ...getRunSamplesheetOptions({
       path: {
         run_barcode: run_barcode
@@ -57,6 +57,7 @@ function RouteComponent() {
     },
     onError: (uploadError) => {
       console.error(uploadError);
+      toastApiError(uploadError, 'Failed to upload samplesheet');
     }
   })
 
@@ -76,44 +77,24 @@ function RouteComponent() {
     }
   }, [mutate, run_barcode])
 
-  // Handle redirects and alerts for specific error cases
-  useEffect(() => {
-    if (isError) {
-      // Handle AxiosError cases - redirect to /runs with alert
-      if (error instanceof AxiosError) {
-        const msg = "An error occurred: " + (error.response?.data?.detail || error.message || "An unknown error occurred.")
-        alert(msg)
-        navigate({ to: '/runs' })
-        return
-      }
-      
-      // Handle other non-404/204 errors
-      if ((error as any).status !== 404 && (error as any).status !== 204) {
-        alert('An unknown error occurred.')
-        navigate({ to: '/runs' })
-        return
-      }
-    }
-  }, [isError, error, navigate])
-
   // Show loading spinner
   if (isLoading || isPending) {
     return <FullscreenSpinner variant='ellipsis' />
   }
 
-  // Show not found component for 204 status or when no data
-  if (isError && ((error as any).status === 204 || (error as any).status === 404)) {
-    return <NotFoundComponent />
-  }
-  
-  // Show not found component if no data but no error (edge case)
-  if (!runInfo && !isError) {
+  // Show not found component for 204 status or when no data (missing samplesheet is expected)
+  if (isError && ((error as any).response?.status === 404 || (error as any).response?.status === 204)) {
     return <NotFoundComponent />
   }
 
-  // If we still have an error at this point, the useEffect should handle it
+  // Any other error: surface via ErrorState with retry
   if (isError) {
-    return <FullscreenSpinner variant='ellipsis' /> // Show spinner while redirect happens
+    return <ErrorState error={error} onRetry={() => { void refetch() }} />
+  }
+
+  // Show not found component if no data but no error (edge case)
+  if (!runInfo) {
+    return <NotFoundComponent />
   }
 
   // Transform header, reads, and settings 

@@ -11,6 +11,8 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { FullscreenSpinner } from '@/components/spinner'
+import { ErrorState } from '@/components/error-state'
+import { ErrorBanner } from '@/components/error-banner'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Button } from '@/components/ui/button'
 
@@ -47,7 +49,7 @@ function RouteComponent() {
   })
 
   // Query user-specific jobs
-  const { data: jobsData, error, isFetching } = useQuery({
+  const { data: jobsData, error, isFetching, refetch } = useQuery({
     ...getJobsOptions({
       query: {
         skip: pagination.pageIndex * pagination.pageSize,
@@ -128,7 +130,7 @@ function RouteComponent() {
     },
   ]
 
-  if (error) return 'An error has occurred: ' + error.message
+  if (error && !jobsData) return <ErrorState error={error} onRetry={() => { void refetch() }} />
   if (!jobsData) return <FullscreenSpinner variant='ellipsis' />
 
   const totalPages = Math.ceil(jobsData.count / pagination.pageSize)
@@ -157,6 +159,8 @@ function RouteComponent() {
           View and manage your submitted jobs.
         </p>
       </div>
+
+      {error && <ErrorBanner error={error} onRetry={() => { void refetch() }} />}
 
       <ServerDataTable
         data={jobsData.data}

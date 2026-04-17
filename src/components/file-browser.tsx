@@ -7,6 +7,8 @@ import type { FileBrowserFile, FileBrowserFolder } from '@/client/types.gen';
 import { browseS3Options } from '@/client/@tanstack/react-query.gen';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ErrorBanner } from "@/components/error-banner";
+import { toastApiError } from "@/lib/error-utils";
 import { SortableHeader } from "@/components/data-table/sortable-header";
 
 // Helper function for formatting bytes
@@ -90,7 +92,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   };
 
   // Query for file/folder data using browseFilesystem
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     ...browseS3Options({
       query: {
         uri: currentDirectoryPath
@@ -156,9 +158,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       // Open in new tab to trigger download
       window.open(url, '_blank');
     } catch (downloadError) {
-      // Display error in alert box
-      const errorMessage = downloadError instanceof Error ? downloadError.message : 'Failed to download file';
-      alert(`Download error: ${errorMessage}`);
+      toastApiError(downloadError, 'Failed to download file');
     }
   };
 
@@ -208,7 +208,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   ];
 
   if (isError) {
-    return <div className="p-4 text-center text-destructive">Error: {error.message || 'Failed to load directory.'}</div>;
+    return <ErrorBanner error={error} onRetry={() => { void refetch() }} className="m-4" />;
   }
 
   return (

@@ -12,6 +12,7 @@ import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { UpdateProjectForm } from '@/components/update-project-form'
+import { ErrorState } from '@/components/error-state'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -52,7 +53,7 @@ function RouteComponent() {
   }, [columnVisibility, project.project_id, setVisibility])
 
   // Fetch all samples using the use-all-paginated hook
-  const { data: allSamples, isLoading, error } = useAllPaginated({
+  const { data: allSamples, isLoading, error, refetch } = useAllPaginated({
     queryKey: ['samples', 'all', project.project_id],
     fetcher: ({ query }) => getProjectSamples({
       path: { project_id: project.project_id },
@@ -64,7 +65,7 @@ function RouteComponent() {
   })
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />
-  if (error) return 'An error has occurred: ' + error.message
+  if (error) return <ErrorState error={error} onRetry={() => { void refetch() }} />
   if (!allSamples) return 'No data was returned.'
 
   // Since we're using client-side rendering, we need to extract unique keys from sample attributes

@@ -10,6 +10,8 @@ import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { FullscreenSpinner } from '@/components/spinner'
+import { ErrorState } from '@/components/error-state'
+import { ErrorBanner } from '@/components/error-banner'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { SelectFilter } from '@/components/data-table/select-filter'
 import { TextFilter } from '@/components/data-table/text-filter'
@@ -111,7 +113,7 @@ function RouteComponent() {
   })
 
   // Query jobs
-  const { data, error, isFetching } = useQuery({
+  const { data, error, isFetching, refetch } = useQuery({
     ...getJobsOptions({
       query: {
         skip: (search.page - 1) * search.per_page,
@@ -134,7 +136,7 @@ function RouteComponent() {
     navigate({ to: '/jobs/$job_id', params: { job_id: jobId } })
   }
 
-  if (error) return 'An error has occurred: ' + error.message
+  if (error && !data) return <ErrorState error={error} onRetry={() => { void refetch() }} />
   if (!data) return <FullscreenSpinner variant='ellipsis' />
 
 
@@ -252,6 +254,7 @@ function RouteComponent() {
           </p>
         </div>
       </div>
+      {error && <ErrorBanner error={error} onRetry={() => { void refetch() }} />}
       <ServerDataTable
         data={data.data}
         columns={columns}
