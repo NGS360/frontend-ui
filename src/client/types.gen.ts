@@ -215,6 +215,7 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -495,6 +496,91 @@ export type BodyUploadManifest = {
    * Manifest CSV file to upload
    */
   file: Blob | File
+}
+
+/**
+ * BulkSampleCreateRequest
+ * Request body for POST /projects/{project_id}/samples/bulk.
+ */
+export type BulkSampleCreateRequest = {
+  /**
+   * Samples
+   */
+  samples: Array<SampleCreate>
+}
+
+/**
+ * BulkSampleCreateResponse
+ * Aggregate response for the bulk sample creation endpoint.
+ */
+export type BulkSampleCreateResponse = {
+  /**
+   * Project Id
+   */
+  project_id: string
+  /**
+   * Samples Created
+   */
+  samples_created: number
+  /**
+   * Samples Existing
+   */
+  samples_existing: number
+  /**
+   * Associations Created
+   */
+  associations_created: number
+  /**
+   * Associations Existing
+   */
+  associations_existing: number
+  /**
+   * Files Created
+   */
+  files_created?: number
+  /**
+   * Files Skipped
+   */
+  files_skipped?: number
+  /**
+   * Items
+   */
+  items: Array<BulkSampleItemResponse>
+}
+
+/**
+ * BulkSampleItemResponse
+ * Per-item detail in the bulk creation response.
+ */
+export type BulkSampleItemResponse = {
+  /**
+   * Sample Id
+   */
+  sample_id: string
+  /**
+   * Sample Uuid
+   */
+  sample_uuid: string
+  /**
+   * Project Id
+   */
+  project_id: string
+  /**
+   * Created
+   */
+  created: boolean
+  /**
+   * Run Barcode
+   */
+  run_barcode?: string | null
+  /**
+   * Files Created
+   */
+  files_created?: number
+  /**
+   * Files Skipped
+   */
+  files_skipped?: number
 }
 
 /**
@@ -1374,7 +1460,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflow Ids
    */
@@ -1408,7 +1494,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflows
    */
@@ -1893,7 +1979,75 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiSamplesModelsAttribute> | null
+  /**
+   * Run Barcode
+   */
+  run_barcode?: string | null
+  /**
+   * Files
+   */
+  files?: Array<SampleFileInput> | null
+}
+
+/**
+ * SampleFileInput
+ * File to create and associate with a sample during sample creation.
+ */
+export type SampleFileInput = {
+  /**
+   * Uri
+   */
+  uri: string
+  /**
+   * Tags
+   */
+  tags?: {
+    [key: string]: string
+  } | null
+  /**
+   * Hashes
+   */
+  hashes?: {
+    [key: string]: string
+  } | null
+  /**
+   * Role
+   */
+  role?: string | null
+  /**
+   * Source
+   */
+  source?: string | null
+  /**
+   * Original Filename
+   */
+  original_filename?: string | null
+  /**
+   * Size
+   */
+  size?: number | null
+  /**
+   * Storage Backend
+   */
+  storage_backend?: string | null
+}
+
+/**
+ * SampleFilePublic
+ * Compact file representation for sample responses.
+ */
+export type SampleFilePublic = {
+  /**
+   * Uri
+   */
+  uri: string
+  /**
+   * Tags
+   */
+  tags?: {
+    [key: string]: string
+  } | null
 }
 
 /**
@@ -1926,7 +2080,11 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiSamplesModelsAttribute> | null
+  /**
+   * Run Barcode
+   */
+  run_barcode?: string | null
 }
 
 /**
@@ -1966,6 +2124,33 @@ export type SampleSequencingRunPublic = {
 }
 
 /**
+ * SampleWithFilesPublic
+ * SamplePublic extended with associated files.
+ */
+export type SampleWithFilesPublic = {
+  /**
+   * Sample Id
+   */
+  sample_id: string
+  /**
+   * Project Id
+   */
+  project_id: string
+  /**
+   * Attributes
+   */
+  attributes: Array<ApiSamplesModelsAttribute> | null
+  /**
+   * Run Barcode
+   */
+  run_barcode?: string | null
+  /**
+   * Files
+   */
+  files?: Array<SampleFilePublic> | null
+}
+
+/**
  * SamplesPublic
  */
 export type SamplesPublic = {
@@ -1973,6 +2158,45 @@ export type SamplesPublic = {
    * Data
    */
   data: Array<SamplePublic>
+  /**
+   * Data Cols
+   */
+  data_cols?: Array<string> | null
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
+
+/**
+ * SamplesWithFilesPublic
+ * Paginated list of samples with file data included.
+ */
+export type SamplesWithFilesPublic = {
+  /**
+   * Data
+   */
+  data: Array<SampleWithFilesPublic>
   /**
    * Data Cols
    */
@@ -2045,7 +2269,7 @@ export type SequencingRunCreate = {
   /**
    * Run Number
    */
-  run_number: number
+  run_number: string
   /**
    * Flowcell Id
    */
@@ -2080,7 +2304,7 @@ export type SequencingRunPublic = {
   /**
    * Run Number
    */
-  run_number: number
+  run_number: string
   /**
    * Flowcell Id
    */
@@ -2494,7 +2718,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2528,7 +2752,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Registrations
    */
@@ -2598,7 +2822,7 @@ export type WorkflowRunCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2636,7 +2860,7 @@ export type WorkflowRunPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2709,9 +2933,8 @@ export type ApiProjectModelsAttribute = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
-export type ApiWorkflowModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -4240,6 +4463,11 @@ export type GetProjectSamplesData = {
      * Sort order (asc or desc)
      */
     sort_order?: 'asc' | 'desc'
+    /**
+     * Include
+     * Include related data: files
+     */
+    include?: Array<string> | null
   }
   url: '/api/v1/projects/{project_id}/samples'
 }
@@ -4256,9 +4484,10 @@ export type GetProjectSamplesError =
 
 export type GetProjectSamplesResponses = {
   /**
+   * Response Get Project Samples
    * Successful Response
    */
-  200: SamplesPublic
+  200: SamplesWithFilesPublic | SamplesPublic
 }
 
 export type GetProjectSamplesResponse =
@@ -4296,8 +4525,40 @@ export type AddSampleToProjectResponses = {
 export type AddSampleToProjectResponse =
   AddSampleToProjectResponses[keyof AddSampleToProjectResponses]
 
+export type BulkCreateSamplesData = {
+  body: BulkSampleCreateRequest
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/samples/bulk'
+}
+
+export type BulkCreateSamplesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type BulkCreateSamplesError =
+  BulkCreateSamplesErrors[keyof BulkCreateSamplesErrors]
+
+export type BulkCreateSamplesResponses = {
+  /**
+   * Successful Response
+   */
+  201: BulkSampleCreateResponse
+}
+
+export type BulkCreateSamplesResponse =
+  BulkCreateSamplesResponses[keyof BulkCreateSamplesResponses]
+
 export type UpdateSampleInProjectData = {
-  body: Attribute
+  body: ApiSamplesModelsAttribute
   path: {
     /**
      * Sample Id
