@@ -15,6 +15,7 @@ import {
   addWorkflowToPipeline,
   associateSampleWithRun,
   browseS3,
+  bulkCreateSamples,
   changePassword,
   clearSamplesForRun,
   confirmPasswordReset,
@@ -131,6 +132,9 @@ import type {
   AssociateSampleWithRunError,
   AssociateSampleWithRunResponse,
   BrowseS3Data,
+  BulkCreateSamplesData,
+  BulkCreateSamplesError,
+  BulkCreateSamplesResponse,
   ChangePasswordData,
   ChangePasswordError,
   ChangePasswordResponse,
@@ -2095,10 +2099,11 @@ export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
 
 /**
  * Download file from S3
- * Download a file from S3.
+ * Download a file from S3 via presigned URL redirect.
  *
- * Returns the file as a streaming download with appropriate
- * content type and filename.
+ * Returns a 307 redirect to a time-limited presigned S3 URL.
+ * The client follows the redirect to download directly from S3,
+ * offloading bandwidth from the API server.
  */
 export const downloadFileOptions = (options: Options<DownloadFileData>) => {
   return queryOptions({
@@ -2904,6 +2909,8 @@ export const getProjectSamplesQueryKey = (
 /**
  * Get Project Samples
  * Returns a paginated list of samples.
+ *
+ * Pass ``?include=files`` to eagerly load file metadata for each sample.
  */
 export const getProjectSamplesOptions = (
   options: Options<GetProjectSamplesData>,
@@ -2930,6 +2937,8 @@ export const getProjectSamplesInfiniteQueryKey = (
 /**
  * Get Project Samples
  * Returns a paginated list of samples.
+ *
+ * Pass ``?include=files`` to eagerly load file metadata for each sample.
  */
 export const getProjectSamplesInfiniteOptions = (
   options: Options<GetProjectSamplesData>,
@@ -2981,6 +2990,9 @@ export const addSampleToProjectQueryKey = (
 /**
  * Add Sample To Project
  * Create a new sample with optional attributes.
+ *
+ * If ``run_barcode`` is provided in the request body, the sample is also
+ * associated with the specified sequencing run in the same transaction.
  */
 export const addSampleToProjectOptions = (
   options: Options<AddSampleToProjectData>,
@@ -3002,6 +3014,9 @@ export const addSampleToProjectOptions = (
 /**
  * Add Sample To Project
  * Create a new sample with optional attributes.
+ *
+ * If ``run_barcode`` is provided in the request body, the sample is also
+ * associated with the specified sequencing run in the same transaction.
  */
 export const addSampleToProjectMutation = (
   options?: Partial<Options<AddSampleToProjectData>>,
@@ -3017,6 +3032,67 @@ export const addSampleToProjectMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await addSampleToProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const bulkCreateSamplesQueryKey = (
+  options: Options<BulkCreateSamplesData>,
+) => createQueryKey('bulkCreateSamples', options)
+
+/**
+ * Bulk Create Samples
+ * Create multiple samples in a single atomic transaction.
+ *
+ * Each sample in the list may optionally include a ``run_barcode``
+ * to associate the sample with a sequencing run at creation time.
+ * All samples succeed or fail together.
+ */
+export const bulkCreateSamplesOptions = (
+  options: Options<BulkCreateSamplesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await bulkCreateSamples({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: bulkCreateSamplesQueryKey(options),
+  })
+}
+
+/**
+ * Bulk Create Samples
+ * Create multiple samples in a single atomic transaction.
+ *
+ * Each sample in the list may optionally include a ``run_barcode``
+ * to associate the sample with a sequencing run at creation time.
+ * All samples succeed or fail together.
+ */
+export const bulkCreateSamplesMutation = (
+  options?: Partial<Options<BulkCreateSamplesData>>,
+): UseMutationOptions<
+  BulkCreateSamplesResponse,
+  AxiosError<BulkCreateSamplesError>,
+  Options<BulkCreateSamplesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    BulkCreateSamplesResponse,
+    AxiosError<BulkCreateSamplesError>,
+    Options<BulkCreateSamplesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await bulkCreateSamples({
         ...options,
         ...localOptions,
         throwOnError: true,
