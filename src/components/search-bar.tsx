@@ -114,8 +114,8 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
       type: 'run' as const,
       data: r,
       navigate: () => navigate({
-        to: '/runs/$run_barcode',
-        params: { run_barcode: r.barcode || "" }
+        to: '/runs/$run_id',
+        params: { run_id: r.run_id }
       })
     }))
   ];
@@ -241,16 +241,16 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
                     const runIndex = projects.length + index;
                     return (
                       <SearchItem
-                        key={r.barcode}
+                        key={r.run_id}
                         onClick={() => handleResultClick(() => navigate({
-                          to: '/runs/$run_barcode',
-                          params: { run_barcode: r.barcode || "" }
+                          to: '/runs/$run_id',
+                          params: { run_id: r.run_id }
                         }))}
                         isHighlighted={selectedIndex === runIndex}
                       >
-                        <div id={`${baseId}-run-${r.barcode || 'unknown'}`} ref={selectedIndex === runIndex ? selectedItemRef : null}>
+                        <div id={`${baseId}-run-${r.run_id}`} ref={selectedIndex === runIndex ? selectedItemRef : null}>
                           <span className='text-sm'>
-                            {highlightMatch(r.barcode || '', debouncedInput)}
+                            {highlightMatch(r.run_id, debouncedInput)}
                           </span>
                           <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
                             {highlightMatch(r.experiment_name || '', debouncedInput)}

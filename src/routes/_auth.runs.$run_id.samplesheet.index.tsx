@@ -14,7 +14,7 @@ import { getRunSamplesheetOptions, getRunSamplesheetQueryKey, postRunSamplesheet
 import { FullscreenSpinner } from '@/components/spinner'
 import { highlightMatch } from '@/lib/utils'
 
-export const Route = createFileRoute('/_auth/runs/$run_barcode/samplesheet/')({
+export const Route = createFileRoute('/_auth/runs/$run_id/samplesheet/')({
   component: RouteComponent,
   pendingComponent: () => <FullscreenSpinner variant='ellipsis' />,
   pendingMs: 200
@@ -22,8 +22,8 @@ export const Route = createFileRoute('/_auth/runs/$run_barcode/samplesheet/')({
 
 function RouteComponent() {
   // Get route params
-  const routeApi = getRouteApi('/_auth/runs/$run_barcode/samplesheet/')
-  const { run_barcode } = routeApi.useParams()
+  const routeApi = getRouteApi('/_auth/runs/$run_id/samplesheet/')
+  const { run_id } = routeApi.useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient();
   
@@ -34,7 +34,7 @@ function RouteComponent() {
   const { data: runInfo, isLoading, error, isError } = useQuery({
     ...getRunSamplesheetOptions({
       path: {
-        run_barcode: run_barcode
+        run_id: run_id
       }
     }),
     retry: false, // Don't retry on errors to match loader behavior
@@ -49,11 +49,11 @@ function RouteComponent() {
       queryClient.invalidateQueries({
         queryKey: getRunSamplesheetQueryKey({
           path: {
-            run_barcode: run_barcode
+            run_id: run_id
           }
         })
       });
-      toast.success(`Samplesheet for run ${run_barcode} uploaded successfully`);
+      toast.success(`Samplesheet for run ${run_id} uploaded successfully`);
     },
     onError: (uploadError) => {
       console.error(uploadError);
@@ -65,7 +65,7 @@ function RouteComponent() {
     if (acceptedFiles.length > 0) {
       mutate({
         path: {
-          run_barcode: run_barcode
+          run_id: run_id
         },
         body: {
           file: acceptedFiles[0]
@@ -74,7 +74,7 @@ function RouteComponent() {
     } else {
       console.error("No files accepted");
     }
-  }, [mutate, run_barcode])
+  }, [mutate, run_id])
 
   // Handle redirects and alerts for specific error cases
   useEffect(() => {

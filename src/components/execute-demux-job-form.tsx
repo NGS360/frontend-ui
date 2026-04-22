@@ -37,8 +37,8 @@ import {
 interface ExecuteToolFormProps {
   /** The workflow configuration to render as a form */
   toolConfig: DemuxWorkflowConfig;
-  /** The run barcode to execute the workflow against */
-  runBarcode: string;
+  /** The run id to execute the workflow against */
+  runId: string;
   /** Whether the dialog is open */
   isOpen: boolean;
   /** Callback when dialog open state changes */
@@ -49,7 +49,7 @@ interface ExecuteToolFormProps {
 
 export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
   toolConfig,
-  runBarcode,
+  runId,
   isOpen,
   onOpenChange,
   idPrefix,
@@ -210,7 +210,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
     mutate({
       body: {
         workflow_id: toolConfig.workflow_id,
-        run_barcode: runBarcode,
+        run_barcode: runId,
         inputs: data,
       }
     });
