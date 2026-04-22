@@ -79,6 +79,7 @@ import {
   logout,
   oauthAuthorize,
   oauthCallback,
+  patchProject,
   postRunSamplesheet,
   refreshToken,
   register,
@@ -256,6 +257,9 @@ import type {
   LogoutResponse,
   OauthAuthorizeData,
   OauthCallbackData,
+  PatchProjectData,
+  PatchProjectError,
+  PatchProjectResponse,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
   PostRunSamplesheetResponse,
@@ -2875,8 +2879,45 @@ export const getProjectByProjectIdOptions = (
 }
 
 /**
+ * Patch Project
+ * Partially update a project using merge/upsert semantics.
+ *
+ * Unlike PUT, this does **not** remove attributes that are absent
+ * from the request.  Each supplied attribute is upserted: existing
+ * keys are updated, new keys are inserted, and unmentioned keys
+ * are left untouched.  An empty attributes list is a no-op.
+ */
+export const patchProjectMutation = (
+  options?: Partial<Options<PatchProjectData>>,
+): UseMutationOptions<
+  PatchProjectResponse,
+  AxiosError<PatchProjectError>,
+  Options<PatchProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchProjectResponse,
+    AxiosError<PatchProjectError>,
+    Options<PatchProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
  * Update Project
- * Update information about a specific project.
+ * Full replacement update of a project.
+ *
+ * Attributes provided here **replace** all existing attributes.
+ * To merge/upsert attributes without removing unmentioned ones,
+ * use ``PATCH /{project_id}`` instead.
  */
 export const updateProjectMutation = (
   options?: Partial<Options<UpdateProjectData>>,

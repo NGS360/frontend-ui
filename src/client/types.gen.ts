@@ -215,7 +215,6 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -1248,6 +1247,18 @@ export type ManifestValidationResponse = {
   warning?: {
     [key: string]: Array<string>
   }
+  /**
+   * Post Results
+   * Results from posting samples to API after successful validation
+   */
+  post_results?: {
+    [key: string]: unknown
+  } | null
+  /**
+   * Post Error
+   * Error message if posting samples failed
+   */
+  post_error?: string | null
 }
 
 /**
@@ -1460,7 +1471,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflow Ids
    */
@@ -1494,7 +1505,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflows
    */
@@ -1592,7 +1603,7 @@ export type ProjectCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiProjectModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -1618,7 +1629,7 @@ export type ProjectPublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiProjectModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Sequencing Runs
    */
@@ -1637,7 +1648,7 @@ export type ProjectUpdate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiProjectModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2259,6 +2270,10 @@ export type SelectOption = {
  */
 export type SequencingRunCreate = {
   /**
+   * Run Id
+   */
+  run_id: string
+  /**
    * Run Date
    */
   run_date: string
@@ -2294,6 +2309,10 @@ export type SequencingRunCreate = {
  */
 export type SequencingRunPublic = {
   /**
+   * Run Id
+   */
+  run_id: string
+  /**
    * Run Date
    */
   run_date: string
@@ -2322,10 +2341,6 @@ export type SequencingRunPublic = {
    * Run Time
    */
   run_time: string | null
-  /**
-   * Barcode
-   */
-  barcode: string | null
 }
 
 /**
@@ -2718,7 +2733,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2752,7 +2767,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Registrations
    */
@@ -2822,7 +2837,7 @@ export type WorkflowRunCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2860,7 +2875,7 @@ export type WorkflowRunPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2920,7 +2935,7 @@ export type WorkflowSummary = {
 /**
  * Attribute
  */
-export type ApiProjectModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -2933,8 +2948,9 @@ export type ApiProjectModelsAttribute = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiWorkflowModelsAttribute = {
   /**
    * Key
    */
@@ -4204,6 +4220,11 @@ export type ValidateManifestData = {
      * (S3, GS) path where files described in manifest are located (e.g. s3://vendorbucket/path/to/files/)
      */
     files_uri?: string
+    /**
+     * Post To Api
+     * If true, post samples to API after successful validation
+     */
+    post_to_api?: boolean | null
   }
   url: '/api/v1/manifest/validate'
 }
@@ -4402,6 +4423,37 @@ export type GetProjectByProjectIdResponses = {
 
 export type GetProjectByProjectIdResponse =
   GetProjectByProjectIdResponses[keyof GetProjectByProjectIdResponses]
+
+export type PatchProjectData = {
+  body: ProjectUpdate
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}'
+}
+
+export type PatchProjectErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type PatchProjectError = PatchProjectErrors[keyof PatchProjectErrors]
+
+export type PatchProjectResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProjectPublic
+}
+
+export type PatchProjectResponse =
+  PatchProjectResponses[keyof PatchProjectResponses]
 
 export type UpdateProjectData = {
   body: ProjectUpdate
@@ -4945,7 +4997,7 @@ export type SearchRunsData = {
      * Sort By
      * Field to sort by
      */
-    sort_by?: ('barcode' | 'experiment_name') | null
+    sort_by?: ('run_id' | 'experiment_name') | null
     /**
      * Sort Order
      * Sort order (asc or desc)
@@ -5074,15 +5126,19 @@ export type GetRunData = {
   body?: never
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}'
+  url: '/api/v1/runs/{run_id}'
 }
 
 export type GetRunErrors = {
+  /**
+   * Run not found
+   */
+  404: unknown
   /**
    * Validation Error
    */
@@ -5104,12 +5160,12 @@ export type UpdateRunData = {
   body: SequencingRunUpdateRequest
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}'
+  url: '/api/v1/runs/{run_id}'
 }
 
 export type UpdateRunErrors = {
@@ -5134,12 +5190,12 @@ export type GetRunSamplesheetData = {
   body?: never
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}/samplesheet'
+  url: '/api/v1/runs/{run_id}/samplesheet'
 }
 
 export type GetRunSamplesheetErrors = {
@@ -5166,12 +5222,12 @@ export type PostRunSamplesheetData = {
   body: BodyPostRunSamplesheet
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}/samplesheet'
+  url: '/api/v1/runs/{run_id}/samplesheet'
 }
 
 export type PostRunSamplesheetErrors = {
@@ -5198,12 +5254,12 @@ export type GetRunMetricsData = {
   body?: never
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}/metrics'
+  url: '/api/v1/runs/{run_id}/metrics'
 }
 
 export type GetRunMetricsErrors = {
@@ -5229,12 +5285,12 @@ export type ClearSamplesForRunData = {
   body?: never
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}/samples'
+  url: '/api/v1/runs/{run_id}/samples'
 }
 
 export type ClearSamplesForRunErrors = {
@@ -5261,12 +5317,12 @@ export type GetSamplesForRunData = {
   body?: never
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}/samples'
+  url: '/api/v1/runs/{run_id}/samples'
 }
 
 export type GetSamplesForRunErrors = {
@@ -5294,12 +5350,12 @@ export type AssociateSampleWithRunData = {
   body: SampleSequencingRunCreate
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}/samples'
+  url: '/api/v1/runs/{run_id}/samples'
 }
 
 export type AssociateSampleWithRunErrors = {
@@ -5326,16 +5382,16 @@ export type RemoveSampleFromRunData = {
   body?: never
   path: {
     /**
-     * Run Barcode
+     * Run Id
      */
-    run_barcode: string
+    run_id: string
     /**
      * Sample Id
      */
     sample_id: string
   }
   query?: never
-  url: '/api/v1/runs/{run_barcode}/samples/{sample_id}'
+  url: '/api/v1/runs/{run_id}/samples/{sample_id}'
 }
 
 export type RemoveSampleFromRunErrors = {

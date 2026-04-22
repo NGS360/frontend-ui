@@ -212,6 +212,9 @@ import type {
   OauthCallbackData,
   OauthCallbackErrors,
   OauthCallbackResponses,
+  PatchProjectData,
+  PatchProjectErrors,
+  PatchProjectResponses,
   PostRunSamplesheetData,
   PostRunSamplesheetErrors,
   PostRunSamplesheetResponses,
@@ -1663,8 +1666,39 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Patch Project
+ * Partially update a project using merge/upsert semantics.
+ *
+ * Unlike PUT, this does **not** remove attributes that are absent
+ * from the request.  Each supplied attribute is upserted: existing
+ * keys are updated, new keys are inserted, and unmentioned keys
+ * are left untouched.  An empty attributes list is a no-op.
+ */
+export const patchProject = <ThrowOnError extends boolean = false>(
+  options: Options<PatchProjectData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchProjectResponses,
+    PatchProjectErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/{project_id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
  * Update Project
- * Update information about a specific project.
+ * Full replacement update of a project.
+ *
+ * Attributes provided here **replace** all existing attributes.
+ * To merge/upsert attributes without removing unmentioned ones,
+ * use ``PATCH /{project_id}`` instead.
  */
 export const updateProject = <ThrowOnError extends boolean = false>(
   options: Options<UpdateProjectData, ThrowOnError>,
@@ -2249,7 +2283,7 @@ export const getRun = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/runs/{run_barcode}',
+    url: '/api/v1/runs/{run_id}',
     ...options,
   })
 }
@@ -2268,7 +2302,7 @@ export const updateRun = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/runs/{run_barcode}',
+    url: '/api/v1/runs/{run_id}',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -2290,7 +2324,7 @@ export const getRunSamplesheet = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/runs/{run_barcode}/samplesheet',
+    url: '/api/v1/runs/{run_id}/samplesheet',
     ...options,
   })
 }
@@ -2309,7 +2343,7 @@ export const postRunSamplesheet = <ThrowOnError extends boolean = false>(
   >({
     ...formDataBodySerializer,
     responseType: 'json',
-    url: '/api/v1/runs/{run_barcode}/samplesheet',
+    url: '/api/v1/runs/{run_id}/samplesheet',
     ...options,
     headers: {
       'Content-Type': null,
@@ -2331,7 +2365,7 @@ export const getRunMetrics = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/runs/{run_barcode}/metrics',
+    url: '/api/v1/runs/{run_id}/metrics',
     ...options,
   })
 }
@@ -2360,7 +2394,7 @@ export const clearSamplesForRun = <ThrowOnError extends boolean = false>(
         type: 'http',
       },
     ],
-    url: '/api/v1/runs/{run_barcode}/samples',
+    url: '/api/v1/runs/{run_id}/samples',
     ...options,
   })
 }
@@ -2378,7 +2412,7 @@ export const getSamplesForRun = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/runs/{run_barcode}/samples',
+    url: '/api/v1/runs/{run_id}/samples',
     ...options,
   })
 }
@@ -2402,7 +2436,7 @@ export const associateSampleWithRun = <ThrowOnError extends boolean = false>(
         type: 'http',
       },
     ],
-    url: '/api/v1/runs/{run_barcode}/samples',
+    url: '/api/v1/runs/{run_id}/samples',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -2423,7 +2457,7 @@ export const removeSampleFromRun = <ThrowOnError extends boolean = false>(
     RemoveSampleFromRunErrors,
     ThrowOnError
   >({
-    url: '/api/v1/runs/{run_barcode}/samples/{sample_id}',
+    url: '/api/v1/runs/{run_id}/samples/{sample_id}',
     ...options,
   })
 }
