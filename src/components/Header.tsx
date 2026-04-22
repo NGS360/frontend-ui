@@ -50,7 +50,7 @@ export default function Header() {
   const navId = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
   return (
-    <header id="app-header" className="sticky top-0 left-0 w-full h-14 flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
+    <header id="app-header" className="@container sticky top-0 left-0 w-full h-14 flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
       {/* Logo and Nav Items - Left Side */}
       <div id="header-left" className="flex items-center">
         {/* Logo */}
@@ -63,7 +63,7 @@ export default function Header() {
         </div>
 
         {/* Desktop Nav Items */}
-        <div id="header-nav-desktop" className="hidden xl:block ml-4">
+        <div id="header-nav-desktop" className="hidden @7xl:block ml-4">
           <NavigationMenu>
             <NavigationMenuList className="gap-4">
               {navItems.map(({ to, label, icon, search, isExternal }) => (
@@ -95,12 +95,12 @@ export default function Header() {
       {/* Search bar and Create Button - Right Side */}
       <div id="header-right" className="flex items-center gap-3 ml-auto pr-2">
         {/* Search bar - narrower version for header */}
-        <div id="header-search" className="hidden xl:block w-64 xl:w-80">
+        <div id="header-search" className="hidden @7xl:block w-64 @7xl:w-80">
           <SearchBar idPrefix="header-search" />
         </div>
 
         {/* Desktop Create Button */}
-        <div id="header-create-project" className="hidden xl:block">
+        <div id="header-create-project" className="hidden @7xl:block">
           <CreateProjectForm
             idPrefix="header-create-project"
             trigger={(
@@ -111,7 +111,7 @@ export default function Header() {
 
         {/* Notifications Dropdown - Only show when authenticated */}
         {isAuthenticated && (
-          <div id="header-notifications" className="hidden xl:block">
+          <div id="header-notifications" className="hidden @7xl:block">
             <NotificationsDropdown />
           </div>
         )}
@@ -155,7 +155,7 @@ export default function Header() {
             <Button
               id="header-mobile-menu-toggle"
               variant="outline"
-              className="xl:hidden"
+              className="@7xl:hidden"
               aria-label="Toggle navigation"
             >
               {menuOpen ? (
