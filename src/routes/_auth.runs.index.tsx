@@ -193,8 +193,8 @@ function RouteComponent() {
 
   return (
     <div className='animate-fade-in-up'>
-      <h1 className="text-2xl">Illumina Runs</h1>
-      <p className="text-muted-foreground mb-6">View all illumina runs in NGS360</p>
+      <h1 className="text-2xl">Sequencing Runs</h1>
+      <p className="text-muted-foreground mb-6">View all sequencing runs in NGS360</p>
       <ServerDataTable
         data={data.data}
         columns={columns}

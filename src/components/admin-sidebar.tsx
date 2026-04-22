@@ -21,7 +21,7 @@ export const AdminSidebar = () => {
     { title: "Admin Dashboard", icon: LayoutDashboard, url: "/admin" },
     { title: "Vendors", icon: Handshake, url: "/admin/vendors" },
     { title: "Project Settings", icon: Folder, url: "/admin/project-settings" },
-    { title: "Illumina Run Settings", icon: Database, url: "/admin/run-settings" },
+    { title: "Sequencing Run Settings", icon: Database, url: "/admin/run-settings" },
     { title: "Jobs", icon: ListChecks, url: "/admin/jobs" },
   ]
 

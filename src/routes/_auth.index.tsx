@@ -46,7 +46,7 @@ function App() {
                       className="h-6 w-6 text-accent3" 
                     />
                   </div>
-                  <CardTitle className="text-2xl font-light">Illumina Runs</CardTitle>
+                  <CardTitle className="text-2xl font-light">Sequencing Runs</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
