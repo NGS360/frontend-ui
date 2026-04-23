@@ -1742,7 +1742,7 @@ export const getProjectSamples = <ThrowOnError extends boolean = false>(
  * Add Sample To Project
  * Create a new sample with optional attributes.
  *
- * If ``run_barcode`` is provided in the request body, the sample is also
+ * If ``run_id`` is provided in the request body, the sample is also
  * associated with the specified sequencing run in the same transaction.
  */
 export const addSampleToProject = <ThrowOnError extends boolean = false>(
@@ -1908,7 +1908,7 @@ export const ingestVendorData = <ThrowOnError extends boolean = false>(
  * **Authentication required:** Bearer token must be provided.
  *
  * **Scoping:** Provide exactly one of `project_id` (project-scoped) or
- * `sequencing_run_barcode` (run-scoped, e.g. demux stats).
+ * `sequencing_run_id` (run-scoped, e.g. demux stats).
  *
  * **Example — project-scoped:**
  *
@@ -1934,7 +1934,7 @@ export const ingestVendorData = <ThrowOnError extends boolean = false>(
  * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
  * -H "Content-Type: application/json" \
  * -d '{
- * "sequencing_run_barcode": "240101_A00000_0001_FLOWCELLID",
+ * "sequencing_run_id": "240101_A00000_0001_FLOWCELLID",
  * "metadata": { "pipeline": "bcl-convert", "version": "4.3" },
  * "metrics": [{
  * "name": "demux_summary",
@@ -1984,9 +1984,8 @@ export const createQcrecord = <ThrowOnError extends boolean = false>(
  *
  * **Parameters:**
  * - `project_id`: Filter to records scoped to a specific project
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter by sequencing run_id string (record or metric level)
  * - `workflow_run_id`: Filter by the workflow run that produced the QC data
- * - `sequencing_run_id`: Filter by sequencing run UUID (record or metric level)
  * - `latest`: If true (default), returns only the most recent record per scope
  * - `page`: Page number for pagination (starts at 1)
  * - `per_page`: Number of results per page (max 1000)
@@ -1994,9 +1993,8 @@ export const createQcrecord = <ThrowOnError extends boolean = false>(
  * **Example:**
  * ```
  * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
- * GET /api/v1/qcmetrics/search?sequencing_run_barcode=240101_A00000_0001_XYZ
+ * GET /api/v1/qcmetrics/search?sequencing_run_id=240101_A00000_0001_XYZ
  * GET /api/v1/qcmetrics/search?workflow_run_id=<uuid>&latest=false
- * GET /api/v1/qcmetrics/search?sequencing_run_id=<uuid>
  * ```
  */
 export const searchQcrecordsGet = <ThrowOnError extends boolean = false>(
@@ -2035,7 +2033,7 @@ export const searchQcrecordsGet = <ThrowOnError extends boolean = false>(
  *
  * **Filter options:**
  * - `project_id`: Single value or list of project IDs
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter to records scoped to a sequencing run
  * - `metadata`: Key-value pairs to match against pipeline metadata
  *
  * **Pagination:**
@@ -2212,7 +2210,7 @@ export const listDemultiplexWorkflows = <ThrowOnError extends boolean = false>(
  * Args:
  * session: Database session
  * workflow_body: The demultiplex workflow execution request containing
- * workflow_id, run_barcode, and inputs
+ * workflow_id, run_id, and inputs
  * s3_client: S3 client for accessing workflow configs
  * Returns:
  * BatchJobPublic: The created batch job with AWS job information.
@@ -2249,10 +2247,10 @@ export const submitDemultiplexWorkflowJob = <
  *
  * Args:
  * workflow_id: The workflow identifier (filename without extension)
- * run_barcode: Optional run barcode to prepopulate s3_run_folder_path from run's run_folder_uri
+ * run_id: Optional run ID to prepopulate s3_run_folder_path from run's run_folder_uri
  *
  * Returns:
- * Complete workflow configuration with prepopulated defaults if run_barcode is provided
+ * Complete workflow configuration with prepopulated defaults if run_id is provided
  */
 export const getDemultiplexWorkflowConfig = <
   ThrowOnError extends boolean = false,

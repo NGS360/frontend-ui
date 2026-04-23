@@ -88,7 +88,7 @@ function RouteComponent() {
           workflow_id: workflow
         },
         query: {
-          run_barcode: run.run_id
+          run_id: run.run_id
         },
         throwOnError: true
       })

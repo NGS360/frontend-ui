@@ -215,6 +215,7 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -569,9 +570,9 @@ export type BulkSampleItemResponse = {
    */
   created: boolean
   /**
-   * Run Barcode
+   * Run Id
    */
-  run_barcode?: string | null
+  run_id?: string | null
   /**
    * Files Created
    */
@@ -710,9 +711,9 @@ export type DemuxWorkflowSubmitBody = {
    */
   workflow_id: string
   /**
-   * Run Barcode
+   * Run Id
    */
-  run_barcode: string
+  run_id: string
   /**
    * Inputs
    */
@@ -1290,9 +1291,9 @@ export type MetricInput = {
    */
   samples?: Array<MetricSampleInput> | null
   /**
-   * Sequencing Run Barcode
+   * Sequencing Run Id
    */
-  sequencing_run_barcode?: string | null
+  sequencing_run_id?: string | null
   /**
    * Workflow Run Id
    */
@@ -1322,10 +1323,6 @@ export type MetricPublic = {
    * Sequencing Run Id
    */
   sequencing_run_id?: string | null
-  /**
-   * Sequencing Run Barcode
-   */
-  sequencing_run_barcode?: string | null
   /**
    * Workflow Run Id
    */
@@ -1471,7 +1468,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflow Ids
    */
@@ -1505,7 +1502,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflows
    */
@@ -1603,7 +1600,7 @@ export type ProjectCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -1629,7 +1626,7 @@ export type ProjectPublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiProjectModelsAttribute> | null
   /**
    * Sequencing Runs
    */
@@ -1648,7 +1645,7 @@ export type ProjectUpdate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -1689,9 +1686,9 @@ export type ProjectsPublic = {
  * QCRecordCreate
  * Request model for creating a QC record.
  *
- * Scoping: Provide exactly one of project_id or sequencing_run_barcode.
+ * Scoping: Provide exactly one of project_id or sequencing_run_id.
  * - project_id: Project-scoped record (e.g., alignment QC, variant QC)
- * - sequencing_run_barcode: Run-scoped record (e.g., demux stats)
+ * - sequencing_run_id: Run-scoped record (e.g., demux stats)
  *
  * Uses the explicit metrics format with sample associations supporting
  * workflow-level, single-sample, and paired-sample (tumor/normal) metrics.
@@ -1702,9 +1699,9 @@ export type QcRecordCreate = {
    */
   project_id?: string | null
   /**
-   * Sequencing Run Barcode
+   * Sequencing Run Id
    */
-  sequencing_run_barcode?: string | null
+  sequencing_run_id?: string | null
   /**
    * Workflow Run Id
    */
@@ -1754,10 +1751,6 @@ export type QcRecordCreated = {
    */
   sequencing_run_id?: string | null
   /**
-   * Sequencing Run Barcode
-   */
-  sequencing_run_barcode?: string | null
-  /**
    * Workflow Run Id
    */
   workflow_run_id?: string | null
@@ -1792,10 +1785,6 @@ export type QcRecordPublic = {
    * Sequencing Run Id
    */
   sequencing_run_id?: string | null
-  /**
-   * Sequencing Run Barcode
-   */
-  sequencing_run_barcode?: string | null
   /**
    * Workflow Run Id
    */
@@ -1948,9 +1937,9 @@ export type ResendVerificationRequest = {
  */
 export type RunSampleCleanupResponse = {
   /**
-   * Run Barcode
+   * Run Id
    */
-  run_barcode: string
+  run_id: string
   /**
    * Associations Removed
    */
@@ -1992,9 +1981,9 @@ export type SampleCreate = {
    */
   attributes?: Array<ApiSamplesModelsAttribute> | null
   /**
-   * Run Barcode
+   * Run Id
    */
-  run_barcode?: string | null
+  run_id?: string | null
   /**
    * Files
    */
@@ -2093,9 +2082,9 @@ export type SamplePublic = {
    */
   attributes: Array<ApiSamplesModelsAttribute> | null
   /**
-   * Run Barcode
+   * Run Id
    */
-  run_barcode?: string | null
+  run_id?: string | null
 }
 
 /**
@@ -2152,9 +2141,9 @@ export type SampleWithFilesPublic = {
    */
   attributes: Array<ApiSamplesModelsAttribute> | null
   /**
-   * Run Barcode
+   * Run Id
    */
-  run_barcode?: string | null
+  run_id?: string | null
   /**
    * Files
    */
@@ -2733,7 +2722,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2767,7 +2756,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Registrations
    */
@@ -2837,7 +2826,7 @@ export type WorkflowRunCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2875,7 +2864,7 @@ export type WorkflowRunPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2935,7 +2924,7 @@ export type WorkflowSummary = {
 /**
  * Attribute
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiProjectModelsAttribute = {
   /**
    * Key
    */
@@ -2948,9 +2937,8 @@ export type ApiSamplesModelsAttribute = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
-export type ApiWorkflowModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -4757,20 +4745,15 @@ export type SearchQcrecordsGetData = {
      */
     project_id?: string | null
     /**
-     * Sequencing Run Barcode
-     * Filter by sequencing run barcode (run-scoped records)
+     * Sequencing Run Id
+     * Filter by sequencing run_id string (record or metric level)
      */
-    sequencing_run_barcode?: string | null
+    sequencing_run_id?: string | null
     /**
      * Workflow Run Id
      * Filter by workflow run ID (provenance)
      */
     workflow_run_id?: string | null
-    /**
-     * Sequencing Run Id
-     * Filter by sequencing run UUID (metric-level)
-     */
-    sequencing_run_id?: string | null
     /**
      * Latest
      * Return only newest record per scope (project or run)
@@ -5094,10 +5077,10 @@ export type GetDemultiplexWorkflowConfigData = {
   }
   query?: {
     /**
-     * Run Barcode
-     * Run barcode to prepopulate s3_run_folder_path
+     * Run Id
+     * Run ID to prepopulate s3_run_folder_path
      */
-    run_barcode?: string
+    run_id?: string
   }
   url: '/api/v1/runs/demultiplex/{workflow_id}'
 }

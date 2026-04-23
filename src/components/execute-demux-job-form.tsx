@@ -210,7 +210,7 @@ export const ExecuteToolForm: React.FC<ExecuteToolFormProps> = ({
     mutate({
       body: {
         workflow_id: toolConfig.workflow_id,
-        run_barcode: runId,
+        run_id: runId,
         inputs: data,
       }
     });
