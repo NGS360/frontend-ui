@@ -10,8 +10,8 @@ import { getRunSamplesheetQueryKey, postRunSamplesheetMutation } from "@/client/
 export const NotFoundComponent = () => {
 
   // Get route params
-  const routeApi = getRouteApi('/_auth/runs/$run_barcode/samplesheet/')
-  const { run_barcode } = routeApi.useParams()
+  const routeApi = getRouteApi('/_auth/runs/$run_id/samplesheet/')
+  const { run_id } = routeApi.useParams()
 
   const queryClient = useQueryClient();
 
@@ -23,11 +23,11 @@ export const NotFoundComponent = () => {
       queryClient.invalidateQueries({
         queryKey: getRunSamplesheetQueryKey({
           path: {
-            run_barcode: run_barcode
+            run_id: run_id
           }
         })
       });
-      toast.success(`Samplesheet for run ${run_barcode} uploaded successfully`);
+      toast.success(`Samplesheet for run ${run_id} uploaded successfully`);
     },
     onError: (error) => {
       console.error(error);
@@ -41,7 +41,7 @@ export const NotFoundComponent = () => {
     if (acceptedFiles.length > 0) {
       mutate({ 
         path: {
-          run_barcode: run_barcode
+          run_id: run_id
         },
         body: {
           file: acceptedFiles[0],

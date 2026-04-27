@@ -18,9 +18,9 @@ const runsSearchSchema = z.object({
   page: z.number().optional().default(1),
   per_page: z.number().optional().default(10),
   sort_by: z.union([
-    z.literal('barcode'),
+    z.literal('run_id'),
     z.literal('experiment_name')
-  ]).optional().default('barcode'),
+  ]).optional().default('run_id'),
   sort_order: z.union([
     z.literal('asc'),
     z.literal('desc')
@@ -76,7 +76,7 @@ function RouteComponent() {
         ...search,
         page: pagination.pageIndex + 1,
         per_page: pagination.pageSize,
-        sort_by: sorting[0]?.id as 'barcode' | 'experiment_name',
+        sort_by: sorting[0]?.id as 'run_id' | 'experiment_name',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc'
       },
       replace: true
@@ -104,32 +104,32 @@ function RouteComponent() {
   // Define columns
   const columns: Array<ColumnDef<SequencingRunPublic>> = [
     {
-      accessorKey: 'barcode',
+      accessorKey: 'run_id',
       meta: { alias: "Experiment" },
       header: ({ column }) => <SortableHeader column={column} name="Experiment" />,
       cell: ({ cell, row }) => {
-        const barcode = cell.getValue() as string
+        const runId = cell.getValue() as string
         const status = row.getValue('status')
         return status === "Ready" ? (
             <CopyableText
-              text={barcode}
+              text={runId}
               variant='hoverLink'
               asChild={true}
               children={(
                 <Link
-                  to='/runs/$run_barcode'
-                  params={{ run_barcode: barcode }}
+                  to='/runs/$run_id'
+                  params={{ run_id: runId }}
                   preload={false}
                 >
-                  {highlightMatch(barcode, debouncedInput)}
+                  {highlightMatch(runId, debouncedInput)}
                 </Link>
               )}
             />
           ) : (
             <CopyableText
-              text={barcode}
+              text={runId}
               variant='hoverLight'
-              children={highlightMatch(barcode, debouncedInput)}
+              children={highlightMatch(runId, debouncedInput)}
             />
           )
       }
@@ -193,8 +193,8 @@ function RouteComponent() {
 
   return (
     <div className='animate-fade-in-up'>
-      <h1 className="text-2xl">Illumina Runs</h1>
-      <p className="text-muted-foreground mb-6">View all illumina runs in NGS360</p>
+      <h1 className="text-2xl">Sequencing Runs</h1>
+      <p className="text-muted-foreground mb-6">View all sequencing runs in NGS360</p>
       <ServerDataTable
         data={data.data}
         columns={columns}
