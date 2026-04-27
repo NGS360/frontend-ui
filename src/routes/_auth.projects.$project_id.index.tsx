@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, Cog, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Zap } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { Building2, Cog, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Upload, Zap } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import type { SamplePublic } from '@/client/types.gen'
 import type { ColumnDef } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
@@ -21,7 +22,7 @@ import { getProjectSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
-import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
+import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
 
 export const Route = createFileRoute('/_auth/projects/$project_id/')({
   component: RouteComponent,
@@ -52,8 +53,9 @@ function RouteComponent() {
   }, [columnVisibility, project.project_id, setVisibility])
 
   // Fetch all samples using the use-all-paginated hook
+  const samplesQueryKey = ['samples', 'all', project.project_id]
   const { data: allSamples, isLoading, error } = useAllPaginated({
-    queryKey: ['samples', 'all', project.project_id],
+    queryKey: samplesQueryKey,
     fetcher: ({ query }) => getProjectSamples({
       path: { project_id: project.project_id },
       query
@@ -62,6 +64,53 @@ function RouteComponent() {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
+
+  const queryClient = useQueryClient()
+  const { mutate: uploadSamples, isPending: isUploadingSamples } = useMutation({
+    ...uploadSamplesFileMutation(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: samplesQueryKey })
+      const created = response.samples_created
+      toast.success(`Uploaded sample metadata (${created} sample${created === 1 ? '' : 's'} created)`)
+    },
+    onError: (err) => {
+      toast.error(`Error uploading sample metadata: ${err.message || 'Unknown error'}`)
+    },
+  })
+
+  const onSamplesDrop = useCallback((acceptedFiles: Array<File>) => {
+    const file = acceptedFiles[0]
+    uploadSamples({
+      path: { project_id: project.project_id },
+      body: { file },
+    })
+  }, [project.project_id, uploadSamples])
+
+  const samplesFileInputRef = useRef<HTMLInputElement>(null)
+  const samplesToolbar = (
+    <>
+      <input
+        ref={samplesFileInputRef}
+        type='file'
+        accept='.csv,.tsv,.txt'
+        className='hidden'
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) onSamplesDrop([file])
+          e.target.value = ''
+        }}
+      />
+      <Button
+        variant='outline'
+        size='sm'
+        disabled={isUploadingSamples}
+        onClick={() => samplesFileInputRef.current?.click()}
+      >
+        <Upload className='size-4' />
+        {isUploadingSamples ? 'Uploading…' : 'Upload samples'}
+      </Button>
+    </>
+  )
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />
   if (error) return 'An error has occurred: ' + error.message
@@ -317,12 +366,16 @@ function RouteComponent() {
                 onFilterChange={setGlobalFilter}
                 pageSize={5}
                 isLoading={isLoading}
+                tableTools={samplesToolbar}
               />
             ) : (
                 <FileUpload
+                  onDrop={onSamplesDrop}
                   displayComponent={(
                     <span className="text-primary hover:underline mx-2">
-                      No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file
+                      {isUploadingSamples
+                        ? 'Uploading sample metadata…'
+                        : 'No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file'}
                     </span>
                   )}
                 />
