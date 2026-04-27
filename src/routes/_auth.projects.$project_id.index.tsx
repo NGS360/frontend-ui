@@ -123,7 +123,7 @@ function RouteComponent() {
     const downloadSource = hasSelection ? selectedRows : table.getCoreRowModel().rows
     const downloadLabel = hasSelection
       ? `Download ${selectedRows.length} selected`
-      : 'Download samples'
+      : 'Download all samples'
     return (
       <>
         <input
@@ -146,7 +146,7 @@ function RouteComponent() {
           {isUploadingSamples ? 'Uploading…' : 'Upload samples'}
         </Button>
         <Button
-          variant='outline'
+          variant={hasSelection ? 'primary2' : 'outline'}
           onClick={() => downloadSamplesAsTsv(downloadSource.map((r) => r.original))}
         >
           <Download />
