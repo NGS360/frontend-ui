@@ -116,11 +116,13 @@ function RouteComponent() {
   if (error) return 'An error has occurred: ' + error.message
   if (!allSamples) return 'No data was returned.'
 
-  // Since we're using client-side rendering, we need to extract unique keys from sample attributes
-  const dataColumns = allSamples.length > 0 ? 
-    Array.from(new Set(allSamples.flatMap(sample => 
+  // Since we're using client-side rendering, we need to extract unique keys from sample attributes.
+  // Skip names that collide with fixed columns (sample_id, project_id) so they don't render twice.
+  const reservedColumnIds = new Set(['sample_id', 'project_id'])
+  const dataColumns = allSamples.length > 0 ?
+    Array.from(new Set(allSamples.flatMap(sample =>
       sample.attributes?.map(attr => attr.key) || []
-    ))) : []
+    ))).filter((name): name is string => name !== null && !reservedColumnIds.has(name)) : []
 
   // Define fixed columns for sample_id and project_id
   const fixedColumns: Array<ColumnDef<SamplePublic>> = [
