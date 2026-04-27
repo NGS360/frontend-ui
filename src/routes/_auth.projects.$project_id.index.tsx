@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { Building2, Cog, Download, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Upload, Zap } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
@@ -16,7 +16,7 @@ import { UpdateProjectForm } from '@/components/update-project-form'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// tooltip no longer needed for vendor card
+import { TableSelectionBanner } from '@/components/data-table/table-selection-banner'
 import { highlightMatch, isValidHttpURL } from '@/lib/utils'
 import { getProjectSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
@@ -115,98 +115,108 @@ function RouteComponent() {
   }, [project.project_id])
 
   const samplesFileInputRef = useRef<HTMLInputElement>(null)
-  const samplesToolbar = (table: ReactTable<SamplePublic>) => {
-    const selectedRows = table.getSelectedRowModel().rows
-    const hasSelection = selectedRows.length > 0
-    // Filters are display-only. Default download is every loaded sample; if the user
-    // has explicitly selected rows, narrow to those.
-    const downloadSource = hasSelection ? selectedRows : table.getCoreRowModel().rows
-    const downloadLabel = hasSelection
-      ? `Download ${selectedRows.length} selected`
-      : 'Download all samples'
-    return (
-      <>
-        <input
-          ref={samplesFileInputRef}
-          type='file'
-          accept='.csv,.tsv,.txt'
-          className='hidden'
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) onSamplesDrop([file])
-            e.target.value = ''
-          }}
-        />
+  const samplesToolbar = (table: ReactTable<SamplePublic>) => (
+    <>
+      <input
+        ref={samplesFileInputRef}
+        type='file'
+        accept='.csv,.tsv,.txt'
+        className='hidden'
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) onSamplesDrop([file])
+          e.target.value = ''
+        }}
+      />
+      <Button
+        variant='outline'
+        disabled={isUploadingSamples}
+        onClick={() => samplesFileInputRef.current?.click()}
+      >
+        <Upload />
+        {isUploadingSamples ? 'Uploading…' : 'Upload samples'}
+      </Button>
+      <Button
+        variant='outline'
+        onClick={() => downloadSamplesAsTsv(
+          table.getCoreRowModel().rows.map((r) => r.original)
+        )}
+      >
+        <Download />
+        Download all samples
+      </Button>
+    </>
+  )
+
+  const samplesSelectionBanner = (table: ReactTable<SamplePublic>) => (
+    <TableSelectionBanner
+      table={table}
+      actions={
         <Button
-          variant='outline'
-          disabled={isUploadingSamples}
-          onClick={() => samplesFileInputRef.current?.click()}
-        >
-          <Upload />
-          {isUploadingSamples ? 'Uploading…' : 'Upload samples'}
-        </Button>
-        <Button
-          variant={hasSelection ? 'primary2' : 'outline'}
-          onClick={() => downloadSamplesAsTsv(downloadSource.map((r) => r.original))}
+          variant='primary2'
+          size='sm'
+          onClick={() => downloadSamplesAsTsv(
+            table.getSelectedRowModel().rows.map((r) => r.original)
+          )}
         >
           <Download />
-          {downloadLabel}
+          Download selection
         </Button>
-      </>
-    )
-  }
+      }
+    />
+  )
+
+  // Memoized column definitions. Derived from allSamples only — cell
+  // renderers read globalFilter dynamically from the table state at render
+  // time so highlight stays reactive without invalidating the columns
+  // reference (which would cause TanStack to rebuild the entire column tree).
+  const columns = useMemo<Array<ColumnDef<SamplePublic>>>(() => {
+    const fixedColumns: Array<ColumnDef<SamplePublic>> = [
+      {
+        accessorKey: 'sample_id',
+        header: ({ column }) => <SortableHeader column={column} name="Sample ID" />,
+        cell: ({ getValue, table }) => {
+          const value = getValue() as string
+          const filter = (table.getState().globalFilter as string | undefined) ?? ''
+          return <CopyableText text={value} variant='hover' children={highlightMatch(value, filter)} />
+        },
+      },
+      {
+        accessorKey: 'project_id',
+        header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
+        cell: ({ getValue, table }) => {
+          const value = getValue() as string
+          const filter = (table.getState().globalFilter as string | undefined) ?? ''
+          return <CopyableText text={value} variant='hover' children={highlightMatch(value, filter)} />
+        },
+      },
+    ]
+
+    if (!allSamples || allSamples.length === 0) return fixedColumns
+
+    // Extract unique attribute keys, skipping any that collide with fixed columns.
+    const dataColumns = Array.from(new Set(
+      allSamples.flatMap((sample) => sample.attributes?.map((attr) => attr.key) || [])
+    )).filter((name): name is string => name !== null && !RESERVED_SAMPLE_COLUMN_IDS.has(name))
+
+    const dynamicColumns: Array<ColumnDef<SamplePublic>> = dataColumns.map((colName) => ({
+      id: colName,
+      accessorFn: (row) => row.attributes?.find((a) => a.key === colName)?.value,
+      header: ({ column }) => <SortableHeader column={column} name={colName} />,
+      cell: ({ getValue, table }) => {
+        const value = getValue() as string | undefined
+        if (!value) return <span className='text-muted-foreground italic'>Not found</span>
+        const filter = (table.getState().globalFilter as string | undefined) ?? ''
+        return <CopyableText text={value} variant='hover' children={highlightMatch(value, filter)} />
+      },
+    }))
+
+    return [...fixedColumns, ...dynamicColumns]
+  }, [allSamples])
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />
   if (error) return 'An error has occurred: ' + error.message
   if (!allSamples) return 'No data was returned.'
-
-  // Since we're using client-side rendering, we need to extract unique keys from sample attributes.
-  // Skip names that collide with fixed columns (sample_id, project_id) so they don't render twice.
-  const dataColumns = allSamples.length > 0 ?
-    Array.from(new Set(allSamples.flatMap(sample =>
-      sample.attributes?.map(attr => attr.key) || []
-    ))).filter((name): name is string => name !== null && !RESERVED_SAMPLE_COLUMN_IDS.has(name)) : []
-
-  // Define fixed columns for sample_id and project_id
-  const fixedColumns: Array<ColumnDef<SamplePublic>> = [
-    {
-      accessorKey: 'sample_id',
-      header: ({ column }) => <SortableHeader column={column} name="Sample ID" />,
-      cell: ({ getValue }) => {
-        const value = getValue() as string
-        return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
-      }
-    },
-    {
-      accessorKey: 'project_id',
-      header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
-      cell: ({ getValue }) => {
-        const value = getValue() as string
-        return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
-      }
-    }
-  ]
-
-  // Define dynamic columns based on extracted data columns
-  const dynamicColumns: Array<ColumnDef<SamplePublic>> = dataColumns.map((colName) => ({
-    id: colName,
-    accessorFn: (row) => {
-      // Look up in attributes array
-      const attr = row.attributes?.find((a) => a.key === colName)
-      return attr?.value
-    },
-    header: ({ column }) => <SortableHeader column={column} name={colName} />,
-    cell: ({ getValue }) => {
-      const value = getValue() as string | undefined
-      if (!value) {
-        return <span className='text-muted-foreground italic'>Not found</span>
-      }
-      return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
-    }
-  }))
-
-  // Combine fixed and dynamic columns
-  const columns = [...fixedColumns, ...dynamicColumns]
 
   return(
     <div className='animate-fade-in-up'>
@@ -412,6 +422,7 @@ function RouteComponent() {
                 pageSize={5}
                 isLoading={isLoading}
                 tableTools={samplesToolbar}
+                selectionBanner={samplesSelectionBanner}
                 enableRowSelectionColumn
               />
             ) : (
