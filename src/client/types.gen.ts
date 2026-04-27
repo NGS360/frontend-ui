@@ -215,7 +215,6 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -1486,7 +1485,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflow Ids
    */
@@ -1520,7 +1519,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflows
    */
@@ -1997,7 +1996,7 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiSamplesModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2098,7 +2097,7 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiSamplesModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2157,7 +2156,7 @@ export type SampleWithFilesPublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiSamplesModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2185,17 +2184,13 @@ export type SamplesPublic = {
    */
   total_items: number
   /**
-   * Total Pages
+   * Skip
    */
-  total_pages: number
+  skip: number
   /**
-   * Current Page
+   * Limit
    */
-  current_page: number
-  /**
-   * Per Page
-   */
-  per_page: number
+  limit: number
   /**
    * Has Next
    */
@@ -2224,17 +2219,13 @@ export type SamplesWithFilesPublic = {
    */
   total_items: number
   /**
-   * Total Pages
+   * Skip
    */
-  total_pages: number
+  skip: number
   /**
-   * Current Page
+   * Limit
    */
-  current_page: number
-  /**
-   * Per Page
-   */
-  per_page: number
+  limit: number
   /**
    * Has Next
    */
@@ -2700,17 +2691,13 @@ export type VendorsPublic = {
    */
   total_items: number
   /**
-   * Total Pages
+   * Skip
    */
-  total_pages: number
+  skip: number
   /**
-   * Current Page
+   * Limit
    */
-  current_page: number
-  /**
-   * Per Page
-   */
-  per_page: number
+  limit: number
   /**
    * Has Next
    */
@@ -2740,7 +2727,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2774,7 +2761,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Registrations
    */
@@ -2844,7 +2831,7 @@ export type WorkflowRunCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2882,7 +2869,7 @@ export type WorkflowRunPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2955,8 +2942,9 @@ export type ApiProjectModelsAttribute = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiWorkflowModelsAttribute = {
   /**
    * Key
    */
@@ -4502,15 +4490,15 @@ export type GetProjectSamplesData = {
   }
   query?: {
     /**
-     * Page
-     * Page number (1-indexed)
+     * Skip
+     * Number of records to skip
      */
-    page?: number
+    skip?: number
     /**
-     * Per Page
-     * Number of items per page
+     * Limit
+     * Maximum number of records to return
      */
-    per_page?: number
+    limit?: number
     /**
      * Sort By
      * Field to sort by
@@ -4648,7 +4636,7 @@ export type BulkCreateSamplesResponse =
   BulkCreateSamplesResponses[keyof BulkCreateSamplesResponses]
 
 export type UpdateSampleInProjectData = {
-  body: ApiSamplesModelsAttribute
+  body: Attribute
   path: {
     /**
      * Sample Id
@@ -5602,15 +5590,15 @@ export type GetVendorsData = {
   path?: never
   query?: {
     /**
-     * Page
-     * Page number (1-indexed)
+     * Skip
+     * Number of records to skip
      */
-    page?: number
+    skip?: number
     /**
-     * Per Page
-     * Number of items per page
+     * Limit
+     * Maximum number of records to return
      */
-    per_page?: number
+    limit?: number
     /**
      * Sort By
      * Field to sort by

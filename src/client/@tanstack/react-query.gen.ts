@@ -208,8 +208,6 @@ import type {
   GetPlatformsData,
   GetProjectByProjectIdData,
   GetProjectSamplesData,
-  GetProjectSamplesError,
-  GetProjectSamplesResponse,
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
@@ -225,8 +223,6 @@ import type {
   GetSettingsByTagData,
   GetVendorData,
   GetVendorsData,
-  GetVendorsError,
-  GetVendorsResponse,
   GetWorkflowByIdData,
   GetWorkflowRegistrationsData,
   GetWorkflowRunByIdData,
@@ -2953,9 +2949,11 @@ export const getProjectSamplesQueryKey = (
 
 /**
  * Get Project Samples
- * Returns a paginated list of samples.
+ * Returns a list of samples for a project.
  *
- * Pass ``?include=files`` to eagerly load file metadata for each sample.
+ * Pagination is offset-based: ``skip`` is the number of records to skip
+ * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
+ * load file metadata for each sample.
  */
 export const getProjectSamplesOptions = (
   options: Options<GetProjectSamplesData>,
@@ -2972,60 +2970,6 @@ export const getProjectSamplesOptions = (
     },
     queryKey: getProjectSamplesQueryKey(options),
   })
-}
-
-export const getProjectSamplesInfiniteQueryKey = (
-  options: Options<GetProjectSamplesData>,
-): QueryKey<Options<GetProjectSamplesData>> =>
-  createQueryKey('getProjectSamples', options, true)
-
-/**
- * Get Project Samples
- * Returns a paginated list of samples.
- *
- * Pass ``?include=files`` to eagerly load file metadata for each sample.
- */
-export const getProjectSamplesInfiniteOptions = (
-  options: Options<GetProjectSamplesData>,
-) => {
-  return infiniteQueryOptions<
-    GetProjectSamplesResponse,
-    AxiosError<GetProjectSamplesError>,
-    InfiniteData<GetProjectSamplesResponse>,
-    QueryKey<Options<GetProjectSamplesData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetProjectSamplesData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetProjectSamplesData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getProjectSamples({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getProjectSamplesInfiniteQueryKey(options),
-    },
-  )
 }
 
 export const addSampleToProjectQueryKey = (
@@ -4740,58 +4684,6 @@ export const getVendorsOptions = (options?: Options<GetVendorsData>) => {
     },
     queryKey: getVendorsQueryKey(options),
   })
-}
-
-export const getVendorsInfiniteQueryKey = (
-  options?: Options<GetVendorsData>,
-): QueryKey<Options<GetVendorsData>> =>
-  createQueryKey('getVendors', options, true)
-
-/**
- * Get Vendors
- * Retrieve a list of all vendors.
- */
-export const getVendorsInfiniteOptions = (
-  options?: Options<GetVendorsData>,
-) => {
-  return infiniteQueryOptions<
-    GetVendorsResponse,
-    AxiosError<GetVendorsError>,
-    InfiniteData<GetVendorsResponse>,
-    QueryKey<Options<GetVendorsData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetVendorsData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetVendorsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getVendors({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getVendorsInfiniteQueryKey(options),
-    },
-  )
 }
 
 export const addVendorQueryKey = (options: Options<AddVendorData>) =>

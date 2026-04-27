@@ -1723,9 +1723,11 @@ export const updateProject = <ThrowOnError extends boolean = false>(
 
 /**
  * Get Project Samples
- * Returns a paginated list of samples.
+ * Returns a list of samples for a project.
  *
- * Pass ``?include=files`` to eagerly load file metadata for each sample.
+ * Pagination is offset-based: ``skip`` is the number of records to skip
+ * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
+ * load file metadata for each sample.
  */
 export const getProjectSamples = <ThrowOnError extends boolean = false>(
   options: Options<GetProjectSamplesData, ThrowOnError>,
