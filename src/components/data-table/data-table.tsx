@@ -14,41 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ContainedSpinner } from "@/components/spinner";
 import { Input } from "@/components/ui/input";
-import { TableSelectionCheckbox } from "@/components/data-table/table-selection-checkbox";
-
-function buildSelectionColumn<TData>(): ColumnDef<TData> {
-  // Fixed-width wrapper so the column reserves a consistent footprint a bit
-  // wider than the checkbox itself, which the browser propagates to all rows.
-  const cellWrapperClass = 'w-8 flex items-center justify-center'
-  return {
-    id: '__select__',
-    header: ({ table }) => (
-      <div className={cellWrapperClass}>
-        <TableSelectionCheckbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all rows on page"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className={cellWrapperClass}>
-        <TableSelectionCheckbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          onClick={(e) => e.stopPropagation()}
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    enableColumnFilter: false,
-  }
-}
+import { SELECTION_COLUMN_ID, buildSelectionColumn } from "@/components/data-table/selection-column";
 
 // Common props
 interface BaseDataTableProps<TData, TValue> {
@@ -78,7 +44,10 @@ interface DataTableProps<TData> {
   loadingComponent?: JSX.Element,
   showSearch?: boolean,
   enableColumnFilters?: boolean,
-  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
+  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode),
+  /** Optional slot rendered between the toolbar row and the table body — used
+   * for selection banners and similar contextual affordances. */
+  selectionBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
 }
 
 export function DataTable<TData>({
@@ -92,7 +61,8 @@ export function DataTable<TData>({
   loadingComponent = <ContainedSpinner variant='ellipsis' />,
   showSearch = true,
   enableColumnFilters = false,
-  tableTools
+  tableTools,
+  selectionBanner
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -111,7 +81,7 @@ export function DataTable<TData>({
                     <div className="flex-1">
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </div>
-                    {enableColumnFilters && header.column.getCanFilter() && (
+                    {enableColumnFilters && header.column.getCanFilter() && header.column.id !== SELECTION_COLUMN_ID && (
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -224,6 +194,9 @@ export function DataTable<TData>({
             <DataTableColumnToggle table={table} />
           </div>
         </div>
+        {selectionBanner && (
+          typeof selectionBanner === 'function' ? selectionBanner(table) : selectionBanner
+        )}
         <div className="flex">
           <ScrollArea className="flex-1 w-full rounded-md border">
             {tableMarkup}
@@ -258,6 +231,7 @@ interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
 
   // Custom table tools
   tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
+  selectionBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
 }
 
@@ -286,6 +260,7 @@ export function ServerDataTable<TData, TValue>({
 
   // Custom table tools
   tableTools,
+  selectionBanner,
   onSortingChange: setSorting,
 
   // Column visibility
@@ -345,6 +320,7 @@ export function ServerDataTable<TData, TValue>({
     <DataTable
       table={table}
       tableTools={tableTools}
+      selectionBanner={selectionBanner}
       totalItems={totalItems}
       notFoundComponent={notFoundComponent}
       isLoading={isLoading}
@@ -363,7 +339,8 @@ interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>,
   globalFilter?: string,
   onFilterChange?: (value: string) => void,
-  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
+  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode),
+  selectionBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
 }
 
 export function ClientDataTable<TData, TValue>({
@@ -381,6 +358,7 @@ export function ClientDataTable<TData, TValue>({
   globalFilter,
   onFilterChange,
   tableTools,
+  selectionBanner,
   enableRowSelectionColumn = false
 }: ClientDataTableProps<TData, TValue>) {
 
@@ -434,6 +412,7 @@ export function ClientDataTable<TData, TValue>({
     <DataTable
       table={table}
       tableTools={tableTools}
+      selectionBanner={selectionBanner}
       totalItems={data.length}
       notFoundComponent={notFoundComponent}
       rowClickCallback={rowClickCallback}
