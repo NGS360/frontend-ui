@@ -11,31 +11,38 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ContainedSpinner } from "@/components/spinner";
 import { Input } from "@/components/ui/input";
+import { TableSelectionCheckbox } from "@/components/data-table/table-selection-checkbox";
 
 function buildSelectionColumn<TData>(): ColumnDef<TData> {
+  // Fixed-width wrapper so the column reserves a consistent footprint a bit
+  // wider than the checkbox itself, which the browser propagates to all rows.
+  const cellWrapperClass = 'w-8 flex items-center justify-center'
   return {
     id: '__select__',
     header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all rows on page"
-      />
+      <div className={cellWrapperClass}>
+        <TableSelectionCheckbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all rows on page"
+        />
+      </div>
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        onClick={(e) => e.stopPropagation()}
-      />
+      <div className={cellWrapperClass}>
+        <TableSelectionCheckbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
     ),
     enableSorting: false,
     enableHiding: false,
