@@ -13,6 +13,7 @@ import { FileBrowserDialog } from '@/components/file-browser'
 import { FileUpload } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { UpdateProjectForm } from '@/components/update-project-form'
+import { ErrorState } from '@/components/error-state'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -64,6 +65,7 @@ function RouteComponent() {
     loadedCount,
     totalCount,
     error,
+    refetch,
   } = useAllPaginated({
     queryKey: samplesQueryKey,
     fetcher: ({ query }) => getProjectSamples({
@@ -229,7 +231,7 @@ function RouteComponent() {
   }, [allSamples])
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />
-  if (error) return 'An error has occurred: ' + error.message
+  if (error) return <ErrorState error={error} onRetry={() => { void refetch() }} />
 
   return(
     <div className='animate-fade-in-up'>

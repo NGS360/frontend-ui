@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { loginMutation } from '@/client/@tanstack/react-query.gen'
+import { toastApiError } from '@/lib/error-utils'
 
 interface RegisterSuccessDialogProps {
   open: boolean
@@ -30,9 +31,7 @@ export function RegisterSuccessDialog({
   const { mutate } = useMutation({
     ...loginMutation(),
     onError: (error) => {
-      const message =
-        error.response?.data.detail?.toString() || 'An unknown error occurred.'
-      toast.error(message)
+      toastApiError(error, 'An unknown error occurred.')
     },
     onSuccess: () => {
       toast.success('Login successful')

@@ -5,6 +5,7 @@ import { CheckCircle2, LoaderCircle, Mail, XCircle } from 'lucide-react'
 import { verifyEmailMutation } from '@/client/@tanstack/react-query.gen'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getFormApiErrorMessage } from '@/lib/error-utils'
 
 // Define the search schema for email verification
 const verifyEmailSearchSchema = z.object({
@@ -80,7 +81,7 @@ function RouteComponent() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Verification Failed</h3>
                   <p className="text-muted-foreground">
-                    {error.message || 'The verification token is invalid or has expired. Please request a new verification email.'}
+                    {getFormApiErrorMessage(error, 'The verification token is invalid or has expired. Please request a new verification email.')}
                   </p>
                 </div>
                 <Button asChild className="w-full" variant="outline">

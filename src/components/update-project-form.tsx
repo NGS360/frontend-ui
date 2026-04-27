@@ -7,11 +7,11 @@ import { toast } from 'sonner';
 import { useId, useState } from "react";
 import type { JSX } from "react";
 import type { SubmitHandler } from "react-hook-form";
-import type { HttpValidationError, ProjectPublic } from "@/client"
-import type { AxiosError } from "axios";
+import type { ProjectPublic } from "@/client"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getFormApiErrorMessage } from "@/lib/error-utils";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getProjectByProjectIdQueryKey, getProjectSamplesQueryKey, getProjectsQueryKey, updateProjectMutation } from "@/client/@tanstack/react-query.gen";
 
@@ -103,10 +103,8 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
   const queryClient = useQueryClient();
   const { mutate, isPending } = useMutation({
     ...updateProjectMutation(),
-    onError: (error: AxiosError<HttpValidationError>) => {
-      const message = error.response?.data.detail?.toString()
-        || "An unknown error occurred.";
-      setError("root", { message });
+    onError: (error) => {
+      setError("root", { message: getFormApiErrorMessage(error, "An unknown error occurred.") });
     },
     onSuccess: (data: ProjectPublic) => {
       reset({

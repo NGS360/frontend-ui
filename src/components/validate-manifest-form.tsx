@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toastApiError } from '@/lib/error-utils'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -181,7 +182,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
       getLatestManifest({
         query: {
           s3_path: `${state.selectedVendor.value}/${projectId}/`
-        }
+        },
+        throwOnError: true,
       }).then((response) => {
         // Check if response has status 204 (no content)
         if (response.status === 204) {
@@ -193,7 +195,8 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
         }
         dispatch({ type: 'SET_IS_LOADING_MANIFEST', value: false });
       }).catch((error) => {
-        alert(`Error fetching latest manifest: ${error.message || 'Unknown error'}`);
+        toastApiError(error, 'Failed to fetch latest manifest');
+        dispatch({ type: 'SET_LATEST_MANIFEST_PATH', value: 'Could not load the latest manifest' });
         dispatch({ type: 'SET_MANIFEST_ERROR', value: true });
         dispatch({ type: 'SET_IS_LOADING_MANIFEST', value: false });
       });
@@ -218,7 +221,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
           toast.success('Manifest uploaded successfully');
         },
         onError: (error) => {
-          toast.error(`Error uploading manifest: ${error.message || 'Unknown error'}`);
+          toastApiError(error, 'Error uploading manifest');
           console.error(error);
         }
       });
@@ -252,7 +255,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
       }
     },
     onError: (error) => {
-      toast.error(`Error uploading manifest: ${error.message || 'Unknown error'}`);
+      toastApiError(error, 'Error validating manifest');
       console.error(error);
     }
   });
@@ -293,11 +296,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
       }, 700);
     },
     onError: (error) => {
-      toast.error('Failed to submit ingest job', {
-        description: (
-          <span className="text-sm text-foreground">{error.message || 'An unexpected error occurred'}</span>
-        ),
-      });
+      toastApiError(error, 'Failed to submit ingest job');
       console.error(error);
     }
   });

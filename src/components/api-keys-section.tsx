@@ -15,6 +15,7 @@ import {
   listApiKeysQueryKey,
   revokeApiKeyMutation,
 } from '@/client/@tanstack/react-query.gen'
+import { getFormApiErrorMessage, toastApiError } from '@/lib/error-utils'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
@@ -72,10 +73,8 @@ function CreateApiKeyButton({
 
   const { mutate, isPending } = useMutation({
     ...createApiKeyMutation(),
-    onError: (error: any) => {
-      const message =
-        error.response?.data?.detail?.toString() || 'Failed to create API key.'
-      setError('root', { message })
+    onError: (error) => {
+      setError('root', { message: getFormApiErrorMessage(error, 'Failed to create API key.') })
     },
     onSuccess: (data: ApiKeyCreateResponse) => {
       reset()
@@ -292,8 +291,8 @@ export function APIKeysSection() {
       setConfirmAction(null)
       queryClient.invalidateQueries({ queryKey: listApiKeysQueryKey() })
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail?.toString() || 'Failed to revoke API key')
+    onError: (error) => {
+      toastApiError(error, 'Failed to revoke API key')
     },
   })
 
@@ -305,8 +304,8 @@ export function APIKeysSection() {
       setConfirmAction(null)
       queryClient.invalidateQueries({ queryKey: listApiKeysQueryKey() })
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail?.toString() || 'Failed to delete API key')
+    onError: (error) => {
+      toastApiError(error, 'Failed to delete API key')
     },
   })
 

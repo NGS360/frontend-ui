@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { getFormApiErrorMessage } from '@/lib/error-utils'
 import { NGS360Logo } from '@/components/ngs360-logo'
 import { useAuth } from '@/context/auth-context'
 import { resolvePostLoginRedirect } from '@/lib/post-login-redirect'
@@ -64,9 +65,8 @@ export function LoginFormDefault({
       await basicLogin(data.username, data.password)
       toast.success('Login successful')
       window.location.assign(resolvePostLoginRedirect(redirectTo))
-    } catch (error: any) {
-      const message = error?.message || 'An unknown error occurred.'
-      setError('root', { message })
+    } catch (error) {
+      setError('root', { message: getFormApiErrorMessage(error, 'An unknown error occurred.') })
     } finally {
       setIsLoading(false)
     }
