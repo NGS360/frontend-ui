@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, Cog, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Upload, Zap } from 'lucide-react'
+import { Building2, Cog, Download, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Upload, Zap } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import type { SamplePublic } from '@/client/types.gen'
-import type { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef, Table as ReactTable } from '@tanstack/react-table'
 import { CopyableText } from '@/components/copyable-text'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
@@ -23,6 +23,8 @@ import { FullscreenSpinner } from '@/components/spinner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
 import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
+
+const RESERVED_SAMPLE_COLUMN_IDS = new Set(['sample_id', 'project_id'])
 
 export const Route = createFileRoute('/_auth/projects/$project_id/')({
   component: RouteComponent,
@@ -86,31 +88,73 @@ function RouteComponent() {
     })
   }, [project.project_id, uploadSamples])
 
+  const downloadSamplesAsTsv = useCallback((samples: Array<SamplePublic>) => {
+    if (samples.length === 0) return
+    const attributeColumns = Array.from(new Set(
+      samples.flatMap(s => s.attributes?.map(a => a.key) || [])
+    )).filter((name): name is string => name !== null && !RESERVED_SAMPLE_COLUMN_IDS.has(name))
+    const headers = ['sample_id', 'project_id', ...attributeColumns]
+    // TSV has no quoting; collapse tabs/newlines in cell values to single spaces.
+    const sanitize = (v: unknown) => String(v ?? '').replace(/[\t\r\n]+/g, ' ')
+    const rows = samples.map((s) => {
+      const attrMap = new Map(s.attributes?.map((a) => [a.key, a.value]) || [])
+      return [s.sample_id, s.project_id, ...attributeColumns.map((c) => attrMap.get(c) ?? '')]
+        .map(sanitize)
+        .join('\t')
+    })
+    const tsv = [headers.join('\t'), ...rows].join('\n')
+    const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${project.project_id}_samples.tsv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [project.project_id])
+
   const samplesFileInputRef = useRef<HTMLInputElement>(null)
-  const samplesToolbar = (
-    <>
-      <input
-        ref={samplesFileInputRef}
-        type='file'
-        accept='.csv,.tsv,.txt'
-        className='hidden'
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) onSamplesDrop([file])
-          e.target.value = ''
-        }}
-      />
-      <Button
-        variant='outline'
-        size='sm'
-        disabled={isUploadingSamples}
-        onClick={() => samplesFileInputRef.current?.click()}
-      >
-        <Upload className='size-4' />
-        {isUploadingSamples ? 'Uploading…' : 'Upload samples'}
-      </Button>
-    </>
-  )
+  const samplesToolbar = (table: ReactTable<SamplePublic>) => {
+    const selectedRows = table.getSelectedRowModel().rows
+    const hasSelection = selectedRows.length > 0
+    // Filters are display-only. Default download is every loaded sample; if the user
+    // has explicitly selected rows, narrow to those.
+    const downloadSource = hasSelection ? selectedRows : table.getCoreRowModel().rows
+    const downloadLabel = hasSelection
+      ? `Download ${selectedRows.length} selected`
+      : 'Download samples'
+    return (
+      <>
+        <input
+          ref={samplesFileInputRef}
+          type='file'
+          accept='.csv,.tsv,.txt'
+          className='hidden'
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onSamplesDrop([file])
+            e.target.value = ''
+          }}
+        />
+        <Button
+          variant='outline'
+          disabled={isUploadingSamples}
+          onClick={() => samplesFileInputRef.current?.click()}
+        >
+          <Upload />
+          {isUploadingSamples ? 'Uploading…' : 'Upload samples'}
+        </Button>
+        <Button
+          variant='outline'
+          onClick={() => downloadSamplesAsTsv(downloadSource.map((r) => r.original))}
+        >
+          <Download />
+          {downloadLabel}
+        </Button>
+      </>
+    )
+  }
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />
   if (error) return 'An error has occurred: ' + error.message
@@ -118,11 +162,10 @@ function RouteComponent() {
 
   // Since we're using client-side rendering, we need to extract unique keys from sample attributes.
   // Skip names that collide with fixed columns (sample_id, project_id) so they don't render twice.
-  const reservedColumnIds = new Set(['sample_id', 'project_id'])
   const dataColumns = allSamples.length > 0 ?
     Array.from(new Set(allSamples.flatMap(sample =>
       sample.attributes?.map(attr => attr.key) || []
-    ))).filter((name): name is string => name !== null && !reservedColumnIds.has(name)) : []
+    ))).filter((name): name is string => name !== null && !RESERVED_SAMPLE_COLUMN_IDS.has(name)) : []
 
   // Define fixed columns for sample_id and project_id
   const fixedColumns: Array<ColumnDef<SamplePublic>> = [
@@ -145,7 +188,7 @@ function RouteComponent() {
   ]
 
   // Define dynamic columns based on extracted data columns
-  const dynamicColumns: Array<ColumnDef<SamplePublic>> = dataColumns.filter((colName): colName is string => colName !== null).map((colName: string) => ({
+  const dynamicColumns: Array<ColumnDef<SamplePublic>> = dataColumns.map((colName) => ({
     id: colName,
     accessorFn: (row) => {
       // Look up in attributes array
@@ -369,6 +412,7 @@ function RouteComponent() {
                 pageSize={5}
                 isLoading={isLoading}
                 tableTools={samplesToolbar}
+                enableRowSelectionColumn
               />
             ) : (
                 <FileUpload
