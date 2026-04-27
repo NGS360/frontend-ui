@@ -20,6 +20,7 @@ import { TableSelectionBanner } from '@/components/data-table/table-selection-ba
 import { highlightMatch, isValidHttpURL } from '@/lib/utils'
 import { getProjectSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
+import { TableProgressBanner } from '@/components/data-table/table-progress-banner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
 import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
@@ -56,13 +57,21 @@ function RouteComponent() {
 
   // Fetch all samples using the use-all-paginated hook
   const samplesQueryKey = ['samples', 'all', project.project_id]
-  const { data: allSamples, isLoading, error } = useAllPaginated({
+  const {
+    data: allSamples,
+    isLoading,
+    isFetchingMore,
+    loadedCount,
+    totalCount,
+    error,
+  } = useAllPaginated({
     queryKey: samplesQueryKey,
     fetcher: ({ query }) => getProjectSamples({
       path: { project_id: project.project_id },
       query
     }),
-    perPage: 100, // Fetch 100 items per page
+    firstPagePerPage: 10,
+    perPage: 250,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
@@ -138,6 +147,7 @@ function RouteComponent() {
       </Button>
       <Button
         variant='outline'
+        disabled={isFetchingMore}
         onClick={() => downloadSamplesAsTsv(
           table.getCoreRowModel().rows.map((r) => r.original)
         )}
@@ -147,6 +157,10 @@ function RouteComponent() {
       </Button>
     </>
   )
+
+  const samplesLoadingBanner = isFetchingMore ? (
+    <TableProgressBanner loadedCount={loadedCount} totalCount={totalCount} noun='sample' />
+  ) : null
 
   const samplesSelectionBanner = (table: ReactTable<SamplePublic>) => (
     <TableSelectionBanner
@@ -192,7 +206,7 @@ function RouteComponent() {
       },
     ]
 
-    if (!allSamples || allSamples.length === 0) return fixedColumns
+    if (allSamples.length === 0) return fixedColumns
 
     // Extract unique attribute keys, skipping any that collide with fixed columns.
     const dataColumns = Array.from(new Set(
@@ -216,7 +230,6 @@ function RouteComponent() {
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />
   if (error) return 'An error has occurred: ' + error.message
-  if (!allSamples) return 'No data was returned.'
 
   return(
     <div className='animate-fade-in-up'>
@@ -422,7 +435,7 @@ function RouteComponent() {
                 pageSize={5}
                 isLoading={isLoading}
                 tableTools={samplesToolbar}
-                selectionBanner={samplesSelectionBanner}
+                tableBanner={isFetchingMore ? samplesLoadingBanner : samplesSelectionBanner}
                 enableRowSelectionColumn
               />
             ) : (

@@ -45,9 +45,11 @@ interface DataTableProps<TData> {
   showSearch?: boolean,
   enableColumnFilters?: boolean,
   tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode),
-  /** Optional slot rendered between the toolbar row and the table body — used
-   * for selection banners and similar contextual affordances. */
-  selectionBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
+  /** Optional contextual banner rendered between the toolbar and the table
+   * body. Use for selection banners, progressive-load progress, or any other
+   * transient affordance. Callers conditionally pass the banner that fits the
+   * current state. */
+  tableBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
 }
 
 export function DataTable<TData>({
@@ -62,7 +64,7 @@ export function DataTable<TData>({
   showSearch = true,
   enableColumnFilters = false,
   tableTools,
-  selectionBanner
+  tableBanner
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -194,8 +196,8 @@ export function DataTable<TData>({
             <DataTableColumnToggle table={table} />
           </div>
         </div>
-        {selectionBanner && (
-          typeof selectionBanner === 'function' ? selectionBanner(table) : selectionBanner
+        {tableBanner && (
+          typeof tableBanner === 'function' ? tableBanner(table) : tableBanner
         )}
         <div className="flex">
           <ScrollArea className="flex-1 w-full rounded-md border">
@@ -231,7 +233,7 @@ interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
 
   // Custom table tools
   tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
-  selectionBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
+  tableBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
 }
 
@@ -260,7 +262,7 @@ export function ServerDataTable<TData, TValue>({
 
   // Custom table tools
   tableTools,
-  selectionBanner,
+  tableBanner,
   onSortingChange: setSorting,
 
   // Column visibility
@@ -320,7 +322,7 @@ export function ServerDataTable<TData, TValue>({
     <DataTable
       table={table}
       tableTools={tableTools}
-      selectionBanner={selectionBanner}
+      tableBanner={tableBanner}
       totalItems={totalItems}
       notFoundComponent={notFoundComponent}
       isLoading={isLoading}
@@ -340,7 +342,7 @@ interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
   globalFilter?: string,
   onFilterChange?: (value: string) => void,
   tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode),
-  selectionBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
+  tableBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
 }
 
 export function ClientDataTable<TData, TValue>({
@@ -358,7 +360,7 @@ export function ClientDataTable<TData, TValue>({
   globalFilter,
   onFilterChange,
   tableTools,
-  selectionBanner,
+  tableBanner,
   enableRowSelectionColumn = false
 }: ClientDataTableProps<TData, TValue>) {
 
@@ -412,7 +414,7 @@ export function ClientDataTable<TData, TValue>({
     <DataTable
       table={table}
       tableTools={tableTools}
-      selectionBanner={selectionBanner}
+      tableBanner={tableBanner}
       totalItems={data.length}
       notFoundComponent={notFoundComponent}
       rowClickCallback={rowClickCallback}
