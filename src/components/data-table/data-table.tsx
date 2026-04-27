@@ -182,7 +182,7 @@ export function DataTable<TData>({
               className="w-full md:w-full lg:w-1/3"
             />
           )}
-          <div className="flex flex-wrap justify-end items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:flex-nowrap md:shrink-0">
             {tableTools}
             <DataTableColumnToggle table={table} />
           </div>
