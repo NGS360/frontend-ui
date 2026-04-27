@@ -499,6 +499,16 @@ export type BodyUploadManifest = {
 }
 
 /**
+ * Body_upload_samples_file
+ */
+export type BodyUploadSamplesFile = {
+  /**
+   * File
+   */
+  file: Blob | File
+}
+
+/**
  * BulkSampleCreateRequest
  * Request body for POST /projects/{project_id}/samples/bulk.
  */
@@ -526,6 +536,10 @@ export type BulkSampleCreateResponse = {
    * Samples Existing
    */
   samples_existing: number
+  /**
+   * Samples Updated
+   */
+  samples_updated?: number
   /**
    * Associations Created
    */
@@ -569,6 +583,10 @@ export type BulkSampleItemResponse = {
    * Created
    */
   created: boolean
+  /**
+   * Updated
+   */
+  updated?: boolean
   /**
    * Run Id
    */
@@ -4564,6 +4582,38 @@ export type AddSampleToProjectResponses = {
 
 export type AddSampleToProjectResponse =
   AddSampleToProjectResponses[keyof AddSampleToProjectResponses]
+
+export type UploadSamplesFileData = {
+  body: BodyUploadSamplesFile
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/samples/upload'
+}
+
+export type UploadSamplesFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UploadSamplesFileError =
+  UploadSamplesFileErrors[keyof UploadSamplesFileErrors]
+
+export type UploadSamplesFileResponses = {
+  /**
+   * Successful Response
+   */
+  201: BulkSampleCreateResponse
+}
+
+export type UploadSamplesFileResponse =
+  UploadSamplesFileResponses[keyof UploadSamplesFileResponses]
 
 export type BulkCreateSamplesData = {
   body: BulkSampleCreateRequest

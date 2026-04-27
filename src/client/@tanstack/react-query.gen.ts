@@ -109,6 +109,7 @@ import {
   updateVendor,
   uploadFile,
   uploadManifest,
+  uploadSamplesFile,
   validateActionConfig,
   validateManifest,
   verifyEmail
@@ -338,6 +339,9 @@ import type {
   UploadManifestData,
   UploadManifestError,
   UploadManifestResponse,
+  UploadSamplesFileData,
+  UploadSamplesFileError,
+  UploadSamplesFileResponse,
   ValidateActionConfigData,
   ValidateActionConfigError,
   ValidateActionConfigResponse,
@@ -3073,6 +3077,75 @@ export const addSampleToProjectMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await addSampleToProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const uploadSamplesFileQueryKey = (
+  options: Options<UploadSamplesFileData>,
+) => createQueryKey('uploadSamplesFile', options)
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFileOptions = (
+  options: Options<UploadSamplesFileData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadSamplesFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadSamplesFileQueryKey(options),
+  })
+}
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFileMutation = (
+  options?: Partial<Options<UploadSamplesFileData>>,
+): UseMutationOptions<
+  UploadSamplesFileResponse,
+  AxiosError<UploadSamplesFileError>,
+  Options<UploadSamplesFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadSamplesFileResponse,
+    AxiosError<UploadSamplesFileError>,
+    Options<UploadSamplesFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadSamplesFile({
         ...options,
         ...localOptions,
         throwOnError: true,

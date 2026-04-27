@@ -298,6 +298,9 @@ import type {
   UploadManifestData,
   UploadManifestErrors,
   UploadManifestResponses,
+  UploadSamplesFileData,
+  UploadSamplesFileErrors,
+  UploadSamplesFileResponses,
   ValidateActionConfigData,
   ValidateActionConfigErrors,
   ValidateActionConfigResponses,
@@ -1764,6 +1767,43 @@ export const addSampleToProject = <ThrowOnError extends boolean = false>(
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFile = <ThrowOnError extends boolean = false>(
+  options: Options<UploadSamplesFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    UploadSamplesFileResponses,
+    UploadSamplesFileErrors,
+    ThrowOnError
+  >({
+    ...formDataBodySerializer,
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/projects/{project_id}/samples/upload',
+    ...options,
+    headers: {
+      'Content-Type': null,
       ...options.headers,
     },
   })
