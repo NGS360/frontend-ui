@@ -11,9 +11,37 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ContainedSpinner } from "@/components/spinner";
 import { Input } from "@/components/ui/input";
+
+function buildSelectionColumn<TData>(): ColumnDef<TData> {
+  return {
+    id: '__select__',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all rows on page"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    enableColumnFilter: false,
+  }
+}
 
 // Common props
 interface BaseDataTableProps<TData, TValue> {
@@ -26,7 +54,9 @@ interface BaseDataTableProps<TData, TValue> {
   customRowComponent?: () => React.ReactNode,
   renderCustomRowComponent?: boolean,
   isLoading?: boolean,
-  loadingComponent?: JSX.Element
+  loadingComponent?: JSX.Element,
+  /** When true, prepends a checkbox column for row selection. Default: false. */
+  enableRowSelectionColumn?: boolean
 }
 
 // Data table component
@@ -41,7 +71,7 @@ interface DataTableProps<TData> {
   loadingComponent?: JSX.Element,
   showSearch?: boolean,
   enableColumnFilters?: boolean,
-  tableTools?: React.ReactNode
+  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
 }
 
 export function DataTable<TData>({
@@ -183,7 +213,7 @@ export function DataTable<TData>({
             />
           )}
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:flex-nowrap md:shrink-0">
-            {tableTools}
+            {typeof tableTools === 'function' ? tableTools(table) : tableTools}
             <DataTableColumnToggle table={table} />
           </div>
         </div>
@@ -220,7 +250,7 @@ interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
   // Column visibility,
 
   // Custom table tools
-  tableTools?: React.ReactNode
+  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
 }
 
@@ -232,6 +262,7 @@ export function ServerDataTable<TData, TValue>({
   isLoading,
   loadingComponent,
   rowClickCallback,
+  enableRowSelectionColumn = false,
 
   // Search/filter
   globalFilter,
@@ -258,9 +289,15 @@ export function ServerDataTable<TData, TValue>({
   // Determine if column visibility is controlled or uncontrolled
   const isControlledColumnVisibility = setColumnVisibility !== undefined
 
+  const finalColumns = React.useMemo(
+    () => enableRowSelectionColumn ? [buildSelectionColumn<TData>(), ...columns] : columns,
+    [columns, enableRowSelectionColumn]
+  )
+
   const table = useReactTable({
     data,
-    columns,
+    columns: finalColumns,
+    enableRowSelection: enableRowSelectionColumn,
     getCoreRowModel: getCoreRowModel(),
 
     // Search/filter
@@ -319,7 +356,7 @@ interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>,
   globalFilter?: string,
   onFilterChange?: (value: string) => void,
-  tableTools?: React.ReactNode
+  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
 }
 
 export function ClientDataTable<TData, TValue>({
@@ -336,25 +373,29 @@ export function ClientDataTable<TData, TValue>({
   onColumnVisibilityChange,
   globalFilter,
   onFilterChange,
-  tableTools
+  tableTools,
+  enableRowSelectionColumn = false
 }: ClientDataTableProps<TData, TValue>) {
 
   // Determine if column visibility is controlled or uncontrolled
   const isControlledColumnVisibility = onColumnVisibilityChange !== undefined
 
-  // Map columns to include the custom filter function
+  // Map columns to include the custom filter function, optionally prepending the selection column.
   const columnsWithFilter = React.useMemo(
-    () => columns.map((col) => ({
-      ...col,
-      filterFn: multiConditionFilter,
-    })),
-    [columns]
+    () => {
+      const base = columns.map((col) => ({
+        ...col,
+        filterFn: multiConditionFilter,
+      }))
+      return enableRowSelectionColumn ? [buildSelectionColumn<TData>(), ...base] : base
+    },
+    [columns, enableRowSelectionColumn]
   );
 
   const table = useReactTable({
     data,
     columns: columnsWithFilter,
-    enableRowSelection: true,
+    enableRowSelection: enableRowSelectionColumn,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
