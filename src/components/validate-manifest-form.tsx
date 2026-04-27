@@ -345,19 +345,19 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
     });
   };
 
-  // Fetch all vendors using sequential page fetch
+  // Fetch all vendors using sequential page fetch.
   const { data: vendors, isLoading: isLoadingVendors } = useAllPaginated<VendorPublic>({
     queryKey: ['vendors', 'all'],
     fetcher: getVendors,
-    perPage: 100
+    perPage: 100,
   })
 
   // Transform vendors data into ComboBox options
-  const vendorOptions: Array<ComboBoxOption> = vendors?.map(vendor => ({
+  const vendorOptions: Array<ComboBoxOption> = vendors.map(vendor => ({
     label: `${vendor.name} (${vendor.vendor_id})`,
     value: vendor.bucket || '',
     description: vendor.description,
-  })) ?? []
+  }))
 
   return (
     <Sheet open={sheetOpen} onOpenChange={(open) => { setSheetOpen(open); handleOpenChange(open); }}>

@@ -1,32 +1,34 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
 
 /**
- * Generic paginated response type
- * Matches the structure returned by the API for paginated endpoints
+ * Generic paginated response type.
+ * The hook only requires `data`, `total_items`, and `has_next`; other fields
+ * are optional so endpoints with slightly different shapes can adapt.
  */
 export interface PaginatedResponse<T> {
   data: Array<T>
   total_items: number
-  total_pages: number
-  current_page: number
-  per_page: number
   has_next: boolean
-  has_prev: boolean
+  has_prev?: boolean
+  skip?: number
+  limit?: number
+  data_cols?: Array<string> | null
 }
 
 /**
- * Parameters for pagination queries
+ * Query parameters the hook will pass to the fetcher.
  */
 export interface PaginationParams {
-  page?: number
-  per_page?: number
+  skip?: number
+  limit?: number
   sort_by?: string
   sort_order?: 'asc' | 'desc'
 }
 
 /**
- * Fetcher function type that returns a paginated response
+ * Fetcher function type. Endpoints whose query shape doesn't match
+ * skip/limit can be adapted at the call site by wrapping the fetcher.
  */
 export type PaginatedFetcher<T> = (params: {
   query: PaginationParams
@@ -40,17 +42,13 @@ export interface UseAllPaginatedOptions<T> {
   queryKey: Array<unknown>
   /** Function that fetches a single page of data */
   fetcher: PaginatedFetcher<T>
-  /** Items per page for the bulk fetch (pages 2..N when firstPagePerPage is
-   * unset/equal, or pages 1..N when they differ). Default: 500. */
+  /** Items per page for the bulk fetch (default: 250). Smaller values yield
+   * smoother progress indication; larger values reduce total round-trips. */
   perPage?: number
-  /** Items per page for the initial fetch only. Use a small value (e.g. 50)
-   * for fast first paint. When this differs from `perPage`, the rest fetch
-   * re-requests items 0..firstPagePerPage-1 — the overlap is intentional and
-   * lets the consumer transition seamlessly to the larger-page coverage.
-   * Defaults to `perPage`. */
+  /** Items per page for the very first request, used to optimize first paint.
+   * If smaller than `perPage`, the bulk fetch resumes from where the preview
+   * ends — no overlap, no gap. Defaults to `perPage`. */
   firstPagePerPage?: number
-  /** Maximum concurrent in-flight requests for the bulk fetch (default: 12). */
-  concurrency?: number
   /** How long to consider data fresh in milliseconds */
   staleTime?: number
   /** How long to keep data in cache in milliseconds */
@@ -78,203 +76,89 @@ export interface UseAllPaginatedResult<T> {
   refetch: () => void
 }
 
-const stableKey = (key: Array<unknown>): string => JSON.stringify(key)
+interface PageParam {
+  skip: number
+  limit: number
+}
 
 /**
  * Generic hook to fetch all pages from a paginated API endpoint.
  *
- * Fetches page 1 via React Query, then fans out the remaining pages in
- * parallel through a concurrency-limited worker pool. The returned `data`
- * array grows as each page arrives, so consumers can render progressively
- * (e.g. a TanStack Table) instead of waiting for the full dataset.
+ * Backed by TanStack Query's `useInfiniteQuery`: pages are fetched
+ * sequentially via the built-in `fetchNextPage` machinery, and an effect
+ * auto-advances until `has_next` reports false. The flattened `data` array
+ * grows as each page lands, so consumers can render progressively (e.g. a
+ * TanStack Table) instead of waiting for the full dataset.
+ *
+ * When `firstPagePerPage` differs from `perPage`, the first request fetches
+ * a small preview for fast first paint, then the bulk fetch resumes at
+ * `skip = firstPagePerPage` with `limit = perPage`. Skip/limit pagination
+ * lets the resume be exact — no overlap, no gap.
  */
 export function useAllPaginated<T>({
   queryKey,
   fetcher,
-  perPage = 500,
+  perPage = 250,
   firstPagePerPage,
-  concurrency = 1,
   staleTime,
   gcTime,
   enabled = true,
 }: UseAllPaginatedOptions<T>): UseAllPaginatedResult<T> {
-  const queryClient = useQueryClient()
-
   const firstSize = firstPagePerPage ?? perPage
-  // When the first-page size matches the bulk size, page 1 of the bulk fetch
-  // is already in hand — start the bulk fetch at page 2 and prepend the
-  // first-page data on output. When sizes differ, page 1 is just a small
-  // preview; the bulk fetch covers pages 1..N at perPage and supersedes the
-  // preview as soon as its first page lands.
-  const sameSize = firstSize === perPage
 
-  const firstPageQuery = useQuery({
-    queryKey: [...queryKey, 'page', 1, firstSize],
-    queryFn: async () => {
+  const query = useInfiniteQuery({
+    queryKey: [...queryKey, 'all', perPage, firstSize],
+    queryFn: async ({ pageParam }) => {
       const response = await fetcher({
-        query: { page: 1, per_page: firstSize },
+        query: { skip: pageParam.skip, limit: pageParam.limit },
       })
       if (!response.data) {
-        throw new Error('Paginated fetcher returned no data for page 1')
+        throw new Error(
+          `Paginated fetcher returned no data for skip=${pageParam.skip}`,
+        )
       }
       return response.data
+    },
+    initialPageParam: { skip: 0, limit: firstSize } as PageParam,
+    getNextPageParam: (lastPage, _allPages, lastPageParam): PageParam | undefined => {
+      if (!lastPage.has_next) return undefined
+      return { skip: lastPageParam.skip + lastPageParam.limit, limit: perPage }
     },
     staleTime,
     gcTime,
     enabled,
   })
 
-  const [restPages, setRestPages] = useState<Map<number, Array<T>>>(new Map())
-  const [restError, setRestError] = useState<Error | null>(null)
-  const [isFetchingMore, setIsFetchingMore] = useState(false)
-  const [restComplete, setRestComplete] = useState(false)
+  const { hasNextPage, isFetchingNextPage, fetchNextPage, isSuccess } = query
 
-  // Bumping this triggers a fresh re-run of the rest-pages effect.
-  const [refetchTick, setRefetchTick] = useState(0)
-
-  const fetcherRef = useRef(fetcher)
-  useEffect(() => {
-    fetcherRef.current = fetcher
-  }, [fetcher])
-
-  const keySig = stableKey(queryKey)
-  const totalItems = firstPageQuery.data?.total_items ?? null
-  // Total pages computed at the bulk-fetch page size, regardless of firstSize.
-  const bulkTotalPages =
-    totalItems !== null ? Math.max(1, Math.ceil(totalItems / perPage)) : null
-
+  // Auto-advance through every page until the server reports has_next: false.
   useEffect(() => {
     if (!enabled) return
-    if (bulkTotalPages === null || totalItems === null) return
+    if (!isSuccess) return
+    if (!hasNextPage) return
+    if (isFetchingNextPage) return
+    void fetchNextPage()
+  }, [enabled, isSuccess, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    const startPage = sameSize ? 2 : 1
-    const endPage = bulkTotalPages
+  const data = useMemo<Array<T>>(() => {
+    const pages = query.data?.pages
+    if (!pages) return []
+    return pages.flatMap((page) => page.data)
+  }, [query.data])
 
-    // First page already covers everything we need.
-    if (
-      (sameSize && endPage <= 1) ||
-      (!sameSize && totalItems <= firstSize && endPage <= 1)
-    ) {
-      setRestPages(new Map())
-      setRestError(null)
-      setIsFetchingMore(false)
-      setRestComplete(true)
-      return
-    }
-
-    const controller = new AbortController()
-    const isAborted = (): boolean => controller.signal.aborted
-    setRestPages(new Map())
-    setRestError(null)
-    setRestComplete(false)
-    setIsFetchingMore(true)
-
-    const queue: Array<number> = []
-    for (let p = startPage; p <= endPage; p++) queue.push(p)
-
-    const fetchPage = async (page: number): Promise<PaginatedResponse<T>> => {
-      const result = await queryClient.fetchQuery({
-        queryKey: [...queryKey, 'page', page, perPage],
-        queryFn: async () => {
-          const response = await fetcherRef.current({
-            query: { page, per_page: perPage },
-          })
-          if (!response.data) {
-            throw new Error(`Paginated fetcher returned no data for page ${page}`)
-          }
-          return response.data
-        },
-        staleTime,
-        gcTime,
-      })
-      return result
-    }
-
-    const worker = async () => {
-      while (!isAborted()) {
-        const page = queue.shift()
-        if (page === undefined) return
-        try {
-          const resp = await fetchPage(page)
-          if (isAborted()) return
-          setRestPages((prev) => {
-            const next = new Map(prev)
-            next.set(page, resp.data)
-            return next
-          })
-        } catch (err) {
-          if (isAborted()) return
-          setRestError(err instanceof Error ? err : new Error(String(err)))
-          queue.length = 0
-          return
-        }
-      }
-    }
-
-    const workerCount = Math.min(concurrency, queue.length)
-    const workers = Array.from({ length: workerCount }, () => worker())
-
-    void Promise.all(workers).then(() => {
-      if (isAborted()) return
-      setIsFetchingMore(false)
-      setRestComplete(true)
-    })
-
-    return () => {
-      controller.abort()
-    }
-    // keySig captures queryKey identity; refetchTick forces a re-run on refetch().
-  }, [
-    keySig,
-    perPage,
-    firstSize,
-    sameSize,
-    concurrency,
-    bulkTotalPages,
-    totalItems,
-    enabled,
-    refetchTick,
-    queryClient,
-    staleTime,
-    gcTime,
-  ])
-
-  const data = useMemo(() => {
-    const firstPageData = firstPageQuery.data?.data
-    if (!firstPageData) return []
-    if (sameSize) {
-      if (restPages.size === 0) return firstPageData
-      const sorted = Array.from(restPages.entries()).sort(([a], [b]) => a - b)
-      const out: Array<T> = [...firstPageData]
-      for (const [, items] of sorted) out.push(...items)
-      return out
-    }
-    // Differing sizes: bulk fetch covers everything from page 1. Show the
-    // small preview until the bulk fetch's page 1 lands, then transition.
-    if (!restPages.has(1)) return firstPageData
-    const sorted = Array.from(restPages.entries()).sort(([a], [b]) => a - b)
-    const out: Array<T> = []
-    for (const [, items] of sorted) out.push(...items)
-    return out
-  }, [firstPageQuery.data, restPages, sameSize])
-
-  const refetch = useCallback(() => {
-    firstPageQuery.refetch()
-    setRefetchTick((n) => n + 1)
-  }, [firstPageQuery])
-
-  const totalCount = totalItems
-  const error = firstPageQuery.error ?? restError
-  const isComplete = firstPageQuery.isSuccess && restComplete
+  const totalCount = query.data?.pages[0]?.total_items ?? null
+  const isComplete = isSuccess && !hasNextPage && !isFetchingNextPage
 
   return {
     data,
-    isLoading: firstPageQuery.isLoading,
-    isFetchingMore,
+    isLoading: query.isLoading,
+    isFetchingMore: isFetchingNextPage || (isSuccess && hasNextPage === true),
     isComplete,
     loadedCount: data.length,
     totalCount,
-    error,
-    refetch,
+    error: query.error,
+    refetch: () => {
+      void query.refetch()
+    },
   }
 }

@@ -24,8 +24,8 @@ import {
 
 // Define the search schema for vendors
 const vendorsSearchSchema = z.object({
-  page: z.number().optional().default(1),
-  per_page: z.number().optional().default(10),
+  skip: z.number().optional().default(0),
+  limit: z.number().optional().default(10),
   sort_by: z.union([
     z.literal('vendor_id'),
     z.literal('name')
@@ -55,8 +55,8 @@ function RouteComponent() {
   // Local table state
   // Pagination (0-based for Tanstack Table)
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: search.page - 1,
-    pageSize: search.per_page
+    pageIndex: Math.floor(search.skip / search.limit),
+    pageSize: search.limit
   })
 
   // Sorting (default: vendor_id asc)
@@ -96,8 +96,8 @@ function RouteComponent() {
       to: '/admin/vendors',
       search: {
         ...search,
-        page: pagination.pageIndex + 1,
-        per_page: pagination.pageSize,
+        skip: pagination.pageIndex * pagination.pageSize,
+        limit: pagination.pageSize,
         sort_by: sorting[0]?.id as 'vendor_id' | 'name',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc'
       },
@@ -109,8 +109,8 @@ function RouteComponent() {
   const { data, error } = useQuery({
     ...getVendorsOptions({
       query: {
-        page: search.page,
-        per_page: search.per_page,
+        skip: search.skip,
+        limit: search.limit,
         sort_by: search.sort_by,
         sort_order: search.sort_order
       },
@@ -136,7 +136,7 @@ function RouteComponent() {
         || "An unknown error occurred."
       toast.error(`Failed to update setting: ${message}`)
     },
-    onSuccess: (data: Setting) => {
+    onSuccess: (setting: Setting) => {
       queryClient.invalidateQueries({ 
         queryKey: getSettingsByTagQueryKey({
           query: {
@@ -145,7 +145,7 @@ function RouteComponent() {
           },
         })
       })
-      toast.success(`Successfully updated ${data.name}`)
+      toast.success(`Successfully updated ${setting.name}`)
     }
   })
 
@@ -288,7 +288,7 @@ function RouteComponent() {
         columns={columns}
         pagination={pagination}
         onPaginationChange={setPagination}
-        pageCount={data.total_pages}
+        pageCount={Math.max(1, Math.ceil(data.total_items / pagination.pageSize))}
         totalItems={data.total_items}
         sorting={sorting}
         onSortingChange={setSorting}
