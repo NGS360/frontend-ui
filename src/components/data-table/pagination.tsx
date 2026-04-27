@@ -61,7 +61,10 @@ export function DataTablePagination<TData>({
             value={isShowingAll ? 'all' : `${currentPageSize}`}
             onValueChange={(value) => {
               if (value === 'all' && !isServerSide) {
-                table.setPageSize(rowsFiltered || totalItems || 9999)
+                // Use a sentinel larger than any realistic dataset so 'isShowingAll'
+                // stays true after the user clears a filter that previously narrowed
+                // the row count.
+                table.setPageSize(Number.MAX_SAFE_INTEGER)
               } else {
                 table.setPageSize(Number(value))
               }
