@@ -17,10 +17,7 @@ const runsSearchSchema = z.object({
   query: z.string().optional().default(""),
   page: z.number().optional().default(1),
   per_page: z.number().optional().default(10),
-  sort_by: z.union([
-    z.literal('run_id'),
-    z.literal('experiment_name')
-  ]).optional().default('run_id'),
+  sort_by: z.string().optional().default('run_date'),
   sort_order: z.union([
     z.literal('asc'),
     z.literal('desc')
@@ -52,7 +49,7 @@ function RouteComponent() {
     pageSize: search.per_page
   });
 
-  // Sorting (default: barcode desc)
+  // Sorting (default: run_date desc)
   const [sorting, setSorting] = useState<SortingState>([
     { id: search.sort_by, desc: search.sort_order == 'desc' ? true : false }
   ]);
@@ -76,7 +73,7 @@ function RouteComponent() {
         ...search,
         page: pagination.pageIndex + 1,
         per_page: pagination.pageSize,
-        sort_by: sorting[0]?.id as 'run_id' | 'experiment_name',
+        sort_by: sorting[0]?.id ?? 'run_date',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc'
       },
       replace: true
@@ -137,7 +134,7 @@ function RouteComponent() {
     {
       accessorKey: 'machine_id',
       meta: { alias: "Instrument" },
-      header: "Instrument",
+      header: ({ column }) => <SortableHeader column={column} name="Instrument" />,
       cell: ({ cell }) => {
         const value = cell.getValue() as string
         return (
@@ -152,7 +149,7 @@ function RouteComponent() {
     {
       accessorKey: 'flowcell_id',
       meta: { alias: "Flowcell" },
-      header: "Flowcell",
+      header: ({ column }) => <SortableHeader column={column} name="Flowcell" />,
       cell: ({ cell }) => {
         const value = cell.getValue() as string
         return (
@@ -167,12 +164,12 @@ function RouteComponent() {
     {
       accessorKey: 'run_date',
       meta: { alias: "Run Date" },
-      header: "Run Date"
+      header: ({ column }) => <SortableHeader column={column} name="Run Date" />
     },
     {
       accessorKey: 'run_folder_uri',
       meta: { alias: "Run Folder" },
-      header: "Run Folder",
+      header: ({ column }) => <SortableHeader column={column} name="Run Folder" />,
       cell: ({ cell }) => {
         const value = cell.getValue() as string
         return (
@@ -187,7 +184,7 @@ function RouteComponent() {
     {
       accessorKey: 'status',
       meta: { alias: "Status" },
-      header: "Status"
+      header: ({ column }) => <SortableHeader column={column} name="Status" />
     }
   ]
 
