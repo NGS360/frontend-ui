@@ -10,7 +10,7 @@ import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ExecuteActionForm } from '@/components/execute-action-form'
 import { FileBrowserDialog } from '@/components/file-browser'
-import { FileUpload } from '@/components/file-upload'
+import { ContainerDropzone, FileUpload } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { UpdateProjectForm } from '@/components/update-project-form'
 import { ErrorState } from '@/components/error-state'
@@ -427,19 +427,24 @@ function RouteComponent() {
           </AccordionTrigger>
           <AccordionContent className='pt-2'>
             {allSamples.length > 0 ? (
-              <ClientDataTable
-                data={allSamples}
-                columns={columns}
-                columnVisibility={columnVisibility}
-                onColumnVisibilityChange={setColumnVisibility}
-                globalFilter={globalFilter}
-                onFilterChange={setGlobalFilter}
-                pageSize={5}
-                isLoading={isLoading}
-                tableTools={samplesToolbar}
-                tableBanner={isFetchingMore ? samplesLoadingBanner : samplesSelectionBanner}
-                enableRowSelectionColumn
-              />
+              <ContainerDropzone
+                onDrop={onSamplesDrop}
+                subject={isUploadingSamples ? 'sample metadata (upload in progress)' : 'sample metadata'}
+              >
+                <ClientDataTable
+                  data={allSamples}
+                  columns={columns}
+                  columnVisibility={columnVisibility}
+                  onColumnVisibilityChange={setColumnVisibility}
+                  globalFilter={globalFilter}
+                  onFilterChange={setGlobalFilter}
+                  pageSize={5}
+                  isLoading={isLoading}
+                  tableTools={samplesToolbar}
+                  tableBanner={isFetchingMore ? samplesLoadingBanner : samplesSelectionBanner}
+                  enableRowSelectionColumn
+                />
+              </ContainerDropzone>
             ) : (
                 <FileUpload
                   onDrop={onSamplesDrop}
