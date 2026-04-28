@@ -1,5 +1,5 @@
 import { X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { ReactNode } from "react"
 import type { ColumnFiltersState, Table as ReactTable } from "@tanstack/react-table"
 
@@ -33,10 +33,23 @@ export function TableSelectionBanner<TData>({
   } | null>(null)
 
   const selectedRows = table.getSelectedRowModel().rows
-  if (selectedRows.length === 0) return null
-
   const selectionColumn = table.getColumn(SELECTION_COLUMN_ID)
   const isShowingSelectedOnly = !!selectionColumn?.getFilterValue()
+
+  // When selection drops to 0 while 'show selected only' is on, 
+  // restore the stashed filters and clear the selection-column filter 
+  // so the table doesn't get stuck on an empty filtered view.
+  useEffect(() => {
+    if (selectedRows.length > 0 || !isShowingSelectedOnly) return
+    if (stashedFilters) {
+      table.setColumnFilters(stashedFilters.columnFilters)
+      table.setGlobalFilter(stashedFilters.globalFilter)
+      setStashedFilters(null)
+    }
+    selectionColumn?.setFilterValue(undefined)
+  }, [selectedRows.length, isShowingSelectedOnly, stashedFilters, selectionColumn, table])
+
+  if (selectedRows.length === 0) return null
 
   const restoreStashedFilters = () => {
     if (!stashedFilters) return
@@ -61,11 +74,10 @@ export function TableSelectionBanner<TData>({
   }
 
   const clearSelection = () => {
-    if (isShowingSelectedOnly) {
-      restoreStashedFilters()
-      selectionColumn?.setFilterValue(undefined)
-    }
+    // The effect above handles the show-selected-only cleanup once selection
+    // drops to 0, so we just need to drop the selection and reset the page.
     table.resetRowSelection()
+    table.setPageIndex(0)
   }
 
   const switchId = 'table-selection-banner-show-selected'
