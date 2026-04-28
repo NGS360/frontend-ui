@@ -383,6 +383,7 @@ export function ClientDataTable<TData, TValue>({
     data,
     columns: columnsWithFilter,
     enableRowSelection: enableRowSelectionColumn,
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
