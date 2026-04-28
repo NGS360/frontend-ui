@@ -10,6 +10,7 @@ import type { ColumnDef, OnChangeFn, PaginationState, Table as ReactTable, Row, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { DataTablePagination } from "@/components/data-table/pagination";
+import { useSkipper } from "@/components/data-table/use-skipper";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ContainedSpinner } from "@/components/spinner";
@@ -379,11 +380,17 @@ export function ClientDataTable<TData, TValue>({
     [columns, enableRowSelectionColumn]
   );
 
+  // Opt-in skip for in-place data edits (e.g. inline cell edits) so they
+  // don't snap the user back to page 1, while filter/sort changes still
+  // reset normally.
+  const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper()
+
   const table = useReactTable({
     data,
     columns: columnsWithFilter,
     enableRowSelection: enableRowSelectionColumn,
-    autoResetPageIndex: false,
+    autoResetPageIndex,
+    meta: { skipAutoResetPageIndex },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

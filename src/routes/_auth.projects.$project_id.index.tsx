@@ -230,6 +230,7 @@ function RouteComponent() {
             attributeKey={colName}
             value={value}
             globalFilter={filter}
+            skipAutoResetPageIndex={table.options.meta?.skipAutoResetPageIndex}
           />
         )
       },
