@@ -17,6 +17,7 @@ interface EditableMetadataCellProps {
   attributeKey: string
   value: string | undefined
   globalFilter: string
+  skipAutoResetPageIndex?: () => void
 }
 
 export function EditableMetadataCell({
@@ -25,12 +26,14 @@ export function EditableMetadataCell({
   attributeKey,
   value,
   globalFilter,
+  skipAutoResetPageIndex,
 }: EditableMetadataCellProps) {
   const queryClient = useQueryClient()
 
   const { mutateAsync } = useMutation({
     ...updateSampleInProjectMutation(),
     onSuccess: (updated) => {
+      skipAutoResetPageIndex?.()
       queryClient.setQueriesData<SamplesInfiniteData>(
         { queryKey: ['samples', 'all', projectId] },
         (old) => old && {
