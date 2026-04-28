@@ -215,7 +215,6 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -1520,7 +1519,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflow Ids
    */
@@ -1554,7 +1553,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflows
    */
@@ -2031,7 +2030,7 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiSamplesModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2132,7 +2131,7 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiSamplesModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2191,7 +2190,7 @@ export type SampleWithFilesPublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiSamplesModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2762,7 +2761,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2796,7 +2795,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Registrations
    */
@@ -2866,7 +2865,7 @@ export type WorkflowRunCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2904,7 +2903,7 @@ export type WorkflowRunPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2977,8 +2976,9 @@ export type ApiProjectModelsAttribute = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiWorkflowModelsAttribute = {
   /**
    * Key
    */
@@ -4766,7 +4766,7 @@ export type DeleteSampleFromProjectResponse =
   DeleteSampleFromProjectResponses[keyof DeleteSampleFromProjectResponses]
 
 export type UpdateSampleInProjectData = {
-  body: ApiSamplesModelsAttribute
+  body: Attribute
   path: {
     /**
      * Sample Id
@@ -5148,7 +5148,7 @@ export type SearchRunsData = {
      * Sort By
      * Field to sort by
      */
-    sort_by?: ('run_id' | 'experiment_name') | null
+    sort_by?: string | null
     /**
      * Sort Order
      * Sort order (asc or desc)
