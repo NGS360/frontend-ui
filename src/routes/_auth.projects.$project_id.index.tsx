@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, Cog, Download, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Upload, Zap } from 'lucide-react'
+import { Building2, CheckCircle2, Cog, Download, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Upload, Zap } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import type { SamplePublic } from '@/client/types.gen'
-import type { ColumnDef, Table as ReactTable } from '@tanstack/react-table'
+import type { ColumnDef, Table as ReactTable, Row } from '@tanstack/react-table'
+import type { SampleDiffResult } from '@/lib/sample-diff'
+import { classifyBulkUploadItems } from '@/lib/sample-diff'
+import { TableDiffBanner } from '@/components/data-table/table-diff-banner'
 import { CopyableText } from '@/components/copyable-text'
 import { EditableMetadataCell } from '@/components/editable-metadata-cell'
 import { ClientDataTable } from '@/components/data-table/data-table'
@@ -79,13 +82,27 @@ function RouteComponent() {
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
 
+  const [diff, setDiff] = useState<SampleDiffResult | null>(null)
+
   const queryClient = useQueryClient()
   const { mutate: uploadSamples, isPending: isUploadingSamples } = useMutation({
     ...uploadSamplesFileMutation(),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: samplesQueryKey })
-      const created = response.samples_created
-      toast.success(`Uploaded sample metadata (${created} sample${created === 1 ? '' : 's'} created)`)
+      const result = classifyBulkUploadItems(response.items)
+      const { created, modified, unchanged } = result.counts
+
+      // Only activate the diff view when something actually changed
+      setDiff(created + modified > 0 ? result : null)
+
+      // Always fire toast notification
+      toast(
+        `${created} new, ${modified} modified, ${unchanged} unchanged`,
+        {
+          icon: <CheckCircle2 className='size-4 text-success' />,
+          cancel: { label: 'Dismiss', onClick: () => {} },
+        }
+      )
     },
     onError: (err) => {
       toast.error(`Error uploading sample metadata: ${err.message || 'Unknown error'}`)
@@ -182,6 +199,36 @@ function RouteComponent() {
       }
     />
   )
+
+  // Priority: loading > selection > diff. 
+  const samplesTableBanner = (table: ReactTable<SamplePublic>) => {
+    if (isFetchingMore) return samplesLoadingBanner
+    if (table.getSelectedRowModel().rows.length > 0) return samplesSelectionBanner(table)
+    if (diff) return <TableDiffBanner onDismiss={() => setDiff(null)} />
+    return null
+  }
+
+  const samplesRowDecoration = useMemo(() => {
+    if (!diff) return undefined
+    const m = diff.statusBySampleId
+    return {
+      getRowClassName: (row: Row<SamplePublic>) => {
+        const s = m.get(row.original.sample_id)
+        if (s === 'created') return 'bg-green-50 hover:bg-green-100'
+        if (s === 'updated') return 'bg-yellow-50 hover:bg-yellow-100'
+        return undefined
+      },
+      gutterColumn: {
+        id: '__diff_gutter__',
+        cell: (row: Row<SamplePublic>) => {
+          const s = m.get(row.original.sample_id)
+          if (s === 'created') return <Plus className='size-4 text-green-700' aria-label='Created' />
+          if (s === 'updated') return <span className='text-xs font-semibold text-yellow-800' aria-label='Modified'>M</span>
+          return null
+        },
+      },
+    }
+  }, [diff])
 
   // Memoized column definitions. Derived from allSamples only — cell
   // renderers read globalFilter dynamically from the table state at render
@@ -450,7 +497,8 @@ function RouteComponent() {
                   pageSize={5}
                   isLoading={isLoading}
                   tableTools={samplesToolbar}
-                  tableBanner={isFetchingMore ? samplesLoadingBanner : samplesSelectionBanner}
+                  tableBanner={samplesTableBanner}
+                  rowDecoration={samplesRowDecoration}
                   enableRowSelectionColumn
                 />
               </ContainerDropzone>
