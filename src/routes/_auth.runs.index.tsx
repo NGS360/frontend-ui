@@ -10,6 +10,8 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { useDebounce } from '@/hooks/use-debounce';
 import { FullscreenSpinner } from '@/components/spinner';
+import { ErrorState } from '@/components/error-state';
+import { ErrorBanner } from '@/components/error-banner';
 import { highlightMatch } from '@/lib/utils';
 
 // Define the search schema for projects 
@@ -81,7 +83,7 @@ function RouteComponent() {
   }, [pagination, sorting])
 
   // Query runs
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     ...searchRunsOptions({
       query: {
         query: debouncedInput,
@@ -95,7 +97,7 @@ function RouteComponent() {
   })
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />;
-  if (error) return 'An error has occurred: ' + error.message
+  if (error && !data) return <ErrorState error={error} onRetry={() => { void refetch() }} />
   if (!data) return 'No data was returned.';
 
   // Define columns
@@ -192,6 +194,11 @@ function RouteComponent() {
     <div className='animate-fade-in-up'>
       <h1 className="text-2xl">Sequencing Runs</h1>
       <p className="text-muted-foreground mb-6">View all sequencing runs in NGS360</p>
+      {error && (
+        <div className="mb-4">
+          <ErrorBanner error={error} onRetry={() => { void refetch() }} />
+        </div>
+      )}
       <ServerDataTable
         data={data.data}
         columns={columns}

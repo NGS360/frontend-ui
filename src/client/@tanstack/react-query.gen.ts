@@ -109,6 +109,7 @@ import {
   updateVendor,
   uploadFile,
   uploadManifest,
+  uploadSamplesFile,
   validateActionConfig,
   validateManifest,
   verifyEmail
@@ -207,8 +208,6 @@ import type {
   GetPlatformsData,
   GetProjectByProjectIdData,
   GetProjectSamplesData,
-  GetProjectSamplesError,
-  GetProjectSamplesResponse,
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
@@ -224,8 +223,6 @@ import type {
   GetSettingsByTagData,
   GetVendorData,
   GetVendorsData,
-  GetVendorsError,
-  GetVendorsResponse,
   GetWorkflowByIdData,
   GetWorkflowRegistrationsData,
   GetWorkflowRunByIdData,
@@ -338,6 +335,9 @@ import type {
   UploadManifestData,
   UploadManifestError,
   UploadManifestResponse,
+  UploadSamplesFileData,
+  UploadSamplesFileError,
+  UploadSamplesFileResponse,
   ValidateActionConfigData,
   ValidateActionConfigError,
   ValidateActionConfigResponse,
@@ -2949,9 +2949,11 @@ export const getProjectSamplesQueryKey = (
 
 /**
  * Get Project Samples
- * Returns a paginated list of samples.
+ * Returns a list of samples for a project.
  *
- * Pass ``?include=files`` to eagerly load file metadata for each sample.
+ * Pagination is offset-based: ``skip`` is the number of records to skip
+ * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
+ * load file metadata for each sample.
  */
 export const getProjectSamplesOptions = (
   options: Options<GetProjectSamplesData>,
@@ -2968,60 +2970,6 @@ export const getProjectSamplesOptions = (
     },
     queryKey: getProjectSamplesQueryKey(options),
   })
-}
-
-export const getProjectSamplesInfiniteQueryKey = (
-  options: Options<GetProjectSamplesData>,
-): QueryKey<Options<GetProjectSamplesData>> =>
-  createQueryKey('getProjectSamples', options, true)
-
-/**
- * Get Project Samples
- * Returns a paginated list of samples.
- *
- * Pass ``?include=files`` to eagerly load file metadata for each sample.
- */
-export const getProjectSamplesInfiniteOptions = (
-  options: Options<GetProjectSamplesData>,
-) => {
-  return infiniteQueryOptions<
-    GetProjectSamplesResponse,
-    AxiosError<GetProjectSamplesError>,
-    InfiniteData<GetProjectSamplesResponse>,
-    QueryKey<Options<GetProjectSamplesData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetProjectSamplesData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetProjectSamplesData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getProjectSamples({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getProjectSamplesInfiniteQueryKey(options),
-    },
-  )
 }
 
 export const addSampleToProjectQueryKey = (
@@ -3073,6 +3021,75 @@ export const addSampleToProjectMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await addSampleToProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const uploadSamplesFileQueryKey = (
+  options: Options<UploadSamplesFileData>,
+) => createQueryKey('uploadSamplesFile', options)
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFileOptions = (
+  options: Options<UploadSamplesFileData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadSamplesFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadSamplesFileQueryKey(options),
+  })
+}
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFileMutation = (
+  options?: Partial<Options<UploadSamplesFileData>>,
+): UseMutationOptions<
+  UploadSamplesFileResponse,
+  AxiosError<UploadSamplesFileError>,
+  Options<UploadSamplesFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadSamplesFileResponse,
+    AxiosError<UploadSamplesFileError>,
+    Options<UploadSamplesFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadSamplesFile({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -4667,58 +4684,6 @@ export const getVendorsOptions = (options?: Options<GetVendorsData>) => {
     },
     queryKey: getVendorsQueryKey(options),
   })
-}
-
-export const getVendorsInfiniteQueryKey = (
-  options?: Options<GetVendorsData>,
-): QueryKey<Options<GetVendorsData>> =>
-  createQueryKey('getVendors', options, true)
-
-/**
- * Get Vendors
- * Retrieve a list of all vendors.
- */
-export const getVendorsInfiniteOptions = (
-  options?: Options<GetVendorsData>,
-) => {
-  return infiniteQueryOptions<
-    GetVendorsResponse,
-    AxiosError<GetVendorsError>,
-    InfiniteData<GetVendorsResponse>,
-    QueryKey<Options<GetVendorsData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetVendorsData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetVendorsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getVendors({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getVendorsInfiniteQueryKey(options),
-    },
-  )
 }
 
 export const addVendorQueryKey = (options: Options<AddVendorData>) =>

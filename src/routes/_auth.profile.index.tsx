@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { KeyRound, Mail, ShieldCheck } from 'lucide-react'
 import { resendVerificationMutation } from '@/client/@tanstack/react-query.gen'
+import { toastApiError } from '@/lib/error-utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { ChangePasswordForm } from '@/components/change-password-form'
@@ -23,8 +24,8 @@ function RouteComponent() {
     onSuccess: () => {
       toast.success('Verification email sent. Check your inbox.')
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Failed to send verification email. Please try again.')
+    onError: (error) => {
+      toastApiError(error, 'Failed to send verification email. Please try again.')
     },
   })
 

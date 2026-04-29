@@ -1,27 +1,36 @@
-import { useEffect, useState } from 'react'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, Cog, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Zap } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { Building2, CheckCircle2, Cog, Download, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Upload, Zap } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import type { SamplePublic } from '@/client/types.gen'
-import type { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef, Table as ReactTable, Row } from '@tanstack/react-table'
+import type { SampleDiffResult } from '@/lib/sample-diff'
+import { classifyBulkUploadItems } from '@/lib/sample-diff'
+import { TableDiffBanner } from '@/components/data-table/table-diff-banner'
 import { CopyableText } from '@/components/copyable-text'
+import { EditableMetadataCell } from '@/components/editable-metadata-cell'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ExecuteActionForm } from '@/components/execute-action-form'
 import { FileBrowserDialog } from '@/components/file-browser'
-import { FileUpload } from '@/components/file-upload'
+import { ContainerDropzone, FileUpload } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { UpdateProjectForm } from '@/components/update-project-form'
+import { ErrorState } from '@/components/error-state'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// tooltip no longer needed for vendor card
+import { TableSelectionBanner } from '@/components/data-table/table-selection-banner'
 import { highlightMatch, isValidHttpURL } from '@/lib/utils'
 import { getProjectSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
+import { TableProgressBanner } from '@/components/data-table/table-progress-banner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
-import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
+import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
+
+const RESERVED_SAMPLE_COLUMN_IDS = new Set(['sample_id', 'project_id'])
 
 export const Route = createFileRoute('/_auth/projects/$project_id/')({
   component: RouteComponent,
@@ -52,67 +61,233 @@ function RouteComponent() {
   }, [columnVisibility, project.project_id, setVisibility])
 
   // Fetch all samples using the use-all-paginated hook
-  const { data: allSamples, isLoading, error } = useAllPaginated({
-    queryKey: ['samples', 'all', project.project_id],
+  const samplesQueryKey = ['samples', 'all', project.project_id]
+  const {
+    data: allSamples,
+    isLoading,
+    isFetchingMore,
+    loadedCount,
+    totalCount,
+    error,
+    refetch,
+  } = useAllPaginated({
+    queryKey: samplesQueryKey,
     fetcher: ({ query }) => getProjectSamples({
       path: { project_id: project.project_id },
       query
     }),
-    perPage: 100, // Fetch 100 items per page
+    firstPagePerPage: 10,
+    perPage: 250,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
 
+  const [diff, setDiff] = useState<SampleDiffResult | null>(null)
+
+  const queryClient = useQueryClient()
+  const { mutate: uploadSamples, isPending: isUploadingSamples } = useMutation({
+    ...uploadSamplesFileMutation(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: samplesQueryKey })
+      const result = classifyBulkUploadItems(response.items)
+      const { created, modified, unchanged } = result.counts
+
+      // Only activate the diff view when something actually changed
+      setDiff(created + modified > 0 ? result : null)
+
+      // Always fire toast notification
+      toast(
+        `${created} new, ${modified} modified, ${unchanged} unchanged`,
+        {
+          icon: <CheckCircle2 className='size-4 text-success' />,
+          cancel: { label: 'Dismiss', onClick: () => {} },
+        }
+      )
+    },
+    onError: (err) => {
+      toast.error(`Error uploading sample metadata: ${err.message || 'Unknown error'}`)
+    },
+  })
+
+  const onSamplesDrop = useCallback((acceptedFiles: Array<File>) => {
+    const file = acceptedFiles[0]
+    uploadSamples({
+      path: { project_id: project.project_id },
+      body: { file },
+    })
+  }, [project.project_id, uploadSamples])
+
+  const downloadSamplesAsTsv = useCallback((samples: Array<SamplePublic>) => {
+    if (samples.length === 0) return
+    const attributeColumns = Array.from(new Set(
+      samples.flatMap(s => s.attributes?.map(a => a.key) || [])
+    )).filter((name): name is string => name !== null && !RESERVED_SAMPLE_COLUMN_IDS.has(name))
+    const headers = ['sample_id', 'project_id', ...attributeColumns]
+    // TSV has no quoting; collapse tabs/newlines in cell values to single spaces.
+    const sanitize = (v: unknown) => String(v ?? '').replace(/[\t\r\n]+/g, ' ')
+    const rows = samples.map((s) => {
+      const attrMap = new Map(s.attributes?.map((a) => [a.key, a.value]) || [])
+      return [s.sample_id, s.project_id, ...attributeColumns.map((c) => attrMap.get(c) ?? '')]
+        .map(sanitize)
+        .join('\t')
+    })
+    const tsv = [headers.join('\t'), ...rows].join('\n')
+    const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${project.project_id}_samples.tsv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [project.project_id])
+
+  const samplesFileInputRef = useRef<HTMLInputElement>(null)
+  const samplesToolbar = (table: ReactTable<SamplePublic>) => (
+    <>
+      <input
+        ref={samplesFileInputRef}
+        type='file'
+        accept='.csv,.tsv,.txt'
+        className='hidden'
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) onSamplesDrop([file])
+          e.target.value = ''
+        }}
+      />
+      <Button
+        variant='outline'
+        disabled={isUploadingSamples}
+        onClick={() => samplesFileInputRef.current?.click()}
+      >
+        <Upload />
+        {isUploadingSamples ? 'Uploading…' : 'Upload samples'}
+      </Button>
+      <Button
+        variant='outline'
+        disabled={isFetchingMore}
+        onClick={() => downloadSamplesAsTsv(
+          table.getCoreRowModel().rows.map((r) => r.original)
+        )}
+      >
+        <Download />
+        Download all samples
+      </Button>
+    </>
+  )
+
+  const samplesLoadingBanner = isFetchingMore ? (
+    <TableProgressBanner loadedCount={loadedCount} totalCount={totalCount} noun='sample' />
+  ) : null
+
+  const samplesSelectionBanner = (table: ReactTable<SamplePublic>) => (
+    <TableSelectionBanner
+      table={table}
+      actions={
+        <Button
+          variant='primary2'
+          size='sm'
+          onClick={() => downloadSamplesAsTsv(
+            table.getSelectedRowModel().rows.map((r) => r.original)
+          )}
+        >
+          <Download />
+          Download selection
+        </Button>
+      }
+    />
+  )
+
+  // Priority: loading > selection > diff. 
+  const samplesTableBanner = (table: ReactTable<SamplePublic>) => {
+    if (isFetchingMore) return samplesLoadingBanner
+    if (table.getSelectedRowModel().rows.length > 0) return samplesSelectionBanner(table)
+    if (diff) return <TableDiffBanner onDismiss={() => setDiff(null)} />
+    return null
+  }
+
+  const samplesRowDecoration = useMemo(() => {
+    if (!diff) return undefined
+    const m = diff.statusBySampleId
+    return {
+      getRowClassName: (row: Row<SamplePublic>) => {
+        const s = m.get(row.original.sample_id)
+        if (s === 'created') return 'bg-green-50 hover:bg-green-100'
+        if (s === 'updated') return 'bg-yellow-50 hover:bg-yellow-100'
+        return undefined
+      },
+      gutterColumn: {
+        id: '__diff_gutter__',
+        cell: (row: Row<SamplePublic>) => {
+          const s = m.get(row.original.sample_id)
+          if (s === 'created') return <Plus className='size-4 text-green-700' aria-label='Created' />
+          if (s === 'updated') return <span className='text-xs font-semibold text-yellow-800' aria-label='Modified'>M</span>
+          return null
+        },
+      },
+    }
+  }, [diff])
+
+  // Memoized column definitions. Derived from allSamples only — cell
+  // renderers read globalFilter dynamically from the table state at render
+  // time so highlight stays reactive without invalidating the columns
+  // reference (which would cause TanStack to rebuild the entire column tree).
+  const columns = useMemo<Array<ColumnDef<SamplePublic>>>(() => {
+    const fixedColumns: Array<ColumnDef<SamplePublic>> = [
+      {
+        accessorKey: 'sample_id',
+        header: ({ column }) => <SortableHeader column={column} name="Sample ID" />,
+        cell: ({ getValue, table }) => {
+          const value = getValue() as string
+          const filter = (table.getState().globalFilter as string | undefined) ?? ''
+          return <CopyableText text={value} variant='hover' children={highlightMatch(value, filter)} />
+        },
+      },
+      {
+        accessorKey: 'project_id',
+        header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
+        cell: ({ getValue, table }) => {
+          const value = getValue() as string
+          const filter = (table.getState().globalFilter as string | undefined) ?? ''
+          return <CopyableText text={value} variant='hover' children={highlightMatch(value, filter)} />
+        },
+      },
+    ]
+
+    if (allSamples.length === 0) return fixedColumns
+
+    // Extract unique attribute keys, skipping any that collide with fixed columns.
+    const dataColumns = Array.from(new Set(
+      allSamples.flatMap((sample) => sample.attributes?.map((attr) => attr.key) || [])
+    )).filter((name): name is string => name !== null && !RESERVED_SAMPLE_COLUMN_IDS.has(name))
+
+    const dynamicColumns: Array<ColumnDef<SamplePublic>> = dataColumns.map((colName) => ({
+      id: colName,
+      accessorFn: (row) => row.attributes?.find((a) => a.key === colName)?.value,
+      header: ({ column }) => <SortableHeader column={column} name={colName} />,
+      cell: ({ getValue, row, table }) => {
+        const value = getValue() as string | undefined
+        const filter = (table.getState().globalFilter as string | undefined) ?? ''
+        return (
+          <EditableMetadataCell
+            projectId={row.original.project_id}
+            sampleId={row.original.sample_id}
+            attributeKey={colName}
+            value={value}
+            globalFilter={filter}
+            skipAutoResetPageIndex={table.options.meta?.skipAutoResetPageIndex}
+          />
+        )
+      },
+    }))
+
+    return [...fixedColumns, ...dynamicColumns]
+  }, [allSamples])
+
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />
-  if (error) return 'An error has occurred: ' + error.message
-  if (!allSamples) return 'No data was returned.'
-
-  // Since we're using client-side rendering, we need to extract unique keys from sample attributes
-  const dataColumns = allSamples.length > 0 ? 
-    Array.from(new Set(allSamples.flatMap(sample => 
-      sample.attributes?.map(attr => attr.key) || []
-    ))) : []
-
-  // Define fixed columns for sample_id and project_id
-  const fixedColumns: Array<ColumnDef<SamplePublic>> = [
-    {
-      accessorKey: 'sample_id',
-      header: ({ column }) => <SortableHeader column={column} name="Sample ID" />,
-      cell: ({ getValue }) => {
-        const value = getValue() as string
-        return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
-      }
-    },
-    {
-      accessorKey: 'project_id',
-      header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
-      cell: ({ getValue }) => {
-        const value = getValue() as string
-        return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
-      }
-    }
-  ]
-
-  // Define dynamic columns based on extracted data columns
-  const dynamicColumns: Array<ColumnDef<SamplePublic>> = dataColumns.filter((colName): colName is string => colName !== null).map((colName: string) => ({
-    id: colName,
-    accessorFn: (row) => {
-      // Look up in attributes array
-      const attr = row.attributes?.find((a) => a.key === colName)
-      return attr?.value
-    },
-    header: ({ column }) => <SortableHeader column={column} name={colName} />,
-    cell: ({ getValue }) => {
-      const value = getValue() as string | undefined
-      if (!value) {
-        return <span className='text-muted-foreground italic'>Not found</span>
-      }
-      return <CopyableText text={value} variant='hover' children={highlightMatch(value, globalFilter)} />
-    }
-  }))
-
-  // Combine fixed and dynamic columns
-  const columns = [...fixedColumns, ...dynamicColumns]
+  if (error) return <ErrorState error={error} onRetry={() => { void refetch() }} />
 
   return(
     <div className='animate-fade-in-up'>
@@ -308,21 +483,33 @@ function RouteComponent() {
           </AccordionTrigger>
           <AccordionContent className='pt-2'>
             {allSamples.length > 0 ? (
-              <ClientDataTable
-                data={allSamples}
-                columns={columns}
-                columnVisibility={columnVisibility}
-                onColumnVisibilityChange={setColumnVisibility}
-                globalFilter={globalFilter}
-                onFilterChange={setGlobalFilter}
-                pageSize={5}
-                isLoading={isLoading}
-              />
+              <ContainerDropzone
+                onDrop={onSamplesDrop}
+                subject={isUploadingSamples ? 'sample metadata (upload in progress)' : 'sample metadata'}
+              >
+                <ClientDataTable
+                  data={allSamples}
+                  columns={columns}
+                  columnVisibility={columnVisibility}
+                  onColumnVisibilityChange={setColumnVisibility}
+                  globalFilter={globalFilter}
+                  onFilterChange={setGlobalFilter}
+                  pageSize={5}
+                  isLoading={isLoading}
+                  tableTools={samplesToolbar}
+                  tableBanner={samplesTableBanner}
+                  rowDecoration={samplesRowDecoration}
+                  enableRowSelectionColumn
+                />
+              </ContainerDropzone>
             ) : (
                 <FileUpload
+                  onDrop={onSamplesDrop}
                   displayComponent={(
                     <span className="text-primary hover:underline mx-2">
-                      No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file
+                      {isUploadingSamples
+                        ? 'Uploading sample metadata…'
+                        : 'No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file'}
                     </span>
                   )}
                 />
