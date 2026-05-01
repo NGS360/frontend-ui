@@ -163,7 +163,7 @@ function RouteComponent() {
         onClick={() => samplesFileInputRef.current?.click()}
       >
         <Upload />
-        {isUploadingSamples ? 'Uploading…' : 'Upload samples'}
+        {isUploadingSamples ? 'Uploading…' : 'Upload metadata'}
       </Button>
       <Button
         variant='outline'
@@ -173,7 +173,7 @@ function RouteComponent() {
         )}
       >
         <Download />
-        Download all samples
+        Download all metadata
       </Button>
     </>
   )
@@ -194,7 +194,7 @@ function RouteComponent() {
           )}
         >
           <Download />
-          Download selection
+          Download selected metadata
         </Button>
       }
     />
