@@ -9,7 +9,6 @@ import type { SampleDiffResult } from '@/lib/sample-diff'
 import { classifyBulkUploadItems } from '@/lib/sample-diff'
 import { TableDiffBanner } from '@/components/data-table/table-diff-banner'
 import { CopyableText } from '@/components/copyable-text'
-import { EditableMetadataCell } from '@/components/editable-metadata-cell'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ExecuteActionForm } from '@/components/execute-action-form'
@@ -258,19 +257,11 @@ function RouteComponent() {
       id: colName,
       accessorFn: (row) => row.attributes?.find((a) => a.key === colName)?.value,
       header: ({ column }) => <SortableHeader column={column} name={colName} />,
-      cell: ({ getValue, row, table }) => {
+      cell: ({ getValue, table }) => {
         const value = getValue() as string | undefined
+        if (!value) return <span className='text-muted-foreground italic'>Not found</span>
         const filter = (table.getState().globalFilter as string | undefined) ?? ''
-        return (
-          <EditableMetadataCell
-            projectId={row.original.project_id}
-            sampleId={row.original.sample_id}
-            attributeKey={colName}
-            value={value}
-            globalFilter={filter}
-            skipAutoResetPageIndex={table.options.meta?.skipAutoResetPageIndex}
-          />
-        )
+        return <CopyableText text={value} variant='hover' children={highlightMatch(value, filter)} />
       },
     }))
 
