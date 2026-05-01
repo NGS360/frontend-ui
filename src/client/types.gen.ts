@@ -1024,6 +1024,40 @@ export type FileSummary = {
 }
 
 /**
+ * FileUpdate
+ * Request model for updating a file record.
+ *
+ * All fields are optional — only provided fields are updated.
+ * Primary use case: correcting a URI (e.g., wrong bucket name).
+ */
+export type FileUpdate = {
+  /**
+   * Uri
+   */
+  uri?: string | null
+  /**
+   * Original Filename
+   */
+  original_filename?: string | null
+  /**
+   * Size
+   */
+  size?: number | null
+  /**
+   * Source
+   */
+  source?: string | null
+  /**
+   * Created By
+   */
+  created_by?: string | null
+  /**
+   * Storage Backend
+   */
+  storage_backend?: string | null
+}
+
+/**
  * FilesPublic
  * Paginated list of files.
  */
@@ -3832,6 +3866,36 @@ export type DownloadFileResponses = {
   200: unknown
 }
 
+export type DeleteFileData = {
+  body?: never
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}'
+}
+
+export type DeleteFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteFileError = DeleteFileErrors[keyof DeleteFileErrors]
+
+export type DeleteFileResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteFileResponse = DeleteFileResponses[keyof DeleteFileResponses]
+
 export type GetFileData = {
   body?: never
   path: {
@@ -3861,6 +3925,36 @@ export type GetFileResponses = {
 }
 
 export type GetFileResponse = GetFileResponses[keyof GetFileResponses]
+
+export type UpdateFileData = {
+  body: FileUpdate
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}'
+}
+
+export type UpdateFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateFileError = UpdateFileErrors[keyof UpdateFileErrors]
+
+export type UpdateFileResponses = {
+  /**
+   * Successful Response
+   */
+  200: FilePublic
+}
+
+export type UpdateFileResponse = UpdateFileResponses[keyof UpdateFileResponses]
 
 export type GetFileVersionsData = {
   body?: never
@@ -4634,6 +4728,42 @@ export type BulkCreateSamplesResponses = {
 
 export type BulkCreateSamplesResponse =
   BulkCreateSamplesResponses[keyof BulkCreateSamplesResponses]
+
+export type DeleteSampleFromProjectData = {
+  body?: never
+  path: {
+    /**
+     * Sample Id
+     */
+    sample_id: string
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/samples/{sample_id}'
+}
+
+export type DeleteSampleFromProjectErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteSampleFromProjectError =
+  DeleteSampleFromProjectErrors[keyof DeleteSampleFromProjectErrors]
+
+export type DeleteSampleFromProjectResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteSampleFromProjectResponse =
+  DeleteSampleFromProjectResponses[keyof DeleteSampleFromProjectResponses]
 
 export type UpdateSampleInProjectData = {
   body: Attribute

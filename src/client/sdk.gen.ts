@@ -70,9 +70,15 @@ import type {
   DeleteApiKeyData,
   DeleteApiKeyErrors,
   DeleteApiKeyResponses,
+  DeleteFileData,
+  DeleteFileErrors,
+  DeleteFileResponses,
   DeleteQcrecordData,
   DeleteQcrecordErrors,
   DeleteQcrecordResponses,
+  DeleteSampleFromProjectData,
+  DeleteSampleFromProjectErrors,
+  DeleteSampleFromProjectResponses,
   DeleteVendorData,
   DeleteVendorErrors,
   DeleteVendorResponses,
@@ -274,6 +280,9 @@ import type {
   UnlinkOauthProviderData,
   UnlinkOauthProviderErrors,
   UnlinkOauthProviderResponses,
+  UpdateFileData,
+  UpdateFileErrors,
+  UpdateFileResponses,
   UpdateJobData,
   UpdateJobErrors,
   UpdateJobResponses,
@@ -1263,6 +1272,36 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Delete a file record (superuser only)
+ * Hard-delete a file record and all associated child rows.
+ *
+ * Cascade-deletes: FileHash, FileTag, FileSample, FileProject,
+ * FileSequencingRun, FileQCRecord, FileWorkflowRun, FilePipeline.
+ *
+ * **This action is irreversible.**
+ *
+ * Requires superuser privileges.
+ */
+export const deleteFile = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteFileResponses,
+    DeleteFileErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/files/{file_id}',
+    ...options,
+  })
+}
+
+/**
  * Get file by UUID
  * Retrieve file metadata by UUID.
  *
@@ -1279,6 +1318,42 @@ export const getFile = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     url: '/api/v1/files/{file_id}',
     ...options,
+  })
+}
+
+/**
+ * Update a file record (superuser only)
+ * Update scalar fields on a file record.
+ *
+ * Only fields included in the request body are updated; all others
+ * (including entity associations, hashes, tags, and samples) remain
+ * unchanged.
+ *
+ * **Primary use case:** correcting a URI (e.g., wrong S3 bucket).
+ *
+ * Requires superuser privileges.
+ */
+export const updateFile = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateFileData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    UpdateFileResponses,
+    UpdateFileErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/files/{file_id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }
 
@@ -1840,6 +1915,34 @@ export const bulkCreateSamples = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Delete Sample From Project
+ * Hard-delete a sample and all its child rows (superuser only).
+ *
+ * Deletes: SampleAttribute, FileSample, SampleSequencingRun rows.
+ * Associated File records are NOT deleted (they may belong to other entities).
+ *
+ * **This action is irreversible.**
+ */
+export const deleteSampleFromProject = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteSampleFromProjectData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteSampleFromProjectResponses,
+    DeleteSampleFromProjectErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/projects/{project_id}/samples/{sample_id}',
+    ...options,
   })
 }
 

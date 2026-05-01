@@ -29,7 +29,9 @@ import {
   createWorkflowRegistration,
   createWorkflowRun,
   deleteApiKey,
+  deleteFile,
   deleteQcrecord,
+  deleteSampleFromProject,
   deleteVendor,
   deleteWorkflowRegistration,
   downloadFile,
@@ -101,6 +103,7 @@ import {
   submitJob,
   submitPipelineJob,
   unlinkOauthProvider,
+  updateFile,
   updateJob,
   updateProject,
   updateRun,
@@ -176,9 +179,15 @@ import type {
   DeleteApiKeyData,
   DeleteApiKeyError,
   DeleteApiKeyResponse,
+  DeleteFileData,
+  DeleteFileError,
+  DeleteFileResponse,
   DeleteQcrecordData,
   DeleteQcrecordError,
   DeleteQcrecordResponse,
+  DeleteSampleFromProjectData,
+  DeleteSampleFromProjectError,
+  DeleteSampleFromProjectResponse,
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
@@ -311,6 +320,9 @@ import type {
   UnlinkOauthProviderData,
   UnlinkOauthProviderError,
   UnlinkOauthProviderResponse,
+  UpdateFileData,
+  UpdateFileError,
+  UpdateFileResponse,
   UpdateJobData,
   UpdateJobError,
   UpdateJobResponse,
@@ -2124,6 +2136,41 @@ export const downloadFileOptions = (options: Options<DownloadFileData>) => {
   })
 }
 
+/**
+ * Delete a file record (superuser only)
+ * Hard-delete a file record and all associated child rows.
+ *
+ * Cascade-deletes: FileHash, FileTag, FileSample, FileProject,
+ * FileSequencingRun, FileQCRecord, FileWorkflowRun, FilePipeline.
+ *
+ * **This action is irreversible.**
+ *
+ * Requires superuser privileges.
+ */
+export const deleteFileMutation = (
+  options?: Partial<Options<DeleteFileData>>,
+): UseMutationOptions<
+  DeleteFileResponse,
+  AxiosError<DeleteFileError>,
+  Options<DeleteFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteFileResponse,
+    AxiosError<DeleteFileError>,
+    Options<DeleteFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const getFileQueryKey = (options: Options<GetFileData>) =>
   createQueryKey('getFile', options)
 
@@ -2146,6 +2193,42 @@ export const getFileOptions = (options: Options<GetFileData>) => {
     },
     queryKey: getFileQueryKey(options),
   })
+}
+
+/**
+ * Update a file record (superuser only)
+ * Update scalar fields on a file record.
+ *
+ * Only fields included in the request body are updated; all others
+ * (including entity associations, hashes, tags, and samples) remain
+ * unchanged.
+ *
+ * **Primary use case:** correcting a URI (e.g., wrong S3 bucket).
+ *
+ * Requires superuser privileges.
+ */
+export const updateFileMutation = (
+  options?: Partial<Options<UpdateFileData>>,
+): UseMutationOptions<
+  UpdateFileResponse,
+  AxiosError<UpdateFileError>,
+  Options<UpdateFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateFileResponse,
+    AxiosError<UpdateFileError>,
+    Options<UpdateFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getFileVersionsQueryKey = (
@@ -3151,6 +3234,39 @@ export const bulkCreateSamplesMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await bulkCreateSamples({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete Sample From Project
+ * Hard-delete a sample and all its child rows (superuser only).
+ *
+ * Deletes: SampleAttribute, FileSample, SampleSequencingRun rows.
+ * Associated File records are NOT deleted (they may belong to other entities).
+ *
+ * **This action is irreversible.**
+ */
+export const deleteSampleFromProjectMutation = (
+  options?: Partial<Options<DeleteSampleFromProjectData>>,
+): UseMutationOptions<
+  DeleteSampleFromProjectResponse,
+  AxiosError<DeleteSampleFromProjectError>,
+  Options<DeleteSampleFromProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteSampleFromProjectResponse,
+    AxiosError<DeleteSampleFromProjectError>,
+    Options<DeleteSampleFromProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteSampleFromProject({
         ...options,
         ...localOptions,
         throwOnError: true,
