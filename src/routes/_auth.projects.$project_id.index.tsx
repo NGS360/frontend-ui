@@ -193,7 +193,7 @@ function RouteComponent() {
           )}
         >
           <Download />
-          Download selected metadata
+          Download selected
         </Button>
       }
     />
