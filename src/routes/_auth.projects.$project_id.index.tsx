@@ -30,7 +30,7 @@ import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
 import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
 
-const RESERVED_SAMPLE_COLUMN_IDS = new Set(['sample_id', 'project_id'])
+const RESERVED_SAMPLE_COLUMN_IDS = new Set(['sample_id'])
 
 export const Route = createFileRoute('/_auth/projects/$project_id/')({
   component: RouteComponent,
@@ -239,15 +239,6 @@ function RouteComponent() {
       {
         accessorKey: 'sample_id',
         header: ({ column }) => <SortableHeader column={column} name="Sample ID" />,
-        cell: ({ getValue, table }) => {
-          const value = getValue() as string
-          const filter = (table.getState().globalFilter as string | undefined) ?? ''
-          return <CopyableText text={value} variant='hover' children={highlightMatch(value, filter)} />
-        },
-      },
-      {
-        accessorKey: 'project_id',
-        header: ({ column }) => <SortableHeader column={column} name="Project ID" />,
         cell: ({ getValue, table }) => {
           const value = getValue() as string
           const filter = (table.getState().globalFilter as string | undefined) ?? ''
