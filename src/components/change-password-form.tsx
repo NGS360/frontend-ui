@@ -8,11 +8,10 @@ import { useId, useState } from "react";
 import type React from "react";
 import type { JSX } from "react";
 import type { SubmitHandler } from "react-hook-form";
-import type { HttpValidationError } from "@/client";
-import type { AxiosError } from "axios";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { getFormApiErrorMessage } from "@/lib/error-utils";
 import { Input } from "@/components/ui/input";
 import { changePasswordMutation } from "@/client/@tanstack/react-query.gen";
 
@@ -71,10 +70,8 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
   // Mutation
   const { mutate, isPending } = useMutation({
     ...changePasswordMutation(),
-    onError: (error: AxiosError<HttpValidationError>) => {
-      const message = error.response?.data.detail?.toString()
-        || "An unknown error occurred.";
-      setError("root", { message });
+    onError: (error) => {
+      setError("root", { message: getFormApiErrorMessage(error, "An unknown error occurred.") });
     },
     onSuccess: () => {
       reset();

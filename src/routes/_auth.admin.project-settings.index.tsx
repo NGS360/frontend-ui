@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import type { AxiosError } from 'axios'
-import type { HttpValidationError, Setting } from '@/client'
+import type { Setting } from '@/client'
 import { getSettingsByTagOptions, getSettingsByTagQueryKey, updateSettingMutation } from '@/client/@tanstack/react-query.gen'
 import { SettingCard } from '@/components/app-setting-card'
+import { toastApiError } from '@/lib/error-utils'
 
 export const Route = createFileRoute('/_auth/admin/project-settings/')({
   component: RouteComponent,
@@ -23,10 +23,8 @@ function RouteComponent() {
   const queryClient = useQueryClient()
   const { mutate: updateSetting, isPending } = useMutation({
     ...updateSettingMutation(),
-    onError: (mutationError: AxiosError<HttpValidationError>) => {
-      const message = mutationError.response?.data.detail?.toString()
-        || "An unknown error occurred."
-      toast.error(`Failed to update setting: ${message}`)
+    onError: (mutationError) => {
+      toastApiError(mutationError, 'Failed to update setting')
     },
     onSuccess: (data: Setting) => {
       queryClient.invalidateQueries({ 

@@ -1,19 +1,13 @@
-import { AxiosError } from 'axios'
-import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { getJob } from '@/client'
 
 export const Route = createFileRoute('/_auth/jobs/$job_id')({
   component: RouteComponent,
   loader: async ({ params }) => {
     const jobData = await getJob({
-      path: {
-        job_id: params.job_id
-      }
+      path: { job_id: params.job_id },
+      throwOnError: true,
     })
-    if (jobData.status !== 200 || jobData instanceof AxiosError) {
-      alert("An error occurred: " + jobData.error?.detail || "An unknown error occurred.")
-      throw redirect({ to: '/admin/jobs' })
-    }
     return ({
       crumb: jobData.data.name,
       includeCrumbLink: false,

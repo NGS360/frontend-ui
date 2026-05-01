@@ -12,6 +12,7 @@ import { searchOptions } from '@/client/@tanstack/react-query.gen'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Separator } from '@/components/ui/separator'
 import { highlightMatch } from '@/lib/utils'
+import { ErrorBanner } from '@/components/error-banner'
 
 // Search item component
 interface SearchItemProps {
@@ -78,8 +79,10 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
   };
 
   // Query using debounced input
-  const { 
-    data: { projects, runs } = { projects: [], runs: [] }
+  const {
+    data: { projects, runs } = { projects: [], runs: [] },
+    error,
+    refetch,
   } = useQuery({
     ...searchOptions({
       query: {
@@ -91,7 +94,8 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
       projects: res.projects.data,
       runs: res.runs.data
     }),
-    enabled: !!debouncedInput
+    enabled: !!debouncedInput,
+    retry: false,
   })
 
   // Trigger popover when debouncedInput changes
@@ -274,7 +278,15 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
                 </SearchGroup>
               )}
 
-              {projects.length === 0 && runs.length === 0 && (
+              {error && (
+                <ErrorBanner
+                  error={error}
+                  onRetry={() => { void refetch() }}
+                  className="m-2"
+                />
+              )}
+
+              {!error && projects.length === 0 && runs.length === 0 && (
                 <div className="flex justify-center p-4 text-sm text-muted-foreground">
                   No results found.
                 </div>
