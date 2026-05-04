@@ -1,6 +1,5 @@
-import { AxiosError } from 'axios'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { getProjectByProjectId } from '@/client'
 import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
 
@@ -8,22 +7,16 @@ export const Route = createFileRoute('/_auth/projects/$project_id')({
   component: RouteComponent,
   loader: async ({ params, context }) => {
     const projectData = await getProjectByProjectId({
-      path: {
-        project_id: params.project_id
-      }
+      path: { project_id: params.project_id },
+      throwOnError: true,
     })
-    if (projectData.status !== 200 || projectData instanceof AxiosError) {
-      alert("An error occurred: " + projectData.error?.detail || "An unknown error occurred.")
-      throw redirect({ to: '/projects' })
-    }
-    
-    // Prefetch the query data
+
     await context.queryClient.prefetchQuery(
       getProjectByProjectIdOptions({
         path: { project_id: params.project_id }
       })
     )
-    
+
     return ({
       crumb: projectData.data.name || projectData.data.project_id,
       includeCrumbLink: false,

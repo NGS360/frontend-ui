@@ -215,6 +215,7 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -498,6 +499,16 @@ export type BodyUploadManifest = {
 }
 
 /**
+ * Body_upload_samples_file
+ */
+export type BodyUploadSamplesFile = {
+  /**
+   * File
+   */
+  file: Blob | File
+}
+
+/**
  * BulkSampleCreateRequest
  * Request body for POST /projects/{project_id}/samples/bulk.
  */
@@ -525,6 +536,10 @@ export type BulkSampleCreateResponse = {
    * Samples Existing
    */
   samples_existing: number
+  /**
+   * Samples Updated
+   */
+  samples_updated?: number
   /**
    * Associations Created
    */
@@ -568,6 +583,10 @@ export type BulkSampleItemResponse = {
    * Created
    */
   created: boolean
+  /**
+   * Updated
+   */
+  updated?: boolean
   /**
    * Run Id
    */
@@ -1003,6 +1022,40 @@ export type FileSummary = {
    * Samples
    */
   samples?: Array<FileSamplePublic>
+}
+
+/**
+ * FileUpdate
+ * Request model for updating a file record.
+ *
+ * All fields are optional — only provided fields are updated.
+ * Primary use case: correcting a URI (e.g., wrong bucket name).
+ */
+export type FileUpdate = {
+  /**
+   * Uri
+   */
+  uri?: string | null
+  /**
+   * Original Filename
+   */
+  original_filename?: string | null
+  /**
+   * Size
+   */
+  size?: number | null
+  /**
+   * Source
+   */
+  source?: string | null
+  /**
+   * Created By
+   */
+  created_by?: string | null
+  /**
+   * Storage Backend
+   */
+  storage_backend?: string | null
 }
 
 /**
@@ -1467,7 +1520,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflow Ids
    */
@@ -1501,7 +1554,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflows
    */
@@ -1978,7 +2031,7 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -2079,7 +2132,7 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -2138,7 +2191,7 @@ export type SampleWithFilesPublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -2166,17 +2219,13 @@ export type SamplesPublic = {
    */
   total_items: number
   /**
-   * Total Pages
+   * Skip
    */
-  total_pages: number
+  skip: number
   /**
-   * Current Page
+   * Limit
    */
-  current_page: number
-  /**
-   * Per Page
-   */
-  per_page: number
+  limit: number
   /**
    * Has Next
    */
@@ -2205,17 +2254,13 @@ export type SamplesWithFilesPublic = {
    */
   total_items: number
   /**
-   * Total Pages
+   * Skip
    */
-  total_pages: number
+  skip: number
   /**
-   * Current Page
+   * Limit
    */
-  current_page: number
-  /**
-   * Per Page
-   */
-  per_page: number
+  limit: number
   /**
    * Has Next
    */
@@ -2681,17 +2726,13 @@ export type VendorsPublic = {
    */
   total_items: number
   /**
-   * Total Pages
+   * Skip
    */
-  total_pages: number
+  skip: number
   /**
-   * Current Page
+   * Limit
    */
-  current_page: number
-  /**
-   * Per Page
-   */
-  per_page: number
+  limit: number
   /**
    * Has Next
    */
@@ -2721,7 +2762,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2755,7 +2796,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Registrations
    */
@@ -2825,7 +2866,7 @@ export type WorkflowRunCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2863,7 +2904,7 @@ export type WorkflowRunPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2936,9 +2977,8 @@ export type ApiProjectModelsAttribute = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
-export type ApiWorkflowModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -3826,6 +3866,36 @@ export type DownloadFileResponses = {
   200: unknown
 }
 
+export type DeleteFileData = {
+  body?: never
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}'
+}
+
+export type DeleteFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteFileError = DeleteFileErrors[keyof DeleteFileErrors]
+
+export type DeleteFileResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteFileResponse = DeleteFileResponses[keyof DeleteFileResponses]
+
 export type GetFileData = {
   body?: never
   path: {
@@ -3855,6 +3925,36 @@ export type GetFileResponses = {
 }
 
 export type GetFileResponse = GetFileResponses[keyof GetFileResponses]
+
+export type UpdateFileData = {
+  body: FileUpdate
+  path: {
+    /**
+     * File Id
+     */
+    file_id: string
+  }
+  query?: never
+  url: '/api/v1/files/{file_id}'
+}
+
+export type UpdateFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateFileError = UpdateFileErrors[keyof UpdateFileErrors]
+
+export type UpdateFileResponses = {
+  /**
+   * Successful Response
+   */
+  200: FilePublic
+}
+
+export type UpdateFileResponse = UpdateFileResponses[keyof UpdateFileResponses]
 
 export type GetFileVersionsData = {
   body?: never
@@ -4484,15 +4584,15 @@ export type GetProjectSamplesData = {
   }
   query?: {
     /**
-     * Page
-     * Page number (1-indexed)
+     * Skip
+     * Number of records to skip
      */
-    page?: number
+    skip?: number
     /**
-     * Per Page
-     * Number of items per page
+     * Limit
+     * Maximum number of records to return
      */
-    per_page?: number
+    limit?: number
     /**
      * Sort By
      * Field to sort by
@@ -4565,6 +4665,38 @@ export type AddSampleToProjectResponses = {
 export type AddSampleToProjectResponse =
   AddSampleToProjectResponses[keyof AddSampleToProjectResponses]
 
+export type UploadSamplesFileData = {
+  body: BodyUploadSamplesFile
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/samples/upload'
+}
+
+export type UploadSamplesFileErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UploadSamplesFileError =
+  UploadSamplesFileErrors[keyof UploadSamplesFileErrors]
+
+export type UploadSamplesFileResponses = {
+  /**
+   * Successful Response
+   */
+  201: BulkSampleCreateResponse
+}
+
+export type UploadSamplesFileResponse =
+  UploadSamplesFileResponses[keyof UploadSamplesFileResponses]
+
 export type BulkCreateSamplesData = {
   body: BulkSampleCreateRequest
   path: {
@@ -4597,8 +4729,44 @@ export type BulkCreateSamplesResponses = {
 export type BulkCreateSamplesResponse =
   BulkCreateSamplesResponses[keyof BulkCreateSamplesResponses]
 
+export type DeleteSampleFromProjectData = {
+  body?: never
+  path: {
+    /**
+     * Sample Id
+     */
+    sample_id: string
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/samples/{sample_id}'
+}
+
+export type DeleteSampleFromProjectErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteSampleFromProjectError =
+  DeleteSampleFromProjectErrors[keyof DeleteSampleFromProjectErrors]
+
+export type DeleteSampleFromProjectResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteSampleFromProjectResponse =
+  DeleteSampleFromProjectResponses[keyof DeleteSampleFromProjectResponses]
+
 export type UpdateSampleInProjectData = {
-  body: Attribute
+  body: ApiSamplesModelsAttribute
   path: {
     /**
      * Sample Id
@@ -4980,7 +5148,7 @@ export type SearchRunsData = {
      * Sort By
      * Field to sort by
      */
-    sort_by?: string | null
+    sort_by?: ('run_id' | 'experiment_name') | null
     /**
      * Sort Order
      * Sort order (asc or desc)
@@ -5552,15 +5720,15 @@ export type GetVendorsData = {
   path?: never
   query?: {
     /**
-     * Page
-     * Page number (1-indexed)
+     * Skip
+     * Number of records to skip
      */
-    page?: number
+    skip?: number
     /**
-     * Per Page
-     * Number of items per page
+     * Limit
+     * Maximum number of records to return
      */
-    per_page?: number
+    limit?: number
     /**
      * Sort By
      * Field to sort by

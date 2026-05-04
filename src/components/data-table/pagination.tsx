@@ -54,14 +54,17 @@ export function DataTablePagination<TData>({
           {displayTotal} row(s)
         </div>
       )}
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex items-center space-x-2 md:space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
           {!isMobile && <p className="text-sm font-medium">Rows per page</p>}
           <Select
             value={isShowingAll ? 'all' : `${currentPageSize}`}
             onValueChange={(value) => {
               if (value === 'all' && !isServerSide) {
-                table.setPageSize(rowsFiltered || totalItems || 9999)
+                // Use a sentinel larger than any realistic dataset so 'isShowingAll'
+                // stays true after the user clears a filter that previously narrowed
+                // the row count.
+                table.setPageSize(Number.MAX_SAFE_INTEGER)
               } else {
                 table.setPageSize(Number(value))
               }
@@ -81,7 +84,7 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+        <div className="flex items-center justify-center text-sm font-medium whitespace-nowrap md:w-[100px]">
           Page {table.getState().pagination.pageIndex + 1} of{" "}
           {table.getPageCount()}
         </div>

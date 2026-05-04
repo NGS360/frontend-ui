@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { getFormApiErrorMessage } from '@/lib/error-utils'
 import { requestPasswordResetMutation } from '@/client/@tanstack/react-query.gen'
 import { NGS360Logo } from '@/components/ngs360-logo'
 
@@ -53,9 +54,7 @@ export function ForgotPasswordForm({
   const { mutate, isPending } = useMutation({
     ...requestPasswordResetMutation(),
     onError: (error) => {
-      const message =
-        error.response?.data.detail?.toString() || 'An unknown error occurred.'
-      setError('root', { message })
+      setError('root', { message: getFormApiErrorMessage(error, 'An unknown error occurred.') })
     },
     onSuccess: (_, variables) => {
       toast.success('Password reset email sent. Please check your inbox.')

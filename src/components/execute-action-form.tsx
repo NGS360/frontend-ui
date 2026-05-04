@@ -7,6 +7,7 @@ import type { JSX } from 'react'
 import type { ActionOption, ActionPlatform  } from '@/client/types.gen'
 import type { ComboBoxOption } from '@/components/combobox'
 import { ComboBox } from '@/components/combobox'
+import { ErrorBanner } from '@/components/error-banner'
 import { Spinner } from '@/components/spinner'
 import { Stepper } from '@/components/stepper'
 import { Button } from '@/components/ui/button'
@@ -15,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { getActionOptionsOptions, getActionPlatformsOptions, getActionTypesOptions, submitPipelineJobMutation } from '@/client/@tanstack/react-query.gen'
 import { useInvalidateJobQueries, useViewJob } from '@/hooks/use-job-queries'
+import { toastApiError } from '@/lib/error-utils'
 
 interface ExecuteActionFormProps {
   /** Trigger for the Sheet component */
@@ -132,11 +134,7 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
       handleReset();
     },
     onError: (error) => {
-      toast.error('Failed to submit pipeline job', {
-        description: (
-          <span className="text-sm text-foreground">{error.message || 'An unexpected error occurred'}</span>
-        ),
-      });
+      toastApiError(error, 'Failed to submit pipeline job')
     },
   });
 
@@ -175,7 +173,12 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
   }, [projectPlatformsData]);
 
   // Project type options
-  const { data: projectTypesData, isFetching: isLoadingProjectTypes } = useQuery({
+  const {
+    data: projectTypesData,
+    isFetching: isLoadingProjectTypes,
+    error: projectTypesError,
+    refetch: refetchProjectTypes,
+  } = useQuery({
     ...getActionTypesOptions({
       query: {
         action: state.projectAction.value as ActionOption,
@@ -253,6 +256,11 @@ export const ExecuteActionForm: React.FC<ExecuteActionFormProps> = ({
                           <Spinner variant="circle" size={16} />
                           <span>Loading project types...</span>
                         </div>
+                      ) : projectTypesError ? (
+                        <ErrorBanner
+                          error={projectTypesError}
+                          onRetry={() => { void refetchProjectTypes() }}
+                        />
                       ) : (
                         <>
                           <ComboBox
