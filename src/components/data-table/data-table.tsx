@@ -14,6 +14,21 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ContainedSpinner } from "@/components/spinner";
 import { Input } from "@/components/ui/input";
+import { SELECTION_COLUMN_ID, buildSelectionColumn } from "@/components/data-table/selection-column";
+
+/** Optional per-row decoration. When set, the table:
+ *  - applies `getRowClassName(row)` to each `<TableRow>` (added before the
+ *    selection bg, so selection still wins visually);
+ *  - prepends a fixed-width gutter column after the selection column whose
+ *    cell renders `gutterColumn.cell(row)`.
+ *  Both fields are independent — supply one without the other. */
+export interface RowDecoration<TData> {
+  getRowClassName?: (row: Row<TData>) => string | null | undefined
+  gutterColumn?: {
+    id: string
+    cell: (row: Row<TData>) => React.ReactNode
+  }
+}
 
 // Common props
 interface BaseDataTableProps<TData, TValue> {
@@ -26,7 +41,10 @@ interface BaseDataTableProps<TData, TValue> {
   customRowComponent?: () => React.ReactNode,
   renderCustomRowComponent?: boolean,
   isLoading?: boolean,
-  loadingComponent?: JSX.Element
+  loadingComponent?: JSX.Element,
+  /** When true, prepends a checkbox column for row selection. Default: false. */
+  enableRowSelectionColumn?: boolean,
+  rowDecoration?: RowDecoration<TData>
 }
 
 // Data table component
@@ -41,7 +59,13 @@ interface DataTableProps<TData> {
   loadingComponent?: JSX.Element,
   showSearch?: boolean,
   enableColumnFilters?: boolean,
-  tableTools?: React.ReactNode
+  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode),
+  /** Optional contextual banner rendered between the toolbar and the table
+   * body. Use for selection banners, progressive-load progress, or any other
+   * transient affordance. Callers conditionally pass the banner that fits the
+   * current state. */
+  tableBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode),
+  rowDecoration?: RowDecoration<TData>
 }
 
 export function DataTable<TData>({
@@ -55,7 +79,9 @@ export function DataTable<TData>({
   loadingComponent = <ContainedSpinner variant='ellipsis' />,
   showSearch = true,
   enableColumnFilters = false,
-  tableTools
+  tableTools,
+  tableBanner,
+  rowDecoration,
 }: DataTableProps<TData>) {
 
   // Extract table markup to a variable
@@ -74,7 +100,7 @@ export function DataTable<TData>({
                     <div className="flex-1">
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </div>
-                    {enableColumnFilters && header.column.getCanFilter() && (
+                    {enableColumnFilters && header.column.getCanFilter() && header.column.id !== SELECTION_COLUMN_ID && (
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -131,6 +157,7 @@ export function DataTable<TData>({
                     data-state={row.getIsSelected() && "selected"}
                     className={clsx(
                       rowClickCallback && `cursor-pointer`,
+                      rowDecoration?.getRowClassName?.(row),
                       `data-[state=selected]:bg-muted`
                     )}
                     onClick={() => {
@@ -182,11 +209,14 @@ export function DataTable<TData>({
               className="w-full md:w-full lg:w-1/3"
             />
           )}
-          <div className="flex flex-wrap justify-end items-center gap-2">
-            {tableTools}
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:flex-nowrap md:shrink-0">
+            {typeof tableTools === 'function' ? tableTools(table) : tableTools}
             <DataTableColumnToggle table={table} />
           </div>
         </div>
+        {tableBanner && (
+          typeof tableBanner === 'function' ? tableBanner(table) : tableBanner
+        )}
         <div className="flex">
           <ScrollArea className="flex-1 w-full rounded-md border">
             {tableMarkup}
@@ -220,7 +250,8 @@ interface ServerDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
   // Column visibility,
 
   // Custom table tools
-  tableTools?: React.ReactNode
+  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
+  tableBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>
 }
 
@@ -232,6 +263,7 @@ export function ServerDataTable<TData, TValue>({
   isLoading,
   loadingComponent,
   rowClickCallback,
+  enableRowSelectionColumn = false,
 
   // Search/filter
   globalFilter,
@@ -248,19 +280,33 @@ export function ServerDataTable<TData, TValue>({
 
   // Custom table tools
   tableTools,
+  tableBanner,
   onSortingChange: setSorting,
 
   // Column visibility
-  onColumnVisibilityChange: setColumnVisibility
+  onColumnVisibilityChange: setColumnVisibility,
 
+  rowDecoration,
 }: ServerDataTableProps<TData, TValue>) {
 
   // Determine if column visibility is controlled or uncontrolled
   const isControlledColumnVisibility = setColumnVisibility !== undefined
 
+  const gutterColumnSpec = rowDecoration?.gutterColumn
+  const finalColumns = React.useMemo(
+    () => {
+      const leading: Array<ColumnDef<TData>> = []
+      if (enableRowSelectionColumn) leading.push(buildSelectionColumn<TData>())
+      if (gutterColumnSpec) leading.push(buildGutterColumn<TData>(gutterColumnSpec))
+      return leading.length ? [...leading, ...columns] : columns
+    },
+    [columns, enableRowSelectionColumn, gutterColumnSpec]
+  )
+
   const table = useReactTable({
     data,
-    columns,
+    columns: finalColumns,
+    enableRowSelection: enableRowSelectionColumn,
     getCoreRowModel: getCoreRowModel(),
 
     // Search/filter
@@ -301,6 +347,7 @@ export function ServerDataTable<TData, TValue>({
     <DataTable
       table={table}
       tableTools={tableTools}
+      tableBanner={tableBanner}
       totalItems={totalItems}
       notFoundComponent={notFoundComponent}
       isLoading={isLoading}
@@ -308,6 +355,7 @@ export function ServerDataTable<TData, TValue>({
       showSearch={showSearch}
       enableColumnFilters={false}
       rowClickCallback={rowClickCallback}
+      rowDecoration={rowDecoration}
     />
   )
 }
@@ -319,7 +367,23 @@ interface ClientDataTableProps<TData, TValue> extends BaseDataTableProps<TData, 
   onColumnVisibilityChange?: OnChangeFn<Record<string, boolean>>,
   globalFilter?: string,
   onFilterChange?: (value: string) => void,
-  tableTools?: React.ReactNode
+  tableTools?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode),
+  tableBanner?: React.ReactNode | ((table: ReactTable<TData>) => React.ReactNode)
+}
+
+function buildGutterColumn<TData>(
+  spec: NonNullable<RowDecoration<TData>['gutterColumn']>
+): ColumnDef<TData> {
+  return {
+    id: spec.id,
+    header: () => null,
+    cell: ({ row }) => (
+      <div className='w-8 flex items-center justify-center'>{spec.cell(row)}</div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    enableColumnFilter: false,
+  }
 }
 
 export function ClientDataTable<TData, TValue>({
@@ -336,25 +400,38 @@ export function ClientDataTable<TData, TValue>({
   onColumnVisibilityChange,
   globalFilter,
   onFilterChange,
-  tableTools
+  tableTools,
+  tableBanner,
+  enableRowSelectionColumn = false,
+  rowDecoration,
 }: ClientDataTableProps<TData, TValue>) {
 
   // Determine if column visibility is controlled or uncontrolled
   const isControlledColumnVisibility = onColumnVisibilityChange !== undefined
 
-  // Map columns to include the custom filter function
+  const gutterColumnSpec = rowDecoration?.gutterColumn
+
+  // Map columns to include the custom filter function, optionally prepending
+  // the selection column and a decoration gutter column. Order: [selection?,
+  // gutter?, ...userColumns].
   const columnsWithFilter = React.useMemo(
-    () => columns.map((col) => ({
-      ...col,
-      filterFn: multiConditionFilter,
-    })),
-    [columns]
+    () => {
+      const base = columns.map((col) => ({
+        ...col,
+        filterFn: multiConditionFilter,
+      }))
+      const leading: Array<ColumnDef<TData>> = []
+      if (enableRowSelectionColumn) leading.push(buildSelectionColumn<TData>())
+      if (gutterColumnSpec) leading.push(buildGutterColumn<TData>(gutterColumnSpec))
+      return leading.length ? [...leading, ...base] : base
+    },
+    [columns, enableRowSelectionColumn, gutterColumnSpec]
   );
 
   const table = useReactTable({
     data,
     columns: columnsWithFilter,
-    enableRowSelection: true,
+    enableRowSelection: enableRowSelectionColumn,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -386,6 +463,7 @@ export function ClientDataTable<TData, TValue>({
     <DataTable
       table={table}
       tableTools={tableTools}
+      tableBanner={tableBanner}
       totalItems={data.length}
       notFoundComponent={notFoundComponent}
       rowClickCallback={rowClickCallback}
@@ -395,6 +473,7 @@ export function ClientDataTable<TData, TValue>({
       loadingComponent={loadingComponent}
       showSearch={showSearch}
       enableColumnFilters={true}
+      rowDecoration={rowDecoration}
     />
   )
 }

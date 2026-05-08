@@ -11,7 +11,7 @@ export const RouteComponent = () => (
 export const Route = createFileRoute('/_auth/runs')({
   component: RouteComponent,
   loader: () => ({
-    crumb: 'Illumina Runs',
+    crumb: 'Sequencing Runs',
     includeCrumbLink: true,
   }),
 })

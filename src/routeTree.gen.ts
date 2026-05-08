@@ -30,14 +30,14 @@ import { Route as AuthProjectsIndexImport } from './routes/_auth.projects.index'
 import { Route as AuthProfileIndexImport } from './routes/_auth.profile.index'
 import { Route as AuthJobsIndexImport } from './routes/_auth.jobs.index'
 import { Route as AuthAdminIndexImport } from './routes/_auth.admin.index'
-import { Route as AuthRunsRunbarcodeRouteImport } from './routes/_auth.runs.$run_barcode.route'
+import { Route as AuthRunsRunidRouteImport } from './routes/_auth.runs.$run_id.route'
 import { Route as AuthProjectsProjectidRouteImport } from './routes/_auth.projects.$project_id.route'
 import { Route as AuthJobsJobidRouteImport } from './routes/_auth.jobs.$job_id.route'
 import { Route as AuthAdminVendorsRouteImport } from './routes/_auth.admin.vendors.route'
 import { Route as AuthAdminRunSettingsRouteImport } from './routes/_auth.admin.run-settings.route'
 import { Route as AuthAdminProjectSettingsRouteImport } from './routes/_auth.admin.project-settings.route'
 import { Route as AuthAdminJobsRouteImport } from './routes/_auth.admin.jobs.route'
-import { Route as AuthRunsRunbarcodeIndexImport } from './routes/_auth.runs.$run_barcode.index'
+import { Route as AuthRunsRunidIndexImport } from './routes/_auth.runs.$run_id.index'
 import { Route as AuthProjectsProjectidIndexImport } from './routes/_auth.projects.$project_id.index'
 import { Route as AuthJobsJobidIndexImport } from './routes/_auth.jobs.$job_id.index'
 import { Route as AuthAdminVendorsIndexImport } from './routes/_auth.admin.vendors.index'
@@ -45,10 +45,10 @@ import { Route as AuthAdminRunSettingsIndexImport } from './routes/_auth.admin.r
 import { Route as AuthAdminProjectSettingsIndexImport } from './routes/_auth.admin.project-settings.index'
 import { Route as AuthAdminJobsIndexImport } from './routes/_auth.admin.jobs.index'
 import { Route as UserOauthProviderCallbackImport } from './routes/_user.oauth.$provider.callback'
-import { Route as AuthRunsRunbarcodeSamplesheetRouteImport } from './routes/_auth.runs.$run_barcode.samplesheet.route'
-import { Route as AuthRunsRunbarcodeIndexqcRouteImport } from './routes/_auth.runs.$run_barcode.indexqc.route'
-import { Route as AuthRunsRunbarcodeSamplesheetIndexImport } from './routes/_auth.runs.$run_barcode.samplesheet.index'
-import { Route as AuthRunsRunbarcodeIndexqcIndexImport } from './routes/_auth.runs.$run_barcode.indexqc.index'
+import { Route as AuthRunsRunidSamplesheetRouteImport } from './routes/_auth.runs.$run_id.samplesheet.route'
+import { Route as AuthRunsRunidIndexqcRouteImport } from './routes/_auth.runs.$run_id.indexqc.route'
+import { Route as AuthRunsRunidSamplesheetIndexImport } from './routes/_auth.runs.$run_id.samplesheet.index'
+import { Route as AuthRunsRunidIndexqcIndexImport } from './routes/_auth.runs.$run_id.indexqc.index'
 
 // Create/Update Routes
 
@@ -164,9 +164,9 @@ const AuthAdminIndexRoute = AuthAdminIndexImport.update({
   getParentRoute: () => AuthAdminRouteRoute,
 } as any)
 
-const AuthRunsRunbarcodeRouteRoute = AuthRunsRunbarcodeRouteImport.update({
-  id: '/$run_barcode',
-  path: '/$run_barcode',
+const AuthRunsRunidRouteRoute = AuthRunsRunidRouteImport.update({
+  id: '/$run_id',
+  path: '/$run_id',
   getParentRoute: () => AuthRunsRouteRoute,
 } as any)
 
@@ -209,10 +209,10 @@ const AuthAdminJobsRouteRoute = AuthAdminJobsRouteImport.update({
   getParentRoute: () => AuthAdminRouteRoute,
 } as any)
 
-const AuthRunsRunbarcodeIndexRoute = AuthRunsRunbarcodeIndexImport.update({
+const AuthRunsRunidIndexRoute = AuthRunsRunidIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthRunsRunbarcodeRouteRoute,
+  getParentRoute: () => AuthRunsRunidRouteRoute,
 } as any)
 
 const AuthProjectsProjectidIndexRoute = AuthProjectsProjectidIndexImport.update(
@@ -260,33 +260,31 @@ const UserOauthProviderCallbackRoute = UserOauthProviderCallbackImport.update({
   getParentRoute: () => UserRouteRoute,
 } as any)
 
-const AuthRunsRunbarcodeSamplesheetRouteRoute =
-  AuthRunsRunbarcodeSamplesheetRouteImport.update({
+const AuthRunsRunidSamplesheetRouteRoute =
+  AuthRunsRunidSamplesheetRouteImport.update({
     id: '/samplesheet',
     path: '/samplesheet',
-    getParentRoute: () => AuthRunsRunbarcodeRouteRoute,
+    getParentRoute: () => AuthRunsRunidRouteRoute,
   } as any)
 
-const AuthRunsRunbarcodeIndexqcRouteRoute =
-  AuthRunsRunbarcodeIndexqcRouteImport.update({
-    id: '/indexqc',
-    path: '/indexqc',
-    getParentRoute: () => AuthRunsRunbarcodeRouteRoute,
-  } as any)
+const AuthRunsRunidIndexqcRouteRoute = AuthRunsRunidIndexqcRouteImport.update({
+  id: '/indexqc',
+  path: '/indexqc',
+  getParentRoute: () => AuthRunsRunidRouteRoute,
+} as any)
 
-const AuthRunsRunbarcodeSamplesheetIndexRoute =
-  AuthRunsRunbarcodeSamplesheetIndexImport.update({
+const AuthRunsRunidSamplesheetIndexRoute =
+  AuthRunsRunidSamplesheetIndexImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AuthRunsRunbarcodeSamplesheetRouteRoute,
+    getParentRoute: () => AuthRunsRunidSamplesheetRouteRoute,
   } as any)
 
-const AuthRunsRunbarcodeIndexqcIndexRoute =
-  AuthRunsRunbarcodeIndexqcIndexImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthRunsRunbarcodeIndexqcRouteRoute,
-  } as any)
+const AuthRunsRunidIndexqcIndexRoute = AuthRunsRunidIndexqcIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthRunsRunidIndexqcRouteRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -404,11 +402,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProjectsProjectidRouteImport
       parentRoute: typeof AuthProjectsRouteImport
     }
-    '/_auth/runs/$run_barcode': {
-      id: '/_auth/runs/$run_barcode'
-      path: '/$run_barcode'
-      fullPath: '/runs/$run_barcode'
-      preLoaderRoute: typeof AuthRunsRunbarcodeRouteImport
+    '/_auth/runs/$run_id': {
+      id: '/_auth/runs/$run_id'
+      path: '/$run_id'
+      fullPath: '/runs/$run_id'
+      preLoaderRoute: typeof AuthRunsRunidRouteImport
       parentRoute: typeof AuthRunsRouteImport
     }
     '/_auth/admin/': {
@@ -474,19 +472,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserRegisterIndexImport
       parentRoute: typeof UserRouteImport
     }
-    '/_auth/runs/$run_barcode/indexqc': {
-      id: '/_auth/runs/$run_barcode/indexqc'
+    '/_auth/runs/$run_id/indexqc': {
+      id: '/_auth/runs/$run_id/indexqc'
       path: '/indexqc'
-      fullPath: '/runs/$run_barcode/indexqc'
-      preLoaderRoute: typeof AuthRunsRunbarcodeIndexqcRouteImport
-      parentRoute: typeof AuthRunsRunbarcodeRouteImport
+      fullPath: '/runs/$run_id/indexqc'
+      preLoaderRoute: typeof AuthRunsRunidIndexqcRouteImport
+      parentRoute: typeof AuthRunsRunidRouteImport
     }
-    '/_auth/runs/$run_barcode/samplesheet': {
-      id: '/_auth/runs/$run_barcode/samplesheet'
+    '/_auth/runs/$run_id/samplesheet': {
+      id: '/_auth/runs/$run_id/samplesheet'
       path: '/samplesheet'
-      fullPath: '/runs/$run_barcode/samplesheet'
-      preLoaderRoute: typeof AuthRunsRunbarcodeSamplesheetRouteImport
-      parentRoute: typeof AuthRunsRunbarcodeRouteImport
+      fullPath: '/runs/$run_id/samplesheet'
+      preLoaderRoute: typeof AuthRunsRunidSamplesheetRouteImport
+      parentRoute: typeof AuthRunsRunidRouteImport
     }
     '/_user/oauth/$provider/callback': {
       id: '/_user/oauth/$provider/callback'
@@ -537,26 +535,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProjectsProjectidIndexImport
       parentRoute: typeof AuthProjectsProjectidRouteImport
     }
-    '/_auth/runs/$run_barcode/': {
-      id: '/_auth/runs/$run_barcode/'
+    '/_auth/runs/$run_id/': {
+      id: '/_auth/runs/$run_id/'
       path: '/'
-      fullPath: '/runs/$run_barcode/'
-      preLoaderRoute: typeof AuthRunsRunbarcodeIndexImport
-      parentRoute: typeof AuthRunsRunbarcodeRouteImport
+      fullPath: '/runs/$run_id/'
+      preLoaderRoute: typeof AuthRunsRunidIndexImport
+      parentRoute: typeof AuthRunsRunidRouteImport
     }
-    '/_auth/runs/$run_barcode/indexqc/': {
-      id: '/_auth/runs/$run_barcode/indexqc/'
+    '/_auth/runs/$run_id/indexqc/': {
+      id: '/_auth/runs/$run_id/indexqc/'
       path: '/'
-      fullPath: '/runs/$run_barcode/indexqc/'
-      preLoaderRoute: typeof AuthRunsRunbarcodeIndexqcIndexImport
-      parentRoute: typeof AuthRunsRunbarcodeIndexqcRouteImport
+      fullPath: '/runs/$run_id/indexqc/'
+      preLoaderRoute: typeof AuthRunsRunidIndexqcIndexImport
+      parentRoute: typeof AuthRunsRunidIndexqcRouteImport
     }
-    '/_auth/runs/$run_barcode/samplesheet/': {
-      id: '/_auth/runs/$run_barcode/samplesheet/'
+    '/_auth/runs/$run_id/samplesheet/': {
+      id: '/_auth/runs/$run_id/samplesheet/'
       path: '/'
-      fullPath: '/runs/$run_barcode/samplesheet/'
-      preLoaderRoute: typeof AuthRunsRunbarcodeSamplesheetIndexImport
-      parentRoute: typeof AuthRunsRunbarcodeSamplesheetRouteImport
+      fullPath: '/runs/$run_id/samplesheet/'
+      preLoaderRoute: typeof AuthRunsRunidSamplesheetIndexImport
+      parentRoute: typeof AuthRunsRunidSamplesheetRouteImport
     }
   }
 }
@@ -723,62 +721,57 @@ const AuthProjectsRouteRouteChildren: AuthProjectsRouteRouteChildren = {
 const AuthProjectsRouteRouteWithChildren =
   AuthProjectsRouteRoute._addFileChildren(AuthProjectsRouteRouteChildren)
 
-interface AuthRunsRunbarcodeIndexqcRouteRouteChildren {
-  AuthRunsRunbarcodeIndexqcIndexRoute: typeof AuthRunsRunbarcodeIndexqcIndexRoute
+interface AuthRunsRunidIndexqcRouteRouteChildren {
+  AuthRunsRunidIndexqcIndexRoute: typeof AuthRunsRunidIndexqcIndexRoute
 }
 
-const AuthRunsRunbarcodeIndexqcRouteRouteChildren: AuthRunsRunbarcodeIndexqcRouteRouteChildren =
+const AuthRunsRunidIndexqcRouteRouteChildren: AuthRunsRunidIndexqcRouteRouteChildren =
   {
-    AuthRunsRunbarcodeIndexqcIndexRoute: AuthRunsRunbarcodeIndexqcIndexRoute,
+    AuthRunsRunidIndexqcIndexRoute: AuthRunsRunidIndexqcIndexRoute,
   }
 
-const AuthRunsRunbarcodeIndexqcRouteRouteWithChildren =
-  AuthRunsRunbarcodeIndexqcRouteRoute._addFileChildren(
-    AuthRunsRunbarcodeIndexqcRouteRouteChildren,
+const AuthRunsRunidIndexqcRouteRouteWithChildren =
+  AuthRunsRunidIndexqcRouteRoute._addFileChildren(
+    AuthRunsRunidIndexqcRouteRouteChildren,
   )
 
-interface AuthRunsRunbarcodeSamplesheetRouteRouteChildren {
-  AuthRunsRunbarcodeSamplesheetIndexRoute: typeof AuthRunsRunbarcodeSamplesheetIndexRoute
+interface AuthRunsRunidSamplesheetRouteRouteChildren {
+  AuthRunsRunidSamplesheetIndexRoute: typeof AuthRunsRunidSamplesheetIndexRoute
 }
 
-const AuthRunsRunbarcodeSamplesheetRouteRouteChildren: AuthRunsRunbarcodeSamplesheetRouteRouteChildren =
+const AuthRunsRunidSamplesheetRouteRouteChildren: AuthRunsRunidSamplesheetRouteRouteChildren =
   {
-    AuthRunsRunbarcodeSamplesheetIndexRoute:
-      AuthRunsRunbarcodeSamplesheetIndexRoute,
+    AuthRunsRunidSamplesheetIndexRoute: AuthRunsRunidSamplesheetIndexRoute,
   }
 
-const AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren =
-  AuthRunsRunbarcodeSamplesheetRouteRoute._addFileChildren(
-    AuthRunsRunbarcodeSamplesheetRouteRouteChildren,
+const AuthRunsRunidSamplesheetRouteRouteWithChildren =
+  AuthRunsRunidSamplesheetRouteRoute._addFileChildren(
+    AuthRunsRunidSamplesheetRouteRouteChildren,
   )
 
-interface AuthRunsRunbarcodeRouteRouteChildren {
-  AuthRunsRunbarcodeIndexqcRouteRoute: typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
-  AuthRunsRunbarcodeSamplesheetRouteRoute: typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
-  AuthRunsRunbarcodeIndexRoute: typeof AuthRunsRunbarcodeIndexRoute
+interface AuthRunsRunidRouteRouteChildren {
+  AuthRunsRunidIndexqcRouteRoute: typeof AuthRunsRunidIndexqcRouteRouteWithChildren
+  AuthRunsRunidSamplesheetRouteRoute: typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
+  AuthRunsRunidIndexRoute: typeof AuthRunsRunidIndexRoute
 }
 
-const AuthRunsRunbarcodeRouteRouteChildren: AuthRunsRunbarcodeRouteRouteChildren =
-  {
-    AuthRunsRunbarcodeIndexqcRouteRoute:
-      AuthRunsRunbarcodeIndexqcRouteRouteWithChildren,
-    AuthRunsRunbarcodeSamplesheetRouteRoute:
-      AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren,
-    AuthRunsRunbarcodeIndexRoute: AuthRunsRunbarcodeIndexRoute,
-  }
+const AuthRunsRunidRouteRouteChildren: AuthRunsRunidRouteRouteChildren = {
+  AuthRunsRunidIndexqcRouteRoute: AuthRunsRunidIndexqcRouteRouteWithChildren,
+  AuthRunsRunidSamplesheetRouteRoute:
+    AuthRunsRunidSamplesheetRouteRouteWithChildren,
+  AuthRunsRunidIndexRoute: AuthRunsRunidIndexRoute,
+}
 
-const AuthRunsRunbarcodeRouteRouteWithChildren =
-  AuthRunsRunbarcodeRouteRoute._addFileChildren(
-    AuthRunsRunbarcodeRouteRouteChildren,
-  )
+const AuthRunsRunidRouteRouteWithChildren =
+  AuthRunsRunidRouteRoute._addFileChildren(AuthRunsRunidRouteRouteChildren)
 
 interface AuthRunsRouteRouteChildren {
-  AuthRunsRunbarcodeRouteRoute: typeof AuthRunsRunbarcodeRouteRouteWithChildren
+  AuthRunsRunidRouteRoute: typeof AuthRunsRunidRouteRouteWithChildren
   AuthRunsIndexRoute: typeof AuthRunsIndexRoute
 }
 
 const AuthRunsRouteRouteChildren: AuthRunsRouteRouteChildren = {
-  AuthRunsRunbarcodeRouteRoute: AuthRunsRunbarcodeRouteRouteWithChildren,
+  AuthRunsRunidRouteRoute: AuthRunsRunidRouteRouteWithChildren,
   AuthRunsIndexRoute: AuthRunsIndexRoute,
 }
 
@@ -822,7 +815,7 @@ export interface FileRoutesByFullPath {
   '/admin/vendors': typeof AuthAdminVendorsRouteRouteWithChildren
   '/jobs/$job_id': typeof AuthJobsJobidRouteRouteWithChildren
   '/projects/$project_id': typeof AuthProjectsProjectidRouteRouteWithChildren
-  '/runs/$run_barcode': typeof AuthRunsRunbarcodeRouteRouteWithChildren
+  '/runs/$run_id': typeof AuthRunsRunidRouteRouteWithChildren
   '/admin/': typeof AuthAdminIndexRoute
   '/jobs/': typeof AuthJobsIndexRoute
   '/profile/': typeof AuthProfileIndexRoute
@@ -832,8 +825,8 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof UserForgotPasswordIndexRoute
   '/login': typeof UserLoginIndexRoute
   '/register': typeof UserRegisterIndexRoute
-  '/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
-  '/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcRouteRouteWithChildren
+  '/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
   '/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
   '/admin/jobs/': typeof AuthAdminJobsIndexRoute
   '/admin/project-settings/': typeof AuthAdminProjectSettingsIndexRoute
@@ -841,9 +834,9 @@ export interface FileRoutesByFullPath {
   '/admin/vendors/': typeof AuthAdminVendorsIndexRoute
   '/jobs/$job_id/': typeof AuthJobsJobidIndexRoute
   '/projects/$project_id/': typeof AuthProjectsProjectidIndexRoute
-  '/runs/$run_barcode/': typeof AuthRunsRunbarcodeIndexRoute
-  '/runs/$run_barcode/indexqc/': typeof AuthRunsRunbarcodeIndexqcIndexRoute
-  '/runs/$run_barcode/samplesheet/': typeof AuthRunsRunbarcodeSamplesheetIndexRoute
+  '/runs/$run_id/': typeof AuthRunsRunidIndexRoute
+  '/runs/$run_id/indexqc/': typeof AuthRunsRunidIndexqcIndexRoute
+  '/runs/$run_id/samplesheet/': typeof AuthRunsRunidSamplesheetIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -867,9 +860,9 @@ export interface FileRoutesByTo {
   '/admin/vendors': typeof AuthAdminVendorsIndexRoute
   '/jobs/$job_id': typeof AuthJobsJobidIndexRoute
   '/projects/$project_id': typeof AuthProjectsProjectidIndexRoute
-  '/runs/$run_barcode': typeof AuthRunsRunbarcodeIndexRoute
-  '/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcIndexRoute
-  '/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetIndexRoute
+  '/runs/$run_id': typeof AuthRunsRunidIndexRoute
+  '/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcIndexRoute
+  '/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetIndexRoute
 }
 
 export interface FileRoutesById {
@@ -890,7 +883,7 @@ export interface FileRoutesById {
   '/_auth/admin/vendors': typeof AuthAdminVendorsRouteRouteWithChildren
   '/_auth/jobs/$job_id': typeof AuthJobsJobidRouteRouteWithChildren
   '/_auth/projects/$project_id': typeof AuthProjectsProjectidRouteRouteWithChildren
-  '/_auth/runs/$run_barcode': typeof AuthRunsRunbarcodeRouteRouteWithChildren
+  '/_auth/runs/$run_id': typeof AuthRunsRunidRouteRouteWithChildren
   '/_auth/admin/': typeof AuthAdminIndexRoute
   '/_auth/jobs/': typeof AuthJobsIndexRoute
   '/_auth/profile/': typeof AuthProfileIndexRoute
@@ -900,8 +893,8 @@ export interface FileRoutesById {
   '/_user/forgot-password/': typeof UserForgotPasswordIndexRoute
   '/_user/login/': typeof UserLoginIndexRoute
   '/_user/register/': typeof UserRegisterIndexRoute
-  '/_auth/runs/$run_barcode/indexqc': typeof AuthRunsRunbarcodeIndexqcRouteRouteWithChildren
-  '/_auth/runs/$run_barcode/samplesheet': typeof AuthRunsRunbarcodeSamplesheetRouteRouteWithChildren
+  '/_auth/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcRouteRouteWithChildren
+  '/_auth/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
   '/_user/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
   '/_auth/admin/jobs/': typeof AuthAdminJobsIndexRoute
   '/_auth/admin/project-settings/': typeof AuthAdminProjectSettingsIndexRoute
@@ -909,9 +902,9 @@ export interface FileRoutesById {
   '/_auth/admin/vendors/': typeof AuthAdminVendorsIndexRoute
   '/_auth/jobs/$job_id/': typeof AuthJobsJobidIndexRoute
   '/_auth/projects/$project_id/': typeof AuthProjectsProjectidIndexRoute
-  '/_auth/runs/$run_barcode/': typeof AuthRunsRunbarcodeIndexRoute
-  '/_auth/runs/$run_barcode/indexqc/': typeof AuthRunsRunbarcodeIndexqcIndexRoute
-  '/_auth/runs/$run_barcode/samplesheet/': typeof AuthRunsRunbarcodeSamplesheetIndexRoute
+  '/_auth/runs/$run_id/': typeof AuthRunsRunidIndexRoute
+  '/_auth/runs/$run_id/indexqc/': typeof AuthRunsRunidIndexqcIndexRoute
+  '/_auth/runs/$run_id/samplesheet/': typeof AuthRunsRunidSamplesheetIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -932,7 +925,7 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/jobs/$job_id'
     | '/projects/$project_id'
-    | '/runs/$run_barcode'
+    | '/runs/$run_id'
     | '/admin/'
     | '/jobs/'
     | '/profile/'
@@ -942,8 +935,8 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
-    | '/runs/$run_barcode/indexqc'
-    | '/runs/$run_barcode/samplesheet'
+    | '/runs/$run_id/indexqc'
+    | '/runs/$run_id/samplesheet'
     | '/oauth/$provider/callback'
     | '/admin/jobs/'
     | '/admin/project-settings/'
@@ -951,9 +944,9 @@ export interface FileRouteTypes {
     | '/admin/vendors/'
     | '/jobs/$job_id/'
     | '/projects/$project_id/'
-    | '/runs/$run_barcode/'
-    | '/runs/$run_barcode/indexqc/'
-    | '/runs/$run_barcode/samplesheet/'
+    | '/runs/$run_id/'
+    | '/runs/$run_id/indexqc/'
+    | '/runs/$run_id/samplesheet/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | ''
@@ -976,9 +969,9 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/jobs/$job_id'
     | '/projects/$project_id'
-    | '/runs/$run_barcode'
-    | '/runs/$run_barcode/indexqc'
-    | '/runs/$run_barcode/samplesheet'
+    | '/runs/$run_id'
+    | '/runs/$run_id/indexqc'
+    | '/runs/$run_id/samplesheet'
   id:
     | '__root__'
     | '/_user'
@@ -997,7 +990,7 @@ export interface FileRouteTypes {
     | '/_auth/admin/vendors'
     | '/_auth/jobs/$job_id'
     | '/_auth/projects/$project_id'
-    | '/_auth/runs/$run_barcode'
+    | '/_auth/runs/$run_id'
     | '/_auth/admin/'
     | '/_auth/jobs/'
     | '/_auth/profile/'
@@ -1007,8 +1000,8 @@ export interface FileRouteTypes {
     | '/_user/forgot-password/'
     | '/_user/login/'
     | '/_user/register/'
-    | '/_auth/runs/$run_barcode/indexqc'
-    | '/_auth/runs/$run_barcode/samplesheet'
+    | '/_auth/runs/$run_id/indexqc'
+    | '/_auth/runs/$run_id/samplesheet'
     | '/_user/oauth/$provider/callback'
     | '/_auth/admin/jobs/'
     | '/_auth/admin/project-settings/'
@@ -1016,9 +1009,9 @@ export interface FileRouteTypes {
     | '/_auth/admin/vendors/'
     | '/_auth/jobs/$job_id/'
     | '/_auth/projects/$project_id/'
-    | '/_auth/runs/$run_barcode/'
-    | '/_auth/runs/$run_barcode/indexqc/'
-    | '/_auth/runs/$run_barcode/samplesheet/'
+    | '/_auth/runs/$run_id/'
+    | '/_auth/runs/$run_id/indexqc/'
+    | '/_auth/runs/$run_id/samplesheet/'
   fileRoutesById: FileRoutesById
 }
 
@@ -1107,7 +1100,7 @@ export const routeTree = rootRoute
       "filePath": "_auth.runs.route.tsx",
       "parent": "/_auth",
       "children": [
-        "/_auth/runs/$run_barcode",
+        "/_auth/runs/$run_id",
         "/_auth/runs/"
       ]
     },
@@ -1165,13 +1158,13 @@ export const routeTree = rootRoute
         "/_auth/projects/$project_id/"
       ]
     },
-    "/_auth/runs/$run_barcode": {
-      "filePath": "_auth.runs.$run_barcode.route.tsx",
+    "/_auth/runs/$run_id": {
+      "filePath": "_auth.runs.$run_id.route.tsx",
       "parent": "/_auth/runs",
       "children": [
-        "/_auth/runs/$run_barcode/indexqc",
-        "/_auth/runs/$run_barcode/samplesheet",
-        "/_auth/runs/$run_barcode/"
+        "/_auth/runs/$run_id/indexqc",
+        "/_auth/runs/$run_id/samplesheet",
+        "/_auth/runs/$run_id/"
       ]
     },
     "/_auth/admin/": {
@@ -1210,18 +1203,18 @@ export const routeTree = rootRoute
       "filePath": "_user.register.index.tsx",
       "parent": "/_user"
     },
-    "/_auth/runs/$run_barcode/indexqc": {
-      "filePath": "_auth.runs.$run_barcode.indexqc.route.tsx",
-      "parent": "/_auth/runs/$run_barcode",
+    "/_auth/runs/$run_id/indexqc": {
+      "filePath": "_auth.runs.$run_id.indexqc.route.tsx",
+      "parent": "/_auth/runs/$run_id",
       "children": [
-        "/_auth/runs/$run_barcode/indexqc/"
+        "/_auth/runs/$run_id/indexqc/"
       ]
     },
-    "/_auth/runs/$run_barcode/samplesheet": {
-      "filePath": "_auth.runs.$run_barcode.samplesheet.route.tsx",
-      "parent": "/_auth/runs/$run_barcode",
+    "/_auth/runs/$run_id/samplesheet": {
+      "filePath": "_auth.runs.$run_id.samplesheet.route.tsx",
+      "parent": "/_auth/runs/$run_id",
       "children": [
-        "/_auth/runs/$run_barcode/samplesheet/"
+        "/_auth/runs/$run_id/samplesheet/"
       ]
     },
     "/_user/oauth/$provider/callback": {
@@ -1252,17 +1245,17 @@ export const routeTree = rootRoute
       "filePath": "_auth.projects.$project_id.index.tsx",
       "parent": "/_auth/projects/$project_id"
     },
-    "/_auth/runs/$run_barcode/": {
-      "filePath": "_auth.runs.$run_barcode.index.tsx",
-      "parent": "/_auth/runs/$run_barcode"
+    "/_auth/runs/$run_id/": {
+      "filePath": "_auth.runs.$run_id.index.tsx",
+      "parent": "/_auth/runs/$run_id"
     },
-    "/_auth/runs/$run_barcode/indexqc/": {
-      "filePath": "_auth.runs.$run_barcode.indexqc.index.tsx",
-      "parent": "/_auth/runs/$run_barcode/indexqc"
+    "/_auth/runs/$run_id/indexqc/": {
+      "filePath": "_auth.runs.$run_id.indexqc.index.tsx",
+      "parent": "/_auth/runs/$run_id/indexqc"
     },
-    "/_auth/runs/$run_barcode/samplesheet/": {
-      "filePath": "_auth.runs.$run_barcode.samplesheet.index.tsx",
-      "parent": "/_auth/runs/$run_barcode/samplesheet"
+    "/_auth/runs/$run_id/samplesheet/": {
+      "filePath": "_auth.runs.$run_id.samplesheet.index.tsx",
+      "parent": "/_auth/runs/$run_id/samplesheet"
     }
   }
 }

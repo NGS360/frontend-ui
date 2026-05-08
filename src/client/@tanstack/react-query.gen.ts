@@ -15,6 +15,7 @@ import {
   addWorkflowToPipeline,
   associateSampleWithRun,
   browseS3,
+  bulkCreateSamples,
   changePassword,
   clearSamplesForRun,
   confirmPasswordReset,
@@ -28,7 +29,9 @@ import {
   createWorkflowRegistration,
   createWorkflowRun,
   deleteApiKey,
+  deleteFile,
   deleteQcrecord,
+  deleteSampleFromProject,
   deleteVendor,
   deleteWorkflowRegistration,
   downloadFile,
@@ -78,6 +81,7 @@ import {
   logout,
   oauthAuthorize,
   oauthCallback,
+  patchProject,
   postRunSamplesheet,
   refreshToken,
   register,
@@ -99,6 +103,7 @@ import {
   submitJob,
   submitPipelineJob,
   unlinkOauthProvider,
+  updateFile,
   updateJob,
   updateProject,
   updateRun,
@@ -107,6 +112,7 @@ import {
   updateVendor,
   uploadFile,
   uploadManifest,
+  uploadSamplesFile,
   validateActionConfig,
   validateManifest,
   verifyEmail
@@ -131,6 +137,9 @@ import type {
   AssociateSampleWithRunError,
   AssociateSampleWithRunResponse,
   BrowseS3Data,
+  BulkCreateSamplesData,
+  BulkCreateSamplesError,
+  BulkCreateSamplesResponse,
   ChangePasswordData,
   ChangePasswordError,
   ChangePasswordResponse,
@@ -170,9 +179,15 @@ import type {
   DeleteApiKeyData,
   DeleteApiKeyError,
   DeleteApiKeyResponse,
+  DeleteFileData,
+  DeleteFileError,
+  DeleteFileResponse,
   DeleteQcrecordData,
   DeleteQcrecordError,
   DeleteQcrecordResponse,
+  DeleteSampleFromProjectData,
+  DeleteSampleFromProjectError,
+  DeleteSampleFromProjectResponse,
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
@@ -202,8 +217,6 @@ import type {
   GetPlatformsData,
   GetProjectByProjectIdData,
   GetProjectSamplesData,
-  GetProjectSamplesError,
-  GetProjectSamplesResponse,
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
@@ -219,8 +232,6 @@ import type {
   GetSettingsByTagData,
   GetVendorData,
   GetVendorsData,
-  GetVendorsError,
-  GetVendorsResponse,
   GetWorkflowByIdData,
   GetWorkflowRegistrationsData,
   GetWorkflowRunByIdData,
@@ -252,6 +263,9 @@ import type {
   LogoutResponse,
   OauthAuthorizeData,
   OauthCallbackData,
+  PatchProjectData,
+  PatchProjectError,
+  PatchProjectResponse,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
   PostRunSamplesheetResponse,
@@ -306,6 +320,9 @@ import type {
   UnlinkOauthProviderData,
   UnlinkOauthProviderError,
   UnlinkOauthProviderResponse,
+  UpdateFileData,
+  UpdateFileError,
+  UpdateFileResponse,
   UpdateJobData,
   UpdateJobError,
   UpdateJobResponse,
@@ -330,6 +347,9 @@ import type {
   UploadManifestData,
   UploadManifestError,
   UploadManifestResponse,
+  UploadSamplesFileData,
+  UploadSamplesFileError,
+  UploadSamplesFileResponse,
   ValidateActionConfigData,
   ValidateActionConfigError,
   ValidateActionConfigResponse,
@@ -2095,10 +2115,11 @@ export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
 
 /**
  * Download file from S3
- * Download a file from S3.
+ * Download a file from S3 via presigned URL redirect.
  *
- * Returns the file as a streaming download with appropriate
- * content type and filename.
+ * Returns a 307 redirect to a time-limited presigned S3 URL.
+ * The client follows the redirect to download directly from S3,
+ * offloading bandwidth from the API server.
  */
 export const downloadFileOptions = (options: Options<DownloadFileData>) => {
   return queryOptions({
@@ -2113,6 +2134,41 @@ export const downloadFileOptions = (options: Options<DownloadFileData>) => {
     },
     queryKey: downloadFileQueryKey(options),
   })
+}
+
+/**
+ * Delete a file record (superuser only)
+ * Hard-delete a file record and all associated child rows.
+ *
+ * Cascade-deletes: FileHash, FileTag, FileSample, FileProject,
+ * FileSequencingRun, FileQCRecord, FileWorkflowRun, FilePipeline.
+ *
+ * **This action is irreversible.**
+ *
+ * Requires superuser privileges.
+ */
+export const deleteFileMutation = (
+  options?: Partial<Options<DeleteFileData>>,
+): UseMutationOptions<
+  DeleteFileResponse,
+  AxiosError<DeleteFileError>,
+  Options<DeleteFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteFileResponse,
+    AxiosError<DeleteFileError>,
+    Options<DeleteFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getFileQueryKey = (options: Options<GetFileData>) =>
@@ -2137,6 +2193,42 @@ export const getFileOptions = (options: Options<GetFileData>) => {
     },
     queryKey: getFileQueryKey(options),
   })
+}
+
+/**
+ * Update a file record (superuser only)
+ * Update scalar fields on a file record.
+ *
+ * Only fields included in the request body are updated; all others
+ * (including entity associations, hashes, tags, and samples) remain
+ * unchanged.
+ *
+ * **Primary use case:** correcting a URI (e.g., wrong S3 bucket).
+ *
+ * Requires superuser privileges.
+ */
+export const updateFileMutation = (
+  options?: Partial<Options<UpdateFileData>>,
+): UseMutationOptions<
+  UpdateFileResponse,
+  AxiosError<UpdateFileError>,
+  Options<UpdateFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateFileResponse,
+    AxiosError<UpdateFileError>,
+    Options<UpdateFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getFileVersionsQueryKey = (
@@ -2870,8 +2962,45 @@ export const getProjectByProjectIdOptions = (
 }
 
 /**
+ * Patch Project
+ * Partially update a project using merge/upsert semantics.
+ *
+ * Unlike PUT, this does **not** remove attributes that are absent
+ * from the request.  Each supplied attribute is upserted: existing
+ * keys are updated, new keys are inserted, and unmentioned keys
+ * are left untouched.  An empty attributes list is a no-op.
+ */
+export const patchProjectMutation = (
+  options?: Partial<Options<PatchProjectData>>,
+): UseMutationOptions<
+  PatchProjectResponse,
+  AxiosError<PatchProjectError>,
+  Options<PatchProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchProjectResponse,
+    AxiosError<PatchProjectError>,
+    Options<PatchProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
  * Update Project
- * Update information about a specific project.
+ * Full replacement update of a project.
+ *
+ * Attributes provided here **replace** all existing attributes.
+ * To merge/upsert attributes without removing unmentioned ones,
+ * use ``PATCH /{project_id}`` instead.
  */
 export const updateProjectMutation = (
   options?: Partial<Options<UpdateProjectData>>,
@@ -2903,7 +3032,11 @@ export const getProjectSamplesQueryKey = (
 
 /**
  * Get Project Samples
- * Returns a paginated list of samples.
+ * Returns a list of samples for a project.
+ *
+ * Pagination is offset-based: ``skip`` is the number of records to skip
+ * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
+ * load file metadata for each sample.
  */
 export const getProjectSamplesOptions = (
   options: Options<GetProjectSamplesData>,
@@ -2922,58 +3055,6 @@ export const getProjectSamplesOptions = (
   })
 }
 
-export const getProjectSamplesInfiniteQueryKey = (
-  options: Options<GetProjectSamplesData>,
-): QueryKey<Options<GetProjectSamplesData>> =>
-  createQueryKey('getProjectSamples', options, true)
-
-/**
- * Get Project Samples
- * Returns a paginated list of samples.
- */
-export const getProjectSamplesInfiniteOptions = (
-  options: Options<GetProjectSamplesData>,
-) => {
-  return infiniteQueryOptions<
-    GetProjectSamplesResponse,
-    AxiosError<GetProjectSamplesError>,
-    InfiniteData<GetProjectSamplesResponse>,
-    QueryKey<Options<GetProjectSamplesData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetProjectSamplesData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetProjectSamplesData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getProjectSamples({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getProjectSamplesInfiniteQueryKey(options),
-    },
-  )
-}
-
 export const addSampleToProjectQueryKey = (
   options: Options<AddSampleToProjectData>,
 ) => createQueryKey('addSampleToProject', options)
@@ -2981,6 +3062,9 @@ export const addSampleToProjectQueryKey = (
 /**
  * Add Sample To Project
  * Create a new sample with optional attributes.
+ *
+ * If ``run_id`` is provided in the request body, the sample is also
+ * associated with the specified sequencing run in the same transaction.
  */
 export const addSampleToProjectOptions = (
   options: Options<AddSampleToProjectData>,
@@ -3002,6 +3086,9 @@ export const addSampleToProjectOptions = (
 /**
  * Add Sample To Project
  * Create a new sample with optional attributes.
+ *
+ * If ``run_id`` is provided in the request body, the sample is also
+ * associated with the specified sequencing run in the same transaction.
  */
 export const addSampleToProjectMutation = (
   options?: Partial<Options<AddSampleToProjectData>>,
@@ -3017,6 +3104,169 @@ export const addSampleToProjectMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await addSampleToProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const uploadSamplesFileQueryKey = (
+  options: Options<UploadSamplesFileData>,
+) => createQueryKey('uploadSamplesFile', options)
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFileOptions = (
+  options: Options<UploadSamplesFileData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadSamplesFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadSamplesFileQueryKey(options),
+  })
+}
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFileMutation = (
+  options?: Partial<Options<UploadSamplesFileData>>,
+): UseMutationOptions<
+  UploadSamplesFileResponse,
+  AxiosError<UploadSamplesFileError>,
+  Options<UploadSamplesFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadSamplesFileResponse,
+    AxiosError<UploadSamplesFileError>,
+    Options<UploadSamplesFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadSamplesFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const bulkCreateSamplesQueryKey = (
+  options: Options<BulkCreateSamplesData>,
+) => createQueryKey('bulkCreateSamples', options)
+
+/**
+ * Bulk Create Samples
+ * Create multiple samples in a single atomic transaction.
+ *
+ * Each sample in the list may optionally include a ``run_barcode``
+ * to associate the sample with a sequencing run at creation time.
+ * All samples succeed or fail together.
+ */
+export const bulkCreateSamplesOptions = (
+  options: Options<BulkCreateSamplesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await bulkCreateSamples({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: bulkCreateSamplesQueryKey(options),
+  })
+}
+
+/**
+ * Bulk Create Samples
+ * Create multiple samples in a single atomic transaction.
+ *
+ * Each sample in the list may optionally include a ``run_barcode``
+ * to associate the sample with a sequencing run at creation time.
+ * All samples succeed or fail together.
+ */
+export const bulkCreateSamplesMutation = (
+  options?: Partial<Options<BulkCreateSamplesData>>,
+): UseMutationOptions<
+  BulkCreateSamplesResponse,
+  AxiosError<BulkCreateSamplesError>,
+  Options<BulkCreateSamplesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    BulkCreateSamplesResponse,
+    AxiosError<BulkCreateSamplesError>,
+    Options<BulkCreateSamplesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await bulkCreateSamples({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete Sample From Project
+ * Hard-delete a sample and all its child rows (superuser only).
+ *
+ * Deletes: SampleAttribute, FileSample, SampleSequencingRun rows.
+ * Associated File records are NOT deleted (they may belong to other entities).
+ *
+ * **This action is irreversible.**
+ */
+export const deleteSampleFromProjectMutation = (
+  options?: Partial<Options<DeleteSampleFromProjectData>>,
+): UseMutationOptions<
+  DeleteSampleFromProjectResponse,
+  AxiosError<DeleteSampleFromProjectError>,
+  Options<DeleteSampleFromProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteSampleFromProjectResponse,
+    AxiosError<DeleteSampleFromProjectError>,
+    Options<DeleteSampleFromProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteSampleFromProject({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -3220,7 +3470,7 @@ export const createQcrecordQueryKey = (options: Options<CreateQcrecordData>) =>
  * **Authentication required:** Bearer token must be provided.
  *
  * **Scoping:** Provide exactly one of `project_id` (project-scoped) or
- * `sequencing_run_barcode` (run-scoped, e.g. demux stats).
+ * `sequencing_run_id` (run-scoped, e.g. demux stats).
  *
  * **Example — project-scoped:**
  *
@@ -3246,7 +3496,7 @@ export const createQcrecordQueryKey = (options: Options<CreateQcrecordData>) =>
  * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
  * -H "Content-Type: application/json" \
  * -d '{
- * "sequencing_run_barcode": "240101_A00000_0001_FLOWCELLID",
+ * "sequencing_run_id": "240101_A00000_0001_FLOWCELLID",
  * "metadata": { "pipeline": "bcl-convert", "version": "4.3" },
  * "metrics": [{
  * "name": "demux_summary",
@@ -3291,7 +3541,7 @@ export const createQcrecordOptions = (options: Options<CreateQcrecordData>) => {
  * **Authentication required:** Bearer token must be provided.
  *
  * **Scoping:** Provide exactly one of `project_id` (project-scoped) or
- * `sequencing_run_barcode` (run-scoped, e.g. demux stats).
+ * `sequencing_run_id` (run-scoped, e.g. demux stats).
  *
  * **Example — project-scoped:**
  *
@@ -3317,7 +3567,7 @@ export const createQcrecordOptions = (options: Options<CreateQcrecordData>) => {
  * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
  * -H "Content-Type: application/json" \
  * -d '{
- * "sequencing_run_barcode": "240101_A00000_0001_FLOWCELLID",
+ * "sequencing_run_id": "240101_A00000_0001_FLOWCELLID",
  * "metadata": { "pipeline": "bcl-convert", "version": "4.3" },
  * "metrics": [{
  * "name": "demux_summary",
@@ -3371,9 +3621,8 @@ export const searchQcrecordsGetQueryKey = (
  *
  * **Parameters:**
  * - `project_id`: Filter to records scoped to a specific project
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter by sequencing run_id string (record or metric level)
  * - `workflow_run_id`: Filter by the workflow run that produced the QC data
- * - `sequencing_run_id`: Filter by sequencing run UUID (record or metric level)
  * - `latest`: If true (default), returns only the most recent record per scope
  * - `page`: Page number for pagination (starts at 1)
  * - `per_page`: Number of results per page (max 1000)
@@ -3381,9 +3630,8 @@ export const searchQcrecordsGetQueryKey = (
  * **Example:**
  * ```
  * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
- * GET /api/v1/qcmetrics/search?sequencing_run_barcode=240101_A00000_0001_XYZ
+ * GET /api/v1/qcmetrics/search?sequencing_run_id=240101_A00000_0001_XYZ
  * GET /api/v1/qcmetrics/search?workflow_run_id=<uuid>&latest=false
- * GET /api/v1/qcmetrics/search?sequencing_run_id=<uuid>
  * ```
  */
 export const searchQcrecordsGetOptions = (
@@ -3414,9 +3662,8 @@ export const searchQcrecordsGetInfiniteQueryKey = (
  *
  * **Parameters:**
  * - `project_id`: Filter to records scoped to a specific project
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter by sequencing run_id string (record or metric level)
  * - `workflow_run_id`: Filter by the workflow run that produced the QC data
- * - `sequencing_run_id`: Filter by sequencing run UUID (record or metric level)
  * - `latest`: If true (default), returns only the most recent record per scope
  * - `page`: Page number for pagination (starts at 1)
  * - `per_page`: Number of results per page (max 1000)
@@ -3424,9 +3671,8 @@ export const searchQcrecordsGetInfiniteQueryKey = (
  * **Example:**
  * ```
  * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
- * GET /api/v1/qcmetrics/search?sequencing_run_barcode=240101_A00000_0001_XYZ
+ * GET /api/v1/qcmetrics/search?sequencing_run_id=240101_A00000_0001_XYZ
  * GET /api/v1/qcmetrics/search?workflow_run_id=<uuid>&latest=false
- * GET /api/v1/qcmetrics/search?sequencing_run_id=<uuid>
  * ```
  */
 export const searchQcrecordsGetInfiniteOptions = (
@@ -3498,7 +3744,7 @@ export const searchQcrecordsPostQueryKey = (
  *
  * **Filter options:**
  * - `project_id`: Single value or list of project IDs
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter to records scoped to a sequencing run
  * - `metadata`: Key-value pairs to match against pipeline metadata
  *
  * **Pagination:**
@@ -3553,7 +3799,7 @@ export const searchQcrecordsPostInfiniteQueryKey = (
  *
  * **Filter options:**
  * - `project_id`: Single value or list of project IDs
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter to records scoped to a sequencing run
  * - `metadata`: Key-value pairs to match against pipeline metadata
  *
  * **Pagination:**
@@ -3629,7 +3875,7 @@ export const searchQcrecordsPostInfiniteOptions = (
  *
  * **Filter options:**
  * - `project_id`: Single value or list of project IDs
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter to records scoped to a sequencing run
  * - `metadata`: Key-value pairs to match against pipeline metadata
  *
  * **Pagination:**
@@ -4004,7 +4250,7 @@ export const submitDemultiplexWorkflowJobQueryKey = (
  * Args:
  * session: Database session
  * workflow_body: The demultiplex workflow execution request containing
- * workflow_id, run_barcode, and inputs
+ * workflow_id, run_id, and inputs
  * s3_client: S3 client for accessing workflow configs
  * Returns:
  * BatchJobPublic: The created batch job with AWS job information.
@@ -4032,7 +4278,7 @@ export const submitDemultiplexWorkflowJobOptions = (
  * Args:
  * session: Database session
  * workflow_body: The demultiplex workflow execution request containing
- * workflow_id, run_barcode, and inputs
+ * workflow_id, run_id, and inputs
  * s3_client: S3 client for accessing workflow configs
  * Returns:
  * BatchJobPublic: The created batch job with AWS job information.
@@ -4071,10 +4317,10 @@ export const getDemultiplexWorkflowConfigQueryKey = (
  *
  * Args:
  * workflow_id: The workflow identifier (filename without extension)
- * run_barcode: Optional run barcode to prepopulate s3_run_folder_path from run's run_folder_uri
+ * run_id: Optional run ID to prepopulate s3_run_folder_path from run's run_folder_uri
  *
  * Returns:
- * Complete workflow configuration with prepopulated defaults if run_barcode is provided
+ * Complete workflow configuration with prepopulated defaults if run_id is provided
  */
 export const getDemultiplexWorkflowConfigOptions = (
   options: Options<GetDemultiplexWorkflowConfigData>,
@@ -4554,58 +4800,6 @@ export const getVendorsOptions = (options?: Options<GetVendorsData>) => {
     },
     queryKey: getVendorsQueryKey(options),
   })
-}
-
-export const getVendorsInfiniteQueryKey = (
-  options?: Options<GetVendorsData>,
-): QueryKey<Options<GetVendorsData>> =>
-  createQueryKey('getVendors', options, true)
-
-/**
- * Get Vendors
- * Retrieve a list of all vendors.
- */
-export const getVendorsInfiniteOptions = (
-  options?: Options<GetVendorsData>,
-) => {
-  return infiniteQueryOptions<
-    GetVendorsResponse,
-    AxiosError<GetVendorsError>,
-    InfiniteData<GetVendorsResponse>,
-    QueryKey<Options<GetVendorsData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetVendorsData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetVendorsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getVendors({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getVendorsInfiniteQueryKey(options),
-    },
-  )
 }
 
 export const addVendorQueryKey = (options: Options<AddVendorData>) =>

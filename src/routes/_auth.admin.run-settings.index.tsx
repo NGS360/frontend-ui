@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import type { AxiosError } from 'axios'
-import type { HttpValidationError, Setting } from '@/client'
+import type { Setting } from '@/client'
 import { getSettingsByTagOptions, getSettingsByTagQueryKey, updateSettingMutation } from '@/client/@tanstack/react-query.gen'
 import { SettingCard } from '@/components/app-setting-card'
+import { toastApiError } from '@/lib/error-utils'
 
 export const Route = createFileRoute('/_auth/admin/run-settings/')({
   component: RouteComponent,
@@ -23,10 +23,8 @@ function RouteComponent() {
   const queryClient = useQueryClient()
   const { mutate: updateSetting, isPending } = useMutation({
     ...updateSettingMutation(),
-    onError: (mutationError: AxiosError<HttpValidationError>) => {
-      const message = mutationError.response?.data.detail?.toString()
-        || "An unknown error occurred."
-      toast.error(`Failed to update setting: ${message}`)
+    onError: (mutationError) => {
+      toastApiError(mutationError, 'Failed to update setting')
     },
     onSuccess: (data: Setting) => {
       queryClient.invalidateQueries({ 
@@ -58,13 +56,13 @@ function RouteComponent() {
     return (
       <div className='flex flex-col gap-6'>
         <div className='flex flex-col gap-2'>
-          <h1 className="text-3xl">Illumina Run Settings</h1>
+          <h1 className="text-3xl">Sequencing Run Settings</h1>
           <p className="text-muted-foreground">
-            Manage and configure global illumina run settings for NGS360.
+            Manage and configure global sequencing run settings for NGS360.
           </p>
         </div>
         <div className="border rounded-lg p-6">
-          <p className="text-muted-foreground">No illumina run settings found.</p>
+          <p className="text-muted-foreground">No sequencing run settings found.</p>
         </div>
       </div>
     )
@@ -73,9 +71,9 @@ function RouteComponent() {
   return (
     <div className='flex flex-col gap-6'>
       <div className='flex flex-col gap-2'>
-        <h1 className="text-3xl">Illumina Run Settings</h1>
+        <h1 className="text-3xl">Sequencing Run Settings</h1>
         <p className="text-muted-foreground">
-          Manage and configure global illumina run settings for NGS360.
+          Manage and configure global sequencing run settings for NGS360.
         </p>
       </div>
       

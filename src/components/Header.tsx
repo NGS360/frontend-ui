@@ -37,7 +37,7 @@ export default function Header() {
   const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
 
   const navItems: Array<NavItemType> = [
-    { to: '/runs', label: 'Illumina Runs', icon: <Database className="inline mr-1" /> },
+    { to: '/runs', label: 'Sequencing Runs', icon: <Database className="inline mr-1" /> },
     { to: '/projects', label: 'Projects', icon: <Folder className="inline mr-1" />, search: {sort_by: undefined, sort_order: undefined} },
     { to: '/admin', label: 'Admin', icon: <ShieldCheck className="inline mr-1" /> },
     { to: apiDocsUrl, label: 'API Docs', icon: <BookOpen className="inline mr-1" />, isExternal: true }
