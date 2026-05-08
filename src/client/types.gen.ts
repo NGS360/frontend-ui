@@ -448,11 +448,6 @@ export type BodyUploadFile = {
    */
   qcrecord_id?: string | null
   /**
-   * Workflow Run Id
-   * WorkflowRun UUID
-   */
-  workflow_run_id?: string | null
-  /**
    * Pipeline Id
    * Pipeline UUID
    */
@@ -883,10 +878,6 @@ export type FileCreate = {
    * Qcrecord Id
    */
   qcrecord_id?: string | null
-  /**
-   * Workflow Run Id
-   */
-  workflow_run_id?: string | null
   /**
    * Pipeline Id
    */
@@ -1635,6 +1626,10 @@ export type PlatformCreate = {
  * PlatformPublic
  */
 export type PlatformPublic = {
+  /**
+   * Id
+   */
+  id: string
   /**
    * Name
    */
@@ -2744,6 +2739,25 @@ export type VendorsPublic = {
 }
 
 /**
+ * WorkflowAliasSummary
+ * Alias info included in workflow responses.
+ */
+export type WorkflowAliasSummary = {
+  /**
+   * Alias
+   */
+  alias: string
+  /**
+   * Workflow Version Id
+   */
+  workflow_version_id: string
+  /**
+   * Version
+   */
+  version: number
+}
+
+/**
  * WorkflowCreate
  */
 export type WorkflowCreate = {
@@ -2752,17 +2766,53 @@ export type WorkflowCreate = {
    */
   name: string
   /**
-   * Version
-   */
-  version?: string | null
-  /**
-   * Definition Uri
-   */
-  definition_uri: string
-  /**
    * Attributes
    */
   attributes?: Array<Attribute> | null
+}
+
+/**
+ * WorkflowDeploymentCreate
+ */
+export type WorkflowDeploymentCreate = {
+  /**
+   * Engine
+   */
+  engine: string
+  /**
+   * External Id
+   */
+  external_id: string
+}
+
+/**
+ * WorkflowDeploymentPublic
+ */
+export type WorkflowDeploymentPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Workflow Version Id
+   */
+  workflow_version_id: string
+  /**
+   * Engine
+   */
+  engine: string
+  /**
+   * External Id
+   */
+  external_id: string
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Created By
+   */
+  created_by: string
 }
 
 /**
@@ -2778,14 +2828,6 @@ export type WorkflowPublic = {
    */
   name: string
   /**
-   * Version
-   */
-  version: string | null
-  /**
-   * Definition Uri
-   */
-  definition_uri: string
-  /**
    * Created At
    */
   created_at: string
@@ -2798,148 +2840,13 @@ export type WorkflowPublic = {
    */
   attributes?: Array<Attribute> | null
   /**
-   * Registrations
+   * Versions
    */
-  registrations?: Array<WorkflowRegistrationPublic> | null
-}
-
-/**
- * WorkflowRegistrationCreate
- */
-export type WorkflowRegistrationCreate = {
+  versions?: Array<WorkflowVersionSummary> | null
   /**
-   * Engine
+   * Aliases
    */
-  engine: string
-  /**
-   * External Id
-   */
-  external_id: string
-}
-
-/**
- * WorkflowRegistrationPublic
- */
-export type WorkflowRegistrationPublic = {
-  /**
-   * Id
-   */
-  id: string
-  /**
-   * Workflow Id
-   */
-  workflow_id: string
-  /**
-   * Engine
-   */
-  engine: string
-  /**
-   * External Id
-   */
-  external_id: string
-  /**
-   * Created At
-   */
-  created_at: string
-  /**
-   * Created By
-   */
-  created_by: string
-}
-
-/**
- * WorkflowRunCreate
- */
-export type WorkflowRunCreate = {
-  /**
-   * Workflow Id
-   */
-  workflow_id: string
-  /**
-   * Engine
-   */
-  engine: string
-  /**
-   * External Run Id
-   */
-  external_run_id: string
-  /**
-   * Attributes
-   */
-  attributes?: Array<Attribute> | null
-}
-
-/**
- * WorkflowRunPublic
- */
-export type WorkflowRunPublic = {
-  /**
-   * Id
-   */
-  id: string
-  /**
-   * Workflow Id
-   */
-  workflow_id: string
-  /**
-   * Workflow Name
-   */
-  workflow_name?: string | null
-  /**
-   * Engine
-   */
-  engine: string
-  /**
-   * External Run Id
-   */
-  external_run_id: string
-  /**
-   * Created At
-   */
-  created_at: string
-  /**
-   * Created By
-   */
-  created_by: string
-  /**
-   * Attributes
-   */
-  attributes?: Array<Attribute> | null
-}
-
-/**
- * WorkflowRunsPublic
- * Paginated list of workflow runs.
- */
-export type WorkflowRunsPublic = {
-  /**
-   * Data
-   */
-  data: Array<WorkflowRunPublic>
-  /**
-   * Total Items
-   */
-  total_items: number
-  /**
-   * Total Pages
-   */
-  total_pages: number
-  /**
-   * Current Page
-   */
-  current_page: number
-  /**
-   * Per Page
-   */
-  per_page: number
-  /**
-   * Has Next
-   */
-  has_next: boolean
-  /**
-   * Has Prev
-   */
-  has_prev: boolean
+  aliases?: Array<WorkflowAliasSummary> | null
 }
 
 /**
@@ -2955,10 +2862,118 @@ export type WorkflowSummary = {
    * Name
    */
   name: string
+}
+
+/**
+ * WorkflowVersionAliasPublic
+ */
+export type WorkflowVersionAliasPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Alias
+   */
+  alias: string
+  /**
+   * Workflow Version Id
+   */
+  workflow_version_id: string
   /**
    * Version
    */
-  version?: string | null
+  version: number
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Created By
+   */
+  created_by: string
+}
+
+/**
+ * WorkflowVersionAliasSet
+ * Body for PUT /workflows/{id}/aliases/{alias}.
+ */
+export type WorkflowVersionAliasSet = {
+  /**
+   * Workflow Version Id
+   */
+  workflow_version_id: string
+}
+
+/**
+ * WorkflowVersionCreate
+ */
+export type WorkflowVersionCreate = {
+  /**
+   * Definition Uri
+   */
+  definition_uri: string
+}
+
+/**
+ * WorkflowVersionPublic
+ */
+export type WorkflowVersionPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Workflow Id
+   */
+  workflow_id: string
+  /**
+   * Version
+   */
+  version: number
+  /**
+   * Definition Uri
+   */
+  definition_uri: string
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Created By
+   */
+  created_by: string
+  /**
+   * Deployments
+   */
+  deployments?: Array<WorkflowDeploymentPublic> | null
+}
+
+/**
+ * WorkflowVersionSummary
+ * Lightweight version reference for inclusion in workflow responses.
+ */
+export type WorkflowVersionSummary = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Version
+   */
+  version: number
+  /**
+   * Definition Uri
+   */
+  definition_uri: string
+  /**
+   * Created At
+   */
+  created_at: string
 }
 
 /**
@@ -5985,7 +6000,7 @@ export type GetWorkflowByIdResponses = {
 export type GetWorkflowByIdResponse =
   GetWorkflowByIdResponses[keyof GetWorkflowByIdResponses]
 
-export type GetWorkflowRegistrationsData = {
+export type GetWorkflowVersionsData = {
   body?: never
   path: {
     /**
@@ -5994,32 +6009,32 @@ export type GetWorkflowRegistrationsData = {
     workflow_id: string
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/registrations'
+  url: '/api/v1/workflows/{workflow_id}/versions'
 }
 
-export type GetWorkflowRegistrationsErrors = {
+export type GetWorkflowVersionsErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetWorkflowRegistrationsError =
-  GetWorkflowRegistrationsErrors[keyof GetWorkflowRegistrationsErrors]
+export type GetWorkflowVersionsError =
+  GetWorkflowVersionsErrors[keyof GetWorkflowVersionsErrors]
 
-export type GetWorkflowRegistrationsResponses = {
+export type GetWorkflowVersionsResponses = {
   /**
-   * Response Get Workflow Registrations
+   * Response Get Workflow Versions
    * Successful Response
    */
-  200: Array<WorkflowRegistrationPublic>
+  200: Array<WorkflowVersionPublic>
 }
 
-export type GetWorkflowRegistrationsResponse =
-  GetWorkflowRegistrationsResponses[keyof GetWorkflowRegistrationsResponses]
+export type GetWorkflowVersionsResponse =
+  GetWorkflowVersionsResponses[keyof GetWorkflowVersionsResponses]
 
-export type CreateWorkflowRegistrationData = {
-  body: WorkflowRegistrationCreate
+export type CreateWorkflowVersionData = {
+  body: WorkflowVersionCreate
   path: {
     /**
      * Workflow Id
@@ -6027,30 +6042,30 @@ export type CreateWorkflowRegistrationData = {
     workflow_id: string
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/registrations'
+  url: '/api/v1/workflows/{workflow_id}/versions'
 }
 
-export type CreateWorkflowRegistrationErrors = {
+export type CreateWorkflowVersionErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type CreateWorkflowRegistrationError =
-  CreateWorkflowRegistrationErrors[keyof CreateWorkflowRegistrationErrors]
+export type CreateWorkflowVersionError =
+  CreateWorkflowVersionErrors[keyof CreateWorkflowVersionErrors]
 
-export type CreateWorkflowRegistrationResponses = {
+export type CreateWorkflowVersionResponses = {
   /**
    * Successful Response
    */
-  201: WorkflowRegistrationPublic
+  201: WorkflowVersionPublic
 }
 
-export type CreateWorkflowRegistrationResponse =
-  CreateWorkflowRegistrationResponses[keyof CreateWorkflowRegistrationResponses]
+export type CreateWorkflowVersionResponse =
+  CreateWorkflowVersionResponses[keyof CreateWorkflowVersionResponses]
 
-export type DeleteWorkflowRegistrationData = {
+export type GetWorkflowVersionByIdData = {
   body?: never
   path: {
     /**
@@ -6058,35 +6073,107 @@ export type DeleteWorkflowRegistrationData = {
      */
     workflow_id: string
     /**
-     * Registration Id
+     * Version Id
      */
-    registration_id: string
+    version_id: string
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/registrations/{registration_id}'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}'
 }
 
-export type DeleteWorkflowRegistrationErrors = {
+export type GetWorkflowVersionByIdErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type DeleteWorkflowRegistrationError =
-  DeleteWorkflowRegistrationErrors[keyof DeleteWorkflowRegistrationErrors]
+export type GetWorkflowVersionByIdError =
+  GetWorkflowVersionByIdErrors[keyof GetWorkflowVersionByIdErrors]
 
-export type DeleteWorkflowRegistrationResponses = {
+export type GetWorkflowVersionByIdResponses = {
+  /**
+   * Successful Response
+   */
+  200: WorkflowVersionPublic
+}
+
+export type GetWorkflowVersionByIdResponse =
+  GetWorkflowVersionByIdResponses[keyof GetWorkflowVersionByIdResponses]
+
+export type DeleteWorkflowVersionAliasData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+    /**
+     * Alias
+     */
+    alias: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}/aliases/{alias}'
+}
+
+export type DeleteWorkflowVersionAliasErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteWorkflowVersionAliasError =
+  DeleteWorkflowVersionAliasErrors[keyof DeleteWorkflowVersionAliasErrors]
+
+export type DeleteWorkflowVersionAliasResponses = {
   /**
    * Successful Response
    */
   204: void
 }
 
-export type DeleteWorkflowRegistrationResponse =
-  DeleteWorkflowRegistrationResponses[keyof DeleteWorkflowRegistrationResponses]
+export type DeleteWorkflowVersionAliasResponse =
+  DeleteWorkflowVersionAliasResponses[keyof DeleteWorkflowVersionAliasResponses]
 
-export type GetWorkflowRunsData = {
+export type SetWorkflowVersionAliasData = {
+  body: WorkflowVersionAliasSet
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+    /**
+     * Alias
+     */
+    alias: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}/aliases/{alias}'
+}
+
+export type SetWorkflowVersionAliasErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SetWorkflowVersionAliasError =
+  SetWorkflowVersionAliasErrors[keyof SetWorkflowVersionAliasErrors]
+
+export type SetWorkflowVersionAliasResponses = {
+  /**
+   * Successful Response
+   */
+  200: WorkflowVersionAliasPublic
+}
+
+export type SetWorkflowVersionAliasResponse =
+  SetWorkflowVersionAliasResponses[keyof SetWorkflowVersionAliasResponses]
+
+export type GetWorkflowVersionAliasesData = {
   body?: never
   path: {
     /**
@@ -6096,112 +6183,197 @@ export type GetWorkflowRunsData = {
   }
   query?: {
     /**
-     * Page
-     * Page number (1-indexed)
+     * Alias
+     * Filter to a specific alias
      */
-    page?: number
-    /**
-     * Per Page
-     * Number of items per page
-     */
-    per_page?: number
-    /**
-     * Sort By
-     * Field to sort by
-     */
-    sort_by?: string
-    /**
-     * Sort Order
-     * Sort order
-     */
-    sort_order?: 'asc' | 'desc'
+    alias?: string | null
   }
-  url: '/api/v1/workflows/{workflow_id}/runs'
+  url: '/api/v1/workflows/{workflow_id}/aliases'
 }
 
-export type GetWorkflowRunsErrors = {
+export type GetWorkflowVersionAliasesErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetWorkflowRunsError =
-  GetWorkflowRunsErrors[keyof GetWorkflowRunsErrors]
+export type GetWorkflowVersionAliasesError =
+  GetWorkflowVersionAliasesErrors[keyof GetWorkflowVersionAliasesErrors]
 
-export type GetWorkflowRunsResponses = {
+export type GetWorkflowVersionAliasesResponses = {
   /**
+   * Response Get Workflow Version Aliases
    * Successful Response
    */
-  200: WorkflowRunsPublic
+  200: Array<WorkflowVersionAliasPublic>
 }
 
-export type GetWorkflowRunsResponse =
-  GetWorkflowRunsResponses[keyof GetWorkflowRunsResponses]
+export type GetWorkflowVersionAliasesResponse =
+  GetWorkflowVersionAliasesResponses[keyof GetWorkflowVersionAliasesResponses]
 
-export type CreateWorkflowRunData = {
-  body: WorkflowRunCreate
+export type GetWorkflowDeploymentsForWorkflowData = {
+  body?: never
   path: {
     /**
      * Workflow Id
      */
     workflow_id: string
   }
-  query?: never
-  url: '/api/v1/workflows/{workflow_id}/runs'
+  query?: {
+    /**
+     * Alias
+     * Filter by alias (e.g. production). Resolves the alias to its version and returns deployments for that version only.
+     */
+    alias?: string | null
+    /**
+     * Engine
+     * Filter by engine/platform name
+     */
+    engine?: string | null
+  }
+  url: '/api/v1/workflows/{workflow_id}/deployments'
 }
 
-export type CreateWorkflowRunErrors = {
+export type GetWorkflowDeploymentsForWorkflowErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type CreateWorkflowRunError =
-  CreateWorkflowRunErrors[keyof CreateWorkflowRunErrors]
+export type GetWorkflowDeploymentsForWorkflowError =
+  GetWorkflowDeploymentsForWorkflowErrors[keyof GetWorkflowDeploymentsForWorkflowErrors]
 
-export type CreateWorkflowRunResponses = {
+export type GetWorkflowDeploymentsForWorkflowResponses = {
   /**
+   * Response Get Workflow Deployments For Workflow
    * Successful Response
    */
-  201: WorkflowRunPublic
+  200: Array<WorkflowDeploymentPublic>
 }
 
-export type CreateWorkflowRunResponse =
-  CreateWorkflowRunResponses[keyof CreateWorkflowRunResponses]
+export type GetWorkflowDeploymentsForWorkflowResponse =
+  GetWorkflowDeploymentsForWorkflowResponses[keyof GetWorkflowDeploymentsForWorkflowResponses]
 
-export type GetWorkflowRunByIdData = {
+export type GetWorkflowDeploymentsData = {
   body?: never
   path: {
     /**
-     * Run Id
+     * Workflow Id
      */
-    run_id: string
+    workflow_id: string
+    /**
+     * Version Id
+     */
+    version_id: string
   }
-  query?: never
-  url: '/api/v1/workflow-runs/{run_id}'
+  query?: {
+    /**
+     * Engine
+     * Filter by engine/platform name
+     */
+    engine?: string | null
+  }
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments'
 }
 
-export type GetWorkflowRunByIdErrors = {
+export type GetWorkflowDeploymentsErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetWorkflowRunByIdError =
-  GetWorkflowRunByIdErrors[keyof GetWorkflowRunByIdErrors]
+export type GetWorkflowDeploymentsError =
+  GetWorkflowDeploymentsErrors[keyof GetWorkflowDeploymentsErrors]
 
-export type GetWorkflowRunByIdResponses = {
+export type GetWorkflowDeploymentsResponses = {
+  /**
+   * Response Get Workflow Deployments
+   * Successful Response
+   */
+  200: Array<WorkflowDeploymentPublic>
+}
+
+export type GetWorkflowDeploymentsResponse =
+  GetWorkflowDeploymentsResponses[keyof GetWorkflowDeploymentsResponses]
+
+export type CreateWorkflowDeploymentData = {
+  body: WorkflowDeploymentCreate
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+    /**
+     * Version Id
+     */
+    version_id: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments'
+}
+
+export type CreateWorkflowDeploymentErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateWorkflowDeploymentError =
+  CreateWorkflowDeploymentErrors[keyof CreateWorkflowDeploymentErrors]
+
+export type CreateWorkflowDeploymentResponses = {
   /**
    * Successful Response
    */
-  200: WorkflowRunPublic
+  201: WorkflowDeploymentPublic
 }
 
-export type GetWorkflowRunByIdResponse =
-  GetWorkflowRunByIdResponses[keyof GetWorkflowRunByIdResponses]
+export type CreateWorkflowDeploymentResponse =
+  CreateWorkflowDeploymentResponses[keyof CreateWorkflowDeploymentResponses]
+
+export type DeleteWorkflowDeploymentData = {
+  body?: never
+  path: {
+    /**
+     * Workflow Id
+     */
+    workflow_id: string
+    /**
+     * Version Id
+     */
+    version_id: string
+    /**
+     * Deployment Id
+     */
+    deployment_id: string
+  }
+  query?: never
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments/{deployment_id}'
+}
+
+export type DeleteWorkflowDeploymentErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteWorkflowDeploymentError =
+  DeleteWorkflowDeploymentErrors[keyof DeleteWorkflowDeploymentErrors]
+
+export type DeleteWorkflowDeploymentResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteWorkflowDeploymentResponse =
+  DeleteWorkflowDeploymentResponses[keyof DeleteWorkflowDeploymentResponses]
 
 export type GetPipelinesData = {
   body?: never
