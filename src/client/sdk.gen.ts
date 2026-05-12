@@ -59,14 +59,14 @@ import type {
   CreateQcrecordErrors,
   CreateQcrecordResponses,
   CreateWorkflowData,
+  CreateWorkflowDeploymentData,
+  CreateWorkflowDeploymentErrors,
+  CreateWorkflowDeploymentResponses,
   CreateWorkflowErrors,
-  CreateWorkflowRegistrationData,
-  CreateWorkflowRegistrationErrors,
-  CreateWorkflowRegistrationResponses,
   CreateWorkflowResponses,
-  CreateWorkflowRunData,
-  CreateWorkflowRunErrors,
-  CreateWorkflowRunResponses,
+  CreateWorkflowVersionData,
+  CreateWorkflowVersionErrors,
+  CreateWorkflowVersionResponses,
   DeleteApiKeyData,
   DeleteApiKeyErrors,
   DeleteApiKeyResponses,
@@ -82,9 +82,12 @@ import type {
   DeleteVendorData,
   DeleteVendorErrors,
   DeleteVendorResponses,
-  DeleteWorkflowRegistrationData,
-  DeleteWorkflowRegistrationErrors,
-  DeleteWorkflowRegistrationResponses,
+  DeleteWorkflowDeploymentData,
+  DeleteWorkflowDeploymentErrors,
+  DeleteWorkflowDeploymentResponses,
+  DeleteWorkflowVersionAliasData,
+  DeleteWorkflowVersionAliasErrors,
+  DeleteWorkflowVersionAliasResponses,
   DownloadFileData,
   DownloadFileErrors,
   DownloadFileResponses,
@@ -178,15 +181,21 @@ import type {
   GetWorkflowByIdData,
   GetWorkflowByIdErrors,
   GetWorkflowByIdResponses,
-  GetWorkflowRegistrationsData,
-  GetWorkflowRegistrationsErrors,
-  GetWorkflowRegistrationsResponses,
-  GetWorkflowRunByIdData,
-  GetWorkflowRunByIdErrors,
-  GetWorkflowRunByIdResponses,
-  GetWorkflowRunsData,
-  GetWorkflowRunsErrors,
-  GetWorkflowRunsResponses,
+  GetWorkflowDeploymentsData,
+  GetWorkflowDeploymentsErrors,
+  GetWorkflowDeploymentsForWorkflowData,
+  GetWorkflowDeploymentsForWorkflowErrors,
+  GetWorkflowDeploymentsForWorkflowResponses,
+  GetWorkflowDeploymentsResponses,
+  GetWorkflowVersionAliasesData,
+  GetWorkflowVersionAliasesErrors,
+  GetWorkflowVersionAliasesResponses,
+  GetWorkflowVersionByIdData,
+  GetWorkflowVersionByIdErrors,
+  GetWorkflowVersionByIdResponses,
+  GetWorkflowVersionsData,
+  GetWorkflowVersionsErrors,
+  GetWorkflowVersionsResponses,
   GetWorkflowsData,
   GetWorkflowsErrors,
   GetWorkflowsResponses,
@@ -268,6 +277,9 @@ import type {
   SearchRunsData,
   SearchRunsErrors,
   SearchRunsResponses,
+  SetWorkflowVersionAliasData,
+  SetWorkflowVersionAliasErrors,
+  SetWorkflowVersionAliasResponses,
   SubmitDemultiplexWorkflowJobData,
   SubmitDemultiplexWorkflowJobErrors,
   SubmitDemultiplexWorkflowJobResponses,
@@ -1158,7 +1170,6 @@ export const listFiles = <ThrowOnError extends boolean = false>(
  * - **project_id**: Project business key (string)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
@@ -1193,7 +1204,6 @@ export const createFile = <ThrowOnError extends boolean = false>(
  * - **project_id**: Project business key (exactly one entity ID required)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **relative_path**: Optional subdirectory path within entity folder
  * - **overwrite**: If True, creates a new version if file exists
@@ -2818,7 +2828,7 @@ export const getWorkflows = <ThrowOnError extends boolean = false>(
 
 /**
  * Create Workflow
- * Create a new workflow with optional attributes.
+ * Create a new workflow identity with optional attributes.
  */
 export const createWorkflow = <ThrowOnError extends boolean = false>(
   options: Options<CreateWorkflowData, ThrowOnError>,
@@ -2863,35 +2873,33 @@ export const getWorkflowById = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Workflow Registrations
- * List platform registrations for a workflow.
+ * Get Workflow Versions
+ * List all versions of a workflow.
  */
-export const getWorkflowRegistrations = <ThrowOnError extends boolean = false>(
-  options: Options<GetWorkflowRegistrationsData, ThrowOnError>,
+export const getWorkflowVersions = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowVersionsData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<
-    GetWorkflowRegistrationsResponses,
-    GetWorkflowRegistrationsErrors,
+    GetWorkflowVersionsResponses,
+    GetWorkflowVersionsErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/workflows/{workflow_id}/registrations',
+    url: '/api/v1/workflows/{workflow_id}/versions',
     ...options,
   })
 }
 
 /**
- * Create Workflow Registration
- * Register a workflow on a specific platform.
+ * Create Workflow Version
+ * Create a new version for a workflow.
  */
-export const createWorkflowRegistration = <
-  ThrowOnError extends boolean = false,
->(
-  options: Options<CreateWorkflowRegistrationData, ThrowOnError>,
+export const createWorkflowVersion = <ThrowOnError extends boolean = false>(
+  options: Options<CreateWorkflowVersionData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).post<
-    CreateWorkflowRegistrationResponses,
-    CreateWorkflowRegistrationErrors,
+    CreateWorkflowVersionResponses,
+    CreateWorkflowVersionErrors,
     ThrowOnError
   >({
     responseType: 'json',
@@ -2901,7 +2909,7 @@ export const createWorkflowRegistration = <
         type: 'http',
       },
     ],
-    url: '/api/v1/workflows/{workflow_id}/registrations',
+    url: '/api/v1/workflows/{workflow_id}/versions',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -2911,52 +2919,52 @@ export const createWorkflowRegistration = <
 }
 
 /**
- * Delete Workflow Registration
- * Remove a platform registration.
+ * Get Workflow Version By Id
+ * Get a specific workflow version.
  */
-export const deleteWorkflowRegistration = <
+export const getWorkflowVersionById = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowVersionByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowVersionByIdResponses,
+    GetWorkflowVersionByIdErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}',
+    ...options,
+  })
+}
+
+/**
+ * Delete Workflow Version Alias
+ * Remove an alias from a workflow.
+ */
+export const deleteWorkflowVersionAlias = <
   ThrowOnError extends boolean = false,
 >(
-  options: Options<DeleteWorkflowRegistrationData, ThrowOnError>,
+  options: Options<DeleteWorkflowVersionAliasData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).delete<
-    DeleteWorkflowRegistrationResponses,
-    DeleteWorkflowRegistrationErrors,
+    DeleteWorkflowVersionAliasResponses,
+    DeleteWorkflowVersionAliasErrors,
     ThrowOnError
   >({
-    url: '/api/v1/workflows/{workflow_id}/registrations/{registration_id}',
+    url: '/api/v1/workflows/{workflow_id}/aliases/{alias}',
     ...options,
   })
 }
 
 /**
- * Get Workflow Runs
- * List runs for a workflow (paginated).
+ * Set Workflow Version Alias
+ * Set or update an alias to point to a workflow version.
  */
-export const getWorkflowRuns = <ThrowOnError extends boolean = false>(
-  options: Options<GetWorkflowRunsData, ThrowOnError>,
+export const setWorkflowVersionAlias = <ThrowOnError extends boolean = false>(
+  options: Options<SetWorkflowVersionAliasData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<
-    GetWorkflowRunsResponses,
-    GetWorkflowRunsErrors,
-    ThrowOnError
-  >({
-    responseType: 'json',
-    url: '/api/v1/workflows/{workflow_id}/runs',
-    ...options,
-  })
-}
-
-/**
- * Create Workflow Run
- * Create a workflow execution record.
- */
-export const createWorkflowRun = <ThrowOnError extends boolean = false>(
-  options: Options<CreateWorkflowRunData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    CreateWorkflowRunResponses,
-    CreateWorkflowRunErrors,
+  return (options.client ?? _heyApiClient).put<
+    SetWorkflowVersionAliasResponses,
+    SetWorkflowVersionAliasErrors,
     ThrowOnError
   >({
     responseType: 'json',
@@ -2966,7 +2974,7 @@ export const createWorkflowRun = <ThrowOnError extends boolean = false>(
         type: 'http',
       },
     ],
-    url: '/api/v1/workflows/{workflow_id}/runs',
+    url: '/api/v1/workflows/{workflow_id}/aliases/{alias}',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -2976,19 +2984,110 @@ export const createWorkflowRun = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Workflow Run By Id
- * Get a single workflow run by its ID.
+ * Get Workflow Version Aliases
+ * List aliases for a workflow, optionally filtered by alias name.
  */
-export const getWorkflowRunById = <ThrowOnError extends boolean = false>(
-  options: Options<GetWorkflowRunByIdData, ThrowOnError>,
+export const getWorkflowVersionAliases = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowVersionAliasesData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<
-    GetWorkflowRunByIdResponses,
-    GetWorkflowRunByIdErrors,
+    GetWorkflowVersionAliasesResponses,
+    GetWorkflowVersionAliasesErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/workflow-runs/{run_id}',
+    url: '/api/v1/workflows/{workflow_id}/aliases',
+    ...options,
+  })
+}
+
+/**
+ * Get Workflow Deployments For Workflow
+ * List deployments across all versions of a workflow.
+ *
+ * Optional query filters:
+ * - **alias**: resolve an alias to its version, return only
+ * that version's deployments
+ * - **engine**: restrict results to a specific platform
+ *
+ * Combine both to get a single deployment in one call, e.g.
+ * ``?alias=production&engine=Arvados``.
+ */
+export const getWorkflowDeploymentsForWorkflow = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<GetWorkflowDeploymentsForWorkflowData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowDeploymentsForWorkflowResponses,
+    GetWorkflowDeploymentsForWorkflowErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows/{workflow_id}/deployments',
+    ...options,
+  })
+}
+
+/**
+ * Get Workflow Deployments
+ * List platform deployments for a workflow version.
+ */
+export const getWorkflowDeployments = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowDeploymentsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetWorkflowDeploymentsResponses,
+    GetWorkflowDeploymentsErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments',
+    ...options,
+  })
+}
+
+/**
+ * Create Workflow Deployment
+ * Deploy a workflow version on a specific platform.
+ */
+export const createWorkflowDeployment = <ThrowOnError extends boolean = false>(
+  options: Options<CreateWorkflowDeploymentData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateWorkflowDeploymentResponses,
+    CreateWorkflowDeploymentErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Delete Workflow Deployment
+ * Remove a platform deployment.
+ */
+export const deleteWorkflowDeployment = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteWorkflowDeploymentData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteWorkflowDeploymentResponses,
+    DeleteWorkflowDeploymentErrors,
+    ThrowOnError
+  >({
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments/{deployment_id}',
     ...options,
   })
 }

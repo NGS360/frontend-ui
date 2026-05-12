@@ -26,14 +26,15 @@ import {
   createProject,
   createQcrecord,
   createWorkflow,
-  createWorkflowRegistration,
-  createWorkflowRun,
+  createWorkflowDeployment,
+  createWorkflowVersion,
   deleteApiKey,
   deleteFile,
   deleteQcrecord,
   deleteSampleFromProject,
   deleteVendor,
-  deleteWorkflowRegistration,
+  deleteWorkflowDeployment,
+  deleteWorkflowVersionAlias,
   downloadFile,
   getActionOptions,
   getActionPlatforms,
@@ -67,9 +68,11 @@ import {
   getVendor,
   getVendors,
   getWorkflowById,
-  getWorkflowRegistrations,
-  getWorkflowRunById,
-  getWorkflowRuns,
+  getWorkflowDeployments,
+  getWorkflowDeploymentsForWorkflow,
+  getWorkflowVersionAliases,
+  getWorkflowVersionById,
+  getWorkflowVersions,
   getWorkflows,
   healthCheck,
   ingestVendorData,
@@ -99,6 +102,7 @@ import {
   searchQcrecordsGet,
   searchQcrecordsPost,
   searchRuns,
+  setWorkflowVersionAlias,
   submitDemultiplexWorkflowJob,
   submitJob,
   submitPipelineJob,
@@ -168,14 +172,14 @@ import type {
   CreateQcrecordError,
   CreateQcrecordResponse,
   CreateWorkflowData,
+  CreateWorkflowDeploymentData,
+  CreateWorkflowDeploymentError,
+  CreateWorkflowDeploymentResponse,
   CreateWorkflowError,
-  CreateWorkflowRegistrationData,
-  CreateWorkflowRegistrationError,
-  CreateWorkflowRegistrationResponse,
   CreateWorkflowResponse,
-  CreateWorkflowRunData,
-  CreateWorkflowRunError,
-  CreateWorkflowRunResponse,
+  CreateWorkflowVersionData,
+  CreateWorkflowVersionError,
+  CreateWorkflowVersionResponse,
   DeleteApiKeyData,
   DeleteApiKeyError,
   DeleteApiKeyResponse,
@@ -191,9 +195,12 @@ import type {
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
-  DeleteWorkflowRegistrationData,
-  DeleteWorkflowRegistrationError,
-  DeleteWorkflowRegistrationResponse,
+  DeleteWorkflowDeploymentData,
+  DeleteWorkflowDeploymentError,
+  DeleteWorkflowDeploymentResponse,
+  DeleteWorkflowVersionAliasData,
+  DeleteWorkflowVersionAliasError,
+  DeleteWorkflowVersionAliasResponse,
   DownloadFileData,
   GetActionOptionsData,
   GetActionPlatformsData,
@@ -233,11 +240,11 @@ import type {
   GetVendorData,
   GetVendorsData,
   GetWorkflowByIdData,
-  GetWorkflowRegistrationsData,
-  GetWorkflowRunByIdData,
-  GetWorkflowRunsData,
-  GetWorkflowRunsError,
-  GetWorkflowRunsResponse,
+  GetWorkflowDeploymentsData,
+  GetWorkflowDeploymentsForWorkflowData,
+  GetWorkflowVersionAliasesData,
+  GetWorkflowVersionByIdData,
+  GetWorkflowVersionsData,
   GetWorkflowsData,
   GetWorkflowsError,
   GetWorkflowsResponse,
@@ -308,6 +315,9 @@ import type {
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
+  SetWorkflowVersionAliasData,
+  SetWorkflowVersionAliasError,
+  SetWorkflowVersionAliasResponse,
   SubmitDemultiplexWorkflowJobData,
   SubmitDemultiplexWorkflowJobError,
   SubmitDemultiplexWorkflowJobResponse,
@@ -377,7 +387,7 @@ const createQueryKey = <TOptions extends Options>(
   const params: QueryKey<TOptions>[0] = {
     _id: id,
     baseURL: (options?.client ?? _heyApiClient).getConfig().baseURL,
-  } as QueryKey<TOptions>[0]
+  }
   if (infinite) {
     params._infinite = infinite
   }
@@ -1925,7 +1935,6 @@ export const createFileQueryKey = (options: Options<CreateFileData>) =>
  * - **project_id**: Project business key (string)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
@@ -1962,7 +1971,6 @@ export const createFileOptions = (options: Options<CreateFileData>) => {
  * - **project_id**: Project business key (string)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
@@ -2006,7 +2014,6 @@ export const uploadFileQueryKey = (options: Options<UploadFileData>) =>
  * - **project_id**: Project business key (exactly one entity ID required)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **relative_path**: Optional subdirectory path within entity folder
  * - **overwrite**: If True, creates a new version if file exists
@@ -2045,7 +2052,6 @@ export const uploadFileOptions = (options: Options<UploadFileData>) => {
  * - **project_id**: Project business key (exactly one entity ID required)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **relative_path**: Optional subdirectory path within entity folder
  * - **overwrite**: If True, creates a new version if file exists
@@ -5009,7 +5015,7 @@ export const createWorkflowQueryKey = (options: Options<CreateWorkflowData>) =>
 
 /**
  * Create Workflow
- * Create a new workflow with optional attributes.
+ * Create a new workflow identity with optional attributes.
  */
 export const createWorkflowOptions = (options: Options<CreateWorkflowData>) => {
   return queryOptions({
@@ -5028,7 +5034,7 @@ export const createWorkflowOptions = (options: Options<CreateWorkflowData>) => {
 
 /**
  * Create Workflow
- * Create a new workflow with optional attributes.
+ * Create a new workflow identity with optional attributes.
  */
 export const createWorkflowMutation = (
   options?: Partial<Options<CreateWorkflowData>>,
@@ -5079,20 +5085,20 @@ export const getWorkflowByIdOptions = (
   })
 }
 
-export const getWorkflowRegistrationsQueryKey = (
-  options: Options<GetWorkflowRegistrationsData>,
-) => createQueryKey('getWorkflowRegistrations', options)
+export const getWorkflowVersionsQueryKey = (
+  options: Options<GetWorkflowVersionsData>,
+) => createQueryKey('getWorkflowVersions', options)
 
 /**
- * Get Workflow Registrations
- * List platform registrations for a workflow.
+ * Get Workflow Versions
+ * List all versions of a workflow.
  */
-export const getWorkflowRegistrationsOptions = (
-  options: Options<GetWorkflowRegistrationsData>,
+export const getWorkflowVersionsOptions = (
+  options: Options<GetWorkflowVersionsData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowRegistrations({
+      const { data } = await getWorkflowVersions({
         ...options,
         ...queryKey[0],
         signal,
@@ -5100,24 +5106,24 @@ export const getWorkflowRegistrationsOptions = (
       })
       return data
     },
-    queryKey: getWorkflowRegistrationsQueryKey(options),
+    queryKey: getWorkflowVersionsQueryKey(options),
   })
 }
 
-export const createWorkflowRegistrationQueryKey = (
-  options: Options<CreateWorkflowRegistrationData>,
-) => createQueryKey('createWorkflowRegistration', options)
+export const createWorkflowVersionQueryKey = (
+  options: Options<CreateWorkflowVersionData>,
+) => createQueryKey('createWorkflowVersion', options)
 
 /**
- * Create Workflow Registration
- * Register a workflow on a specific platform.
+ * Create Workflow Version
+ * Create a new version for a workflow.
  */
-export const createWorkflowRegistrationOptions = (
-  options: Options<CreateWorkflowRegistrationData>,
+export const createWorkflowVersionOptions = (
+  options: Options<CreateWorkflowVersionData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await createWorkflowRegistration({
+      const { data } = await createWorkflowVersion({
         ...options,
         ...queryKey[0],
         signal,
@@ -5125,28 +5131,81 @@ export const createWorkflowRegistrationOptions = (
       })
       return data
     },
-    queryKey: createWorkflowRegistrationQueryKey(options),
+    queryKey: createWorkflowVersionQueryKey(options),
   })
 }
 
 /**
- * Create Workflow Registration
- * Register a workflow on a specific platform.
+ * Create Workflow Version
+ * Create a new version for a workflow.
  */
-export const createWorkflowRegistrationMutation = (
-  options?: Partial<Options<CreateWorkflowRegistrationData>>,
+export const createWorkflowVersionMutation = (
+  options?: Partial<Options<CreateWorkflowVersionData>>,
 ): UseMutationOptions<
-  CreateWorkflowRegistrationResponse,
-  AxiosError<CreateWorkflowRegistrationError>,
-  Options<CreateWorkflowRegistrationData>
+  CreateWorkflowVersionResponse,
+  AxiosError<CreateWorkflowVersionError>,
+  Options<CreateWorkflowVersionData>
 > => {
   const mutationOptions: UseMutationOptions<
-    CreateWorkflowRegistrationResponse,
-    AxiosError<CreateWorkflowRegistrationError>,
-    Options<CreateWorkflowRegistrationData>
+    CreateWorkflowVersionResponse,
+    AxiosError<CreateWorkflowVersionError>,
+    Options<CreateWorkflowVersionData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await createWorkflowRegistration({
+      const { data } = await createWorkflowVersion({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getWorkflowVersionByIdQueryKey = (
+  options: Options<GetWorkflowVersionByIdData>,
+) => createQueryKey('getWorkflowVersionById', options)
+
+/**
+ * Get Workflow Version By Id
+ * Get a specific workflow version.
+ */
+export const getWorkflowVersionByIdOptions = (
+  options: Options<GetWorkflowVersionByIdData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflowVersionById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowVersionByIdQueryKey(options),
+  })
+}
+
+/**
+ * Delete Workflow Version Alias
+ * Remove an alias from a workflow.
+ */
+export const deleteWorkflowVersionAliasMutation = (
+  options?: Partial<Options<DeleteWorkflowVersionAliasData>>,
+): UseMutationOptions<
+  DeleteWorkflowVersionAliasResponse,
+  AxiosError<DeleteWorkflowVersionAliasError>,
+  Options<DeleteWorkflowVersionAliasData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkflowVersionAliasResponse,
+    AxiosError<DeleteWorkflowVersionAliasError>,
+    Options<DeleteWorkflowVersionAliasData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkflowVersionAlias({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -5158,23 +5217,23 @@ export const createWorkflowRegistrationMutation = (
 }
 
 /**
- * Delete Workflow Registration
- * Remove a platform registration.
+ * Set Workflow Version Alias
+ * Set or update an alias to point to a workflow version.
  */
-export const deleteWorkflowRegistrationMutation = (
-  options?: Partial<Options<DeleteWorkflowRegistrationData>>,
+export const setWorkflowVersionAliasMutation = (
+  options?: Partial<Options<SetWorkflowVersionAliasData>>,
 ): UseMutationOptions<
-  DeleteWorkflowRegistrationResponse,
-  AxiosError<DeleteWorkflowRegistrationError>,
-  Options<DeleteWorkflowRegistrationData>
+  SetWorkflowVersionAliasResponse,
+  AxiosError<SetWorkflowVersionAliasError>,
+  Options<SetWorkflowVersionAliasData>
 > => {
   const mutationOptions: UseMutationOptions<
-    DeleteWorkflowRegistrationResponse,
-    AxiosError<DeleteWorkflowRegistrationError>,
-    Options<DeleteWorkflowRegistrationData>
+    SetWorkflowVersionAliasResponse,
+    AxiosError<SetWorkflowVersionAliasError>,
+    Options<SetWorkflowVersionAliasData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await deleteWorkflowRegistration({
+      const { data } = await setWorkflowVersionAlias({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -5185,20 +5244,20 @@ export const deleteWorkflowRegistrationMutation = (
   return mutationOptions
 }
 
-export const getWorkflowRunsQueryKey = (
-  options: Options<GetWorkflowRunsData>,
-) => createQueryKey('getWorkflowRuns', options)
+export const getWorkflowVersionAliasesQueryKey = (
+  options: Options<GetWorkflowVersionAliasesData>,
+) => createQueryKey('getWorkflowVersionAliases', options)
 
 /**
- * Get Workflow Runs
- * List runs for a workflow (paginated).
+ * Get Workflow Version Aliases
+ * List aliases for a workflow, optionally filtered by alias name.
  */
-export const getWorkflowRunsOptions = (
-  options: Options<GetWorkflowRunsData>,
+export const getWorkflowVersionAliasesOptions = (
+  options: Options<GetWorkflowVersionAliasesData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowRuns({
+      const { data } = await getWorkflowVersionAliases({
         ...options,
         ...queryKey[0],
         signal,
@@ -5206,76 +5265,32 @@ export const getWorkflowRunsOptions = (
       })
       return data
     },
-    queryKey: getWorkflowRunsQueryKey(options),
+    queryKey: getWorkflowVersionAliasesQueryKey(options),
   })
 }
 
-export const getWorkflowRunsInfiniteQueryKey = (
-  options: Options<GetWorkflowRunsData>,
-): QueryKey<Options<GetWorkflowRunsData>> =>
-  createQueryKey('getWorkflowRuns', options, true)
+export const getWorkflowDeploymentsForWorkflowQueryKey = (
+  options: Options<GetWorkflowDeploymentsForWorkflowData>,
+) => createQueryKey('getWorkflowDeploymentsForWorkflow', options)
 
 /**
- * Get Workflow Runs
- * List runs for a workflow (paginated).
+ * Get Workflow Deployments For Workflow
+ * List deployments across all versions of a workflow.
+ *
+ * Optional query filters:
+ * - **alias**: resolve an alias to its version, return only
+ * that version's deployments
+ * - **engine**: restrict results to a specific platform
+ *
+ * Combine both to get a single deployment in one call, e.g.
+ * ``?alias=production&engine=Arvados``.
  */
-export const getWorkflowRunsInfiniteOptions = (
-  options: Options<GetWorkflowRunsData>,
-) => {
-  return infiniteQueryOptions<
-    GetWorkflowRunsResponse,
-    AxiosError<GetWorkflowRunsError>,
-    InfiniteData<GetWorkflowRunsResponse>,
-    QueryKey<Options<GetWorkflowRunsData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetWorkflowRunsData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetWorkflowRunsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getWorkflowRuns({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getWorkflowRunsInfiniteQueryKey(options),
-    },
-  )
-}
-
-export const createWorkflowRunQueryKey = (
-  options: Options<CreateWorkflowRunData>,
-) => createQueryKey('createWorkflowRun', options)
-
-/**
- * Create Workflow Run
- * Create a workflow execution record.
- */
-export const createWorkflowRunOptions = (
-  options: Options<CreateWorkflowRunData>,
+export const getWorkflowDeploymentsForWorkflowOptions = (
+  options: Options<GetWorkflowDeploymentsForWorkflowData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await createWorkflowRun({
+      const { data } = await getWorkflowDeploymentsForWorkflow({
         ...options,
         ...queryKey[0],
         signal,
@@ -5283,28 +5298,78 @@ export const createWorkflowRunOptions = (
       })
       return data
     },
-    queryKey: createWorkflowRunQueryKey(options),
+    queryKey: getWorkflowDeploymentsForWorkflowQueryKey(options),
+  })
+}
+
+export const getWorkflowDeploymentsQueryKey = (
+  options: Options<GetWorkflowDeploymentsData>,
+) => createQueryKey('getWorkflowDeployments', options)
+
+/**
+ * Get Workflow Deployments
+ * List platform deployments for a workflow version.
+ */
+export const getWorkflowDeploymentsOptions = (
+  options: Options<GetWorkflowDeploymentsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflowDeployments({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowDeploymentsQueryKey(options),
+  })
+}
+
+export const createWorkflowDeploymentQueryKey = (
+  options: Options<CreateWorkflowDeploymentData>,
+) => createQueryKey('createWorkflowDeployment', options)
+
+/**
+ * Create Workflow Deployment
+ * Deploy a workflow version on a specific platform.
+ */
+export const createWorkflowDeploymentOptions = (
+  options: Options<CreateWorkflowDeploymentData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createWorkflowDeployment({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createWorkflowDeploymentQueryKey(options),
   })
 }
 
 /**
- * Create Workflow Run
- * Create a workflow execution record.
+ * Create Workflow Deployment
+ * Deploy a workflow version on a specific platform.
  */
-export const createWorkflowRunMutation = (
-  options?: Partial<Options<CreateWorkflowRunData>>,
+export const createWorkflowDeploymentMutation = (
+  options?: Partial<Options<CreateWorkflowDeploymentData>>,
 ): UseMutationOptions<
-  CreateWorkflowRunResponse,
-  AxiosError<CreateWorkflowRunError>,
-  Options<CreateWorkflowRunData>
+  CreateWorkflowDeploymentResponse,
+  AxiosError<CreateWorkflowDeploymentError>,
+  Options<CreateWorkflowDeploymentData>
 > => {
   const mutationOptions: UseMutationOptions<
-    CreateWorkflowRunResponse,
-    AxiosError<CreateWorkflowRunError>,
-    Options<CreateWorkflowRunData>
+    CreateWorkflowDeploymentResponse,
+    AxiosError<CreateWorkflowDeploymentError>,
+    Options<CreateWorkflowDeploymentData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await createWorkflowRun({
+      const { data } = await createWorkflowDeployment({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -5315,29 +5380,32 @@ export const createWorkflowRunMutation = (
   return mutationOptions
 }
 
-export const getWorkflowRunByIdQueryKey = (
-  options: Options<GetWorkflowRunByIdData>,
-) => createQueryKey('getWorkflowRunById', options)
-
 /**
- * Get Workflow Run By Id
- * Get a single workflow run by its ID.
+ * Delete Workflow Deployment
+ * Remove a platform deployment.
  */
-export const getWorkflowRunByIdOptions = (
-  options: Options<GetWorkflowRunByIdData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowRunById({
+export const deleteWorkflowDeploymentMutation = (
+  options?: Partial<Options<DeleteWorkflowDeploymentData>>,
+): UseMutationOptions<
+  DeleteWorkflowDeploymentResponse,
+  AxiosError<DeleteWorkflowDeploymentError>,
+  Options<DeleteWorkflowDeploymentData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkflowDeploymentResponse,
+    AxiosError<DeleteWorkflowDeploymentError>,
+    Options<DeleteWorkflowDeploymentData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkflowDeployment({
         ...options,
-        ...queryKey[0],
-        signal,
+        ...localOptions,
         throwOnError: true,
       })
       return data
     },
-    queryKey: getWorkflowRunByIdQueryKey(options),
-  })
+  }
+  return mutationOptions
 }
 
 export const getPipelinesQueryKey = (options?: Options<GetPipelinesData>) =>
