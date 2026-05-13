@@ -1646,7 +1646,7 @@ export type ProjectCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiProjectModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -1672,7 +1672,7 @@ export type ProjectPublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiProjectModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Sequencing Runs
    */
@@ -1691,7 +1691,7 @@ export type ProjectUpdate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiProjectModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2025,7 +2025,7 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -2126,7 +2126,7 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -2185,7 +2185,7 @@ export type SampleWithFilesPublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -2916,6 +2916,10 @@ export type WorkflowVersionCreate = {
    * Definition Uri
    */
   definition_uri: string
+  /**
+   * Attributes
+   */
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2950,6 +2954,10 @@ export type WorkflowVersionPublic = {
    * Deployments
    */
   deployments?: Array<WorkflowDeploymentPublic> | null
+  /**
+   * Attributes
+   */
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2978,7 +2986,7 @@ export type WorkflowVersionSummary = {
 /**
  * Attribute
  */
-export type ApiProjectModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -4781,7 +4789,7 @@ export type DeleteSampleFromProjectResponse =
   DeleteSampleFromProjectResponses[keyof DeleteSampleFromProjectResponses]
 
 export type UpdateSampleInProjectData = {
-  body: Attribute
+  body: ApiSamplesModelsAttribute
   path: {
     /**
      * Sample Id
