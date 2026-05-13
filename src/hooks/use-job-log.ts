@@ -31,7 +31,7 @@ const INDICATOR_THRESHOLD_RATIO = 0.20
 //     - Shows "Scroll to load more" indicator near the bottom
 // --------------------------------------------------------------------------
 
-export function useJobLog(jobId: string, isLive: boolean) {
+export function useJobLog(jobId: string, isLive: boolean, enabled: boolean) {
   const queryClient = useQueryClient()
 
   // ── Query setup ──────────────────────────────────────────────────────
@@ -63,6 +63,7 @@ export function useJobLog(jobId: string, isLive: boolean) {
     string | undefined
   >({
     queryKey,
+    enabled,
     queryFn: async ({ pageParam, signal }) => {
       const { data: logData } = await getJobLogPaginated({
         path: { job_id: jobId },
