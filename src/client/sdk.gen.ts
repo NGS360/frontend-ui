@@ -190,9 +190,9 @@ import type {
   GetWorkflowVersionAliasesData,
   GetWorkflowVersionAliasesErrors,
   GetWorkflowVersionAliasesResponses,
-  GetWorkflowVersionByIdData,
-  GetWorkflowVersionByIdErrors,
-  GetWorkflowVersionByIdResponses,
+  GetWorkflowVersionData,
+  GetWorkflowVersionErrors,
+  GetWorkflowVersionResponses,
   GetWorkflowVersionsData,
   GetWorkflowVersionsErrors,
   GetWorkflowVersionsResponses,
@@ -1813,6 +1813,9 @@ export const updateProject = <ThrowOnError extends boolean = false>(
  * Pagination is offset-based: ``skip`` is the number of records to skip
  * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
  * load file metadata for each sample.
+ *
+ * By default only the latest version of each file (by URI) is returned.
+ * Pass ``?file_versions=all`` to include all versions.
  */
 export const getProjectSamples = <ThrowOnError extends boolean = false>(
   options: Options<GetProjectSamplesData, ThrowOnError>,
@@ -2919,19 +2922,19 @@ export const createWorkflowVersion = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Workflow Version By Id
+ * Get Workflow Version
  * Get a specific workflow version.
  */
-export const getWorkflowVersionById = <ThrowOnError extends boolean = false>(
-  options: Options<GetWorkflowVersionByIdData, ThrowOnError>,
+export const getWorkflowVersion = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowVersionData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<
-    GetWorkflowVersionByIdResponses,
-    GetWorkflowVersionByIdErrors,
+    GetWorkflowVersionResponses,
+    GetWorkflowVersionErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_num}',
     ...options,
   })
 }
@@ -3042,7 +3045,7 @@ export const getWorkflowDeployments = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments',
     ...options,
   })
 }
@@ -3066,7 +3069,7 @@ export const createWorkflowDeployment = <ThrowOnError extends boolean = false>(
         type: 'http',
       },
     ],
-    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -3087,7 +3090,7 @@ export const deleteWorkflowDeployment = <ThrowOnError extends boolean = false>(
     DeleteWorkflowDeploymentErrors,
     ThrowOnError
   >({
-    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments/{deployment_id}',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments/{deployment_id}',
     ...options,
   })
 }
