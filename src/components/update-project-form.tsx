@@ -199,6 +199,10 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                               placeholder="Key"
                               value={field.value}
                               onChange={field.onChange}
+                              excludeValues={watchAttributes
+                                .filter((_, i) => i !== index)
+                                .map((a) => a.key)
+                                .filter(Boolean)}
                             />
                           )}
                         />

@@ -134,6 +134,7 @@ interface CreatableComboBoxProps {
   value?: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  excludeValues?: Array<string>;
 }
 
 export const CreatableComboBox: React.FC<CreatableComboBoxProps> = ({
@@ -143,11 +144,22 @@ export const CreatableComboBox: React.FC<CreatableComboBoxProps> = ({
   value,
   onChange,
   disabled = false,
+  excludeValues = [],
 }) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const selected = value ?? "";
   const triggerRef = useRef<HTMLDivElement>(null);
+
+  const excludedLower = React.useMemo(
+    () => new Set(excludeValues.map((v) => v.toLowerCase())),
+    [excludeValues]
+  );
+
+  const availableOptions = React.useMemo(
+    () => options.filter((o) => !excludedLower.has(o.value.toLowerCase())),
+    [options, excludedLower]
+  );
 
   const handleSelect = (optionValue: string) => {
     if (disabled) return;
@@ -163,11 +175,13 @@ export const CreatableComboBox: React.FC<CreatableComboBoxProps> = ({
     setOpen(false);
   };
 
+  const trimmed = inputValue.trim();
   const showCustomOption =
-    inputValue.trim() !== "" &&
-    !options.some(
-      (o) => o.label.toLowerCase() === inputValue.trim().toLowerCase()
-    );
+    trimmed !== "" &&
+    !availableOptions.some(
+      (o) => o.label.toLowerCase() === trimmed.toLowerCase()
+    ) &&
+    !excludedLower.has(trimmed.toLowerCase());
 
   return (
     <Popover
@@ -259,7 +273,7 @@ export const CreatableComboBox: React.FC<CreatableComboBoxProps> = ({
               )}
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option, index) => (
+              {availableOptions.map((option, index) => (
                 <CommandItem
                   key={index}
                   value={`${option.value}__${index}`}

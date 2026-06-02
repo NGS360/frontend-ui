@@ -176,6 +176,10 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
                               placeholder="Key"
                               value={field.value}
                               onChange={field.onChange}
+                              excludeValues={watchAttributes
+                                .filter((_, i) => i !== index)
+                                .map((a) => a.key)
+                                .filter(Boolean)}
                             />
                           )}
                         />
