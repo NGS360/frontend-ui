@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LoaderCircle, PlusIcon, Trash2Icon } from "lucide-react";
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { getFormApiErrorMessage } from "@/lib/error-utils";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getProjectByProjectIdQueryKey, getProjectSamplesQueryKey, getProjectsQueryKey, updateProjectMutation } from "@/client/@tanstack/react-query.gen";
+import { TriggerInput } from "@/components/trigger-input";
 
 // Define Schema w/Validation
 const AttributeSchema = z.object({
@@ -195,10 +196,17 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                         )}
                       </div>
                       <div className="flex flex-col flex-1">
-                        <Input
-                          id={`${baseId}-attribute-value-${index}`}
-                          {...register(`attributes.${index}.value` as const)}
-                          placeholder="Value"
+                        <Controller
+                          control={control}
+                          name={`attributes.${index}.value` as const}
+                          render={({ field: fieldValue }) => (
+                            <TriggerInput
+                              id={`${baseId}-attribute-value-${index}`}
+                              placeholder="Value (type # to reference)"
+                              value={fieldValue.value}
+                              onChange={fieldValue.onChange}
+                            />
+                          )}
                         />
                         {errors.attributes?.[index]?.value?.message && (
                           <span className="text-xs text-red-500 mt-1">
