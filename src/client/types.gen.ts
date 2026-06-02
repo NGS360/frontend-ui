@@ -4433,6 +4433,24 @@ export type CreateProjectResponses = {
 export type CreateProjectResponse =
   CreateProjectResponses[keyof CreateProjectResponses]
 
+export type GetProjectAttributesData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/projects/attributes'
+}
+
+export type GetProjectAttributesResponses = {
+  /**
+   * Response Get Project Attributes
+   * Successful Response
+   */
+  200: Array<string>
+}
+
+export type GetProjectAttributesResponse =
+  GetProjectAttributesResponses[keyof GetProjectAttributesResponses]
+
 export type SearchProjectsData = {
   body?: never
   path?: never

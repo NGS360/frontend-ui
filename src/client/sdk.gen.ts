@@ -139,6 +139,8 @@ import type {
   GetPlatformByNameResponses,
   GetPlatformsData,
   GetPlatformsResponses,
+  GetProjectAttributesData,
+  GetProjectAttributesResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
@@ -1695,6 +1697,28 @@ export const createProject = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Get Project Attributes
+ * Returns a list of all unique project attributes across all projects.
+ *
+ * This endpoint is useful for clients to discover what attributes are in use
+ * and to populate dropdowns or autocomplete fields when creating/updating
+ * projects.  The response is a flat list of unique attribute keys.
+ */
+export const getProjectAttributes = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProjectAttributesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProjectAttributesResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/attributes',
+    ...options,
   })
 }
 

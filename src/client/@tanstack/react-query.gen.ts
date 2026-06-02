@@ -54,6 +54,7 @@ import {
   getPipelines,
   getPlatformByName,
   getPlatforms,
+  getProjectAttributes,
   getProjectByProjectId,
   getProjectSamples,
   getProjects,
@@ -222,6 +223,7 @@ import type {
   GetPipelinesResponse,
   GetPlatformByNameData,
   GetPlatformsData,
+  GetProjectAttributesData,
   GetProjectByProjectIdData,
   GetProjectSamplesData,
   GetProjectsData,
@@ -2812,6 +2814,35 @@ export const createProjectMutation = (
     },
   }
   return mutationOptions
+}
+
+export const getProjectAttributesQueryKey = (
+  options?: Options<GetProjectAttributesData>,
+) => createQueryKey('getProjectAttributes', options)
+
+/**
+ * Get Project Attributes
+ * Returns a list of all unique project attributes across all projects.
+ *
+ * This endpoint is useful for clients to discover what attributes are in use
+ * and to populate dropdowns or autocomplete fields when creating/updating
+ * projects.  The response is a flat list of unique attribute keys.
+ */
+export const getProjectAttributesOptions = (
+  options?: Options<GetProjectAttributesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectAttributes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectAttributesQueryKey(options),
+  })
 }
 
 export const searchProjectsQueryKey = (options: Options<SearchProjectsData>) =>
