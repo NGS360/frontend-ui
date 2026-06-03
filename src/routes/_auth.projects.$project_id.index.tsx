@@ -335,6 +335,7 @@ function RouteComponent() {
                 idPrefix={`project-${project.project_id}-update-project`}
                 projectId={project.project_id}
                 projectName={project.name}
+                projectCreatedBy={project.created_by}
                 projectAttributes={project.attributes}
                 trigger={
                   <Button variant='outline' className='w-full md:w-fit'>
