@@ -54,6 +54,7 @@ import {
   getPipelines,
   getPlatformByName,
   getPlatforms,
+  getProjectAttributes,
   getProjectByProjectId,
   getProjectSamples,
   getProjects,
@@ -70,8 +71,8 @@ import {
   getWorkflowById,
   getWorkflowDeployments,
   getWorkflowDeploymentsForWorkflow,
+  getWorkflowVersion,
   getWorkflowVersionAliases,
-  getWorkflowVersionById,
   getWorkflowVersions,
   getWorkflows,
   healthCheck,
@@ -102,6 +103,7 @@ import {
   searchQcrecordsGet,
   searchQcrecordsPost,
   searchRuns,
+  searchUsers,
   setWorkflowVersionAlias,
   submitDemultiplexWorkflowJob,
   submitJob,
@@ -222,6 +224,7 @@ import type {
   GetPipelinesResponse,
   GetPlatformByNameData,
   GetPlatformsData,
+  GetProjectAttributesData,
   GetProjectByProjectIdData,
   GetProjectSamplesData,
   GetProjectsData,
@@ -243,7 +246,7 @@ import type {
   GetWorkflowDeploymentsData,
   GetWorkflowDeploymentsForWorkflowData,
   GetWorkflowVersionAliasesData,
-  GetWorkflowVersionByIdData,
+  GetWorkflowVersionData,
   GetWorkflowVersionsData,
   GetWorkflowsData,
   GetWorkflowsError,
@@ -283,7 +286,6 @@ import type {
   RegisterError,
   RegisterResponse,
   ReindexProjectsData,
-  ReindexProjectsResponse,
   ReindexRunsData,
   ReindexSamplesData,
   RemoveSampleFromRunData,
@@ -315,6 +317,7 @@ import type {
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
+  SearchUsersData,
   SetWorkflowVersionAliasData,
   SetWorkflowVersionAliasError,
   SetWorkflowVersionAliasResponse,
@@ -2814,6 +2817,35 @@ export const createProjectMutation = (
   return mutationOptions
 }
 
+export const getProjectAttributesQueryKey = (
+  options?: Options<GetProjectAttributesData>,
+) => createQueryKey('getProjectAttributes', options)
+
+/**
+ * Get Project Attributes
+ * Returns a list of all unique project attributes across all projects.
+ *
+ * This endpoint is useful for clients to discover what attributes are in use
+ * and to populate dropdowns or autocomplete fields when creating/updating
+ * projects.  The response is a flat list of unique attribute keys.
+ */
+export const getProjectAttributesOptions = (
+  options?: Options<GetProjectAttributesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectAttributes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectAttributesQueryKey(options),
+  })
+}
+
 export const searchProjectsQueryKey = (options: Options<SearchProjectsData>) =>
   createQueryKey('searchProjects', options)
 
@@ -2920,12 +2952,12 @@ export const reindexProjectsOptions = (
 export const reindexProjectsMutation = (
   options?: Partial<Options<ReindexProjectsData>>,
 ): UseMutationOptions<
-  ReindexProjectsResponse,
+  unknown,
   AxiosError<DefaultError>,
   Options<ReindexProjectsData>
 > => {
   const mutationOptions: UseMutationOptions<
-    ReindexProjectsResponse,
+    unknown,
     AxiosError<DefaultError>,
     Options<ReindexProjectsData>
   > = {
@@ -3043,6 +3075,9 @@ export const getProjectSamplesQueryKey = (
  * Pagination is offset-based: ``skip`` is the number of records to skip
  * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
  * load file metadata for each sample.
+ *
+ * By default only the latest version of each file (by URI) is returned.
+ * Pass ``?file_versions=all`` to include all versions.
  */
 export const getProjectSamplesOptions = (
   options: Options<GetProjectSamplesData>,
@@ -5163,20 +5198,20 @@ export const createWorkflowVersionMutation = (
   return mutationOptions
 }
 
-export const getWorkflowVersionByIdQueryKey = (
-  options: Options<GetWorkflowVersionByIdData>,
-) => createQueryKey('getWorkflowVersionById', options)
+export const getWorkflowVersionQueryKey = (
+  options: Options<GetWorkflowVersionData>,
+) => createQueryKey('getWorkflowVersion', options)
 
 /**
- * Get Workflow Version By Id
+ * Get Workflow Version
  * Get a specific workflow version.
  */
-export const getWorkflowVersionByIdOptions = (
-  options: Options<GetWorkflowVersionByIdData>,
+export const getWorkflowVersionOptions = (
+  options: Options<GetWorkflowVersionData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowVersionById({
+      const { data } = await getWorkflowVersion({
         ...options,
         ...queryKey[0],
         signal,
@@ -5184,7 +5219,7 @@ export const getWorkflowVersionByIdOptions = (
       })
       return data
     },
-    queryKey: getWorkflowVersionByIdQueryKey(options),
+    queryKey: getWorkflowVersionQueryKey(options),
   })
 }
 
@@ -5732,5 +5767,32 @@ export const getPlatformByNameOptions = (
       return data
     },
     queryKey: getPlatformByNameQueryKey(options),
+  })
+}
+
+export const searchUsersQueryKey = (options: Options<SearchUsersData>) =>
+  createQueryKey('searchUsers', options)
+
+/**
+ * Search Users
+ * Search for users by name, email, or username.
+ *
+ * Uses LDAP directory if configured and available,
+ * otherwise falls back to the local user database.
+ *
+ * Requires authentication.
+ */
+export const searchUsersOptions = (options: Options<SearchUsersData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchUsers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchUsersQueryKey(options),
   })
 }

@@ -139,6 +139,8 @@ import type {
   GetPlatformByNameResponses,
   GetPlatformsData,
   GetPlatformsResponses,
+  GetProjectAttributesData,
+  GetProjectAttributesResponses,
   GetProjectByProjectIdData,
   GetProjectByProjectIdErrors,
   GetProjectByProjectIdResponses,
@@ -190,9 +192,9 @@ import type {
   GetWorkflowVersionAliasesData,
   GetWorkflowVersionAliasesErrors,
   GetWorkflowVersionAliasesResponses,
-  GetWorkflowVersionByIdData,
-  GetWorkflowVersionByIdErrors,
-  GetWorkflowVersionByIdResponses,
+  GetWorkflowVersionData,
+  GetWorkflowVersionErrors,
+  GetWorkflowVersionResponses,
   GetWorkflowVersionsData,
   GetWorkflowVersionsErrors,
   GetWorkflowVersionsResponses,
@@ -277,6 +279,9 @@ import type {
   SearchRunsData,
   SearchRunsErrors,
   SearchRunsResponses,
+  SearchUsersData,
+  SearchUsersErrors,
+  SearchUsersResponses,
   SetWorkflowVersionAliasData,
   SetWorkflowVersionAliasErrors,
   SetWorkflowVersionAliasResponses,
@@ -1699,6 +1704,28 @@ export const createProject = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Get Project Attributes
+ * Returns a list of all unique project attributes across all projects.
+ *
+ * This endpoint is useful for clients to discover what attributes are in use
+ * and to populate dropdowns or autocomplete fields when creating/updating
+ * projects.  The response is a flat list of unique attribute keys.
+ */
+export const getProjectAttributes = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProjectAttributesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProjectAttributesResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/projects/attributes',
+    ...options,
+  })
+}
+
+/**
  * Search Projects
  * Search projects by project_id or name.
  */
@@ -1813,6 +1840,9 @@ export const updateProject = <ThrowOnError extends boolean = false>(
  * Pagination is offset-based: ``skip`` is the number of records to skip
  * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
  * load file metadata for each sample.
+ *
+ * By default only the latest version of each file (by URI) is returned.
+ * Pass ``?file_versions=all`` to include all versions.
  */
 export const getProjectSamples = <ThrowOnError extends boolean = false>(
   options: Options<GetProjectSamplesData, ThrowOnError>,
@@ -2919,19 +2949,19 @@ export const createWorkflowVersion = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Workflow Version By Id
+ * Get Workflow Version
  * Get a specific workflow version.
  */
-export const getWorkflowVersionById = <ThrowOnError extends boolean = false>(
-  options: Options<GetWorkflowVersionByIdData, ThrowOnError>,
+export const getWorkflowVersion = <ThrowOnError extends boolean = false>(
+  options: Options<GetWorkflowVersionData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<
-    GetWorkflowVersionByIdResponses,
-    GetWorkflowVersionByIdErrors,
+    GetWorkflowVersionResponses,
+    GetWorkflowVersionErrors,
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_num}',
     ...options,
   })
 }
@@ -3042,7 +3072,7 @@ export const getWorkflowDeployments = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments',
     ...options,
   })
 }
@@ -3066,7 +3096,7 @@ export const createWorkflowDeployment = <ThrowOnError extends boolean = false>(
         type: 'http',
       },
     ],
-    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -3087,7 +3117,7 @@ export const deleteWorkflowDeployment = <ThrowOnError extends boolean = false>(
     DeleteWorkflowDeploymentErrors,
     ThrowOnError
   >({
-    url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments/{deployment_id}',
+    url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments/{deployment_id}',
     ...options,
   })
 }
@@ -3253,6 +3283,35 @@ export const getPlatformByName = <ThrowOnError extends boolean = false>(
   >({
     responseType: 'json',
     url: '/api/v1/platforms/{name}',
+    ...options,
+  })
+}
+
+/**
+ * Search Users
+ * Search for users by name, email, or username.
+ *
+ * Uses LDAP directory if configured and available,
+ * otherwise falls back to the local user database.
+ *
+ * Requires authentication.
+ */
+export const searchUsers = <ThrowOnError extends boolean = false>(
+  options: Options<SearchUsersData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    SearchUsersResponses,
+    SearchUsersErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/users/search',
     ...options,
   })
 }

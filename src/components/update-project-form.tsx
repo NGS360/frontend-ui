@@ -202,7 +202,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                           render={({ field: fieldValue }) => (
                             <TriggerInput
                               id={`${baseId}-attribute-value-${index}`}
-                              placeholder="Value (type # to reference)"
+                              placeholder="Value (@user, #project)"
                               value={fieldValue.value}
                               onChange={fieldValue.onChange}
                             />

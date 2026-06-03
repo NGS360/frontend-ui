@@ -6,14 +6,14 @@ import { Command, CommandEmpty, CommandItem, CommandList } from "@/components/ui
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { useTriggerCombobox } from "@/hooks/use-trigger-combobox"
-import { searchOptions } from "@/client/@tanstack/react-query.gen"
+import { searchOptions, searchUsersOptions } from "@/client/@tanstack/react-query.gen"
 import { entityMeta } from "@/lib/entity-icons"
 
 interface SearchItem {
   id: string
   label: string
   sublabel: string
-  type: "project" | "run"
+  type: "project" | "run" | "user"
   details: Record<string, string | null>
   attributes?: Array<Attribute> | null
 }
@@ -29,14 +29,39 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
   ...inputProps
 }) => {
   const [searchQuery, setSearchQuery] = useState("")
+  const [userSearchQuery, setUserSearchQuery] = useState("")
+  const [activeTrigger, setActiveTrigger] = useState<string | null>(null)
   const [highlightedId, setHighlightedId] = useState<string | null>(null)
 
-  const { data: searchResults, isFetching } = useQuery({
+  const { data: searchResults, isFetching: isFetchingSearch } = useQuery({
     ...searchOptions({ query: { query: searchQuery, n_results: 5 } }),
-    enabled: searchQuery.length >= 1,
+    enabled: searchQuery.length >= 1 && activeTrigger === "#",
   })
 
+  const { data: userResults, isFetching: isFetchingUsers } = useQuery({
+    ...searchUsersOptions({ query: { q: userSearchQuery, limit: 10 } }),
+    enabled: userSearchQuery.length >= 2 && activeTrigger === "@",
+  })
+
+  const isFetching = activeTrigger === "@" ? isFetchingUsers : isFetchingSearch
+
   const items: Array<SearchItem> = useMemo(() => {
+    if (activeTrigger === "@") {
+      if (!userResults) return []
+      return userResults.data.map((u) => ({
+        id: u.username,
+        label: u.full_name || u.username,
+        sublabel: u.username,
+        type: "user" as const,
+        details: {
+          "Username": u.username,
+          "Email": u.email ?? null,
+          "Department": u.department ?? null,
+          "Title": u.title ?? null,
+        },
+        attributes: null,
+      }))
+    }
     if (!searchResults) return []
     const projectItems = (searchResults.projects.data).map((p: ProjectPublic) => ({
       id: p.project_id,
@@ -60,7 +85,7 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
       attributes: null,
     }))
     return [...projectItems, ...runItems]
-  }, [searchResults])
+  }, [searchResults, userResults, activeTrigger])
 
   useEffect(() => {
     if (items.length > 0) {
@@ -75,8 +100,14 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
     [items, highlightedId]
   )
 
-  const handleSearch = useCallback((query: string) => {
+  const handleHashSearch = useCallback((query: string) => {
+    setActiveTrigger("#")
     setSearchQuery(query)
+  }, [])
+
+  const handleAtSearch = useCallback((query: string) => {
+    setActiveTrigger("@")
+    setUserSearchQuery(query)
   }, [])
 
   const handleSelect = useCallback((triggerChar: string, selectedValue: string, el: HTMLInputElement | HTMLTextAreaElement) => {
@@ -101,7 +132,10 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
   }, [value, onChange])
 
   const { inputRef, triggerState, popoverOpen, handleInputChange, handleSelect: selectItem, dismiss } = useTriggerCombobox({
-    triggers: [{ char: "#", onSearch: handleSearch }],
+    triggers: [
+      { char: "#", onSearch: handleHashSearch },
+      { char: "@", onSearch: handleAtSearch, minQueryLength: 2 },
+    ],
     onSelect: handleSelect,
   })
 
@@ -110,6 +144,8 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
   useEffect(() => {
     if (!popoverOpen) {
       setSearchQuery("")
+      setUserSearchQuery("")
+      setActiveTrigger(null)
       setHighlightedId(null)
     }
   }, [popoverOpen])
@@ -167,7 +203,11 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
                   <div className="py-4 text-center text-sm text-muted-foreground">Searching...</div>
                 ) : items.length === 0 ? (
                   <CommandEmpty>
-                    {triggerState.query.length === 0 ? "Type to search..." : "No results found."}
+                    {triggerState.query.length === 0
+                      ? "Type to search..."
+                      : activeTrigger === "@" && triggerState.query.length < 2
+                        ? "Type at least 2 characters..."
+                        : "No results found."}
                   </CommandEmpty>
                 ) : (
                   items.map((item) => {
@@ -187,7 +227,7 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
                           )}
                         </div>
                         <Badge variant="outline" className="text-[10px] ml-auto">
-                          {item.type === "project" ? "Project" : "Run"}
+                          {item.type === "project" ? "Project" : item.type === "run" ? "Run" : "User"}
                         </Badge>
                       </CommandItem>
                     )
