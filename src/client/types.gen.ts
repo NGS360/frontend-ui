@@ -2138,6 +2138,27 @@ export type SamplePublic = {
 }
 
 /**
+ * SampleSearchRequest
+ * POST /api/v1/samples/search request body.
+ */
+export type SampleSearchRequest = {
+  /**
+   * Filter On
+   */
+  filter_on?: {
+    [key: string]: unknown
+  }
+  /**
+   * Page
+   */
+  page?: number
+  /**
+   * Per Page
+   */
+  per_page?: number
+}
+
+/**
  * SampleSequencingRunCreate
  */
 export type SampleSequencingRunCreate = {
@@ -2202,6 +2223,7 @@ export type SampleWithFilesPublic = {
 
 /**
  * SamplesPublic
+ * Paginated list of samples using offset-based pagination (skip/limit).
  */
 export type SamplesPublic = {
   /**
@@ -2224,6 +2246,45 @@ export type SamplesPublic = {
    * Limit
    */
   limit: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
+
+/**
+ * SamplesPublicSearchResponse
+ * Paginated list of samples using page-based pagination for search endpoints.
+ */
+export type SamplesPublicSearchResponse = {
+  /**
+   * Data
+   */
+  data: Array<SamplePublic>
+  /**
+   * Data Cols
+   */
+  data_cols?: Array<string> | null
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
   /**
    * Has Next
    */
@@ -2275,6 +2336,7 @@ export type SamplesWithFilesPublic = {
 export type SearchResponse = {
   projects: ProjectsPublic
   runs: SequencingRunsPublic
+  samples: SamplesPublicSearchResponse
 }
 
 /**
@@ -5670,11 +5732,76 @@ export type RemoveSampleFromRunResponses = {
 export type RemoveSampleFromRunResponse =
   RemoveSampleFromRunResponses[keyof RemoveSampleFromRunResponses]
 
+export type SearchSamplesGetData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+  }
+  url: '/api/v1/samples/search'
+}
+
+export type SearchSamplesGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchSamplesGetError =
+  SearchSamplesGetErrors[keyof SearchSamplesGetErrors]
+
+export type SearchSamplesGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: SamplesPublicSearchResponse
+}
+
+export type SearchSamplesGetResponse =
+  SearchSamplesGetResponses[keyof SearchSamplesGetResponses]
+
+export type SearchSamplesPostData = {
+  body: SampleSearchRequest
+  path?: never
+  query?: never
+  url: '/api/v1/samples/search'
+}
+
+export type SearchSamplesPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchSamplesPostError =
+  SearchSamplesPostErrors[keyof SearchSamplesPostErrors]
+
+export type SearchSamplesPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: SamplesPublicSearchResponse
+}
+
+export type SearchSamplesPostResponse =
+  SearchSamplesPostResponses[keyof SearchSamplesPostResponses]
+
 export type ReindexSamplesData = {
   body?: never
   path?: never
   query?: never
-  url: '/api/v1/samples/search'
+  url: '/api/v1/samples/reindex'
 }
 
 export type ReindexSamplesResponses = {

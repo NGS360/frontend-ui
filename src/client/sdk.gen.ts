@@ -279,6 +279,12 @@ import type {
   SearchRunsData,
   SearchRunsErrors,
   SearchRunsResponses,
+  SearchSamplesGetData,
+  SearchSamplesGetErrors,
+  SearchSamplesGetResponses,
+  SearchSamplesPostData,
+  SearchSamplesPostErrors,
+  SearchSamplesPostResponses,
   SearchUsersData,
   SearchUsersErrors,
   SearchUsersResponses,
@@ -2646,6 +2652,79 @@ export const removeSampleFromRun = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * Search Samples Get
+ * Search samples using query string parameters.
+ *
+ * Accepts key/value pairs as query params, e.g.:
+ * ``?projectid=P-1234&samplename=Sample_1&page=1&per_page=20``
+ *
+ * Supported filter keys:
+ * - ``projectid``: exact match on project ID
+ * - ``samplename``: exact match on sample name
+ * - ``created_on``: date prefix match (YYYY-MM-DD) on created_at
+ * - Any other key: matched against sample attributes (case-insensitive key)
+ *
+ * Multiple filters are AND'd together.
+ */
+export const searchSamplesGet = <ThrowOnError extends boolean = false>(
+  options?: Options<SearchSamplesGetData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    SearchSamplesGetResponses,
+    SearchSamplesGetErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/samples/search',
+    ...options,
+  })
+}
+
+/**
+ * Search Samples Post
+ * Search samples using JSON body with filter_on, page, per_page.
+ *
+ * Example body::
+ *
+ * {
+ * "filter_on": {
+ * "projectid": "P-1234",
+ * "tags": {
+ * "USUBJID": "CA123012-01-234"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 20
+ * }
+ *
+ * ``filter_on`` supports:
+ * - ``projectid`` (str or list)
+ * - ``samplename`` (str or list)
+ * - ``created_on`` (str, date prefix match)
+ * - ``tags`` (dict of key/value pairs, matched case-insensitively)
+ * - Any other key is matched against sample attributes
+ *
+ * List values are OR'd; multiple keys are AND'd.
+ */
+export const searchSamplesPost = <ThrowOnError extends boolean = false>(
+  options: Options<SearchSamplesPostData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    SearchSamplesPostResponses,
+    SearchSamplesPostErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/api/v1/samples/search',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
  * Reindex Samples
  * Reindex samples in database with OpenSearch
  */
@@ -2658,7 +2737,7 @@ export const reindexSamples = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
-    url: '/api/v1/samples/search',
+    url: '/api/v1/samples/reindex',
     ...options,
   })
 }
