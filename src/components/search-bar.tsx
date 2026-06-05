@@ -4,7 +4,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import type { FC, ReactNode } from 'react'
-import type { Attribute, ProjectPublic, SequencingRunPublic } from '@/client'
+import type { Attribute, ProjectPublic, SamplePublic, SequencingRunPublic } from '@/client'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { searchOptions } from '@/client/@tanstack/react-query.gen'
@@ -132,19 +132,24 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
 
   // Query using debounced input
   const {
-    data: { projects, runs } = { projects: [], runs: [] },
+    data: { projects, runs, samples, projectsTotal, runsTotal } = {
+      projects: [], runs: [], samples: [], projectsTotal: 0, runsTotal: 0
+    },
     error,
     refetch,
   } = useQuery({
     ...searchOptions({
       query: {
         query: debouncedInput,
-        n_results: 5
+        n_results: 3
       }
     }),
     select: (res) => ({
       projects: res.projects.data,
-      runs: res.runs.data
+      runs: res.runs.data,
+      samples: res.samples.data,
+      projectsTotal: res.projects.total_items,
+      runsTotal: res.runs.total_items
     }),
     enabled: !!debouncedInput,
     retry: false,
@@ -173,13 +178,21 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
         to: '/runs/$run_id',
         params: { run_id: r.run_id }
       })
+    })),
+    ...samples.map((s: SamplePublic) => ({
+      type: 'sample' as const,
+      data: s,
+      navigate: () => navigate({
+        to: '/projects/$project_id',
+        params: { project_id: s.project_id }
+      })
     }))
   ];
 
   // Detail panel state
   interface DetailInfo {
     label: string
-    type: 'project' | 'run'
+    type: 'project' | 'run' | 'sample'
     details: Record<string, string | null>
     attributes?: Array<Attribute> | null
   }
@@ -207,8 +220,20 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
         attributes: null,
       })
     })
+    samples.forEach((s: SamplePublic, i: number) => {
+      map.set(projects.length + runs.length + i, {
+        label: s.sample_id,
+        type: 'sample',
+        details: {
+          "Sample ID": s.sample_id,
+          "Project ID": s.project_id,
+          "Run ID": s.run_id ?? null,
+        },
+        attributes: s.attributes,
+      })
+    })
     return map
-  }, [projects, runs])
+  }, [projects, runs, samples])
 
   const highlightedDetail = selectedIndex >= 0 ? detailMap.get(selectedIndex) ?? null : null
 
@@ -258,7 +283,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
         <input
           id={`${baseId}-input`}
           className="w-full text-sm focus:outline-none"
-          placeholder="Search for projects or runs..."
+          placeholder="Search for projects, runs, or samples..."
           {...register('search')}
           onKeyDown={handleKeyDown}
         />
@@ -322,16 +347,17 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
                           }}
                         >
                           <ExternalLink size={14} />
-                          <span>View all projects</span>
+                          <span>View {projectsTotal} matching {projectsTotal === 1 ? 'project' : 'projects'}</span>
                         </Link>
                       </SearchItem>
                     </SearchGroup>
 
-                    {runs.length > 0 && <Separator className="my-0.5" />}
+                    {(runs.length > 0 || samples.length > 0) && <Separator className="my-0.5" />}
                   </>
                 )}
 
                 {runs.length > 0 && (
+                  <>
                   <SearchGroup heading="Runs">
                     {runs.map((r: SequencingRunPublic, index: number) => {
                       const runIndex = projects.length + index;
@@ -367,9 +393,43 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
                         search={{ query: debouncedInput }}
                       >
                         <ExternalLink size={14} />
-                        <span>View all runs</span>
+                        <span>View {runsTotal} matching {runsTotal === 1 ? 'run' : 'runs'}</span>
                       </Link>
                     </SearchItem>
+                  </SearchGroup>
+
+                  {samples.length > 0 && <Separator className="my-0.5" />}
+                  </>
+                )}
+
+                {samples.length > 0 && (
+                  <SearchGroup heading="Samples">
+                    {samples.map((s: SamplePublic, index: number) => {
+                      const sampleIndex = projects.length + runs.length + index;
+                      return (
+                        <SearchItem
+                          key={`${s.project_id}-${s.sample_id}`}
+                          onClick={() => handleResultClick(() => navigate({
+                            to: '/projects/$project_id',
+                            params: { project_id: s.project_id }
+                          }))}
+                          isHighlighted={selectedIndex === sampleIndex}
+                          onMouseEnter={() => setSelectedIndex(sampleIndex)}
+                        >
+                          <div id={`${baseId}-sample-${s.project_id}-${s.sample_id}`} ref={selectedIndex === sampleIndex ? selectedItemRef : null} className="flex items-center gap-2">
+                            <entityMeta.sample.icon className={`size-4 shrink-0 ${entityMeta.sample.colorClass}`} />
+                            <div className="min-w-0 truncate">
+                              <span className='text-sm'>
+                                {highlightMatch(s.sample_id, debouncedInput)}
+                              </span>
+                              <span className='text-xs text-muted-foreground'>
+                                {' '}{highlightMatch(s.project_id, debouncedInput)}
+                              </span>
+                            </div>
+                          </div>
+                        </SearchItem>
+                      );
+                    })}
                   </SearchGroup>
                 )}
 
@@ -381,7 +441,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
                   />
                 )}
 
-                {!error && projects.length === 0 && runs.length === 0 && (
+                {!error && projects.length === 0 && runs.length === 0 && samples.length === 0 && (
                   <div className="flex justify-center p-4 text-sm text-muted-foreground">
                     No results found.
                   </div>

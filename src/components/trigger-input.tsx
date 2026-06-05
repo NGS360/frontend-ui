@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { Attribute, ProjectPublic, SequencingRunPublic } from "@/client"
+import type { Attribute, ProjectPublic, SamplePublic, SequencingRunPublic } from "@/client"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandItem, CommandList } from "@/components/ui/command"
 import { Badge } from "@/components/ui/badge"
@@ -13,7 +13,7 @@ interface SearchItem {
   id: string
   label: string
   sublabel: string
-  type: "project" | "run" | "user"
+  type: "project" | "run" | "sample" | "user"
   details: Record<string, string | null>
   attributes?: Array<Attribute> | null
 }
@@ -34,7 +34,7 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
   const [highlightedId, setHighlightedId] = useState<string | null>(null)
 
   const { data: searchResults, isFetching: isFetchingSearch } = useQuery({
-    ...searchOptions({ query: { query: searchQuery, n_results: 5 } }),
+    ...searchOptions({ query: { query: searchQuery, n_results: 3 } }),
     enabled: searchQuery.length >= 1 && activeTrigger === "#",
   })
 
@@ -84,7 +84,19 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
       },
       attributes: null,
     }))
-    return [...projectItems, ...runItems]
+    const sampleItems = (searchResults.samples.data).map((s: SamplePublic) => ({
+      id: s.sample_id,
+      label: s.sample_id,
+      sublabel: s.project_id,
+      type: "sample" as const,
+      details: {
+        "Sample ID": s.sample_id,
+        "Project ID": s.project_id,
+        "Run ID": s.run_id ?? null,
+      },
+      attributes: s.attributes,
+    }))
+    return [...projectItems, ...runItems, ...sampleItems]
   }, [searchResults, userResults, activeTrigger])
 
   useEffect(() => {
@@ -227,7 +239,7 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
                           )}
                         </div>
                         <Badge variant="outline" className="text-[10px] ml-auto">
-                          {item.type === "project" ? "Project" : item.type === "run" ? "Run" : "User"}
+                          {item.type === "project" ? "Project" : item.type === "run" ? "Run" : item.type === "sample" ? "Sample" : "User"}
                         </Badge>
                       </CommandItem>
                     )
