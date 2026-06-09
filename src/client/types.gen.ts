@@ -2038,7 +2038,7 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -2143,7 +2143,7 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -2223,7 +2223,7 @@ export type SampleWithFilesPublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiSamplesModelsAttribute> | null
   /**
    * Run Id
    */
@@ -4945,7 +4945,7 @@ export type DeleteSampleFromProjectResponse =
   DeleteSampleFromProjectResponses[keyof DeleteSampleFromProjectResponses]
 
 export type UpdateSampleInProjectData = {
-  body: Attribute
+  body: ApiSamplesModelsAttribute
   path: {
     /**
      * Sample Id
