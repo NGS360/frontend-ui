@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LoaderCircle, PlusIcon, Trash2Icon } from "lucide-react";
@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getFormApiErrorMessage } from "@/lib/error-utils";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { createProjectMutation, getProjectsQueryKey } from "@/client/@tanstack/react-query.gen";
+import { createProjectMutation, getProjectAttributesOptions, getProjectAttributesQueryKey, getProjectsQueryKey } from "@/client/@tanstack/react-query.gen";
+import { CreatableComboBox } from "@/components/combobox";
 
 // Define Schema w/Validation
 const AttributeSchema = z.object({
@@ -59,6 +60,10 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
 
   const navigate = useNavigate();
   const { data: currentUser } = useCurrentUser();
+
+  // Fetch existing attribute keys for combobox suggestions
+  const { data: attributeKeys = [] } = useQuery(getProjectAttributesOptions());
+  const attributeKeyOptions = attributeKeys.map((k) => ({ label: k, value: k }));
 
   // Control dialog open/close state
   const [isOpen, setIsOpen] = useState(false);
@@ -106,6 +111,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
     onSuccess: (data: ProjectPublic) => {
       reset();
       queryClient.invalidateQueries({ queryKey: getProjectsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getProjectAttributesQueryKey() });
       toast.success(`Successfully created project ${data.project_id}`);
       setIsOpen(false);
       navigate({
@@ -171,10 +177,22 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
                   <div className="grid gap-2" key={field.id}>
                     <div className="flex gap-2">
                       <div className="flex flex-col flex-1">
-                        <Input
-                          id={`${baseId}-attribute-key-${index}`}
-                          {...register(`attributes.${index}.key` as const)}
-                          placeholder="Key"
+                        <Controller
+                          control={control}
+                          name={`attributes.${index}.key` as const}
+                          render={({ field }) => (
+                            <CreatableComboBox
+                              id={`${baseId}-attribute-key-${index}`}
+                              options={attributeKeyOptions}
+                              placeholder="Key"
+                              value={field.value}
+                              onChange={field.onChange}
+                              excludeValues={watchAttributes
+                                .filter((_, i) => i !== index)
+                                .map((a) => a.key)
+                                .filter(Boolean)}
+                            />
+                          )}
                         />
                         {errors.attributes?.[index]?.key?.message && (
                           <span className="text-xs text-red-500 mt-1">
@@ -215,7 +233,12 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
                       !watchAttributes[watchAttributes.length - 1]?.key?.trim() ||
                       !watchAttributes[watchAttributes.length - 1]?.value?.trim()
                     }
-                    onClick={() => append({ key: "", value: "" })}
+                    onClick={() => {
+                      append({ key: "", value: "" }, { shouldFocus: false });
+                      requestAnimationFrame(() => {
+                        document.getElementById(`${baseId}-attribute-key-${fields.length}`)?.focus();
+                      });
+                    }}
                   >
                     <PlusIcon /> Add Attribute
                   </Button>
