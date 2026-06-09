@@ -70,8 +70,8 @@ import {
   getWorkflowById,
   getWorkflowDeployments,
   getWorkflowDeploymentsForWorkflow,
+  getWorkflowVersion,
   getWorkflowVersionAliases,
-  getWorkflowVersionById,
   getWorkflowVersions,
   getWorkflows,
   healthCheck,
@@ -243,7 +243,7 @@ import type {
   GetWorkflowDeploymentsData,
   GetWorkflowDeploymentsForWorkflowData,
   GetWorkflowVersionAliasesData,
-  GetWorkflowVersionByIdData,
+  GetWorkflowVersionData,
   GetWorkflowVersionsData,
   GetWorkflowsData,
   GetWorkflowsError,
@@ -283,7 +283,6 @@ import type {
   RegisterError,
   RegisterResponse,
   ReindexProjectsData,
-  ReindexProjectsResponse,
   ReindexRunsData,
   ReindexSamplesData,
   RemoveSampleFromRunData,
@@ -2920,12 +2919,12 @@ export const reindexProjectsOptions = (
 export const reindexProjectsMutation = (
   options?: Partial<Options<ReindexProjectsData>>,
 ): UseMutationOptions<
-  ReindexProjectsResponse,
+  unknown,
   AxiosError<DefaultError>,
   Options<ReindexProjectsData>
 > => {
   const mutationOptions: UseMutationOptions<
-    ReindexProjectsResponse,
+    unknown,
     AxiosError<DefaultError>,
     Options<ReindexProjectsData>
   > = {
@@ -3043,6 +3042,9 @@ export const getProjectSamplesQueryKey = (
  * Pagination is offset-based: ``skip`` is the number of records to skip
  * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
  * load file metadata for each sample.
+ *
+ * By default only the latest version of each file (by URI) is returned.
+ * Pass ``?file_versions=all`` to include all versions.
  */
 export const getProjectSamplesOptions = (
   options: Options<GetProjectSamplesData>,
@@ -5163,20 +5165,20 @@ export const createWorkflowVersionMutation = (
   return mutationOptions
 }
 
-export const getWorkflowVersionByIdQueryKey = (
-  options: Options<GetWorkflowVersionByIdData>,
-) => createQueryKey('getWorkflowVersionById', options)
+export const getWorkflowVersionQueryKey = (
+  options: Options<GetWorkflowVersionData>,
+) => createQueryKey('getWorkflowVersion', options)
 
 /**
- * Get Workflow Version By Id
+ * Get Workflow Version
  * Get a specific workflow version.
  */
-export const getWorkflowVersionByIdOptions = (
-  options: Options<GetWorkflowVersionByIdData>,
+export const getWorkflowVersionOptions = (
+  options: Options<GetWorkflowVersionData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowVersionById({
+      const { data } = await getWorkflowVersion({
         ...options,
         ...queryKey[0],
         signal,
@@ -5184,7 +5186,7 @@ export const getWorkflowVersionByIdOptions = (
       })
       return data
     },
-    queryKey: getWorkflowVersionByIdQueryKey(options),
+    queryKey: getWorkflowVersionQueryKey(options),
   })
 }
 

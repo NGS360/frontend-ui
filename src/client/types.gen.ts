@@ -215,6 +215,7 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -1510,7 +1511,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflow Ids
    */
@@ -1544,7 +1545,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflows
    */
@@ -1646,7 +1647,7 @@ export type ProjectCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -1672,7 +1673,7 @@ export type ProjectPublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiProjectModelsAttribute> | null
   /**
    * Sequencing Runs
    */
@@ -1691,7 +1692,7 @@ export type ProjectUpdate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -2094,6 +2095,10 @@ export type SampleFilePublic = {
   tags?: {
     [key: string]: string
   } | null
+  /**
+   * Created On
+   */
+  created_on: string
 }
 
 /**
@@ -2767,7 +2772,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2837,7 +2842,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Versions
    */
@@ -2903,9 +2908,9 @@ export type WorkflowVersionAliasPublic = {
  */
 export type WorkflowVersionAliasSet = {
   /**
-   * Workflow Version Id
+   * Version Num
    */
-  workflow_version_id: string
+  version_num: number
 }
 
 /**
@@ -2919,7 +2924,7 @@ export type WorkflowVersionCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2957,7 +2962,7 @@ export type WorkflowVersionPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2981,12 +2986,16 @@ export type WorkflowVersionSummary = {
    * Created At
    */
   created_at: string
+  /**
+   * Deployments
+   */
+  deployments?: Array<WorkflowDeploymentPublic> | null
 }
 
 /**
  * Attribute
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiProjectModelsAttribute = {
   /**
    * Key
    */
@@ -2999,9 +3008,8 @@ export type ApiSamplesModelsAttribute = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
-export type ApiWorkflowModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -4497,11 +4505,8 @@ export type ReindexProjectsResponses = {
   /**
    * Successful Response
    */
-  201: ProjectsPublic
+  200: unknown
 }
-
-export type ReindexProjectsResponse =
-  ReindexProjectsResponses[keyof ReindexProjectsResponses]
 
 export type GetProjectByProjectIdData = {
   body?: never
@@ -4631,6 +4636,11 @@ export type GetProjectSamplesData = {
      * Include related data: files
      */
     include?: Array<string> | null
+    /**
+     * File Versions
+     * When include=files, controls file version behaviour. 'latest' (default) returns only the newest version per URI; 'all' returns every version.
+     */
+    file_versions?: 'latest' | 'all'
   }
   url: '/api/v1/projects/{project_id}/samples'
 }
@@ -5210,7 +5220,7 @@ export type ReindexRunsResponses = {
   /**
    * Successful Response
    */
-  201: unknown
+  200: unknown
 }
 
 export type ListDemultiplexWorkflowsData = {
@@ -6073,7 +6083,7 @@ export type CreateWorkflowVersionResponses = {
 export type CreateWorkflowVersionResponse =
   CreateWorkflowVersionResponses[keyof CreateWorkflowVersionResponses]
 
-export type GetWorkflowVersionByIdData = {
+export type GetWorkflowVersionData = {
   body?: never
   path: {
     /**
@@ -6081,33 +6091,33 @@ export type GetWorkflowVersionByIdData = {
      */
     workflow_id: string
     /**
-     * Version Id
+     * Version Num
      */
-    version_id: string
+    version_num: number
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_num}'
 }
 
-export type GetWorkflowVersionByIdErrors = {
+export type GetWorkflowVersionErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetWorkflowVersionByIdError =
-  GetWorkflowVersionByIdErrors[keyof GetWorkflowVersionByIdErrors]
+export type GetWorkflowVersionError =
+  GetWorkflowVersionErrors[keyof GetWorkflowVersionErrors]
 
-export type GetWorkflowVersionByIdResponses = {
+export type GetWorkflowVersionResponses = {
   /**
    * Successful Response
    */
   200: WorkflowVersionPublic
 }
 
-export type GetWorkflowVersionByIdResponse =
-  GetWorkflowVersionByIdResponses[keyof GetWorkflowVersionByIdResponses]
+export type GetWorkflowVersionResponse =
+  GetWorkflowVersionResponses[keyof GetWorkflowVersionResponses]
 
 export type DeleteWorkflowVersionAliasData = {
   body?: never
@@ -6272,9 +6282,9 @@ export type GetWorkflowDeploymentsData = {
      */
     workflow_id: string
     /**
-     * Version Id
+     * Version Num
      */
-    version_id: string
+    version_num: number
   }
   query?: {
     /**
@@ -6283,7 +6293,7 @@ export type GetWorkflowDeploymentsData = {
      */
     engine?: string | null
   }
-  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments'
 }
 
 export type GetWorkflowDeploymentsErrors = {
@@ -6315,12 +6325,12 @@ export type CreateWorkflowDeploymentData = {
      */
     workflow_id: string
     /**
-     * Version Id
+     * Version Num
      */
-    version_id: string
+    version_num: number
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments'
 }
 
 export type CreateWorkflowDeploymentErrors = {
@@ -6351,16 +6361,16 @@ export type DeleteWorkflowDeploymentData = {
      */
     workflow_id: string
     /**
-     * Version Id
+     * Version Num
      */
-    version_id: string
+    version_num: number
     /**
      * Deployment Id
      */
     deployment_id: string
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments/{deployment_id}'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments/{deployment_id}'
 }
 
 export type DeleteWorkflowDeploymentErrors = {
