@@ -51,16 +51,19 @@ interface UpdateProjectFormProps {
   projectId: string
   /** The current project name */
   projectName: string | null
+  /** The user who created the project */
+  projectCreatedBy: string
   /** The current project attributes */
   projectAttributes?: Array<{ key: string | null; value: string | null }> | null
   /** Optional DOM id prefix for this form instance */
   idPrefix?: string
 }
 
-export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({ 
-  trigger, 
-  projectId, 
-  projectName, 
+export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
+  trigger,
+  projectId,
+  projectName,
+  projectCreatedBy,
   projectAttributes,
   idPrefix,
 }) => {
@@ -182,6 +185,15 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                     {errors.name.message}
                   </div>
                 )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor={`${baseId}-created-by`}>Created by</Label>
+                <Input
+                  id={`${baseId}-created-by`}
+                  type="text"
+                  value={projectCreatedBy}
+                  disabled
+                />
               </div>
               <div className="grid gap-2 mb-6">
                 <Label>Attributes</Label>

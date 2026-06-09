@@ -215,6 +215,7 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -1510,7 +1511,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflow Ids
    */
@@ -1544,7 +1545,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflows
    */
@@ -1646,7 +1647,7 @@ export type ProjectCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -1662,6 +1663,18 @@ export type ProjectPublic = {
    */
   name: string | null
   /**
+   * Created By
+   */
+  created_by: string
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Last Modified
+   */
+  last_modified: string
+  /**
    * Data Folder Uri
    */
   data_folder_uri: string | null
@@ -1672,7 +1685,7 @@ export type ProjectPublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiProjectModelsAttribute> | null
   /**
    * Sequencing Runs
    */
@@ -1691,7 +1704,7 @@ export type ProjectUpdate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -2094,6 +2107,10 @@ export type SampleFilePublic = {
   tags?: {
     [key: string]: string
   } | null
+  /**
+   * Created On
+   */
+  created_on: string
 }
 
 /**
@@ -2131,6 +2148,27 @@ export type SamplePublic = {
    * Run Id
    */
   run_id?: string | null
+}
+
+/**
+ * SampleSearchRequest
+ * POST /api/v1/samples/search request body.
+ */
+export type SampleSearchRequest = {
+  /**
+   * Filter On
+   */
+  filter_on?: {
+    [key: string]: unknown
+  }
+  /**
+   * Page
+   */
+  page?: number
+  /**
+   * Per Page
+   */
+  per_page?: number
 }
 
 /**
@@ -2198,6 +2236,7 @@ export type SampleWithFilesPublic = {
 
 /**
  * SamplesPublic
+ * Paginated list of samples using offset-based pagination (skip/limit).
  */
 export type SamplesPublic = {
   /**
@@ -2220,6 +2259,45 @@ export type SamplesPublic = {
    * Limit
    */
   limit: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
+
+/**
+ * SamplesPublicSearchResponse
+ * Paginated list of samples using page-based pagination for search endpoints.
+ */
+export type SamplesPublicSearchResponse = {
+  /**
+   * Data
+   */
+  data: Array<SamplePublic>
+  /**
+   * Data Cols
+   */
+  data_cols?: Array<string> | null
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
   /**
    * Has Next
    */
@@ -2271,6 +2349,7 @@ export type SamplesWithFilesPublic = {
 export type SearchResponse = {
   projects: ProjectsPublic
   runs: SequencingRunsPublic
+  samples: SamplesPublicSearchResponse
 }
 
 /**
@@ -2614,6 +2693,60 @@ export type UserRegister = {
 }
 
 /**
+ * UserSearchResponse
+ * User search response
+ */
+export type UserSearchResponse = {
+  /**
+   * Data
+   */
+  data: Array<UserSearchResult>
+  /**
+   * Count
+   */
+  count: number
+  /**
+   * Query
+   */
+  query: string
+  /**
+   * Source
+   */
+  source: string
+}
+
+/**
+ * UserSearchResult
+ * Unified user search result from either LDAP or database
+ */
+export type UserSearchResult = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Email
+   */
+  email?: string | null
+  /**
+   * Full Name
+   */
+  full_name?: string | null
+  /**
+   * Department
+   */
+  department?: string | null
+  /**
+   * Title
+   */
+  title?: string | null
+  /**
+   * Source
+   */
+  source: string
+}
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -2767,7 +2900,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2837,7 +2970,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Versions
    */
@@ -2903,9 +3036,9 @@ export type WorkflowVersionAliasPublic = {
  */
 export type WorkflowVersionAliasSet = {
   /**
-   * Workflow Version Id
+   * Version Num
    */
-  workflow_version_id: string
+  version_num: number
 }
 
 /**
@@ -2919,7 +3052,7 @@ export type WorkflowVersionCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2957,7 +3090,7 @@ export type WorkflowVersionPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2981,12 +3114,16 @@ export type WorkflowVersionSummary = {
    * Created At
    */
   created_at: string
+  /**
+   * Deployments
+   */
+  deployments?: Array<WorkflowDeploymentPublic> | null
 }
 
 /**
  * Attribute
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiProjectModelsAttribute = {
   /**
    * Key
    */
@@ -2999,9 +3136,8 @@ export type ApiSamplesModelsAttribute = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
-export type ApiWorkflowModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -4515,11 +4651,8 @@ export type ReindexProjectsResponses = {
   /**
    * Successful Response
    */
-  201: ProjectsPublic
+  200: unknown
 }
-
-export type ReindexProjectsResponse =
-  ReindexProjectsResponses[keyof ReindexProjectsResponses]
 
 export type GetProjectByProjectIdData = {
   body?: never
@@ -4649,6 +4782,11 @@ export type GetProjectSamplesData = {
      * Include related data: files
      */
     include?: Array<string> | null
+    /**
+     * File Versions
+     * When include=files, controls file version behaviour. 'latest' (default) returns only the newest version per URI; 'all' returns every version.
+     */
+    file_versions?: 'latest' | 'all'
   }
   url: '/api/v1/projects/{project_id}/samples'
 }
@@ -5228,7 +5366,7 @@ export type ReindexRunsResponses = {
   /**
    * Successful Response
    */
-  201: unknown
+  200: unknown
 }
 
 export type ListDemultiplexWorkflowsData = {
@@ -5606,11 +5744,76 @@ export type RemoveSampleFromRunResponses = {
 export type RemoveSampleFromRunResponse =
   RemoveSampleFromRunResponses[keyof RemoveSampleFromRunResponses]
 
+export type SearchSamplesGetData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Page
+     * Page number (1-indexed)
+     */
+    page?: number
+    /**
+     * Per Page
+     * Number of items per page
+     */
+    per_page?: number
+  }
+  url: '/api/v1/samples/search'
+}
+
+export type SearchSamplesGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchSamplesGetError =
+  SearchSamplesGetErrors[keyof SearchSamplesGetErrors]
+
+export type SearchSamplesGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: SamplesPublicSearchResponse
+}
+
+export type SearchSamplesGetResponse =
+  SearchSamplesGetResponses[keyof SearchSamplesGetResponses]
+
+export type SearchSamplesPostData = {
+  body: SampleSearchRequest
+  path?: never
+  query?: never
+  url: '/api/v1/samples/search'
+}
+
+export type SearchSamplesPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchSamplesPostError =
+  SearchSamplesPostErrors[keyof SearchSamplesPostErrors]
+
+export type SearchSamplesPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: SamplesPublicSearchResponse
+}
+
+export type SearchSamplesPostResponse =
+  SearchSamplesPostResponses[keyof SearchSamplesPostResponses]
+
 export type ReindexSamplesData = {
   body?: never
   path?: never
   query?: never
-  url: '/api/v1/samples/search'
+  url: '/api/v1/samples/reindex'
 }
 
 export type ReindexSamplesResponses = {
@@ -6091,7 +6294,7 @@ export type CreateWorkflowVersionResponses = {
 export type CreateWorkflowVersionResponse =
   CreateWorkflowVersionResponses[keyof CreateWorkflowVersionResponses]
 
-export type GetWorkflowVersionByIdData = {
+export type GetWorkflowVersionData = {
   body?: never
   path: {
     /**
@@ -6099,33 +6302,33 @@ export type GetWorkflowVersionByIdData = {
      */
     workflow_id: string
     /**
-     * Version Id
+     * Version Num
      */
-    version_id: string
+    version_num: number
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_num}'
 }
 
-export type GetWorkflowVersionByIdErrors = {
+export type GetWorkflowVersionErrors = {
   /**
    * Validation Error
    */
   422: HttpValidationError
 }
 
-export type GetWorkflowVersionByIdError =
-  GetWorkflowVersionByIdErrors[keyof GetWorkflowVersionByIdErrors]
+export type GetWorkflowVersionError =
+  GetWorkflowVersionErrors[keyof GetWorkflowVersionErrors]
 
-export type GetWorkflowVersionByIdResponses = {
+export type GetWorkflowVersionResponses = {
   /**
    * Successful Response
    */
   200: WorkflowVersionPublic
 }
 
-export type GetWorkflowVersionByIdResponse =
-  GetWorkflowVersionByIdResponses[keyof GetWorkflowVersionByIdResponses]
+export type GetWorkflowVersionResponse =
+  GetWorkflowVersionResponses[keyof GetWorkflowVersionResponses]
 
 export type DeleteWorkflowVersionAliasData = {
   body?: never
@@ -6290,9 +6493,9 @@ export type GetWorkflowDeploymentsData = {
      */
     workflow_id: string
     /**
-     * Version Id
+     * Version Num
      */
-    version_id: string
+    version_num: number
   }
   query?: {
     /**
@@ -6301,7 +6504,7 @@ export type GetWorkflowDeploymentsData = {
      */
     engine?: string | null
   }
-  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments'
 }
 
 export type GetWorkflowDeploymentsErrors = {
@@ -6333,12 +6536,12 @@ export type CreateWorkflowDeploymentData = {
      */
     workflow_id: string
     /**
-     * Version Id
+     * Version Num
      */
-    version_id: string
+    version_num: number
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments'
 }
 
 export type CreateWorkflowDeploymentErrors = {
@@ -6369,16 +6572,16 @@ export type DeleteWorkflowDeploymentData = {
      */
     workflow_id: string
     /**
-     * Version Id
+     * Version Num
      */
-    version_id: string
+    version_num: number
     /**
      * Deployment Id
      */
     deployment_id: string
   }
   query?: never
-  url: '/api/v1/workflows/{workflow_id}/versions/{version_id}/deployments/{deployment_id}'
+  url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments/{deployment_id}'
 }
 
 export type DeleteWorkflowDeploymentErrors = {
@@ -6660,6 +6863,43 @@ export type GetPlatformByNameResponses = {
 
 export type GetPlatformByNameResponse =
   GetPlatformByNameResponses[keyof GetPlatformByNameResponses]
+
+export type SearchUsersData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Q
+     * Search query (min 2 characters)
+     */
+    q: string
+    /**
+     * Limit
+     * Max results to return
+     */
+    limit?: number
+  }
+  url: '/api/v1/users/search'
+}
+
+export type SearchUsersErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SearchUsersError = SearchUsersErrors[keyof SearchUsersErrors]
+
+export type SearchUsersResponses = {
+  /**
+   * Successful Response
+   */
+  200: UserSearchResponse
+}
+
+export type SearchUsersResponse =
+  SearchUsersResponses[keyof SearchUsersResponses]
 
 export type ClientOptions = {
   baseURL: 'http://apiserver:3000' | (string & {})
