@@ -9,6 +9,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { JSX } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import type { ProjectPublic } from "@/client"
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +58,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
   const baseId = (idPrefix || `create-project-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
 
   const navigate = useNavigate();
+  const { data: currentUser } = useCurrentUser();
 
   // Control dialog open/close state
   const [isOpen, setIsOpen] = useState(false);
@@ -153,6 +155,15 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
                     {errors.name.message}
                   </div>
                 )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor={`${baseId}-created-by`}>Created by</Label>
+                <Input
+                  id={`${baseId}-created-by`}
+                  type="text"
+                  value={currentUser?.username ?? ''}
+                  disabled
+                />
               </div>
               <div className="grid gap-2 mb-6">
                 <Label>Attributes</Label>
