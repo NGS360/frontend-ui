@@ -1,29 +1,31 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { DeleteIcon, ExternalLink, Search } from 'lucide-react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import type { FC, ReactNode } from 'react'
-import type { ProjectPublic, SequencingRunPublic } from '@/client'
+import type { Attribute, ProjectPublic, SamplePublic, SequencingRunPublic } from '@/client'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { searchOptions } from '@/client/@tanstack/react-query.gen'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Separator } from '@/components/ui/separator'
 import { highlightMatch } from '@/lib/utils'
 import { ErrorBanner } from '@/components/error-banner'
+import { entityMeta } from '@/lib/entity-icons'
 
 // Search item component
 interface SearchItemProps {
   children: ReactNode
   onClick?: () => void
   isHighlighted?: boolean
+  onMouseEnter?: () => void
 }
-const SearchItem: FC<SearchItemProps> = ({ children, onClick, isHighlighted }) => (
+const SearchItem: FC<SearchItemProps> = ({ children, onClick, isHighlighted, onMouseEnter }) => (
   <div
     onClick={onClick}
-    className={`px-2 py-0.5 rounded-md text-sm cursor-pointer ${
+    onMouseEnter={onMouseEnter}
+    className={`px-2 py-0.5 rounded-md text-sm cursor-pointer overflow-hidden ${
       isHighlighted ? 'bg-muted' : 'hover:bg-muted'
     }`}
   >
@@ -47,6 +49,43 @@ const SearchGroup: FC<SearchGroupProps> = ({ children, heading }) => (
   </>
 )
 
+// Detail panel component
+interface DetailPanelProps {
+  detail: {
+    label: string
+    details: Record<string, string | null>
+    attributes?: Array<Attribute> | null
+  }
+}
+const DetailPanel: FC<DetailPanelProps> = ({ detail }) => (
+  <>
+    <div className="font-medium text-sm mb-2 break-all">{detail.label}</div>
+    <dl className="space-y-1">
+      {Object.entries(detail.details).map(([key, val]) =>
+        val ? (
+          <div key={key}>
+            <dt className="text-muted-foreground">{key}</dt>
+            <dd className="font-medium break-words">{val}</dd>
+          </div>
+        ) : null
+      )}
+    </dl>
+    {detail.attributes && detail.attributes.length > 0 && (
+      <div className="mt-2 pt-2 border-t">
+        <span className="text-muted-foreground">Attributes</span>
+        <dl className="mt-1 space-y-0.5">
+          {detail.attributes.map((attr, i) => (
+            <div key={i} className="flex gap-1">
+              <dt className="text-muted-foreground shrink-0">{attr.key}:</dt>
+              <dd className="break-words">{attr.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    )}
+  </>
+)
+
 // Main SearchBar component
 interface SearchBarProps {
   onResultClick?: () => void
@@ -57,6 +96,19 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
   const navigate = useNavigate();
   const reactId = useId()
   const baseId = idPrefix || `search-bar-${reactId.replace(/:/g, '')}`
+
+  // Measure search bar width to decide whether to show detail panel
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+  useEffect(() => {
+    if (!containerRef.current) return
+    const observer = new ResizeObserver(([entry]) => {
+      setContainerWidth(entry.contentRect.width)
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
+  const showDetailPanel = containerWidth >= 480
 
   // State to control popover
   const [openResults, setOpenResults] = useState(false);
@@ -80,19 +132,24 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
 
   // Query using debounced input
   const {
-    data: { projects, runs } = { projects: [], runs: [] },
+    data: { projects, runs, samples, projectsTotal, runsTotal } = {
+      projects: [], runs: [], samples: [], projectsTotal: 0, runsTotal: 0
+    },
     error,
     refetch,
   } = useQuery({
     ...searchOptions({
       query: {
         query: debouncedInput,
-        n_results: 5
+        n_results: 3
       }
     }),
     select: (res) => ({
       projects: res.projects.data,
-      runs: res.runs.data
+      runs: res.runs.data,
+      samples: res.samples.data,
+      projectsTotal: res.projects.total_items,
+      runsTotal: res.runs.total_items
     }),
     enabled: !!debouncedInput,
     retry: false,
@@ -121,8 +178,64 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
         to: '/runs/$run_id',
         params: { run_id: r.run_id }
       })
+    })),
+    ...samples.map((s: SamplePublic) => ({
+      type: 'sample' as const,
+      data: s,
+      navigate: () => navigate({
+        to: '/projects/$project_id',
+        params: { project_id: s.project_id }
+      })
     }))
   ];
+
+  // Detail panel state
+  interface DetailInfo {
+    label: string
+    type: 'project' | 'run' | 'sample'
+    details: Record<string, string | null>
+    attributes?: Array<Attribute> | null
+  }
+
+  const detailMap = useMemo(() => {
+    const map = new Map<number, DetailInfo>()
+    projects.forEach((p: ProjectPublic, i: number) => {
+      map.set(i, {
+        label: p.name || p.project_id,
+        type: 'project',
+        details: { "Project ID": p.project_id },
+        attributes: p.attributes,
+      })
+    })
+    runs.forEach((r: SequencingRunPublic, i: number) => {
+      map.set(projects.length + i, {
+        label: r.experiment_name || r.run_id,
+        type: 'run',
+        details: {
+          "Run ID": r.run_id,
+          "Experiment": r.experiment_name,
+          "Date": r.run_date,
+          "Flowcell": r.flowcell_id,
+        },
+        attributes: null,
+      })
+    })
+    samples.forEach((s: SamplePublic, i: number) => {
+      map.set(projects.length + runs.length + i, {
+        label: s.sample_id,
+        type: 'sample',
+        details: {
+          "Sample ID": s.sample_id,
+          "Project ID": s.project_id,
+          "Run ID": s.run_id ?? null,
+        },
+        attributes: s.attributes,
+      })
+    })
+    return map
+  }, [projects, runs, samples])
+
+  const highlightedDetail = selectedIndex >= 0 ? detailMap.get(selectedIndex) ?? null : null
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -165,12 +278,12 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
   return (
     <>
       {/* Search bar */}
-      <div id={`${baseId}-container`} className="flex gap-2 items-center pl-3 rounded-md h-9 border-1">
+      <div ref={containerRef} id={`${baseId}-container`} className="flex gap-2 items-center pl-3 rounded-md h-9 border-1">
         <Search size={16} className="text-muted-foreground" />
         <input
           id={`${baseId}-input`}
           className="w-full text-sm focus:outline-none"
-          placeholder="Search for projects or runs..."
+          placeholder="Search for projects, runs, or samples..."
           {...register('search')}
           onKeyDown={handleKeyDown}
         />
@@ -191,108 +304,155 @@ export const SearchBar: FC<SearchBarProps> = ({ onResultClick, idPrefix }) => {
         <PopoverContent
           id={`${baseId}-results`}
           onOpenAutoFocus={(e) => e.preventDefault()}
-          className="w-[var(--radix-popper-anchor-width)] p-1"
+          className="!p-0"
+          style={{ width: `${containerWidth}px` }}
         >
-          <ScrollArea>
-            <div className='max-h-125'>
-              <ScrollBar orientation="vertical" />
-              {projects.length > 0 && (
-                <>
-                  <SearchGroup heading="Projects">
-                    {projects.map((p: ProjectPublic, index: number) => (
-                      <SearchItem
-                        key={p.project_id}
-                        onClick={() => handleResultClick(() => navigate({
-                          to: '/projects/$project_id',
-                          params: { project_id: p.project_id }
-                        }))}
-                        isHighlighted={selectedIndex === index}
-                      >
-                        <div id={`${baseId}-project-${p.project_id}`} ref={selectedIndex === index ? selectedItemRef : null}>
-                          <span className='text-sm'>
-                            {highlightMatch(p.project_id, debouncedInput)}
-                          </span>
-                          <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
-                            {highlightMatch(p.name || '', debouncedInput)}
-                          </span>
-                        </div>
+          <div className="flex w-full overflow-hidden rounded-md">
+            <div className={`${highlightedDetail && showDetailPanel ? "w-3/5" : "w-full"} shrink-0 min-w-0 overflow-y-auto overflow-x-hidden max-h-125 p-1`}>
+                {projects.length > 0 && (
+                  <>
+                    <SearchGroup heading="Projects">
+                      {projects.map((p: ProjectPublic, index: number) => (
+                        <SearchItem
+                          key={p.project_id}
+                          onClick={() => handleResultClick(() => navigate({
+                            to: '/projects/$project_id',
+                            params: { project_id: p.project_id }
+                          }))}
+                          isHighlighted={selectedIndex === index}
+                          onMouseEnter={() => setSelectedIndex(index)}
+                        >
+                          <div id={`${baseId}-project-${p.project_id}`} ref={selectedIndex === index ? selectedItemRef : null} className="flex items-center gap-2">
+                            <entityMeta.project.icon className={`size-4 shrink-0 ${entityMeta.project.colorClass}`} />
+                            <div className="min-w-0 truncate">
+                              <span className='text-sm'>
+                                {highlightMatch(p.project_id, debouncedInput)}
+                              </span>
+                              <span className='text-xs text-muted-foreground'>
+                                {' '}{highlightMatch(p.name || '', debouncedInput)}
+                              </span>
+                            </div>
+                          </div>
+                        </SearchItem>
+                      ))}
+                      <SearchItem>
+                        <Link
+                          id={`${baseId}-view-all-projects`}
+                          className="flex items-center gap-2 text-primary cursor-pointer"
+                          to="/projects"
+                          search={{
+                            query: debouncedInput,
+                            sort_by: 'name',
+                            sort_order: 'asc'
+                          }}
+                        >
+                          <ExternalLink size={14} />
+                          <span>View {projectsTotal} matching {projectsTotal === 1 ? 'project' : 'projects'}</span>
+                        </Link>
                       </SearchItem>
-                    ))}
+                    </SearchGroup>
+
+                    {(runs.length > 0 || samples.length > 0) && <Separator className="my-0.5" />}
+                  </>
+                )}
+
+                {runs.length > 0 && (
+                  <>
+                  <SearchGroup heading="Runs">
+                    {runs.map((r: SequencingRunPublic, index: number) => {
+                      const runIndex = projects.length + index;
+                      return (
+                        <SearchItem
+                          key={r.run_id}
+                          onClick={() => handleResultClick(() => navigate({
+                            to: '/runs/$run_id',
+                            params: { run_id: r.run_id }
+                          }))}
+                          isHighlighted={selectedIndex === runIndex}
+                          onMouseEnter={() => setSelectedIndex(runIndex)}
+                        >
+                          <div id={`${baseId}-run-${r.run_id}`} ref={selectedIndex === runIndex ? selectedItemRef : null} className="flex items-center gap-2">
+                            <entityMeta.run.icon className={`size-4 shrink-0 ${entityMeta.run.colorClass}`} />
+                            <div className="min-w-0 truncate">
+                              <span className='text-sm'>
+                                {highlightMatch(r.run_id, debouncedInput)}
+                              </span>
+                              <span className='text-xs text-muted-foreground'>
+                                {' '}{highlightMatch(r.experiment_name || '', debouncedInput)}
+                              </span>
+                            </div>
+                          </div>
+                        </SearchItem>
+                      );
+                    })}
                     <SearchItem>
-                      <Link 
-                        id={`${baseId}-view-all-projects`}
+                      <Link
+                        id={`${baseId}-view-all-runs`}
                         className="flex items-center gap-2 text-primary cursor-pointer"
-                        to="/projects"
-                        search={{ 
-                          query: debouncedInput,
-                          sort_by: 'name',
-                          sort_order: 'asc'
-                        }}
+                        to="/runs"
+                        search={{ query: debouncedInput }}
                       >
                         <ExternalLink size={14} />
-                        <span>View all projects</span>
+                        <span>View {runsTotal} matching {runsTotal === 1 ? 'run' : 'runs'}</span>
                       </Link>
                     </SearchItem>
                   </SearchGroup>
 
-                  {runs.length > 0 && <Separator className="my-0.5" />}
-                </>
-              )}
+                  {samples.length > 0 && <Separator className="my-0.5" />}
+                  </>
+                )}
 
-              {runs.length > 0 && (
-                <SearchGroup heading="Runs">
-                  {runs.map((r: SequencingRunPublic, index: number) => {
-                    const runIndex = projects.length + index;
-                    return (
-                      <SearchItem
-                        key={r.run_id}
-                        onClick={() => handleResultClick(() => navigate({
-                          to: '/runs/$run_id',
-                          params: { run_id: r.run_id }
-                        }))}
-                        isHighlighted={selectedIndex === runIndex}
-                      >
-                        <div id={`${baseId}-run-${r.run_id}`} ref={selectedIndex === runIndex ? selectedItemRef : null}>
-                          <span className='text-sm'>
-                            {highlightMatch(r.run_id, debouncedInput)}
-                          </span>
-                          <span className='text-xs text-muted-foreground'> {/* Use line-clamp-1 here to truncate */}
-                            {highlightMatch(r.experiment_name || '', debouncedInput)}
-                          </span>
-                        </div>
-                      </SearchItem>
-                    );
-                  })}
-                  <SearchItem>
-                    {/* TODO: update to runs page */}
-                    <Link
-                      id={`${baseId}-view-all-runs`}
-                      className="flex items-center gap-2 text-primary cursor-pointer"
-                      to="/runs"
-                      search={{ query: debouncedInput }}
-                    >
-                      <ExternalLink size={14} />
-                      <span>View all runs</span>
-                    </Link>
-                  </SearchItem>
-                </SearchGroup>
-              )}
+                {samples.length > 0 && (
+                  <SearchGroup heading="Samples">
+                    {samples.map((s: SamplePublic, index: number) => {
+                      const sampleIndex = projects.length + runs.length + index;
+                      return (
+                        <SearchItem
+                          key={`${s.project_id}-${s.sample_id}`}
+                          onClick={() => handleResultClick(() => navigate({
+                            to: '/projects/$project_id',
+                            params: { project_id: s.project_id }
+                          }))}
+                          isHighlighted={selectedIndex === sampleIndex}
+                          onMouseEnter={() => setSelectedIndex(sampleIndex)}
+                        >
+                          <div id={`${baseId}-sample-${s.project_id}-${s.sample_id}`} ref={selectedIndex === sampleIndex ? selectedItemRef : null} className="flex items-center gap-2">
+                            <entityMeta.sample.icon className={`size-4 shrink-0 ${entityMeta.sample.colorClass}`} />
+                            <div className="min-w-0 truncate">
+                              <span className='text-sm'>
+                                {highlightMatch(s.sample_id, debouncedInput)}
+                              </span>
+                              <span className='text-xs text-muted-foreground'>
+                                {' '}{highlightMatch(s.project_id, debouncedInput)}
+                              </span>
+                            </div>
+                          </div>
+                        </SearchItem>
+                      );
+                    })}
+                  </SearchGroup>
+                )}
 
-              {error && (
-                <ErrorBanner
-                  error={error}
-                  onRetry={() => { void refetch() }}
-                  className="m-2"
-                />
-              )}
+                {error && (
+                  <ErrorBanner
+                    error={error}
+                    onRetry={() => { void refetch() }}
+                    className="m-2"
+                  />
+                )}
 
-              {!error && projects.length === 0 && runs.length === 0 && (
-                <div className="flex justify-center p-4 text-sm text-muted-foreground">
-                  No results found.
-                </div>
-              )}
+                {!error && projects.length === 0 && runs.length === 0 && samples.length === 0 && (
+                  <div className="flex justify-center p-4 text-sm text-muted-foreground">
+                    No results found.
+                  </div>
+                )}
             </div>
-          </ScrollArea>
+            {highlightedDetail && showDetailPanel && (
+              <div className="w-2/5 min-w-0 border-l p-3 text-xs overflow-y-auto overflow-x-hidden max-h-125">
+                <DetailPanel detail={highlightedDetail} />
+              </div>
+            )}
+          </div>
         </PopoverContent>
       </Popover>
     </>

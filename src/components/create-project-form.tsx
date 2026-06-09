@@ -17,6 +17,7 @@ import { getFormApiErrorMessage } from "@/lib/error-utils";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { createProjectMutation, getProjectAttributesOptions, getProjectAttributesQueryKey, getProjectsQueryKey } from "@/client/@tanstack/react-query.gen";
 import { CreatableComboBox } from "@/components/combobox";
+import { TriggerInput } from "@/components/trigger-input";
 
 // Define Schema w/Validation
 const AttributeSchema = z.object({
@@ -180,13 +181,13 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
                         <Controller
                           control={control}
                           name={`attributes.${index}.key` as const}
-                          render={({ field }) => (
+                          render={({ field: fieldValue }) => (
                             <CreatableComboBox
                               id={`${baseId}-attribute-key-${index}`}
                               options={attributeKeyOptions}
                               placeholder="Key"
-                              value={field.value}
-                              onChange={field.onChange}
+                              value={fieldValue.value}
+                              onChange={fieldValue.onChange}
                               excludeValues={watchAttributes
                                 .filter((_, i) => i !== index)
                                 .map((a) => a.key)
@@ -201,10 +202,17 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
                         )}
                       </div>
                       <div className="flex flex-col flex-1">
-                        <Input
-                          id={`${baseId}-attribute-value-${index}`}
-                          {...register(`attributes.${index}.value` as const)}
-                          placeholder="Value"
+                        <Controller
+                          control={control}
+                          name={`attributes.${index}.value` as const}
+                          render={({ field: fieldValue }) => (
+                            <TriggerInput
+                              id={`${baseId}-attribute-value-${index}`}
+                              placeholder="Value, @user, or #search"
+                              value={fieldValue.value}
+                              onChange={fieldValue.onChange}
+                            />
+                          )}
                         />
                         {errors.attributes?.[index]?.value?.message && (
                           <span className="text-xs text-red-500 mt-1">

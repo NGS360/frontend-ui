@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, CheckCircle2, Cog, Download, FolderCheck, FolderSearch, Pencil, PillBottle, Plus, Tag, Upload, Zap } from 'lucide-react'
+import { Building2, CheckCircle2, Cog, Download, FolderCheck, FolderSearch, Pencil, Plus, Tag, Upload, Zap } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import type { SamplePublic } from '@/client/types.gen'
@@ -26,6 +26,7 @@ import { getProjectSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 import { TableProgressBanner } from '@/components/data-table/table-progress-banner'
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
+import { entityIcons } from '@/lib/entity-icons'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
 import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
 
@@ -461,7 +462,7 @@ function RouteComponent() {
         <AccordionItem value='samples-table'>
           <AccordionTrigger className='uppercase font-light text-primary'>
             <span className='flex gap-2 items-center'>
-              <PillBottle size={14} /> Sample table
+              <entityIcons.sample size={14} /> Sample table
             </span>
           </AccordionTrigger>
           <AccordionContent className='pt-2'>
