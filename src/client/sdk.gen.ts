@@ -1700,6 +1700,12 @@ export const createProject = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: 'json',
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
     url: '/api/v1/projects',
     ...options,
     headers: {
