@@ -121,12 +121,12 @@ function RouteComponent() {
     const attributeColumns = Array.from(new Set(
       samples.flatMap(s => s.attributes?.map(a => a.key) || [])
     )).filter((name): name is string => name !== null && !RESERVED_SAMPLE_COLUMN_IDS.has(name))
-    const headers = ['sample_id', 'project_id', ...attributeColumns]
+    const headers = ['sample_id', ...attributeColumns]
     // TSV has no quoting; collapse tabs/newlines in cell values to single spaces.
     const sanitize = (v: unknown) => String(v ?? '').replace(/[\t\r\n]+/g, ' ')
     const rows = samples.map((s) => {
       const attrMap = new Map(s.attributes?.map((a) => [a.key, a.value]) || [])
-      return [s.sample_id, s.project_id, ...attributeColumns.map((c) => attrMap.get(c) ?? '')]
+      return [s.sample_id, ...attributeColumns.map((c) => attrMap.get(c) ?? '')]
         .map(sanitize)
         .join('\t')
     })
