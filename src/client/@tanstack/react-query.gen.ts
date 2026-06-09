@@ -103,6 +103,9 @@ import {
   searchQcrecordsGet,
   searchQcrecordsPost,
   searchRuns,
+  searchSamplesGet,
+  searchSamplesPost,
+  searchUsers,
   setWorkflowVersionAlias,
   submitDemultiplexWorkflowJob,
   submitJob,
@@ -316,6 +319,13 @@ import type {
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
+  SearchSamplesGetData,
+  SearchSamplesGetError,
+  SearchSamplesGetResponse,
+  SearchSamplesPostData,
+  SearchSamplesPostError,
+  SearchSamplesPostResponse,
+  SearchUsersData,
   SetWorkflowVersionAliasData,
   SetWorkflowVersionAliasError,
   SetWorkflowVersionAliasResponse,
@@ -4668,6 +4678,276 @@ export const removeSampleFromRunMutation = (
   return mutationOptions
 }
 
+export const searchSamplesGetQueryKey = (
+  options?: Options<SearchSamplesGetData>,
+) => createQueryKey('searchSamplesGet', options)
+
+/**
+ * Search Samples Get
+ * Search samples using query string parameters.
+ *
+ * Accepts key/value pairs as query params, e.g.:
+ * ``?projectid=P-1234&samplename=Sample_1&page=1&per_page=20``
+ *
+ * Supported filter keys:
+ * - ``projectid``: exact match on project ID
+ * - ``samplename``: exact match on sample name
+ * - ``created_on``: date prefix match (YYYY-MM-DD) on created_at
+ * - Any other key: matched against sample attributes (case-insensitive key)
+ *
+ * Multiple filters are AND'd together.
+ */
+export const searchSamplesGetOptions = (
+  options?: Options<SearchSamplesGetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchSamplesGet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchSamplesGetQueryKey(options),
+  })
+}
+
+export const searchSamplesGetInfiniteQueryKey = (
+  options?: Options<SearchSamplesGetData>,
+): QueryKey<Options<SearchSamplesGetData>> =>
+  createQueryKey('searchSamplesGet', options, true)
+
+/**
+ * Search Samples Get
+ * Search samples using query string parameters.
+ *
+ * Accepts key/value pairs as query params, e.g.:
+ * ``?projectid=P-1234&samplename=Sample_1&page=1&per_page=20``
+ *
+ * Supported filter keys:
+ * - ``projectid``: exact match on project ID
+ * - ``samplename``: exact match on sample name
+ * - ``created_on``: date prefix match (YYYY-MM-DD) on created_at
+ * - Any other key: matched against sample attributes (case-insensitive key)
+ *
+ * Multiple filters are AND'd together.
+ */
+export const searchSamplesGetInfiniteOptions = (
+  options?: Options<SearchSamplesGetData>,
+) => {
+  return infiniteQueryOptions<
+    SearchSamplesGetResponse,
+    AxiosError<SearchSamplesGetError>,
+    InfiniteData<SearchSamplesGetResponse>,
+    QueryKey<Options<SearchSamplesGetData>>,
+    | number
+    | Pick<
+        QueryKey<Options<SearchSamplesGetData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<SearchSamplesGetData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await searchSamplesGet({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: searchSamplesGetInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const searchSamplesPostQueryKey = (
+  options: Options<SearchSamplesPostData>,
+) => createQueryKey('searchSamplesPost', options)
+
+/**
+ * Search Samples Post
+ * Search samples using JSON body with filter_on, page, per_page.
+ *
+ * Example body::
+ *
+ * {
+ * "filter_on": {
+ * "projectid": "P-1234",
+ * "tags": {
+ * "USUBJID": "CA123012-01-234"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 20
+ * }
+ *
+ * ``filter_on`` supports:
+ * - ``projectid`` (str or list)
+ * - ``samplename`` (str or list)
+ * - ``created_on`` (str, date prefix match)
+ * - ``tags`` (dict of key/value pairs, matched case-insensitively)
+ * - Any other key is matched against sample attributes
+ *
+ * List values are OR'd; multiple keys are AND'd.
+ */
+export const searchSamplesPostOptions = (
+  options: Options<SearchSamplesPostData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchSamplesPost({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchSamplesPostQueryKey(options),
+  })
+}
+
+export const searchSamplesPostInfiniteQueryKey = (
+  options: Options<SearchSamplesPostData>,
+): QueryKey<Options<SearchSamplesPostData>> =>
+  createQueryKey('searchSamplesPost', options, true)
+
+/**
+ * Search Samples Post
+ * Search samples using JSON body with filter_on, page, per_page.
+ *
+ * Example body::
+ *
+ * {
+ * "filter_on": {
+ * "projectid": "P-1234",
+ * "tags": {
+ * "USUBJID": "CA123012-01-234"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 20
+ * }
+ *
+ * ``filter_on`` supports:
+ * - ``projectid`` (str or list)
+ * - ``samplename`` (str or list)
+ * - ``created_on`` (str, date prefix match)
+ * - ``tags`` (dict of key/value pairs, matched case-insensitively)
+ * - Any other key is matched against sample attributes
+ *
+ * List values are OR'd; multiple keys are AND'd.
+ */
+export const searchSamplesPostInfiniteOptions = (
+  options: Options<SearchSamplesPostData>,
+) => {
+  return infiniteQueryOptions<
+    SearchSamplesPostResponse,
+    AxiosError<SearchSamplesPostError>,
+    InfiniteData<SearchSamplesPostResponse>,
+    QueryKey<Options<SearchSamplesPostData>>,
+    | number
+    | Pick<
+        QueryKey<Options<SearchSamplesPostData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<SearchSamplesPostData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                body: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await searchSamplesPost({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: searchSamplesPostInfiniteQueryKey(options),
+    },
+  )
+}
+
+/**
+ * Search Samples Post
+ * Search samples using JSON body with filter_on, page, per_page.
+ *
+ * Example body::
+ *
+ * {
+ * "filter_on": {
+ * "projectid": "P-1234",
+ * "tags": {
+ * "USUBJID": "CA123012-01-234"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 20
+ * }
+ *
+ * ``filter_on`` supports:
+ * - ``projectid`` (str or list)
+ * - ``samplename`` (str or list)
+ * - ``created_on`` (str, date prefix match)
+ * - ``tags`` (dict of key/value pairs, matched case-insensitively)
+ * - Any other key is matched against sample attributes
+ *
+ * List values are OR'd; multiple keys are AND'd.
+ */
+export const searchSamplesPostMutation = (
+  options?: Partial<Options<SearchSamplesPostData>>,
+): UseMutationOptions<
+  SearchSamplesPostResponse,
+  AxiosError<SearchSamplesPostError>,
+  Options<SearchSamplesPostData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SearchSamplesPostResponse,
+    AxiosError<SearchSamplesPostError>,
+    Options<SearchSamplesPostData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await searchSamplesPost({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const reindexSamplesQueryKey = (options?: Options<ReindexSamplesData>) =>
   createQueryKey('reindexSamples', options)
 
@@ -5765,5 +6045,32 @@ export const getPlatformByNameOptions = (
       return data
     },
     queryKey: getPlatformByNameQueryKey(options),
+  })
+}
+
+export const searchUsersQueryKey = (options: Options<SearchUsersData>) =>
+  createQueryKey('searchUsers', options)
+
+/**
+ * Search Users
+ * Search for users by name, email, or username.
+ *
+ * Uses LDAP directory if configured and available,
+ * otherwise falls back to the local user database.
+ *
+ * Requires authentication.
+ */
+export const searchUsersOptions = (options: Options<SearchUsersData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchUsers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchUsersQueryKey(options),
   })
 }
