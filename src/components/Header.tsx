@@ -56,7 +56,7 @@ export default function Header() {
           className="pl-2 cursor-pointer"
           onClick={() => navigate({ to: '/' })}
         >
-          <NGS360Logo iconSize="max-w-[35px]" textSize="text-xl" gap="gap-2" className="p-2" />
+          <NGS360Logo iconSize="size-[35px]" textSize="text-xl" gap="gap-2" className="p-2" />
         </div>
 
         {/* Desktop Nav Items */}
