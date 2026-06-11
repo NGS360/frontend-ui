@@ -1,6 +1,5 @@
-import { createFileRoute, getRouteApi, notFound, redirect } from '@tanstack/react-router'
+import { createFileRoute, getRouteApi, notFound } from '@tanstack/react-router'
 import { useState } from 'react';
-import { AxiosError } from 'axios';
 import type {ColumnDef, Row} from '@tanstack/react-table';
 import type {BarChartData} from '@/components/indexqc-barchart';
 import { CopyableText } from '@/components/copyable-text'
@@ -12,27 +11,17 @@ import { NotFoundComponent } from '@/components/indexqc-not-found-component';
 import { getRunMetrics } from '@/client';
 import { FullscreenSpinner } from '@/components/spinner';
 
-export const Route = createFileRoute('/_auth/runs/$run_barcode/indexqc/')({
+export const Route = createFileRoute('/_auth/runs/$run_id/indexqc/')({
   component: RouteComponent,
   loader: async ({ params }) => {
 
-    // Get run metrics data
+    // Get run metrics data (204 = metrics not available yet → NotFound; other errors throw)
     const res = await getRunMetrics({
-      path: {
-        run_barcode: params.run_barcode
-      }
+      path: { run_id: params.run_id },
+      throwOnError: true,
     });
 
-    if (!res.data) {
-      if (res.status === 204) throw notFound();
-      if (res instanceof AxiosError) {
-        const msg = "An error occurred: " + res.error.detail || "An unknown error occurred."
-        alert(msg)
-        throw redirect({ to: '/runs' })
-      }
-      alert('An unknown error occurred.')
-      throw redirect({ to: '/runs'})
-    }
+    if (res.status === 204) throw notFound();
 
     return ({
       runMetrics: res.data
@@ -52,7 +41,7 @@ interface ReadCountData {
 
 function RouteComponent() {
   // Load run data
-  const routeApi = getRouteApi('/_auth/runs/$run_barcode/indexqc/')
+  const routeApi = getRouteApi('/_auth/runs/$run_id/indexqc/')
   const { runMetrics } = routeApi.useLoaderData()
 
   // Get mobile state

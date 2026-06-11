@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { getFormApiErrorMessage } from '@/lib/error-utils'
 import { registerMutation } from '@/client/@tanstack/react-query.gen'
 import { NGS360Logo } from '@/components/ngs360-logo'
 import { RegisterSuccessDialog } from '@/components/register-success-dialog'
@@ -52,9 +53,7 @@ export function RegisterForm({
   const { mutate, isPending } = useMutation({
     ...registerMutation(),
     onError: (error) => {
-      const message =
-        error.response?.data.detail?.toString() || 'An unknown error occurred.'
-      setError('root', { message })
+      setError('root', { message: getFormApiErrorMessage(error, 'An unknown error occurred.') })
     },
     onSuccess: (_data: UserPublic, variables: { body: UserRegister }) => {
       setEmail(variables.body.email)

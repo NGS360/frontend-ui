@@ -36,13 +36,16 @@ export const BreadcrumbNav: React.FC = () => {
           }
           return (
             <React.Fragment key={index}>
-              <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbItem className="hidden md:block max-w-[50vw] lg:max-w-[60vw]">
                 {isLast || !item.includeCrumbLink ? (
-                  <BreadcrumbPage className={!item.includeCrumbLink ? "text-muted-foreground" : ""}>
+                  <BreadcrumbPage
+                    className={`line-clamp-1 ${!item.includeCrumbLink ? "text-muted-foreground" : ""}`}
+                    title={item.crumb}
+                  >
                     {item.crumb}
                   </BreadcrumbPage>
                 ) : (
-                  <Link to={item.href} preload={false}>
+                  <Link to={item.href} preload={false} className="line-clamp-1" title={item.crumb}>
                     {index < 1 ? <Home size={14} /> : item.crumb}
                   </Link>
                 )}

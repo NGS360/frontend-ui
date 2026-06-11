@@ -141,3 +141,62 @@ export const FullscreenDropzone: React.FC<FullscreenDropzoneProps> = ({
     </>
   )
 }
+
+// Container-scoped dropzone: overlay covers only the wrapped container
+interface ContainerDropzoneProps {
+  subject?: string,
+
+  /** onDrop callback */
+  onDrop?: (
+    acceptedFiles: Array<File>,
+    fileRejections?: Array<FileRejection>,
+    event?: DropEvent
+  ) => void,
+
+  className?: string,
+  children: React.ReactNode,
+}
+
+export const ContainerDropzone: React.FC<ContainerDropzoneProps> = ({
+  subject = 'a new samplesheet',
+  onDrop: onDropProp,
+  className,
+  children,
+}) => {
+
+  const onDrop = onDropProp ?? useCallback((
+    acceptedFiles: Array<File>,
+    fileRejections: Array<FileRejection>,
+    event: DropEvent
+  ) => {
+    console.log(acceptedFiles);
+    console.log(fileRejections);
+    console.log(event);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'text/plain': ['.csv', '.tsv', '.txt'],
+      'application/vnd.ms-excel': ['.csv', '.tsv', '.txt']
+    },
+    multiple: false,
+    noClick: true,
+  })
+
+  return (
+    <div {...getRootProps()} className={clsx('relative', className)}>
+      <input {...getInputProps()} />
+      {children}
+      <div
+        className={clsx(
+          'absolute inset-0 z-20 flex flex-col gap-2 items-center justify-center border-primary border-4 bg-background/75 rounded-md transition-opacity duration-200 pointer-events-none',
+          isDragActive ? 'opacity-100' : 'opacity-0'
+        )}
+      >
+        <CloudUpload className="text-primary size-18" />
+        <span className="ml-2 text-primary font-bold">Drop file here to upload {subject}</span>
+      </div>
+    </div>
+  )
+}

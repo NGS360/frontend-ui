@@ -1,6 +1,5 @@
-import { Outlet, createFileRoute, getRouteApi, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, getRouteApi } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
 import { ChartBar, ChevronDown, FileSpreadsheet, FolderOpen, Loader2, PlayCircle, RotateCw, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -8,6 +7,7 @@ import type { ChangeEvent } from 'react';
 import type { DemuxWorkflowConfig } from '@/client'
 import { getDemultiplexWorkflowConfig, getRun, listDemultiplexWorkflows } from '@/client'
 import { getRunQueryKey, getRunSamplesheetQueryKey, postRunSamplesheetMutation, updateRunMutation } from '@/client/@tanstack/react-query.gen'
+import { ErrorBanner } from '@/components/error-banner'
 import { ExecuteToolForm } from '@/components/execute-demux-job-form'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { FileBrowserDialog } from '@/components/file-browser';
 import { FullscreenSpinner } from '@/components/spinner'
+import { toastApiError } from '@/lib/error-utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,22 +23,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-export const Route = createFileRoute('/_auth/runs/$run_barcode')({
+export const Route = createFileRoute('/_auth/runs/$run_id')({
   component: RouteComponent,
   loader: async ({ params }) => {
-    // Get run data
     const runData = await getRun({
-      path: {
-        run_barcode: params.run_barcode
-      }
+      path: { run_id: params.run_id },
+      throwOnError: true,
     })
-    if (runData.status !== 200 || runData instanceof AxiosError) {
-      alert("An error occurred: " + runData.error?.detail || "An unknown error occurred.")
-      throw redirect({ to: '/runs' })
-    }
-
     return ({
-      crumb: runData.data.barcode,
+      crumb: runData.data.run_id,
       includeCrumbLink: false,
       run: runData.data
     })
@@ -46,20 +40,20 @@ export const Route = createFileRoute('/_auth/runs/$run_barcode')({
 
 function RouteComponent() {
   // Load run data
-  const routeApi = getRouteApi('/_auth/runs/$run_barcode')
+  const routeApi = getRouteApi('/_auth/runs/$run_id')
   const { run } = routeApi.useLoaderData()
   const queryClient = useQueryClient()
 
   const runQuery = useQuery({
     queryKey: getRunQueryKey({
       path: {
-        run_barcode: run.barcode as string
+        run_id: run.run_id
       }
     }),
     queryFn: async () => {
       const response = await getRun({
         path: {
-          run_barcode: run.barcode as string
+          run_id: run.run_id
         },
         throwOnError: true
       })
@@ -88,7 +82,7 @@ function RouteComponent() {
           workflow_id: workflow
         },
         query: {
-          run_barcode: run.barcode as string
+          run_id: run.run_id
         },
         throwOnError: true
       })
@@ -96,7 +90,7 @@ function RouteComponent() {
       setToolDialogOpen(true)
     } catch (error) {
       console.error('Error fetching workflow config:', error)
-      toast.error(`Failed to fetch config for workflow: ${workflow}`)
+      toastApiError(error, `Failed to fetch config for workflow: ${workflow}`)
     }
     setDropdownOpen(false)
   }
@@ -109,15 +103,15 @@ function RouteComponent() {
       queryClient.invalidateQueries({
         queryKey: getRunSamplesheetQueryKey({
           path: {
-            run_barcode: run.barcode as string
+            run_id: run.run_id
           }
         })
       });
-      toast.success(`Samplesheet for run ${run.barcode} uploaded successfully`);
+      toast.success(`Samplesheet for run ${run.run_id} uploaded successfully`);
     },
     onError: (uploadError) => {
       console.error(uploadError);
-      toast.error('Failed to upload file');
+      toastApiError(uploadError, 'Failed to upload file');
     }
   })
 
@@ -127,15 +121,15 @@ function RouteComponent() {
       queryClient.invalidateQueries({
         queryKey: getRunQueryKey({
           path: {
-            run_barcode: run.barcode as string
+            run_id: run.run_id
           }
         })
       })
-      toast.success(`Run ${run.barcode} status updated to Resync`)
+      toast.success(`Run ${run.run_id} status updated to Resync`)
     },
     onError: (updateError) => {
       console.error(updateError)
-      toast.error('Failed to re-sync run')
+      toastApiError(updateError, 'Failed to re-sync run')
     }
   })
 
@@ -152,7 +146,7 @@ function RouteComponent() {
       // Upload file using the mutation
       mutate({ 
         path: {
-          run_barcode: run.barcode as string
+          run_id: run.run_id
         },
         body: {
           file: file
@@ -174,9 +168,9 @@ function RouteComponent() {
       {/* Tool Execution Dialog */}
       {selectedToolConfig && (
         <ExecuteToolForm
-          idPrefix={`run-${run.barcode}-execute-demux-${selectedToolConfig.workflow_id}`}
+          idPrefix={`run-${run.run_id}-execute-demux-${selectedToolConfig.workflow_id}`}
           toolConfig={selectedToolConfig}
-          runBarcode={run.barcode as string}
+          runId={run.run_id}
           isOpen={toolDialogOpen}
           onOpenChange={setToolDialogOpen}
         />
@@ -184,20 +178,20 @@ function RouteComponent() {
 
       <div className='flex flex-col gap-4'>
         {/* Header and tab navigation */}
-        <h1 className='text-3xl font-extralight overflow-x-clip overflow-ellipsis'>{run.barcode}</h1>
+        <h1 className='text-3xl font-extralight overflow-x-clip overflow-ellipsis'>{run.run_id}</h1>
         <p className='text-muted-foreground'>{run.experiment_name}</p>
         <div className='flex gap-4'>
           <TabNav className="justify-between">
             <div className='flex gap-2 flex-col md:flex-row md:items-center'>
               <TabLink
-                to='/runs/$run_barcode/samplesheet'
-                params={{ run_barcode: run.barcode as string }}
+                to='/runs/$run_id/samplesheet'
+                params={{ run_id: run.run_id }}
               >
                 <FileSpreadsheet /><span>Samplesheet</span>
               </TabLink>
               <TabLink
-                to='/runs/$run_barcode/indexqc'
-                params={{ run_barcode: run.barcode as string }}
+                to='/runs/$run_id/indexqc'
+                params={{ run_id: run.run_id }}
               >
                 <ChartBar /><span>IndexQC</span>
               </TabLink>
@@ -218,7 +212,7 @@ function RouteComponent() {
                         onClick={() => {
                           mutateRunStatus({
                             path: {
-                              run_barcode: run.barcode as string
+                              run_id: run.run_id
                             },
                             body: {
                               run_status: 'Resync'
@@ -294,14 +288,25 @@ function RouteComponent() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {toolsQuery.data?.map((tool) => (
-                      <DropdownMenuItem
-                        key={tool}
-                        onClick={() => handleToolSelect(tool)}
-                      >
-                        {tool}
-                      </DropdownMenuItem>
-                    ))}
+                    {toolsQuery.isError ? (
+                      <div className="p-1 w-80 max-w-[min(20rem,calc(100vw-2rem))]">
+                        <ErrorBanner
+                          error={toolsQuery.error}
+                          onRetry={() => { void toolsQuery.refetch() }}
+                        />
+                      </div>
+                    ) : toolsQuery.data && toolsQuery.data.length === 0 ? (
+                      <DropdownMenuItem disabled>No tools available</DropdownMenuItem>
+                    ) : (
+                      toolsQuery.data?.map((tool) => (
+                        <DropdownMenuItem
+                          key={tool}
+                          onClick={() => handleToolSelect(tool)}
+                        >
+                          {tool}
+                        </DropdownMenuItem>
+                      ))
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

@@ -80,7 +80,7 @@ function RouteComponent() {
 
   return (
     <SidebarProvider className="@container min-w-0">
-      <div className="flex flex-col @3xl:flex-row w-full min-w-0 gap-4 ml-8 mr-8 mt-8">
+      <div className="flex flex-col @3xl:flex-row w-full min-w-0 gap-4 px-8 mt-8">
         <aside className="@3xl:sticky @3xl:top-14 @3xl:self-start overflow-y-auto @3xl:min-w-64 @5xl:min-w-72 @3xl:max-w-64 @5xl:max-w-72 rounded-md flex-shrink-0 @3xl:max-h-[calc(100vh-4rem)]">
           <div className="flex flex-col gap-6">
             {/* Profile Section */}

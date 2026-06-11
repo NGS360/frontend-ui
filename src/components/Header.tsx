@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { BookOpen, Database, Folder, MenuIcon, ShieldCheck, Sparkles, XIcon } from 'lucide-react'
+import { BookOpen, MenuIcon, ShieldCheck, Sparkles, XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from './ui/button'
 import { CreateProjectForm } from './create-project-form'
@@ -8,6 +8,7 @@ import { NotificationsDropdown } from './notifications-dropdown'
 import { UserAvatar } from './user-avatar'
 import { NGS360Logo } from '@/components/ngs360-logo'
 import { useAuth } from '@/context/auth-context'
+import { entityIcons } from '@/lib/entity-icons'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -41,8 +42,8 @@ export default function Header() {
   const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
 
   const navItems: Array<NavItemType> = [
-    { to: '/runs', label: 'Illumina Runs', icon: <Database className="inline mr-1" /> },
-    { to: '/projects', label: 'Projects', icon: <Folder className="inline mr-1" />, search: {sort_by: undefined, sort_order: undefined} },
+    { to: '/runs', label: 'Sequencing Runs', icon: <entityIcons.run className="inline mr-1" /> },
+    { to: '/projects', label: 'Projects', icon: <entityIcons.project className="inline mr-1" />, search: {sort_by: undefined, sort_order: undefined} },
     { to: '/admin', label: 'Admin', icon: <ShieldCheck className="inline mr-1" /> },
     { to: apiDocsUrl, label: 'API Docs', icon: <BookOpen className="inline mr-1" />, isExternal: true }
   ]
@@ -59,7 +60,7 @@ export default function Header() {
           className="pl-2 cursor-pointer"
           onClick={() => navigate({ to: '/' })}
         >
-          <NGS360Logo iconSize="max-w-[35px]" textSize="text-xl" gap="gap-2" className="p-2" />
+          <NGS360Logo iconSize="size-[35px]" textSize="text-xl" gap="gap-2" className="p-2" />
         </div>
 
         {/* Desktop Nav Items */}

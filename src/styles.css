@@ -65,6 +65,7 @@ code {
   --success: #45b14e;
   --accent2: #eb6341;
   --accent3: #25aedd;
+  --accent5: #45b14e;
 }
 
 .dark {
@@ -107,6 +108,7 @@ code {
   --success: #45b14e;
   --accent2: #eb6341;
   --accent3: #25aedd;
+  --accent5: #45b14e;
 }
 
 @theme inline {
@@ -156,6 +158,7 @@ code {
   --color-success: var(--success);
   --color-accent2: var(--accent2);
   --color-accent3: var(--accent3);
+  --color-accent5: var(--accent5);
 }
 
 @layer base {

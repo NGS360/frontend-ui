@@ -5,14 +5,16 @@ import { toast } from 'sonner'
 import z from 'zod'
 import { Plus, SquarePen, Trash2 } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
-import type { AxiosError } from 'axios'
-import type { HttpValidationError, Setting, VendorPublic } from '@/client'
+import type { Setting, VendorPublic } from '@/client'
 import { deleteVendorMutation, getSettingsByTagOptions, getSettingsByTagQueryKey, getVendorsOptions, getVendorsQueryKey, updateSettingMutation } from '@/client/@tanstack/react-query.gen'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { FullscreenSpinner } from '@/components/spinner'
+import { ErrorState } from '@/components/error-state'
+import { ErrorBanner } from '@/components/error-banner'
 import { AddVendorForm } from '@/components/add-vendor-form'
+import { toastApiError } from '@/lib/error-utils'
 import { UpdateVendorForm } from '@/components/update-vendor-form'
 import { SettingCard } from '@/components/app-setting-card'
 import { Button } from '@/components/ui/button'
@@ -24,8 +26,8 @@ import {
 
 // Define the search schema for vendors
 const vendorsSearchSchema = z.object({
-  page: z.number().optional().default(1),
-  per_page: z.number().optional().default(10),
+  skip: z.number().optional().default(0),
+  limit: z.number().optional().default(10),
   sort_by: z.union([
     z.literal('vendor_id'),
     z.literal('name')
@@ -55,8 +57,8 @@ function RouteComponent() {
   // Local table state
   // Pagination (0-based for Tanstack Table)
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: search.page - 1,
-    pageSize: search.per_page
+    pageIndex: Math.floor(search.skip / search.limit),
+    pageSize: search.limit
   })
 
   // Sorting (default: vendor_id asc)
@@ -73,7 +75,7 @@ function RouteComponent() {
       toast.success('Vendor deleted successfully')
     },
     onError: (error) => {
-      toast.error(`Failed to delete vendor: ${error.message}`)
+      toastApiError(error, 'Failed to delete vendor')
     }
   })
 
@@ -96,8 +98,8 @@ function RouteComponent() {
       to: '/admin/vendors',
       search: {
         ...search,
-        page: pagination.pageIndex + 1,
-        per_page: pagination.pageSize,
+        skip: pagination.pageIndex * pagination.pageSize,
+        limit: pagination.pageSize,
         sort_by: sorting[0]?.id as 'vendor_id' | 'name',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc'
       },
@@ -106,11 +108,11 @@ function RouteComponent() {
   }, [pagination, sorting])
 
   // Query vendors
-  const { data, error } = useQuery({
+  const { data, error, refetch } = useQuery({
     ...getVendorsOptions({
       query: {
-        page: search.page,
-        per_page: search.per_page,
+        skip: search.skip,
+        limit: search.limit,
         sort_by: search.sort_by,
         sort_order: search.sort_order
       },
@@ -119,7 +121,7 @@ function RouteComponent() {
   })
 
   // Query vendor settings
-  const { data: vendorSettings, error: settingsError } = useQuery(
+  const { data: vendorSettings, error: settingsError, refetch: refetchSettings } = useQuery(
     getSettingsByTagOptions({
       query: {
         tag_key: 'category',
@@ -131,12 +133,10 @@ function RouteComponent() {
   // Mutation for updating settings
   const { mutate: updateSetting, isPending: isSettingPending } = useMutation({
     ...updateSettingMutation(),
-    onError: (mutationError: AxiosError<HttpValidationError>) => {
-      const message = mutationError.response?.data.detail?.toString()
-        || "An unknown error occurred."
-      toast.error(`Failed to update setting: ${message}`)
+    onError: (mutationError) => {
+      toastApiError(mutationError, 'Failed to update setting')
     },
-    onSuccess: (data: Setting) => {
+    onSuccess: (setting: Setting) => {
       queryClient.invalidateQueries({ 
         queryKey: getSettingsByTagQueryKey({
           query: {
@@ -145,7 +145,7 @@ function RouteComponent() {
           },
         })
       })
-      toast.success(`Successfully updated ${data.name}`)
+      toast.success(`Successfully updated ${setting.name}`)
     }
   })
 
@@ -160,8 +160,8 @@ function RouteComponent() {
     })
   }
 
-  if (error) return 'An error has occurred: ' + error.message
-  if (settingsError) return 'An error has occurred loading settings: ' + settingsError.message
+  if (error && !data) return <ErrorState error={error} onRetry={() => { void refetch() }} />
+  if (settingsError && !vendorSettings) return <ErrorState error={settingsError} onRetry={() => { void refetchSettings() }} />
   if (!data) return <FullscreenSpinner variant='ellipsis' />
 
   // Define columns
@@ -283,12 +283,14 @@ function RouteComponent() {
           }
         />
       </div>
+      {error && <ErrorBanner error={error} onRetry={() => { void refetch() }} />}
+      {settingsError && <ErrorBanner error={settingsError} onRetry={() => { void refetchSettings() }} />}
       <ServerDataTable
         data={data.data}
         columns={columns}
         pagination={pagination}
         onPaginationChange={setPagination}
-        pageCount={data.total_pages}
+        pageCount={Math.max(1, Math.ceil(data.total_items / pagination.pageSize))}
         totalItems={data.total_items}
         sorting={sorting}
         onSortingChange={setSorting}

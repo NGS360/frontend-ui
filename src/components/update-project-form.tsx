@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LoaderCircle, PlusIcon, Trash2Icon } from "lucide-react";
@@ -7,13 +7,15 @@ import { toast } from 'sonner';
 import { useId, useState } from "react";
 import type { JSX } from "react";
 import type { SubmitHandler } from "react-hook-form";
-import type { HttpValidationError, ProjectPublic } from "@/client"
-import type { AxiosError } from "axios";
+import type { ProjectPublic } from "@/client"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getFormApiErrorMessage } from "@/lib/error-utils";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { getProjectByProjectIdQueryKey, getProjectSamplesQueryKey, getProjectsQueryKey, updateProjectMutation } from "@/client/@tanstack/react-query.gen";
+import { getProjectAttributesOptions, getProjectAttributesQueryKey, getProjectByProjectIdQueryKey, getProjectSamplesQueryKey, getProjectsQueryKey, updateProjectMutation } from "@/client/@tanstack/react-query.gen";
+import { CreatableComboBox } from "@/components/combobox";
+import { TriggerInput } from "@/components/trigger-input";
 
 // Define Schema w/Validation
 const AttributeSchema = z.object({
@@ -50,21 +52,28 @@ interface UpdateProjectFormProps {
   projectId: string
   /** The current project name */
   projectName: string | null
+  /** The user who created the project */
+  projectCreatedBy: string
   /** The current project attributes */
   projectAttributes?: Array<{ key: string | null; value: string | null }> | null
   /** Optional DOM id prefix for this form instance */
   idPrefix?: string
 }
 
-export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({ 
-  trigger, 
-  projectId, 
-  projectName, 
+export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
+  trigger,
+  projectId,
+  projectName,
+  projectCreatedBy,
   projectAttributes,
   idPrefix,
 }) => {
   const generatedId = useId();
   const baseId = (idPrefix || `update-project-${projectId}-${generatedId.replace(/:/g, '')}`).replace(/[^a-zA-Z0-9_-]+/g, '-');
+
+  // Fetch existing attribute keys for combobox suggestions
+  const { data: attributeKeys = [] } = useQuery(getProjectAttributesOptions());
+  const attributeKeyOptions = attributeKeys.map((k) => ({ label: k, value: k }));
 
   // Control dialog open/close state
   const [isOpen, setIsOpen] = useState(false);
@@ -103,10 +112,8 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
   const queryClient = useQueryClient();
   const { mutate, isPending } = useMutation({
     ...updateProjectMutation(),
-    onError: (error: AxiosError<HttpValidationError>) => {
-      const message = error.response?.data.detail?.toString()
-        || "An unknown error occurred.";
-      setError("root", { message });
+    onError: (error) => {
+      setError("root", { message: getFormApiErrorMessage(error, "An unknown error occurred.") });
     },
     onSuccess: (data: ProjectPublic) => {
       reset({
@@ -117,6 +124,7 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
       });
       // Invalidate all projects queries
       queryClient.invalidateQueries({ queryKey: getProjectsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getProjectAttributesQueryKey() });
       // Invalidate specific project query
       queryClient.invalidateQueries({ 
         queryKey: getProjectByProjectIdQueryKey({ 
@@ -179,16 +187,37 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                   </div>
                 )}
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor={`${baseId}-created-by`}>Created by</Label>
+                <Input
+                  id={`${baseId}-created-by`}
+                  type="text"
+                  value={projectCreatedBy}
+                  disabled
+                />
+              </div>
               <div className="grid gap-2 mb-6">
                 <Label>Attributes</Label>
                 {fields.map((field, index) => (
                   <div className="grid gap-2" key={field.id}>
                     <div className="flex gap-2">
                       <div className="flex flex-col flex-1">
-                        <Input
-                          id={`${baseId}-attribute-key-${index}`}
-                          {...register(`attributes.${index}.key` as const)}
-                          placeholder="Key"
+                        <Controller
+                          control={control}
+                          name={`attributes.${index}.key` as const}
+                          render={({ field: fieldValue }) => (
+                            <CreatableComboBox
+                              id={`${baseId}-attribute-key-${index}`}
+                              options={attributeKeyOptions}
+                              placeholder="Key"
+                              value={fieldValue.value}
+                              onChange={fieldValue.onChange}
+                              excludeValues={watchAttributes
+                                .filter((_, i) => i !== index)
+                                .map((a) => a.key)
+                                .filter(Boolean)}
+                            />
+                          )}
                         />
                         {errors.attributes?.[index]?.key?.message && (
                           <span className="text-xs text-red-500 mt-1">
@@ -197,10 +226,17 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                         )}
                       </div>
                       <div className="flex flex-col flex-1">
-                        <Input
-                          id={`${baseId}-attribute-value-${index}`}
-                          {...register(`attributes.${index}.value` as const)}
-                          placeholder="Value"
+                        <Controller
+                          control={control}
+                          name={`attributes.${index}.value` as const}
+                          render={({ field: fieldValue }) => (
+                            <TriggerInput
+                              id={`${baseId}-attribute-value-${index}`}
+                              placeholder="Value, @user, or #search"
+                              value={fieldValue.value}
+                              onChange={fieldValue.onChange}
+                            />
+                          )}
                         />
                         {errors.attributes?.[index]?.value?.message && (
                           <span className="text-xs text-red-500 mt-1">
@@ -229,7 +265,12 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                       !watchAttributes[watchAttributes.length - 1]?.key?.trim() ||
                       !watchAttributes[watchAttributes.length - 1]?.value?.trim()
                     }
-                    onClick={() => append({ key: "", value: "" })}
+                    onClick={() => {
+                      append({ key: "", value: "" }, { shouldFocus: false });
+                      requestAnimationFrame(() => {
+                        document.getElementById(`${baseId}-attribute-key-${fields.length}`)?.focus();
+                      });
+                    }}
                   >
                     <PlusIcon /> Add Attribute
                   </Button>

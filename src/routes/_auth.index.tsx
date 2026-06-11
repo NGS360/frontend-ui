@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowRight, Database, Folder } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { entityMeta } from '@/lib/entity-icons'
 import { SearchBar } from '@/components/search-bar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Footer from '@/components/Footer'
@@ -42,11 +43,11 @@ function App() {
               <CardHeader className="relative z-10">
                 <div className="flex items-center gap-3">
                   <div className="rounded-lg">
-                    <Database 
-                      className="h-6 w-6 text-accent3" 
+                    <entityMeta.run.icon
+                      className={`h-6 w-6 ${entityMeta.run.colorClass}`}
                     />
                   </div>
-                  <CardTitle className="text-2xl font-light">Illumina Runs</CardTitle>
+                  <CardTitle className="text-2xl font-light">Sequencing Runs</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
@@ -77,8 +78,8 @@ function App() {
               <CardHeader className="relative z-10">
                 <div className="flex items-center gap-3">
                   <div className="rounded-lg">
-                    <Folder 
-                      className="h-6 w-6 text-accent2" 
+                    <entityMeta.project.icon
+                      className={`h-6 w-6 ${entityMeta.project.colorClass}`}
                     />
                   </div>
                   <CardTitle className="text-2xl font-light">Projects</CardTitle>

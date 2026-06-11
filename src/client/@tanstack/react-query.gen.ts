@@ -26,12 +26,15 @@ import {
   createProject,
   createQcrecord,
   createWorkflow,
-  createWorkflowRegistration,
-  createWorkflowRun,
+  createWorkflowDeployment,
+  createWorkflowVersion,
   deleteApiKey,
+  deleteFile,
   deleteQcrecord,
+  deleteSampleFromProject,
   deleteVendor,
-  deleteWorkflowRegistration,
+  deleteWorkflowDeployment,
+  deleteWorkflowVersionAlias,
   downloadFile,
   getActionOptions,
   getActionPlatforms,
@@ -51,6 +54,7 @@ import {
   getPipelines,
   getPlatformByName,
   getPlatforms,
+  getProjectAttributes,
   getProjectByProjectId,
   getProjectSamples,
   getProjects,
@@ -65,9 +69,11 @@ import {
   getVendor,
   getVendors,
   getWorkflowById,
-  getWorkflowRegistrations,
-  getWorkflowRunById,
-  getWorkflowRuns,
+  getWorkflowDeployments,
+  getWorkflowDeploymentsForWorkflow,
+  getWorkflowVersion,
+  getWorkflowVersionAliases,
+  getWorkflowVersions,
   getWorkflows,
   healthCheck,
   ingestVendorData,
@@ -79,6 +85,7 @@ import {
   logout,
   oauthAuthorize,
   oauthCallback,
+  patchProject,
   postRunSamplesheet,
   refreshToken,
   register,
@@ -96,10 +103,15 @@ import {
   searchQcrecordsGet,
   searchQcrecordsPost,
   searchRuns,
+  searchSamplesGet,
+  searchSamplesPost,
+  searchUsers,
+  setWorkflowVersionAlias,
   submitDemultiplexWorkflowJob,
   submitJob,
   submitPipelineJob,
   unlinkOauthProvider,
+  updateFile,
   updateJob,
   updateProject,
   updateRun,
@@ -108,6 +120,7 @@ import {
   updateVendor,
   uploadFile,
   uploadManifest,
+  uploadSamplesFile,
   validateActionConfig,
   validateManifest,
   verifyEmail
@@ -163,26 +176,35 @@ import type {
   CreateQcrecordError,
   CreateQcrecordResponse,
   CreateWorkflowData,
+  CreateWorkflowDeploymentData,
+  CreateWorkflowDeploymentError,
+  CreateWorkflowDeploymentResponse,
   CreateWorkflowError,
-  CreateWorkflowRegistrationData,
-  CreateWorkflowRegistrationError,
-  CreateWorkflowRegistrationResponse,
   CreateWorkflowResponse,
-  CreateWorkflowRunData,
-  CreateWorkflowRunError,
-  CreateWorkflowRunResponse,
+  CreateWorkflowVersionData,
+  CreateWorkflowVersionError,
+  CreateWorkflowVersionResponse,
   DeleteApiKeyData,
   DeleteApiKeyError,
   DeleteApiKeyResponse,
+  DeleteFileData,
+  DeleteFileError,
+  DeleteFileResponse,
   DeleteQcrecordData,
   DeleteQcrecordError,
   DeleteQcrecordResponse,
+  DeleteSampleFromProjectData,
+  DeleteSampleFromProjectError,
+  DeleteSampleFromProjectResponse,
   DeleteVendorData,
   DeleteVendorError,
   DeleteVendorResponse,
-  DeleteWorkflowRegistrationData,
-  DeleteWorkflowRegistrationError,
-  DeleteWorkflowRegistrationResponse,
+  DeleteWorkflowDeploymentData,
+  DeleteWorkflowDeploymentError,
+  DeleteWorkflowDeploymentResponse,
+  DeleteWorkflowVersionAliasData,
+  DeleteWorkflowVersionAliasError,
+  DeleteWorkflowVersionAliasResponse,
   DownloadFileData,
   GetActionOptionsData,
   GetActionPlatformsData,
@@ -204,10 +226,9 @@ import type {
   GetPipelinesResponse,
   GetPlatformByNameData,
   GetPlatformsData,
+  GetProjectAttributesData,
   GetProjectByProjectIdData,
   GetProjectSamplesData,
-  GetProjectSamplesError,
-  GetProjectSamplesResponse,
   GetProjectsData,
   GetProjectsError,
   GetProjectsResponse,
@@ -223,14 +244,12 @@ import type {
   GetSettingsByTagData,
   GetVendorData,
   GetVendorsData,
-  GetVendorsError,
-  GetVendorsResponse,
   GetWorkflowByIdData,
-  GetWorkflowRegistrationsData,
-  GetWorkflowRunByIdData,
-  GetWorkflowRunsData,
-  GetWorkflowRunsError,
-  GetWorkflowRunsResponse,
+  GetWorkflowDeploymentsData,
+  GetWorkflowDeploymentsForWorkflowData,
+  GetWorkflowVersionAliasesData,
+  GetWorkflowVersionData,
+  GetWorkflowVersionsData,
   GetWorkflowsData,
   GetWorkflowsError,
   GetWorkflowsResponse,
@@ -256,6 +275,9 @@ import type {
   LogoutResponse,
   OauthAuthorizeData,
   OauthCallbackData,
+  PatchProjectData,
+  PatchProjectError,
+  PatchProjectResponse,
   PostRunSamplesheetData,
   PostRunSamplesheetError,
   PostRunSamplesheetResponse,
@@ -266,7 +288,6 @@ import type {
   RegisterError,
   RegisterResponse,
   ReindexProjectsData,
-  ReindexProjectsResponse,
   ReindexRunsData,
   ReindexSamplesData,
   RemoveSampleFromRunData,
@@ -298,6 +319,16 @@ import type {
   SearchRunsData,
   SearchRunsError,
   SearchRunsResponse,
+  SearchSamplesGetData,
+  SearchSamplesGetError,
+  SearchSamplesGetResponse,
+  SearchSamplesPostData,
+  SearchSamplesPostError,
+  SearchSamplesPostResponse,
+  SearchUsersData,
+  SetWorkflowVersionAliasData,
+  SetWorkflowVersionAliasError,
+  SetWorkflowVersionAliasResponse,
   SubmitDemultiplexWorkflowJobData,
   SubmitDemultiplexWorkflowJobError,
   SubmitDemultiplexWorkflowJobResponse,
@@ -310,6 +341,9 @@ import type {
   UnlinkOauthProviderData,
   UnlinkOauthProviderError,
   UnlinkOauthProviderResponse,
+  UpdateFileData,
+  UpdateFileError,
+  UpdateFileResponse,
   UpdateJobData,
   UpdateJobError,
   UpdateJobResponse,
@@ -334,6 +368,9 @@ import type {
   UploadManifestData,
   UploadManifestError,
   UploadManifestResponse,
+  UploadSamplesFileData,
+  UploadSamplesFileError,
+  UploadSamplesFileResponse,
   ValidateActionConfigData,
   ValidateActionConfigError,
   ValidateActionConfigResponse,
@@ -361,7 +398,7 @@ const createQueryKey = <TOptions extends Options>(
   const params: QueryKey<TOptions>[0] = {
     _id: id,
     baseURL: (options?.client ?? _heyApiClient).getConfig().baseURL,
-  } as QueryKey<TOptions>[0]
+  }
   if (infinite) {
     params._infinite = infinite
   }
@@ -1909,7 +1946,6 @@ export const createFileQueryKey = (options: Options<CreateFileData>) =>
  * - **project_id**: Project business key (string)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
@@ -1946,7 +1982,6 @@ export const createFileOptions = (options: Options<CreateFileData>) => {
  * - **project_id**: Project business key (string)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
@@ -1990,7 +2025,6 @@ export const uploadFileQueryKey = (options: Options<UploadFileData>) =>
  * - **project_id**: Project business key (exactly one entity ID required)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **relative_path**: Optional subdirectory path within entity folder
  * - **overwrite**: If True, creates a new version if file exists
@@ -2029,7 +2063,6 @@ export const uploadFileOptions = (options: Options<UploadFileData>) => {
  * - **project_id**: Project business key (exactly one entity ID required)
  * - **sequencing_run_id**: SequencingRun UUID
  * - **qcrecord_id**: QCRecord UUID
- * - **workflow_run_id**: WorkflowRun UUID
  * - **pipeline_id**: Pipeline UUID
  * - **relative_path**: Optional subdirectory path within entity folder
  * - **overwrite**: If True, creates a new version if file exists
@@ -2120,6 +2153,41 @@ export const downloadFileOptions = (options: Options<DownloadFileData>) => {
   })
 }
 
+/**
+ * Delete a file record (superuser only)
+ * Hard-delete a file record and all associated child rows.
+ *
+ * Cascade-deletes: FileHash, FileTag, FileSample, FileProject,
+ * FileSequencingRun, FileQCRecord, FileWorkflowRun, FilePipeline.
+ *
+ * **This action is irreversible.**
+ *
+ * Requires superuser privileges.
+ */
+export const deleteFileMutation = (
+  options?: Partial<Options<DeleteFileData>>,
+): UseMutationOptions<
+  DeleteFileResponse,
+  AxiosError<DeleteFileError>,
+  Options<DeleteFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteFileResponse,
+    AxiosError<DeleteFileError>,
+    Options<DeleteFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const getFileQueryKey = (options: Options<GetFileData>) =>
   createQueryKey('getFile', options)
 
@@ -2142,6 +2210,42 @@ export const getFileOptions = (options: Options<GetFileData>) => {
     },
     queryKey: getFileQueryKey(options),
   })
+}
+
+/**
+ * Update a file record (superuser only)
+ * Update scalar fields on a file record.
+ *
+ * Only fields included in the request body are updated; all others
+ * (including entity associations, hashes, tags, and samples) remain
+ * unchanged.
+ *
+ * **Primary use case:** correcting a URI (e.g., wrong S3 bucket).
+ *
+ * Requires superuser privileges.
+ */
+export const updateFileMutation = (
+  options?: Partial<Options<UpdateFileData>>,
+): UseMutationOptions<
+  UpdateFileResponse,
+  AxiosError<UpdateFileError>,
+  Options<UpdateFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateFileResponse,
+    AxiosError<UpdateFileError>,
+    Options<UpdateFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateFile({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
 
 export const getFileVersionsQueryKey = (
@@ -2721,6 +2825,35 @@ export const createProjectMutation = (
   return mutationOptions
 }
 
+export const getProjectAttributesQueryKey = (
+  options?: Options<GetProjectAttributesData>,
+) => createQueryKey('getProjectAttributes', options)
+
+/**
+ * Get Project Attributes
+ * Returns a list of all unique project attributes across all projects.
+ *
+ * This endpoint is useful for clients to discover what attributes are in use
+ * and to populate dropdowns or autocomplete fields when creating/updating
+ * projects.  The response is a flat list of unique attribute keys.
+ */
+export const getProjectAttributesOptions = (
+  options?: Options<GetProjectAttributesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProjectAttributes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getProjectAttributesQueryKey(options),
+  })
+}
+
 export const searchProjectsQueryKey = (options: Options<SearchProjectsData>) =>
   createQueryKey('searchProjects', options)
 
@@ -2827,12 +2960,12 @@ export const reindexProjectsOptions = (
 export const reindexProjectsMutation = (
   options?: Partial<Options<ReindexProjectsData>>,
 ): UseMutationOptions<
-  ReindexProjectsResponse,
+  unknown,
   AxiosError<DefaultError>,
   Options<ReindexProjectsData>
 > => {
   const mutationOptions: UseMutationOptions<
-    ReindexProjectsResponse,
+    unknown,
     AxiosError<DefaultError>,
     Options<ReindexProjectsData>
   > = {
@@ -2875,8 +3008,45 @@ export const getProjectByProjectIdOptions = (
 }
 
 /**
+ * Patch Project
+ * Partially update a project using merge/upsert semantics.
+ *
+ * Unlike PUT, this does **not** remove attributes that are absent
+ * from the request.  Each supplied attribute is upserted: existing
+ * keys are updated, new keys are inserted, and unmentioned keys
+ * are left untouched.  An empty attributes list is a no-op.
+ */
+export const patchProjectMutation = (
+  options?: Partial<Options<PatchProjectData>>,
+): UseMutationOptions<
+  PatchProjectResponse,
+  AxiosError<PatchProjectError>,
+  Options<PatchProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchProjectResponse,
+    AxiosError<PatchProjectError>,
+    Options<PatchProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
  * Update Project
- * Update information about a specific project.
+ * Full replacement update of a project.
+ *
+ * Attributes provided here **replace** all existing attributes.
+ * To merge/upsert attributes without removing unmentioned ones,
+ * use ``PATCH /{project_id}`` instead.
  */
 export const updateProjectMutation = (
   options?: Partial<Options<UpdateProjectData>>,
@@ -2908,9 +3078,14 @@ export const getProjectSamplesQueryKey = (
 
 /**
  * Get Project Samples
- * Returns a paginated list of samples.
+ * Returns a list of samples for a project.
  *
- * Pass ``?include=files`` to eagerly load file metadata for each sample.
+ * Pagination is offset-based: ``skip`` is the number of records to skip
+ * and ``limit`` caps the page size. Pass ``?include=files`` to eagerly
+ * load file metadata for each sample.
+ *
+ * By default only the latest version of each file (by URI) is returned.
+ * Pass ``?file_versions=all`` to include all versions.
  */
 export const getProjectSamplesOptions = (
   options: Options<GetProjectSamplesData>,
@@ -2929,60 +3104,6 @@ export const getProjectSamplesOptions = (
   })
 }
 
-export const getProjectSamplesInfiniteQueryKey = (
-  options: Options<GetProjectSamplesData>,
-): QueryKey<Options<GetProjectSamplesData>> =>
-  createQueryKey('getProjectSamples', options, true)
-
-/**
- * Get Project Samples
- * Returns a paginated list of samples.
- *
- * Pass ``?include=files`` to eagerly load file metadata for each sample.
- */
-export const getProjectSamplesInfiniteOptions = (
-  options: Options<GetProjectSamplesData>,
-) => {
-  return infiniteQueryOptions<
-    GetProjectSamplesResponse,
-    AxiosError<GetProjectSamplesError>,
-    InfiniteData<GetProjectSamplesResponse>,
-    QueryKey<Options<GetProjectSamplesData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetProjectSamplesData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetProjectSamplesData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getProjectSamples({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getProjectSamplesInfiniteQueryKey(options),
-    },
-  )
-}
-
 export const addSampleToProjectQueryKey = (
   options: Options<AddSampleToProjectData>,
 ) => createQueryKey('addSampleToProject', options)
@@ -2991,7 +3112,7 @@ export const addSampleToProjectQueryKey = (
  * Add Sample To Project
  * Create a new sample with optional attributes.
  *
- * If ``run_barcode`` is provided in the request body, the sample is also
+ * If ``run_id`` is provided in the request body, the sample is also
  * associated with the specified sequencing run in the same transaction.
  */
 export const addSampleToProjectOptions = (
@@ -3015,7 +3136,7 @@ export const addSampleToProjectOptions = (
  * Add Sample To Project
  * Create a new sample with optional attributes.
  *
- * If ``run_barcode`` is provided in the request body, the sample is also
+ * If ``run_id`` is provided in the request body, the sample is also
  * associated with the specified sequencing run in the same transaction.
  */
 export const addSampleToProjectMutation = (
@@ -3032,6 +3153,75 @@ export const addSampleToProjectMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await addSampleToProject({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const uploadSamplesFileQueryKey = (
+  options: Options<UploadSamplesFileData>,
+) => createQueryKey('uploadSamplesFile', options)
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFileOptions = (
+  options: Options<UploadSamplesFileData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await uploadSamplesFile({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: uploadSamplesFileQueryKey(options),
+  })
+}
+
+/**
+ * Upload Samples File
+ * Upload a CSV/TSV file to create or update samples in bulk.
+ *
+ * The file must contain a column named ``SampleName`` (or ``Sample_Name``,
+ * case-insensitive).  All other columns become sample attributes, preserving
+ * the original column header as the attribute key.
+ *
+ * Parsing and column normalisation are handled by the
+ * ``api.samples.parsing`` module; the resulting ``SampleCreate`` list is
+ * fed directly into the existing ``bulk_create_samples()`` service.
+ */
+export const uploadSamplesFileMutation = (
+  options?: Partial<Options<UploadSamplesFileData>>,
+): UseMutationOptions<
+  UploadSamplesFileResponse,
+  AxiosError<UploadSamplesFileError>,
+  Options<UploadSamplesFileData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UploadSamplesFileResponse,
+    AxiosError<UploadSamplesFileError>,
+    Options<UploadSamplesFileData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await uploadSamplesFile({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -3093,6 +3283,39 @@ export const bulkCreateSamplesMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await bulkCreateSamples({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete Sample From Project
+ * Hard-delete a sample and all its child rows (superuser only).
+ *
+ * Deletes: SampleAttribute, FileSample, SampleSequencingRun rows.
+ * Associated File records are NOT deleted (they may belong to other entities).
+ *
+ * **This action is irreversible.**
+ */
+export const deleteSampleFromProjectMutation = (
+  options?: Partial<Options<DeleteSampleFromProjectData>>,
+): UseMutationOptions<
+  DeleteSampleFromProjectResponse,
+  AxiosError<DeleteSampleFromProjectError>,
+  Options<DeleteSampleFromProjectData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteSampleFromProjectResponse,
+    AxiosError<DeleteSampleFromProjectError>,
+    Options<DeleteSampleFromProjectData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteSampleFromProject({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -3296,7 +3519,7 @@ export const createQcrecordQueryKey = (options: Options<CreateQcrecordData>) =>
  * **Authentication required:** Bearer token must be provided.
  *
  * **Scoping:** Provide exactly one of `project_id` (project-scoped) or
- * `sequencing_run_barcode` (run-scoped, e.g. demux stats).
+ * `sequencing_run_id` (run-scoped, e.g. demux stats).
  *
  * **Example — project-scoped:**
  *
@@ -3322,7 +3545,7 @@ export const createQcrecordQueryKey = (options: Options<CreateQcrecordData>) =>
  * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
  * -H "Content-Type: application/json" \
  * -d '{
- * "sequencing_run_barcode": "240101_A00000_0001_FLOWCELLID",
+ * "sequencing_run_id": "240101_A00000_0001_FLOWCELLID",
  * "metadata": { "pipeline": "bcl-convert", "version": "4.3" },
  * "metrics": [{
  * "name": "demux_summary",
@@ -3367,7 +3590,7 @@ export const createQcrecordOptions = (options: Options<CreateQcrecordData>) => {
  * **Authentication required:** Bearer token must be provided.
  *
  * **Scoping:** Provide exactly one of `project_id` (project-scoped) or
- * `sequencing_run_barcode` (run-scoped, e.g. demux stats).
+ * `sequencing_run_id` (run-scoped, e.g. demux stats).
  *
  * **Example — project-scoped:**
  *
@@ -3393,7 +3616,7 @@ export const createQcrecordOptions = (options: Options<CreateQcrecordData>) => {
  * -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
  * -H "Content-Type: application/json" \
  * -d '{
- * "sequencing_run_barcode": "240101_A00000_0001_FLOWCELLID",
+ * "sequencing_run_id": "240101_A00000_0001_FLOWCELLID",
  * "metadata": { "pipeline": "bcl-convert", "version": "4.3" },
  * "metrics": [{
  * "name": "demux_summary",
@@ -3447,9 +3670,8 @@ export const searchQcrecordsGetQueryKey = (
  *
  * **Parameters:**
  * - `project_id`: Filter to records scoped to a specific project
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter by sequencing run_id string (record or metric level)
  * - `workflow_run_id`: Filter by the workflow run that produced the QC data
- * - `sequencing_run_id`: Filter by sequencing run UUID (record or metric level)
  * - `latest`: If true (default), returns only the most recent record per scope
  * - `page`: Page number for pagination (starts at 1)
  * - `per_page`: Number of results per page (max 1000)
@@ -3457,9 +3679,8 @@ export const searchQcrecordsGetQueryKey = (
  * **Example:**
  * ```
  * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
- * GET /api/v1/qcmetrics/search?sequencing_run_barcode=240101_A00000_0001_XYZ
+ * GET /api/v1/qcmetrics/search?sequencing_run_id=240101_A00000_0001_XYZ
  * GET /api/v1/qcmetrics/search?workflow_run_id=<uuid>&latest=false
- * GET /api/v1/qcmetrics/search?sequencing_run_id=<uuid>
  * ```
  */
 export const searchQcrecordsGetOptions = (
@@ -3490,9 +3711,8 @@ export const searchQcrecordsGetInfiniteQueryKey = (
  *
  * **Parameters:**
  * - `project_id`: Filter to records scoped to a specific project
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter by sequencing run_id string (record or metric level)
  * - `workflow_run_id`: Filter by the workflow run that produced the QC data
- * - `sequencing_run_id`: Filter by sequencing run UUID (record or metric level)
  * - `latest`: If true (default), returns only the most recent record per scope
  * - `page`: Page number for pagination (starts at 1)
  * - `per_page`: Number of results per page (max 1000)
@@ -3500,9 +3720,8 @@ export const searchQcrecordsGetInfiniteQueryKey = (
  * **Example:**
  * ```
  * GET /api/v1/qcmetrics/search?project_id=P-1234&latest=true
- * GET /api/v1/qcmetrics/search?sequencing_run_barcode=240101_A00000_0001_XYZ
+ * GET /api/v1/qcmetrics/search?sequencing_run_id=240101_A00000_0001_XYZ
  * GET /api/v1/qcmetrics/search?workflow_run_id=<uuid>&latest=false
- * GET /api/v1/qcmetrics/search?sequencing_run_id=<uuid>
  * ```
  */
 export const searchQcrecordsGetInfiniteOptions = (
@@ -3574,7 +3793,7 @@ export const searchQcrecordsPostQueryKey = (
  *
  * **Filter options:**
  * - `project_id`: Single value or list of project IDs
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter to records scoped to a sequencing run
  * - `metadata`: Key-value pairs to match against pipeline metadata
  *
  * **Pagination:**
@@ -3629,7 +3848,7 @@ export const searchQcrecordsPostInfiniteQueryKey = (
  *
  * **Filter options:**
  * - `project_id`: Single value or list of project IDs
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter to records scoped to a sequencing run
  * - `metadata`: Key-value pairs to match against pipeline metadata
  *
  * **Pagination:**
@@ -3705,7 +3924,7 @@ export const searchQcrecordsPostInfiniteOptions = (
  *
  * **Filter options:**
  * - `project_id`: Single value or list of project IDs
- * - `sequencing_run_barcode`: Filter to records scoped to a sequencing run
+ * - `sequencing_run_id`: Filter to records scoped to a sequencing run
  * - `metadata`: Key-value pairs to match against pipeline metadata
  *
  * **Pagination:**
@@ -4080,7 +4299,7 @@ export const submitDemultiplexWorkflowJobQueryKey = (
  * Args:
  * session: Database session
  * workflow_body: The demultiplex workflow execution request containing
- * workflow_id, run_barcode, and inputs
+ * workflow_id, run_id, and inputs
  * s3_client: S3 client for accessing workflow configs
  * Returns:
  * BatchJobPublic: The created batch job with AWS job information.
@@ -4108,7 +4327,7 @@ export const submitDemultiplexWorkflowJobOptions = (
  * Args:
  * session: Database session
  * workflow_body: The demultiplex workflow execution request containing
- * workflow_id, run_barcode, and inputs
+ * workflow_id, run_id, and inputs
  * s3_client: S3 client for accessing workflow configs
  * Returns:
  * BatchJobPublic: The created batch job with AWS job information.
@@ -4147,10 +4366,10 @@ export const getDemultiplexWorkflowConfigQueryKey = (
  *
  * Args:
  * workflow_id: The workflow identifier (filename without extension)
- * run_barcode: Optional run barcode to prepopulate s3_run_folder_path from run's run_folder_uri
+ * run_id: Optional run ID to prepopulate s3_run_folder_path from run's run_folder_uri
  *
  * Returns:
- * Complete workflow configuration with prepopulated defaults if run_barcode is provided
+ * Complete workflow configuration with prepopulated defaults if run_id is provided
  */
 export const getDemultiplexWorkflowConfigOptions = (
   options: Options<GetDemultiplexWorkflowConfigData>,
@@ -4459,6 +4678,276 @@ export const removeSampleFromRunMutation = (
   return mutationOptions
 }
 
+export const searchSamplesGetQueryKey = (
+  options?: Options<SearchSamplesGetData>,
+) => createQueryKey('searchSamplesGet', options)
+
+/**
+ * Search Samples Get
+ * Search samples using query string parameters.
+ *
+ * Accepts key/value pairs as query params, e.g.:
+ * ``?projectid=P-1234&samplename=Sample_1&page=1&per_page=20``
+ *
+ * Supported filter keys:
+ * - ``projectid``: exact match on project ID
+ * - ``samplename``: exact match on sample name
+ * - ``created_on``: date prefix match (YYYY-MM-DD) on created_at
+ * - Any other key: matched against sample attributes (case-insensitive key)
+ *
+ * Multiple filters are AND'd together.
+ */
+export const searchSamplesGetOptions = (
+  options?: Options<SearchSamplesGetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchSamplesGet({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchSamplesGetQueryKey(options),
+  })
+}
+
+export const searchSamplesGetInfiniteQueryKey = (
+  options?: Options<SearchSamplesGetData>,
+): QueryKey<Options<SearchSamplesGetData>> =>
+  createQueryKey('searchSamplesGet', options, true)
+
+/**
+ * Search Samples Get
+ * Search samples using query string parameters.
+ *
+ * Accepts key/value pairs as query params, e.g.:
+ * ``?projectid=P-1234&samplename=Sample_1&page=1&per_page=20``
+ *
+ * Supported filter keys:
+ * - ``projectid``: exact match on project ID
+ * - ``samplename``: exact match on sample name
+ * - ``created_on``: date prefix match (YYYY-MM-DD) on created_at
+ * - Any other key: matched against sample attributes (case-insensitive key)
+ *
+ * Multiple filters are AND'd together.
+ */
+export const searchSamplesGetInfiniteOptions = (
+  options?: Options<SearchSamplesGetData>,
+) => {
+  return infiniteQueryOptions<
+    SearchSamplesGetResponse,
+    AxiosError<SearchSamplesGetError>,
+    InfiniteData<SearchSamplesGetResponse>,
+    QueryKey<Options<SearchSamplesGetData>>,
+    | number
+    | Pick<
+        QueryKey<Options<SearchSamplesGetData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<SearchSamplesGetData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await searchSamplesGet({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: searchSamplesGetInfiniteQueryKey(options),
+    },
+  )
+}
+
+export const searchSamplesPostQueryKey = (
+  options: Options<SearchSamplesPostData>,
+) => createQueryKey('searchSamplesPost', options)
+
+/**
+ * Search Samples Post
+ * Search samples using JSON body with filter_on, page, per_page.
+ *
+ * Example body::
+ *
+ * {
+ * "filter_on": {
+ * "projectid": "P-1234",
+ * "tags": {
+ * "USUBJID": "CA123012-01-234"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 20
+ * }
+ *
+ * ``filter_on`` supports:
+ * - ``projectid`` (str or list)
+ * - ``samplename`` (str or list)
+ * - ``created_on`` (str, date prefix match)
+ * - ``tags`` (dict of key/value pairs, matched case-insensitively)
+ * - Any other key is matched against sample attributes
+ *
+ * List values are OR'd; multiple keys are AND'd.
+ */
+export const searchSamplesPostOptions = (
+  options: Options<SearchSamplesPostData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchSamplesPost({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchSamplesPostQueryKey(options),
+  })
+}
+
+export const searchSamplesPostInfiniteQueryKey = (
+  options: Options<SearchSamplesPostData>,
+): QueryKey<Options<SearchSamplesPostData>> =>
+  createQueryKey('searchSamplesPost', options, true)
+
+/**
+ * Search Samples Post
+ * Search samples using JSON body with filter_on, page, per_page.
+ *
+ * Example body::
+ *
+ * {
+ * "filter_on": {
+ * "projectid": "P-1234",
+ * "tags": {
+ * "USUBJID": "CA123012-01-234"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 20
+ * }
+ *
+ * ``filter_on`` supports:
+ * - ``projectid`` (str or list)
+ * - ``samplename`` (str or list)
+ * - ``created_on`` (str, date prefix match)
+ * - ``tags`` (dict of key/value pairs, matched case-insensitively)
+ * - Any other key is matched against sample attributes
+ *
+ * List values are OR'd; multiple keys are AND'd.
+ */
+export const searchSamplesPostInfiniteOptions = (
+  options: Options<SearchSamplesPostData>,
+) => {
+  return infiniteQueryOptions<
+    SearchSamplesPostResponse,
+    AxiosError<SearchSamplesPostError>,
+    InfiniteData<SearchSamplesPostResponse>,
+    QueryKey<Options<SearchSamplesPostData>>,
+    | number
+    | Pick<
+        QueryKey<Options<SearchSamplesPostData>>[0],
+        'body' | 'headers' | 'path' | 'query'
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<SearchSamplesPostData>>[0],
+          'body' | 'headers' | 'path' | 'query'
+        > =
+          typeof pageParam === 'object'
+            ? pageParam
+            : {
+                body: {
+                  page: pageParam,
+                },
+              }
+        const params = createInfiniteParams(queryKey, page)
+        const { data } = await searchSamplesPost({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        })
+        return data
+      },
+      queryKey: searchSamplesPostInfiniteQueryKey(options),
+    },
+  )
+}
+
+/**
+ * Search Samples Post
+ * Search samples using JSON body with filter_on, page, per_page.
+ *
+ * Example body::
+ *
+ * {
+ * "filter_on": {
+ * "projectid": "P-1234",
+ * "tags": {
+ * "USUBJID": "CA123012-01-234"
+ * }
+ * },
+ * "page": 1,
+ * "per_page": 20
+ * }
+ *
+ * ``filter_on`` supports:
+ * - ``projectid`` (str or list)
+ * - ``samplename`` (str or list)
+ * - ``created_on`` (str, date prefix match)
+ * - ``tags`` (dict of key/value pairs, matched case-insensitively)
+ * - Any other key is matched against sample attributes
+ *
+ * List values are OR'd; multiple keys are AND'd.
+ */
+export const searchSamplesPostMutation = (
+  options?: Partial<Options<SearchSamplesPostData>>,
+): UseMutationOptions<
+  SearchSamplesPostResponse,
+  AxiosError<SearchSamplesPostError>,
+  Options<SearchSamplesPostData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SearchSamplesPostResponse,
+    AxiosError<SearchSamplesPostError>,
+    Options<SearchSamplesPostData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await searchSamplesPost({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const reindexSamplesQueryKey = (options?: Options<ReindexSamplesData>) =>
   createQueryKey('reindexSamples', options)
 
@@ -4630,58 +5119,6 @@ export const getVendorsOptions = (options?: Options<GetVendorsData>) => {
     },
     queryKey: getVendorsQueryKey(options),
   })
-}
-
-export const getVendorsInfiniteQueryKey = (
-  options?: Options<GetVendorsData>,
-): QueryKey<Options<GetVendorsData>> =>
-  createQueryKey('getVendors', options, true)
-
-/**
- * Get Vendors
- * Retrieve a list of all vendors.
- */
-export const getVendorsInfiniteOptions = (
-  options?: Options<GetVendorsData>,
-) => {
-  return infiniteQueryOptions<
-    GetVendorsResponse,
-    AxiosError<GetVendorsError>,
-    InfiniteData<GetVendorsResponse>,
-    QueryKey<Options<GetVendorsData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetVendorsData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetVendorsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getVendors({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getVendorsInfiniteQueryKey(options),
-    },
-  )
 }
 
 export const addVendorQueryKey = (options: Options<AddVendorData>) =>
@@ -4891,7 +5328,7 @@ export const createWorkflowQueryKey = (options: Options<CreateWorkflowData>) =>
 
 /**
  * Create Workflow
- * Create a new workflow with optional attributes.
+ * Create a new workflow identity with optional attributes.
  */
 export const createWorkflowOptions = (options: Options<CreateWorkflowData>) => {
   return queryOptions({
@@ -4910,7 +5347,7 @@ export const createWorkflowOptions = (options: Options<CreateWorkflowData>) => {
 
 /**
  * Create Workflow
- * Create a new workflow with optional attributes.
+ * Create a new workflow identity with optional attributes.
  */
 export const createWorkflowMutation = (
   options?: Partial<Options<CreateWorkflowData>>,
@@ -4961,20 +5398,20 @@ export const getWorkflowByIdOptions = (
   })
 }
 
-export const getWorkflowRegistrationsQueryKey = (
-  options: Options<GetWorkflowRegistrationsData>,
-) => createQueryKey('getWorkflowRegistrations', options)
+export const getWorkflowVersionsQueryKey = (
+  options: Options<GetWorkflowVersionsData>,
+) => createQueryKey('getWorkflowVersions', options)
 
 /**
- * Get Workflow Registrations
- * List platform registrations for a workflow.
+ * Get Workflow Versions
+ * List all versions of a workflow.
  */
-export const getWorkflowRegistrationsOptions = (
-  options: Options<GetWorkflowRegistrationsData>,
+export const getWorkflowVersionsOptions = (
+  options: Options<GetWorkflowVersionsData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowRegistrations({
+      const { data } = await getWorkflowVersions({
         ...options,
         ...queryKey[0],
         signal,
@@ -4982,24 +5419,24 @@ export const getWorkflowRegistrationsOptions = (
       })
       return data
     },
-    queryKey: getWorkflowRegistrationsQueryKey(options),
+    queryKey: getWorkflowVersionsQueryKey(options),
   })
 }
 
-export const createWorkflowRegistrationQueryKey = (
-  options: Options<CreateWorkflowRegistrationData>,
-) => createQueryKey('createWorkflowRegistration', options)
+export const createWorkflowVersionQueryKey = (
+  options: Options<CreateWorkflowVersionData>,
+) => createQueryKey('createWorkflowVersion', options)
 
 /**
- * Create Workflow Registration
- * Register a workflow on a specific platform.
+ * Create Workflow Version
+ * Create a new version for a workflow.
  */
-export const createWorkflowRegistrationOptions = (
-  options: Options<CreateWorkflowRegistrationData>,
+export const createWorkflowVersionOptions = (
+  options: Options<CreateWorkflowVersionData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await createWorkflowRegistration({
+      const { data } = await createWorkflowVersion({
         ...options,
         ...queryKey[0],
         signal,
@@ -5007,28 +5444,81 @@ export const createWorkflowRegistrationOptions = (
       })
       return data
     },
-    queryKey: createWorkflowRegistrationQueryKey(options),
+    queryKey: createWorkflowVersionQueryKey(options),
   })
 }
 
 /**
- * Create Workflow Registration
- * Register a workflow on a specific platform.
+ * Create Workflow Version
+ * Create a new version for a workflow.
  */
-export const createWorkflowRegistrationMutation = (
-  options?: Partial<Options<CreateWorkflowRegistrationData>>,
+export const createWorkflowVersionMutation = (
+  options?: Partial<Options<CreateWorkflowVersionData>>,
 ): UseMutationOptions<
-  CreateWorkflowRegistrationResponse,
-  AxiosError<CreateWorkflowRegistrationError>,
-  Options<CreateWorkflowRegistrationData>
+  CreateWorkflowVersionResponse,
+  AxiosError<CreateWorkflowVersionError>,
+  Options<CreateWorkflowVersionData>
 > => {
   const mutationOptions: UseMutationOptions<
-    CreateWorkflowRegistrationResponse,
-    AxiosError<CreateWorkflowRegistrationError>,
-    Options<CreateWorkflowRegistrationData>
+    CreateWorkflowVersionResponse,
+    AxiosError<CreateWorkflowVersionError>,
+    Options<CreateWorkflowVersionData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await createWorkflowRegistration({
+      const { data } = await createWorkflowVersion({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getWorkflowVersionQueryKey = (
+  options: Options<GetWorkflowVersionData>,
+) => createQueryKey('getWorkflowVersion', options)
+
+/**
+ * Get Workflow Version
+ * Get a specific workflow version.
+ */
+export const getWorkflowVersionOptions = (
+  options: Options<GetWorkflowVersionData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflowVersion({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowVersionQueryKey(options),
+  })
+}
+
+/**
+ * Delete Workflow Version Alias
+ * Remove an alias from a workflow.
+ */
+export const deleteWorkflowVersionAliasMutation = (
+  options?: Partial<Options<DeleteWorkflowVersionAliasData>>,
+): UseMutationOptions<
+  DeleteWorkflowVersionAliasResponse,
+  AxiosError<DeleteWorkflowVersionAliasError>,
+  Options<DeleteWorkflowVersionAliasData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkflowVersionAliasResponse,
+    AxiosError<DeleteWorkflowVersionAliasError>,
+    Options<DeleteWorkflowVersionAliasData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkflowVersionAlias({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -5040,23 +5530,23 @@ export const createWorkflowRegistrationMutation = (
 }
 
 /**
- * Delete Workflow Registration
- * Remove a platform registration.
+ * Set Workflow Version Alias
+ * Set or update an alias to point to a workflow version.
  */
-export const deleteWorkflowRegistrationMutation = (
-  options?: Partial<Options<DeleteWorkflowRegistrationData>>,
+export const setWorkflowVersionAliasMutation = (
+  options?: Partial<Options<SetWorkflowVersionAliasData>>,
 ): UseMutationOptions<
-  DeleteWorkflowRegistrationResponse,
-  AxiosError<DeleteWorkflowRegistrationError>,
-  Options<DeleteWorkflowRegistrationData>
+  SetWorkflowVersionAliasResponse,
+  AxiosError<SetWorkflowVersionAliasError>,
+  Options<SetWorkflowVersionAliasData>
 > => {
   const mutationOptions: UseMutationOptions<
-    DeleteWorkflowRegistrationResponse,
-    AxiosError<DeleteWorkflowRegistrationError>,
-    Options<DeleteWorkflowRegistrationData>
+    SetWorkflowVersionAliasResponse,
+    AxiosError<SetWorkflowVersionAliasError>,
+    Options<SetWorkflowVersionAliasData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await deleteWorkflowRegistration({
+      const { data } = await setWorkflowVersionAlias({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -5067,20 +5557,20 @@ export const deleteWorkflowRegistrationMutation = (
   return mutationOptions
 }
 
-export const getWorkflowRunsQueryKey = (
-  options: Options<GetWorkflowRunsData>,
-) => createQueryKey('getWorkflowRuns', options)
+export const getWorkflowVersionAliasesQueryKey = (
+  options: Options<GetWorkflowVersionAliasesData>,
+) => createQueryKey('getWorkflowVersionAliases', options)
 
 /**
- * Get Workflow Runs
- * List runs for a workflow (paginated).
+ * Get Workflow Version Aliases
+ * List aliases for a workflow, optionally filtered by alias name.
  */
-export const getWorkflowRunsOptions = (
-  options: Options<GetWorkflowRunsData>,
+export const getWorkflowVersionAliasesOptions = (
+  options: Options<GetWorkflowVersionAliasesData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowRuns({
+      const { data } = await getWorkflowVersionAliases({
         ...options,
         ...queryKey[0],
         signal,
@@ -5088,76 +5578,32 @@ export const getWorkflowRunsOptions = (
       })
       return data
     },
-    queryKey: getWorkflowRunsQueryKey(options),
+    queryKey: getWorkflowVersionAliasesQueryKey(options),
   })
 }
 
-export const getWorkflowRunsInfiniteQueryKey = (
-  options: Options<GetWorkflowRunsData>,
-): QueryKey<Options<GetWorkflowRunsData>> =>
-  createQueryKey('getWorkflowRuns', options, true)
+export const getWorkflowDeploymentsForWorkflowQueryKey = (
+  options: Options<GetWorkflowDeploymentsForWorkflowData>,
+) => createQueryKey('getWorkflowDeploymentsForWorkflow', options)
 
 /**
- * Get Workflow Runs
- * List runs for a workflow (paginated).
+ * Get Workflow Deployments For Workflow
+ * List deployments across all versions of a workflow.
+ *
+ * Optional query filters:
+ * - **alias**: resolve an alias to its version, return only
+ * that version's deployments
+ * - **engine**: restrict results to a specific platform
+ *
+ * Combine both to get a single deployment in one call, e.g.
+ * ``?alias=production&engine=Arvados``.
  */
-export const getWorkflowRunsInfiniteOptions = (
-  options: Options<GetWorkflowRunsData>,
-) => {
-  return infiniteQueryOptions<
-    GetWorkflowRunsResponse,
-    AxiosError<GetWorkflowRunsError>,
-    InfiniteData<GetWorkflowRunsResponse>,
-    QueryKey<Options<GetWorkflowRunsData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetWorkflowRunsData>>[0],
-        'body' | 'headers' | 'path' | 'query'
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetWorkflowRunsData>>[0],
-          'body' | 'headers' | 'path' | 'query'
-        > =
-          typeof pageParam === 'object'
-            ? pageParam
-            : {
-                query: {
-                  page: pageParam,
-                },
-              }
-        const params = createInfiniteParams(queryKey, page)
-        const { data } = await getWorkflowRuns({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        })
-        return data
-      },
-      queryKey: getWorkflowRunsInfiniteQueryKey(options),
-    },
-  )
-}
-
-export const createWorkflowRunQueryKey = (
-  options: Options<CreateWorkflowRunData>,
-) => createQueryKey('createWorkflowRun', options)
-
-/**
- * Create Workflow Run
- * Create a workflow execution record.
- */
-export const createWorkflowRunOptions = (
-  options: Options<CreateWorkflowRunData>,
+export const getWorkflowDeploymentsForWorkflowOptions = (
+  options: Options<GetWorkflowDeploymentsForWorkflowData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await createWorkflowRun({
+      const { data } = await getWorkflowDeploymentsForWorkflow({
         ...options,
         ...queryKey[0],
         signal,
@@ -5165,28 +5611,78 @@ export const createWorkflowRunOptions = (
       })
       return data
     },
-    queryKey: createWorkflowRunQueryKey(options),
+    queryKey: getWorkflowDeploymentsForWorkflowQueryKey(options),
+  })
+}
+
+export const getWorkflowDeploymentsQueryKey = (
+  options: Options<GetWorkflowDeploymentsData>,
+) => createQueryKey('getWorkflowDeployments', options)
+
+/**
+ * Get Workflow Deployments
+ * List platform deployments for a workflow version.
+ */
+export const getWorkflowDeploymentsOptions = (
+  options: Options<GetWorkflowDeploymentsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkflowDeployments({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getWorkflowDeploymentsQueryKey(options),
+  })
+}
+
+export const createWorkflowDeploymentQueryKey = (
+  options: Options<CreateWorkflowDeploymentData>,
+) => createQueryKey('createWorkflowDeployment', options)
+
+/**
+ * Create Workflow Deployment
+ * Deploy a workflow version on a specific platform.
+ */
+export const createWorkflowDeploymentOptions = (
+  options: Options<CreateWorkflowDeploymentData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createWorkflowDeployment({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createWorkflowDeploymentQueryKey(options),
   })
 }
 
 /**
- * Create Workflow Run
- * Create a workflow execution record.
+ * Create Workflow Deployment
+ * Deploy a workflow version on a specific platform.
  */
-export const createWorkflowRunMutation = (
-  options?: Partial<Options<CreateWorkflowRunData>>,
+export const createWorkflowDeploymentMutation = (
+  options?: Partial<Options<CreateWorkflowDeploymentData>>,
 ): UseMutationOptions<
-  CreateWorkflowRunResponse,
-  AxiosError<CreateWorkflowRunError>,
-  Options<CreateWorkflowRunData>
+  CreateWorkflowDeploymentResponse,
+  AxiosError<CreateWorkflowDeploymentError>,
+  Options<CreateWorkflowDeploymentData>
 > => {
   const mutationOptions: UseMutationOptions<
-    CreateWorkflowRunResponse,
-    AxiosError<CreateWorkflowRunError>,
-    Options<CreateWorkflowRunData>
+    CreateWorkflowDeploymentResponse,
+    AxiosError<CreateWorkflowDeploymentError>,
+    Options<CreateWorkflowDeploymentData>
   > = {
     mutationFn: async (localOptions) => {
-      const { data } = await createWorkflowRun({
+      const { data } = await createWorkflowDeployment({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -5197,29 +5693,32 @@ export const createWorkflowRunMutation = (
   return mutationOptions
 }
 
-export const getWorkflowRunByIdQueryKey = (
-  options: Options<GetWorkflowRunByIdData>,
-) => createQueryKey('getWorkflowRunById', options)
-
 /**
- * Get Workflow Run By Id
- * Get a single workflow run by its ID.
+ * Delete Workflow Deployment
+ * Remove a platform deployment.
  */
-export const getWorkflowRunByIdOptions = (
-  options: Options<GetWorkflowRunByIdData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getWorkflowRunById({
+export const deleteWorkflowDeploymentMutation = (
+  options?: Partial<Options<DeleteWorkflowDeploymentData>>,
+): UseMutationOptions<
+  DeleteWorkflowDeploymentResponse,
+  AxiosError<DeleteWorkflowDeploymentError>,
+  Options<DeleteWorkflowDeploymentData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkflowDeploymentResponse,
+    AxiosError<DeleteWorkflowDeploymentError>,
+    Options<DeleteWorkflowDeploymentData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkflowDeployment({
         ...options,
-        ...queryKey[0],
-        signal,
+        ...localOptions,
         throwOnError: true,
       })
       return data
     },
-    queryKey: getWorkflowRunByIdQueryKey(options),
-  })
+  }
+  return mutationOptions
 }
 
 export const getPipelinesQueryKey = (options?: Options<GetPipelinesData>) =>
@@ -5546,5 +6045,32 @@ export const getPlatformByNameOptions = (
       return data
     },
     queryKey: getPlatformByNameQueryKey(options),
+  })
+}
+
+export const searchUsersQueryKey = (options: Options<SearchUsersData>) =>
+  createQueryKey('searchUsers', options)
+
+/**
+ * Search Users
+ * Search for users by name, email, or username.
+ *
+ * Uses LDAP directory if configured and available,
+ * otherwise falls back to the local user database.
+ *
+ * Requires authentication.
+ */
+export const searchUsersOptions = (options: Options<SearchUsersData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await searchUsers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: searchUsersQueryKey(options),
   })
 }

@@ -32,6 +32,9 @@ function RouteComponent() {
   })
 
   const isLive = job.status === 'RUNNING'
+  const hasLog =
+    ['RUNNING', 'SUCCEEDED', 'FAILED'].includes(job.status) &&
+    !!job.log_stream_name
 
   const {
     lines,
@@ -41,7 +44,7 @@ function RouteComponent() {
     isFetchingNextPage,
     isNearBottom,
     scrollAreaRef,
-  } = useJobLog(job.id, isLive)
+  } = useJobLog(job.id, isLive, hasLog)
 
   const jobLogText = lines
     .map((line, index) => `${index + 1}: ${line}`)
@@ -150,7 +153,9 @@ function RouteComponent() {
         <CardContent>
           <div className="relative">
             <ScrollArea ref={scrollAreaRef} className="h-[500px] rounded-lg border border-border bg-muted">
-              {jobLogStatus === 'pending' ? (
+              {!hasLog ? (
+                <div className="p-4 text-sm text-muted-foreground">No job log output is available yet.</div>
+              ) : jobLogStatus === 'pending' ? (
                 <div className="p-4 text-sm text-muted-foreground">Loading job log...</div>
               ) : jobLogError ? (
                 <div className="p-4 text-sm text-destructive">Failed to load job log: {jobLogErrorMessage}</div>

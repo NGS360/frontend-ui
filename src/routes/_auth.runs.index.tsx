@@ -10,6 +10,8 @@ import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
 import { useDebounce } from '@/hooks/use-debounce';
 import { FullscreenSpinner } from '@/components/spinner';
+import { ErrorState } from '@/components/error-state';
+import { ErrorBanner } from '@/components/error-banner';
 import { highlightMatch } from '@/lib/utils';
 
 // Define the search schema for projects 
@@ -17,10 +19,7 @@ const runsSearchSchema = z.object({
   query: z.string().optional().default(""),
   page: z.number().optional().default(1),
   per_page: z.number().optional().default(10),
-  sort_by: z.union([
-    z.literal('barcode'),
-    z.literal('experiment_name')
-  ]).optional().default('barcode'),
+  sort_by: z.string().optional().default('run_date'),
   sort_order: z.union([
     z.literal('asc'),
     z.literal('desc')
@@ -52,7 +51,7 @@ function RouteComponent() {
     pageSize: search.per_page
   });
 
-  // Sorting (default: barcode desc)
+  // Sorting (default: run_date desc)
   const [sorting, setSorting] = useState<SortingState>([
     { id: search.sort_by, desc: search.sort_order == 'desc' ? true : false }
   ]);
@@ -76,7 +75,7 @@ function RouteComponent() {
         ...search,
         page: pagination.pageIndex + 1,
         per_page: pagination.pageSize,
-        sort_by: sorting[0]?.id as 'barcode' | 'experiment_name',
+        sort_by: sorting[0]?.id ?? 'run_date',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc'
       },
       replace: true
@@ -84,7 +83,7 @@ function RouteComponent() {
   }, [pagination, sorting])
 
   // Query runs
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     ...searchRunsOptions({
       query: {
         query: debouncedInput,
@@ -98,38 +97,38 @@ function RouteComponent() {
   })
 
   if (isLoading) return <FullscreenSpinner variant='ellipsis' />;
-  if (error) return 'An error has occurred: ' + error.message
+  if (error && !data) return <ErrorState error={error} onRetry={() => { void refetch() }} />
   if (!data) return 'No data was returned.';
 
   // Define columns
   const columns: Array<ColumnDef<SequencingRunPublic>> = [
     {
-      accessorKey: 'barcode',
+      accessorKey: 'run_id',
       meta: { alias: "Experiment" },
       header: ({ column }) => <SortableHeader column={column} name="Experiment" />,
       cell: ({ cell, row }) => {
-        const barcode = cell.getValue() as string
+        const runId = cell.getValue() as string
         const status = row.getValue('status')
         return status === "Ready" ? (
             <CopyableText
-              text={barcode}
+              text={runId}
               variant='hoverLink'
               asChild={true}
               children={(
                 <Link
-                  to='/runs/$run_barcode'
-                  params={{ run_barcode: barcode }}
+                  to='/runs/$run_id'
+                  params={{ run_id: runId }}
                   preload={false}
                 >
-                  {highlightMatch(barcode, debouncedInput)}
+                  {highlightMatch(runId, debouncedInput)}
                 </Link>
               )}
             />
           ) : (
             <CopyableText
-              text={barcode}
+              text={runId}
               variant='hoverLight'
-              children={highlightMatch(barcode, debouncedInput)}
+              children={highlightMatch(runId, debouncedInput)}
             />
           )
       }
@@ -137,7 +136,7 @@ function RouteComponent() {
     {
       accessorKey: 'machine_id',
       meta: { alias: "Instrument" },
-      header: "Instrument",
+      header: ({ column }) => <SortableHeader column={column} name="Instrument" />,
       cell: ({ cell }) => {
         const value = cell.getValue() as string
         return (
@@ -152,7 +151,7 @@ function RouteComponent() {
     {
       accessorKey: 'flowcell_id',
       meta: { alias: "Flowcell" },
-      header: "Flowcell",
+      header: ({ column }) => <SortableHeader column={column} name="Flowcell" />,
       cell: ({ cell }) => {
         const value = cell.getValue() as string
         return (
@@ -167,12 +166,12 @@ function RouteComponent() {
     {
       accessorKey: 'run_date',
       meta: { alias: "Run Date" },
-      header: "Run Date"
+      header: ({ column }) => <SortableHeader column={column} name="Run Date" />
     },
     {
       accessorKey: 'run_folder_uri',
       meta: { alias: "Run Folder" },
-      header: "Run Folder",
+      header: ({ column }) => <SortableHeader column={column} name="Run Folder" />,
       cell: ({ cell }) => {
         const value = cell.getValue() as string
         return (
@@ -187,14 +186,19 @@ function RouteComponent() {
     {
       accessorKey: 'status',
       meta: { alias: "Status" },
-      header: "Status"
+      header: ({ column }) => <SortableHeader column={column} name="Status" />
     }
   ]
 
   return (
     <div className='animate-fade-in-up'>
-      <h1 className="text-2xl">Illumina Runs</h1>
-      <p className="text-muted-foreground mb-6">View all illumina runs in NGS360</p>
+      <h1 className="text-2xl">Sequencing Runs</h1>
+      <p className="text-muted-foreground mb-6">View all sequencing runs in NGS360</p>
+      {error && (
+        <div className="mb-4">
+          <ErrorBanner error={error} onRetry={() => { void refetch() }} />
+        </div>
+      )}
       <ServerDataTable
         data={data.data}
         columns={columns}
