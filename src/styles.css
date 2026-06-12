@@ -4,6 +4,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Always reserve the scrollbar gutter so nothing shifts when Radix
+   overlays (dropdowns, selects, dialogs) lock body scroll and remove
+   the scrollbar. */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* With the gutter reserved, the scrollbar-width compensation that
+   react-remove-scroll applies to the body during scroll lock would
+   itself shift the layout, so neutralize it. The doubled attribute
+   raises specificity above the injected rule. */
+body[data-scroll-locked][data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
+
 body {
   @apply m-0;
   font-family:
