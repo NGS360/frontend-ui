@@ -56,7 +56,7 @@ function RouteComponent() {
         <div>
           <h1 className='text-3xl font-extralight'>{project.name}</h1>
           {showMetadata && (
-            <div className='flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-3 mt-1 text-sm text-muted-foreground'>
+            <div className='flex flex-col @2xl:flex-row @2xl:flex-wrap gap-1 @2xl:gap-3 mt-1 text-sm text-muted-foreground'>
               {hasCreator && <span className='inline-flex items-center gap-1'><User size={14} />Created by <span className='font-semibold'>{project.created_by}</span></span>}
               {hasCreatedAt && <span className='inline-flex items-center gap-1'><Calendar size={14} />Created on <span className='font-semibold'>{createdAt}</span></span>}
               {hasLastModified && <span className='inline-flex items-center gap-1'><Clock size={14} />Modified <span className='font-semibold'>{lastModified}</span></span>}

@@ -5,10 +5,12 @@ import {
   Send,
   Sparkles,
   Square,
+  X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { chatTransport } from '@/lib/chat-transport'
 import { cn } from '@/lib/utils'
 import {
@@ -28,9 +30,12 @@ import {
 const MIN_WIDTH = 240
 const MIN_CONTENT_WIDTH = 480
 const DEFAULT_WIDTH = 384
+// In mobile mode the panel overlays the page instead of pushing it, so it
+// ignores the resizable width and its content-preserving clamp.
+const MOBILE_WIDTH = '100vw'
 
-const clampWidth = (w: number) => {
-  const max = Math.max(MIN_WIDTH, window.innerWidth - MIN_CONTENT_WIDTH)
+const clampWidth = (w: number, viewport: number) => {
+  const max = Math.max(MIN_WIDTH, viewport - MIN_CONTENT_WIDTH)
   return Math.max(MIN_WIDTH, Math.min(max, w))
 }
 
@@ -39,12 +44,47 @@ export function AiChatSidebarProvider({
 }: {
   children: React.ReactNode
 }) {
+  // Single open state shared by the desktop sidebar and the mobile sheet, so
+  // the panel stays open (or closed) when the viewport crosses the breakpoint.
+  const [open, setOpen] = useState(false)
+  // The width the user chose by dragging. Never clamped in place — the
+  // rendered width is derived below, so shrinking the window doesn't
+  // permanently lose the preferred width.
   const [width, setWidth] = useState(DEFAULT_WIDTH)
+  const [windowWidth, setWindowWidth] = useState(() => window.innerWidth)
+  const isMobile = useIsMobile()
   const [isResizing, setIsResizing] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [input, setInput] = useState('')
   const resizingRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const effectiveWidth = clampWidth(width, windowWidth)
+  // Fullscreen expand only exists on desktop; the mobile sheet is already
+  // full width, and an orphaned Sheet behind the fullscreen portal would
+  // render as a blank layer.
+  const expanded = isExpanded && !isMobile
+
+  // Slide the sheet in only when the user opens it. When it appears because
+  // the viewport crossed into mobile while the chat was already open, the
+  // panel should swap presentation silently instead of animating in.
+  const [animateSheet, setAnimateSheet] = useState(true)
+  const [prevIsMobile, setPrevIsMobile] = useState(isMobile)
+  const [prevOpen, setPrevOpen] = useState(open)
+  if (prevIsMobile !== isMobile) {
+    setPrevIsMobile(isMobile)
+    if (isMobile && open) setAnimateSheet(false)
+  }
+  if (prevOpen !== open) {
+    setPrevOpen(open)
+    setAnimateSheet(true)
+  }
+
+  // Closing the chat exits fullscreen mode, so it always reopens docked.
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (!next) setIsExpanded(false)
+  }
 
   const { messages, sendMessage, status, stop, error, regenerate } = useChat({
     transport: chatTransport,
@@ -53,7 +93,7 @@ export function AiChatSidebarProvider({
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ block: 'end' })
-  }, [messages, isExpanded])
+  }, [messages, expanded])
 
   const handleSend = () => {
     const content = input.trim()
@@ -65,7 +105,7 @@ export function AiChatSidebarProvider({
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (!resizingRef.current) return
-      setWidth(clampWidth(window.innerWidth - e.clientX))
+      setWidth(clampWidth(window.innerWidth - e.clientX, window.innerWidth))
     }
     const onUp = () => {
       if (!resizingRef.current) return
@@ -74,7 +114,7 @@ export function AiChatSidebarProvider({
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
     }
-    const onWindowResize = () => setWidth((w) => clampWidth(w))
+    const onWindowResize = () => setWindowWidth(window.innerWidth)
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
     window.addEventListener('resize', onWindowResize)
@@ -95,37 +135,54 @@ export function AiChatSidebarProvider({
   }
 
   // In fullscreen mode, keep the conversation at a readable width
-  const centeredClass = isExpanded ? 'mx-auto w-full max-w-3xl' : ''
+  const centeredClass = expanded ? 'mx-auto w-full max-w-3xl' : ''
 
   const panel = (
     <>
       <SidebarHeader className="flex-row items-center gap-2 h-14 py-0">
+        {!isMobile && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                id="ai-sidebar-expand-toggle"
+                variant="ghost"
+                size="icon"
+                aria-label={
+                  expanded
+                    ? 'Collapse AI sidebar'
+                    : 'Expand AI sidebar to full width'
+                }
+                aria-pressed={expanded}
+                onClick={() => setIsExpanded((v) => !v)}
+              >
+                {expanded ? (
+                  <PanelRightClose className="h-5 w-5" />
+                ) : (
+                  <PanelRightOpen className="h-5 w-5" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {expanded ? 'Collapse panel' : 'Expand panel'}
+            </TooltipContent>
+          </Tooltip>
+        )}
+        <span className="text-lg font-semibold">AI Assistant</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              id="ai-sidebar-expand-toggle"
+              id="ai-sidebar-close"
               variant="ghost"
               size="icon"
-              aria-label={
-                isExpanded
-                  ? 'Collapse AI sidebar'
-                  : 'Expand AI sidebar to full width'
-              }
-              aria-pressed={isExpanded}
-              onClick={() => setIsExpanded((v) => !v)}
+              className="ml-auto"
+              aria-label="Close AI Assistant"
+              onClick={() => handleOpenChange(false)}
             >
-              {isExpanded ? (
-                <PanelRightClose className="h-5 w-5" />
-              ) : (
-                <PanelRightOpen className="h-5 w-5" />
-              )}
+              <X className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            {isExpanded ? 'Collapse panel' : 'Expand panel'}
-          </TooltipContent>
+          <TooltipContent>Close</TooltipContent>
         </Tooltip>
-        <span className="text-lg font-semibold">AI Assistant</span>
       </SidebarHeader>
       <SidebarContent id="ai-chat-messages" className="p-4">
         {messages.length === 0 ? (
@@ -230,17 +287,34 @@ export function AiChatSidebarProvider({
 
   return (
     <SidebarProvider
-      defaultOpen={false}
-      style={{ '--sidebar-width': `${width}px` } as React.CSSProperties}
+      open={open}
+      onOpenChange={handleOpenChange}
+      openMobile={open}
+      onOpenMobileChange={handleOpenChange}
+      style={{ '--sidebar-width': `${effectiveWidth}px` } as React.CSSProperties}
     >
-      <div className="flex min-h-svh min-w-0 flex-1 flex-col">{children}</div>
+      {/* Container for @-variant queries so page layouts respond to the
+          content width (squeezed by the sidebar), not the viewport. */}
+      <div className="@container flex min-h-svh min-w-0 flex-1 flex-col">
+        {children}
+      </div>
       <Sidebar
         id="ai-sidebar"
         side="right"
         collapsible="offcanvas"
-        className="bg-background"
+        className="bg-background border-l shadow-none"
+        style={
+          {
+            '--sidebar-width': isMobile ? MOBILE_WIDTH : `${effectiveWidth}px`,
+            // Inline style because tailwind-merge doesn't recognize the
+            // sheet's animate-in plugin class, so an animate-none utility
+            // can't reliably override it.
+            ...(animateSheet ? null : { animation: 'none' }),
+          } as React.CSSProperties
+        }
+        mobileOverlayClassName="bg-transparent"
       >
-        {!isExpanded && (
+        {!expanded && (
           <>
             <div
               id="ai-sidebar-resize-handle"
@@ -255,7 +329,7 @@ export function AiChatSidebarProvider({
           </>
         )}
       </Sidebar>
-      {isExpanded &&
+      {expanded &&
         typeof document !== 'undefined' &&
         createPortal(
           <div

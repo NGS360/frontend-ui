@@ -56,8 +56,8 @@ function RouteComponent() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-extralight break-words">{job.name}</h1>
+      <div className="flex flex-col @3xl:flex-row @3xl:items-center @3xl:justify-between gap-4">
+        <h1 className="text-2xl @3xl:text-3xl font-extralight break-words">{job.name}</h1>
         <div className="flex items-center gap-4 flex-shrink-0">
           <span className="inline-flex items-center text-sm text-muted-foreground">
             <span className={`w-2 h-2 rounded-full mr-2 ${job.viewed ? 'bg-gray-400' : 'bg-blue-500'}`}></span>
@@ -73,7 +73,7 @@ function RouteComponent() {
           <CardTitle>Job Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4">
             {/* Left Column */}
             <div className="space-y-4">
               <div className="flex items-start gap-4">
@@ -106,7 +106,7 @@ function RouteComponent() {
                 </div>
               </div>
 
-              <Separator className="md:hidden" />
+              <Separator className="@3xl:hidden" />
             </div>
 
             {/* Right Column */}

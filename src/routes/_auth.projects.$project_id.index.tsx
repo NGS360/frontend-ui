@@ -275,7 +275,7 @@ function RouteComponent() {
   return(
     <div className='animate-fade-in-up'>
       {/* Grid for attributes and new content */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 @5xl:grid-cols-2 gap-4'>
         {/* Attributes */}
         <Accordion
           type='single'
@@ -292,7 +292,7 @@ function RouteComponent() {
             <AccordionContent
               className='flex flex-col gap-4'
             >
-              <div className='grid grid-flow-row gap-2 md:grid-cols-2 lg:grid-cols-3'>
+              <div className='grid grid-flow-row gap-2 @3xl:grid-cols-2 @5xl:grid-cols-3'>
                 <Card
                   key={project.project_id}
                   className='border-0 shadow-none py-2 px-0 bg-transparent'
@@ -339,7 +339,7 @@ function RouteComponent() {
                 projectCreatedBy={project.created_by}
                 projectAttributes={project.attributes}
                 trigger={
-                  <Button variant='outline' className='w-full md:w-fit'>
+                  <Button variant='outline' className='w-full @3xl:w-fit'>
                     {!project.attributes || project.attributes.length === 0 ? (
                       <>
                         <Plus />
@@ -372,7 +372,7 @@ function RouteComponent() {
               </span>
             </AccordionTrigger>
             <AccordionContent className='flex flex-col gap-4'>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 @3xl:grid-cols-2 gap-4'>
                 {/* Data Bucket */}
                 <FileBrowserDialog
                   trigger={(

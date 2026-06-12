@@ -24,11 +24,11 @@ function App() {
         </div> */}
         
         <div id="home-content" className="@container min-h-[85vh] flex flex-col items-center justify-center gap-6 px-4 relative z-10">
-        <h1 id="home-title" className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl animate-fade-in-up flex flex-col @3xl:flex-row items-center justify-center gap-2 @3xl:gap-3">
+        <h1 id="home-title" className="text-3xl @2xl:text-4xl @3xl:text-5xl @5xl:text-6xl animate-fade-in-up flex flex-col @3xl:flex-row items-center justify-center gap-2 @3xl:gap-3">
           <span className="font-normal text-muted-foreground">Welcome to</span>
-          <NGS360Logo showIcon={false} textSize="text-3xl sm:text-4xl md:text-5xl lg:text-6xl" gap="gap-0" />
+          <NGS360Logo showIcon={false} textSize="text-3xl @2xl:text-4xl @3xl:text-5xl @5xl:text-6xl" gap="gap-0" />
         </h1>
-        <h2 id="home-subtitle" className="text-sm sm:text-base md:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0, animationFillMode: 'forwards' }}>
+        <h2 id="home-subtitle" className="text-sm @2xl:text-base @3xl:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0, animationFillMode: 'forwards' }}>
           Your comprehensive next-generation sequencing data management platform.
           Search, analyze, and manage your genomic data with ease.
         </h2>
@@ -37,7 +37,7 @@ function App() {
         </div>
         
         {/* Quick Access Cards */}
-        <div id="home-quick-access" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-[95%] mt-8 animate-fade-in-up" style={{ animationDelay: '0.3s', opacity: 0, animationFillMode: 'forwards' }}>
+        <div id="home-quick-access" className="grid grid-cols-1 @3xl:grid-cols-2 gap-6 max-w-4xl w-[95%] mt-8 animate-fade-in-up" style={{ animationDelay: '0.3s', opacity: 0, animationFillMode: 'forwards' }}>
           <Link id="home-runs-link" to="/runs" className="group">
             <Card id="home-runs-card" className="h-full transition-all duration-300 hover:border-accent3 hover:scale-[1.01] cursor-pointer border-2 shadow-none relative overflow-hidden">
               <CardHeader className="relative z-10">
