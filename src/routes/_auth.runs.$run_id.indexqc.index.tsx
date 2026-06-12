@@ -21,7 +21,7 @@ export const Route = createFileRoute('/_auth/runs/$run_id/indexqc/')({
       throwOnError: true,
     });
 
-    if (res.status === 204) throw notFound();
+    if (res.response.status === 204) throw notFound();
 
     return ({
       runMetrics: res.data

@@ -34,6 +34,9 @@ import type {
   ChangePasswordData,
   ChangePasswordErrors,
   ChangePasswordResponses,
+  ChatData,
+  ChatErrors,
+  ChatResponses,
   ClearSamplesForRunData,
   ClearSamplesForRunErrors,
   ClearSamplesForRunResponses,
@@ -372,7 +375,6 @@ export const root = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/',
     ...options,
   })
@@ -389,7 +391,6 @@ export const healthCheck = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/health',
     ...options,
   })
@@ -421,7 +422,6 @@ export const register = <ThrowOnError extends boolean = false>(
     RegisterErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/register',
     ...options,
     headers: {
@@ -459,7 +459,6 @@ export const login = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...urlSearchParamsBodySerializer,
-    responseType: 'json',
     url: '/api/v1/auth/login',
     ...options,
     headers: {
@@ -494,7 +493,6 @@ export const refreshToken = <ThrowOnError extends boolean = false>(
     RefreshTokenErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/refresh',
     ...options,
     headers: {
@@ -526,7 +524,6 @@ export const logout = <ThrowOnError extends boolean = false>(
     LogoutErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/logout',
     ...options,
     headers: {
@@ -560,7 +557,6 @@ export const getCurrentUserInfo = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -594,7 +590,6 @@ export const requestPasswordReset = <ThrowOnError extends boolean = false>(
     RequestPasswordResetErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/password-reset/request',
     ...options,
     headers: {
@@ -628,7 +623,6 @@ export const confirmPasswordReset = <ThrowOnError extends boolean = false>(
     ConfirmPasswordResetErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/password-reset/confirm',
     ...options,
     headers: {
@@ -665,7 +659,6 @@ export const changePassword = <ThrowOnError extends boolean = false>(
     ChangePasswordErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -705,7 +698,6 @@ export const verifyEmail = <ThrowOnError extends boolean = false>(
     VerifyEmailErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/verify-email',
     ...options,
     headers: {
@@ -740,7 +732,6 @@ export const resendVerification = <ThrowOnError extends boolean = false>(
     ResendVerificationErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/resend-verification',
     ...options,
     headers: {
@@ -762,7 +753,6 @@ export const listApiKeys = <ThrowOnError extends boolean = false>(
     ListApiKeysErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -786,7 +776,6 @@ export const createApiKey = <ThrowOnError extends boolean = false>(
     CreateApiKeyErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -837,7 +826,6 @@ export const revokeApiKey = <ThrowOnError extends boolean = false>(
     RevokeApiKeyErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -866,7 +854,6 @@ export const getAvailableOauthProviders = <
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/oauth/providers',
     ...options,
   })
@@ -897,7 +884,6 @@ export const oauthAuthorize = <ThrowOnError extends boolean = false>(
     OauthAuthorizeErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/oauth/{provider}/authorize',
     ...options,
   })
@@ -932,7 +918,6 @@ export const oauthCallback = <ThrowOnError extends boolean = false>(
     OauthCallbackErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/auth/oauth/{provider}/callback',
     ...options,
   })
@@ -966,7 +951,6 @@ export const linkOauthProvider = <ThrowOnError extends boolean = false>(
     LinkOauthProviderErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -1010,7 +994,6 @@ export const unlinkOauthProvider = <ThrowOnError extends boolean = false>(
     UnlinkOauthProviderErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -1037,7 +1020,6 @@ export const getAllConfigs = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/actions/configs',
     ...options,
   })
@@ -1070,7 +1052,6 @@ export const validateActionConfig = <ThrowOnError extends boolean = false>(
     ValidateActionConfigErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/actions/config/validate',
     ...options,
   })
@@ -1092,7 +1073,6 @@ export const getActionOptions = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/actions/options',
     ...options,
   })
@@ -1113,7 +1093,6 @@ export const getActionPlatforms = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/actions/platforms',
     ...options,
   })
@@ -1138,9 +1117,35 @@ export const getActionTypes = <ThrowOnError extends boolean = false>(
     GetActionTypesErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/actions/types',
     ...options,
+  })
+}
+
+/**
+ * Chat
+ * Stream an assistant reply for the given message history.
+ */
+export const chat = <ThrowOnError extends boolean = false>(
+  options: Options<ChatData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ChatResponses,
+    ChatErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 }
 
@@ -1162,7 +1167,6 @@ export const listFiles = <ThrowOnError extends boolean = false>(
     ListFilesErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/files',
     ...options,
   })
@@ -1197,7 +1201,6 @@ export const createFile = <ThrowOnError extends boolean = false>(
     CreateFileErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/files',
     ...options,
     headers: {
@@ -1239,7 +1242,6 @@ export const uploadFile = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...formDataBodySerializer,
-    responseType: 'json',
     url: '/api/v1/files/upload',
     ...options,
     headers: {
@@ -1264,7 +1266,6 @@ export const browseS3 = <ThrowOnError extends boolean = false>(
     BrowseS3Errors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/files/list',
     ...options,
   })
@@ -1286,7 +1287,6 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
     DownloadFileErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/files/download',
     ...options,
   })
@@ -1336,7 +1336,6 @@ export const getFile = <ThrowOnError extends boolean = false>(
     GetFileErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/files/{file_id}',
     ...options,
   })
@@ -1362,7 +1361,6 @@ export const updateFile = <ThrowOnError extends boolean = false>(
     UpdateFileErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -1392,7 +1390,6 @@ export const getFileVersions = <ThrowOnError extends boolean = false>(
     GetFileVersionsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/files/{file_id}/versions',
     ...options,
   })
@@ -1422,7 +1419,6 @@ export const getJobs = <ThrowOnError extends boolean = false>(
     GetJobsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/jobs',
     ...options,
   })
@@ -1451,7 +1447,6 @@ export const submitJob = <ThrowOnError extends boolean = false>(
     SubmitJobErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/jobs',
     ...options,
     headers: {
@@ -1480,7 +1475,6 @@ export const getJob = <ThrowOnError extends boolean = false>(
     GetJobErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/jobs/{job_id}',
     ...options,
   })
@@ -1506,7 +1500,6 @@ export const updateJob = <ThrowOnError extends boolean = false>(
     UpdateJobErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/jobs/{job_id}',
     ...options,
     headers: {
@@ -1535,7 +1528,6 @@ export const getJobLog = <ThrowOnError extends boolean = false>(
     GetJobLogErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/jobs/{job_id}/log',
     ...options,
   })
@@ -1570,7 +1562,6 @@ export const getJobLogPaginated = <ThrowOnError extends boolean = false>(
     GetJobLogPaginatedErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/jobs/{job_id}/log/paginated',
     ...options,
   })
@@ -1600,7 +1591,6 @@ export const getLatestManifest = <ThrowOnError extends boolean = false>(
     GetLatestManifestErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/manifest',
     ...options,
   })
@@ -1627,7 +1617,6 @@ export const uploadManifest = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...formDataBodySerializer,
-    responseType: 'json',
     url: '/api/v1/manifest',
     ...options,
     headers: {
@@ -1663,7 +1652,6 @@ export const validateManifest = <ThrowOnError extends boolean = false>(
     ValidateManifestErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/manifest/validate',
     ...options,
   })
@@ -1681,7 +1669,6 @@ export const getProjects = <ThrowOnError extends boolean = false>(
     GetProjectsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects',
     ...options,
   })
@@ -1699,7 +1686,6 @@ export const createProject = <ThrowOnError extends boolean = false>(
     CreateProjectErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -1731,7 +1717,6 @@ export const getProjectAttributes = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects/attributes',
     ...options,
   })
@@ -1749,7 +1734,6 @@ export const searchProjects = <ThrowOnError extends boolean = false>(
     SearchProjectsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects/search',
     ...options,
   })
@@ -1767,7 +1751,6 @@ export const reindexProjects = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects/search',
     ...options,
   })
@@ -1786,7 +1769,6 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
     GetProjectByProjectIdErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects/{project_id}',
     ...options,
   })
@@ -1809,7 +1791,6 @@ export const patchProject = <ThrowOnError extends boolean = false>(
     PatchProjectErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects/{project_id}',
     ...options,
     headers: {
@@ -1835,7 +1816,6 @@ export const updateProject = <ThrowOnError extends boolean = false>(
     UpdateProjectErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects/{project_id}',
     ...options,
     headers: {
@@ -1864,7 +1844,6 @@ export const getProjectSamples = <ThrowOnError extends boolean = false>(
     GetProjectSamplesErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects/{project_id}/samples',
     ...options,
   })
@@ -1885,7 +1864,6 @@ export const addSampleToProject = <ThrowOnError extends boolean = false>(
     AddSampleToProjectErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -1922,7 +1900,6 @@ export const uploadSamplesFile = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...formDataBodySerializer,
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -1954,7 +1931,6 @@ export const bulkCreateSamples = <ThrowOnError extends boolean = false>(
     BulkCreateSamplesErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -2010,7 +1986,6 @@ export const updateSampleInProject = <ThrowOnError extends boolean = false>(
     UpdateSampleInProjectErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/projects/{project_id}/samples/{sample_id}',
     ...options,
     headers: {
@@ -2052,7 +2027,6 @@ export const submitPipelineJob = <ThrowOnError extends boolean = false>(
     SubmitPipelineJobErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -2083,7 +2057,6 @@ export const ingestVendorData = <ThrowOnError extends boolean = false>(
     IngestVendorDataErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -2159,7 +2132,6 @@ export const createQcrecord = <ThrowOnError extends boolean = false>(
     CreateQcrecordErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -2202,7 +2174,6 @@ export const searchQcrecordsGet = <ThrowOnError extends boolean = false>(
     SearchQcrecordsGetErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/qcmetrics/search',
     ...options,
   })
@@ -2249,7 +2220,6 @@ export const searchQcrecordsPost = <ThrowOnError extends boolean = false>(
     SearchQcrecordsPostErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/qcmetrics/search',
     ...options,
     headers: {
@@ -2279,7 +2249,6 @@ export const deleteQcrecord = <ThrowOnError extends boolean = false>(
     DeleteQcrecordErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/qcmetrics/{qcrecord_id}',
     ...options,
   })
@@ -2299,7 +2268,6 @@ export const getQcrecord = <ThrowOnError extends boolean = false>(
     GetQcrecordErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/qcmetrics/{qcrecord_id}',
     ...options,
   })
@@ -2317,7 +2285,6 @@ export const getRuns = <ThrowOnError extends boolean = false>(
     GetRunsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs',
     ...options,
   })
@@ -2335,7 +2302,6 @@ export const addRun = <ThrowOnError extends boolean = false>(
     AddRunErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs',
     ...options,
     headers: {
@@ -2357,7 +2323,6 @@ export const searchRuns = <ThrowOnError extends boolean = false>(
     SearchRunsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/search',
     ...options,
   })
@@ -2375,7 +2340,6 @@ export const reindexRuns = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/search',
     ...options,
   })
@@ -2395,7 +2359,6 @@ export const listDemultiplexWorkflows = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/demultiplex',
     ...options,
   })
@@ -2422,7 +2385,6 @@ export const submitDemultiplexWorkflowJob = <
     SubmitDemultiplexWorkflowJobErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -2459,7 +2421,6 @@ export const getDemultiplexWorkflowConfig = <
     GetDemultiplexWorkflowConfigErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/demultiplex/{workflow_id}',
     ...options,
   })
@@ -2477,7 +2438,6 @@ export const getRun = <ThrowOnError extends boolean = false>(
     GetRunErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/{run_id}',
     ...options,
   })
@@ -2496,7 +2456,6 @@ export const updateRun = <ThrowOnError extends boolean = false>(
     UpdateRunErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/{run_id}',
     ...options,
     headers: {
@@ -2518,7 +2477,6 @@ export const getRunSamplesheet = <ThrowOnError extends boolean = false>(
     GetRunSamplesheetErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/{run_id}/samplesheet',
     ...options,
   })
@@ -2537,7 +2495,6 @@ export const postRunSamplesheet = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...formDataBodySerializer,
-    responseType: 'json',
     url: '/api/v1/runs/{run_id}/samplesheet',
     ...options,
     headers: {
@@ -2559,7 +2516,6 @@ export const getRunMetrics = <ThrowOnError extends boolean = false>(
     GetRunMetricsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/{run_id}/metrics',
     ...options,
   })
@@ -2582,7 +2538,6 @@ export const clearSamplesForRun = <ThrowOnError extends boolean = false>(
     ClearSamplesForRunErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -2606,7 +2561,6 @@ export const getSamplesForRun = <ThrowOnError extends boolean = false>(
     GetSamplesForRunErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/runs/{run_id}/samples',
     ...options,
   })
@@ -2624,7 +2578,6 @@ export const associateSampleWithRun = <ThrowOnError extends boolean = false>(
     AssociateSampleWithRunErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -2667,7 +2620,7 @@ export const removeSampleFromRun = <ThrowOnError extends boolean = false>(
  * Supported filter keys:
  * - ``projectid``: exact match on project ID
  * - ``samplename``: exact match on sample name
- * - ``created_on``: date prefix match (YYYY-MM-DD) on created_at
+ * - ``created_at``: date prefix match (YYYY-MM-DD) on created_at
  * - Any other key: matched against sample attributes (case-insensitive key)
  *
  * Multiple filters are AND'd together.
@@ -2680,7 +2633,6 @@ export const searchSamplesGet = <ThrowOnError extends boolean = false>(
     SearchSamplesGetErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/samples/search',
     ...options,
   })
@@ -2706,7 +2658,7 @@ export const searchSamplesGet = <ThrowOnError extends boolean = false>(
  * ``filter_on`` supports:
  * - ``projectid`` (str or list)
  * - ``samplename`` (str or list)
- * - ``created_on`` (str, date prefix match)
+ * - ``created_at`` (str, date prefix match)
  * - ``tags`` (dict of key/value pairs, matched case-insensitively)
  * - Any other key is matched against sample attributes
  *
@@ -2720,7 +2672,6 @@ export const searchSamplesPost = <ThrowOnError extends boolean = false>(
     SearchSamplesPostErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/samples/search',
     ...options,
     headers: {
@@ -2742,7 +2693,6 @@ export const reindexSamples = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/samples/reindex',
     ...options,
   })
@@ -2760,7 +2710,6 @@ export const search = <ThrowOnError extends boolean = false>(
     SearchErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/search',
     ...options,
   })
@@ -2779,7 +2728,6 @@ export const getSettingsByTag = <ThrowOnError extends boolean = false>(
     GetSettingsByTagErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/settings',
     ...options,
   })
@@ -2797,7 +2745,6 @@ export const getSetting = <ThrowOnError extends boolean = false>(
     GetSettingErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/settings/{key}',
     ...options,
   })
@@ -2816,7 +2763,6 @@ export const updateSetting = <ThrowOnError extends boolean = false>(
     UpdateSettingErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/settings/{key}',
     ...options,
     headers: {
@@ -2838,7 +2784,6 @@ export const getVendors = <ThrowOnError extends boolean = false>(
     GetVendorsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/vendors',
     ...options,
   })
@@ -2856,7 +2801,6 @@ export const addVendor = <ThrowOnError extends boolean = false>(
     AddVendorErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/vendors',
     ...options,
     headers: {
@@ -2895,7 +2839,6 @@ export const getVendor = <ThrowOnError extends boolean = false>(
     GetVendorErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/vendors/{vendor_id}',
     ...options,
   })
@@ -2913,7 +2856,6 @@ export const updateVendor = <ThrowOnError extends boolean = false>(
     UpdateVendorErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/vendors/{vendor_id}',
     ...options,
     headers: {
@@ -2935,7 +2877,6 @@ export const getWorkflows = <ThrowOnError extends boolean = false>(
     GetWorkflowsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/workflows',
     ...options,
   })
@@ -2953,7 +2894,6 @@ export const createWorkflow = <ThrowOnError extends boolean = false>(
     CreateWorkflowErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -2981,7 +2921,6 @@ export const getWorkflowById = <ThrowOnError extends boolean = false>(
     GetWorkflowByIdErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/workflows/{workflow_id}',
     ...options,
   })
@@ -2999,7 +2938,6 @@ export const getWorkflowVersions = <ThrowOnError extends boolean = false>(
     GetWorkflowVersionsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/workflows/{workflow_id}/versions',
     ...options,
   })
@@ -3017,7 +2955,6 @@ export const createWorkflowVersion = <ThrowOnError extends boolean = false>(
     CreateWorkflowVersionErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -3045,7 +2982,6 @@ export const getWorkflowVersion = <ThrowOnError extends boolean = false>(
     GetWorkflowVersionErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/workflows/{workflow_id}/versions/{version_num}',
     ...options,
   })
@@ -3082,7 +3018,6 @@ export const setWorkflowVersionAlias = <ThrowOnError extends boolean = false>(
     SetWorkflowVersionAliasErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -3110,7 +3045,6 @@ export const getWorkflowVersionAliases = <ThrowOnError extends boolean = false>(
     GetWorkflowVersionAliasesErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/workflows/{workflow_id}/aliases',
     ...options,
   })
@@ -3138,7 +3072,6 @@ export const getWorkflowDeploymentsForWorkflow = <
     GetWorkflowDeploymentsForWorkflowErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/workflows/{workflow_id}/deployments',
     ...options,
   })
@@ -3156,7 +3089,6 @@ export const getWorkflowDeployments = <ThrowOnError extends boolean = false>(
     GetWorkflowDeploymentsErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments',
     ...options,
   })
@@ -3174,7 +3106,6 @@ export const createWorkflowDeployment = <ThrowOnError extends boolean = false>(
     CreateWorkflowDeploymentErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -3219,7 +3150,6 @@ export const getPipelines = <ThrowOnError extends boolean = false>(
     GetPipelinesErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/pipelines',
     ...options,
   })
@@ -3237,7 +3167,6 @@ export const createPipeline = <ThrowOnError extends boolean = false>(
     CreatePipelineErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -3265,7 +3194,6 @@ export const getPipelineById = <ThrowOnError extends boolean = false>(
     GetPipelineByIdErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/pipelines/{pipeline_id}',
     ...options,
   })
@@ -3283,7 +3211,6 @@ export const addWorkflowToPipeline = <ThrowOnError extends boolean = false>(
     AddWorkflowToPipelineErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',
@@ -3326,7 +3253,6 @@ export const getPlatforms = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/platforms',
     ...options,
   })
@@ -3344,7 +3270,6 @@ export const createPlatform = <ThrowOnError extends boolean = false>(
     CreatePlatformErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/platforms',
     ...options,
     headers: {
@@ -3366,7 +3291,6 @@ export const getPlatformByName = <ThrowOnError extends boolean = false>(
     GetPlatformByNameErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     url: '/api/v1/platforms/{name}',
     ...options,
   })
@@ -3389,7 +3313,6 @@ export const searchUsers = <ThrowOnError extends boolean = false>(
     SearchUsersErrors,
     ThrowOnError
   >({
-    responseType: 'json',
     security: [
       {
         scheme: 'bearer',

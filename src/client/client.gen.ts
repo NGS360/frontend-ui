@@ -26,7 +26,7 @@ export type CreateClientConfig<T extends DefaultClientOptions = ClientOptions> =
 export const client = createClient(
   createClientConfig(
     createConfig<ClientOptions>({
-      baseURL: 'http://apiserver:3000',
+      baseUrl: 'http://localhost:3000',
     }),
   ),
 )

@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL
 export const createClientConfig: CreateClientConfig = (config) => {
   const clientConfig = {
     ...config,
-    baseURL: API_URL,
+    baseUrl: API_URL,
   }
   return clientConfig
 }
