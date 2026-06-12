@@ -278,7 +278,7 @@ export const Spinner = ({ variant, ...props }: SpinnerProps) => {
 export const FullscreenSpinner = ({ variant, ...props }: SpinnerProps) => {
   return (
     <>
-      <div className='fixed inset-0 z-10 flex flex-col gap-2 items-center justify-center bg-white/75 transition-opacity duration-200 pointer-events-none text-primary'>
+      <div className='fixed inset-y-0 left-0 right-[var(--content-inset-right,0px)] z-10 flex flex-col gap-2 items-center justify-center bg-white/75 transition-[opacity,right] duration-200 pointer-events-none text-primary'>
         <Spinner variant={variant} size={64} {...props} />
       </div>
     </>

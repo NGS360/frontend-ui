@@ -291,7 +291,16 @@ export function AiChatSidebarProvider({
       onOpenChange={handleOpenChange}
       openMobile={open}
       onOpenMobileChange={handleOpenChange}
-      style={{ '--sidebar-width': `${effectiveWidth}px` } as React.CSSProperties}
+      style={
+        {
+          '--sidebar-width': `${effectiveWidth}px`,
+          // How much of the viewport's right side the docked sidebar
+          // occupies. Fullscreen overlays (spinner, dropzone) inset
+          // themselves by this so they cover only the content area.
+          '--content-inset-right':
+            open && !isMobile ? `${effectiveWidth}px` : '0px',
+        } as React.CSSProperties
+      }
     >
       {/* Container for @-variant queries so page layouts respond to the
           content width (squeezed by the sidebar), not the viewport. */}

@@ -131,7 +131,7 @@ export const FullscreenDropzone: React.FC<FullscreenDropzoneProps> = ({
       {/* Full-screen overlay */}
       <div
         className={clsx(
-          'fixed inset-0 z-10 flex flex-col gap-2 items-center justify-center border-primary border-4 bg-background/75 transition-opacity duration-200 pointer-events-none',
+          'fixed inset-y-0 left-0 right-[var(--content-inset-right,0px)] z-10 flex flex-col gap-2 items-center justify-center border-primary border-4 bg-background/75 transition-[opacity,right] duration-200 pointer-events-none',
           isDragActive ? 'opacity-100' : 'opacity-0'
         )}
       >
