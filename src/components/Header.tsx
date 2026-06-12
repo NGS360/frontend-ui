@@ -1,6 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { BookOpen, MenuIcon, ShieldCheck, Sparkles, XIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from './ui/button'
 import { CreateProjectForm } from './create-project-form'
 import { SearchBar } from './search-bar'
@@ -38,6 +38,7 @@ export default function Header() {
   const { open: aiSidebarOpen, openMobile: aiSidebarOpenMobile, isMobile: isMobileViewport, toggleSidebar } = useSidebar()
   const aiActive = isMobileViewport ? aiSidebarOpenMobile : aiSidebarOpen
   const [menuOpen, setMenuOpen] = useState(false)
+  const headerRef = useRef<HTMLElement>(null)
 
   const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
 
@@ -51,7 +52,7 @@ export default function Header() {
   const navId = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
   return (
-    <header id="app-header" className="@container sticky top-0 left-0 w-full h-14 flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
+    <header ref={headerRef} id="app-header" className="@container sticky top-0 left-0 w-full h-14 flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
       {/* Logo and Nav Items - Left Side */}
       <div id="header-left" className="flex items-center">
         {/* Logo */}
@@ -168,7 +169,13 @@ export default function Header() {
           </DropdownMenuTrigger>
 
           {/* Mobile menu (using DropdownMenu) */}
-          <DropdownMenuContent id="header-mobile-menu" align="end" sideOffset={4} className="w-screen flex flex-col gap-2">
+          <DropdownMenuContent
+            id="header-mobile-menu"
+            align="end"
+            sideOffset={4}
+            collisionBoundary={headerRef.current}
+            className="w-(--radix-dropdown-menu-content-available-width) max-h-[calc(100svh-4.5rem)] flex flex-col gap-2"
+          >
             {navItems.map(({ to, label, icon, search, isExternal }) => (
               <DropdownMenuItem asChild key={to} className='w-full justify-center'>
                 {isExternal ? (
