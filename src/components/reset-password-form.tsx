@@ -70,7 +70,7 @@ export function ResetPasswordForm({
     },
   })
 
-  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+  const onSubmit: SubmitHandler<FormFields> = (data) => {
     mutate({ 
       body: { 
         token,
