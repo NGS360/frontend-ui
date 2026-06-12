@@ -186,7 +186,7 @@ export const ValidateManifestForm: React.FC<ValidateManifestFormProps> = ({
         throwOnError: true,
       }).then((response) => {
         // Check if response has status 204 (no content)
-        if (response.status === 204) {
+        if (response.response.status === 204) {
           dispatch({ type: 'SET_LATEST_MANIFEST_PATH', value: 'There is no matching manifest file associated with this vendor' });
           dispatch({ type: 'SET_MANIFEST_ERROR', value: true });
         } else if (response.data) {

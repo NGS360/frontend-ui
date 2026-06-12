@@ -1,5 +1,5 @@
-import { AxiosError } from 'axios'
 import { toast } from 'sonner'
+import { ApiError, NetworkError } from './api-error'
 
 export type ErrorKind = 'server' | 'network' | 'client' | 'unknown'
 
@@ -11,18 +11,22 @@ export interface FriendlyError {
   detail?: string
 }
 
-function extractDetail(err: AxiosError<{ detail?: unknown } | undefined>): string | undefined {
-  const raw = err.response?.data?.detail
+function extractDetail(body: unknown): string | undefined {
+  const raw = (body as { detail?: unknown } | undefined)?.detail
   if (typeof raw === 'string' && raw.trim()) return raw
   if (Array.isArray(raw) && raw.length > 0) {
     const first = raw[0] as { msg?: string } | string | undefined
     if (typeof first === 'string') return first
-    if (first && typeof first === 'object' && typeof first.msg === 'string') return first.msg
+    if (first && typeof first === 'object' && typeof first.msg === 'string')
+      return first.msg
   }
   return undefined
 }
 
-function specificFriendlyError(status: number, detail: string | undefined): FriendlyError | undefined {
+function specificFriendlyError(
+  status: number,
+  detail: string | undefined,
+): FriendlyError | undefined {
   switch (status) {
     case 400:
       return {
@@ -30,7 +34,8 @@ function specificFriendlyError(status: number, detail: string | undefined): Frie
         status,
         title: "That request wasn't accepted",
         description:
-          detail ?? "The server couldn't process this request. Please review your input and try again.",
+          detail ??
+          "The server couldn't process this request. Please review your input and try again.",
         detail,
       }
     case 401:
@@ -57,7 +62,8 @@ function specificFriendlyError(status: number, detail: string | undefined): Frie
         status,
         title: "We couldn't find that",
         description:
-          detail ?? "The item you're looking for may have been moved, renamed, or deleted.",
+          detail ??
+          "The item you're looking for may have been moved, renamed, or deleted.",
         detail,
       }
     case 409:
@@ -75,7 +81,8 @@ function specificFriendlyError(status: number, detail: string | undefined): Frie
         kind: 'client',
         status,
         title: 'Some fields need attention',
-        description: detail ?? 'Please review the highlighted fields and try again.',
+        description:
+          detail ?? 'Please review the highlighted fields and try again.',
         detail,
       }
     case 429:
@@ -104,25 +111,23 @@ function specificFriendlyError(status: number, detail: string | undefined): Frie
 }
 
 export function classifyError(error: unknown): FriendlyError {
-  if (error instanceof AxiosError) {
-    const status = error.response?.status
-    const detail = extractDetail(error as AxiosError<{ detail?: unknown }>)
-
-    if (!error.response) {
-      return {
-        kind: 'network',
-        title: "We couldn't reach the server",
-        description:
-          'Check your internet connection and try again. If the problem persists, the service may be briefly offline.',
-      }
+  if (error instanceof NetworkError) {
+    return {
+      kind: 'network',
+      title: "We couldn't reach the server",
+      description:
+        'Check your internet connection and try again. If the problem persists, the service may be briefly offline.',
     }
+  }
 
-    if (status !== undefined) {
-      const specific = specificFriendlyError(status, detail)
-      if (specific) return specific
-    }
+  if (error instanceof ApiError) {
+    const { status } = error
+    const detail = extractDetail(error.body)
 
-    if (status !== undefined && status >= 500) {
+    const specific = specificFriendlyError(status, detail)
+    if (specific) return specific
+
+    if (status >= 500) {
       return {
         kind: 'server',
         status,
@@ -133,12 +138,14 @@ export function classifyError(error: unknown): FriendlyError {
       }
     }
 
-    if (status !== undefined && status >= 400) {
+    if (status >= 400) {
       return {
         kind: 'client',
         status,
         title: 'The request could not be completed',
-        description: detail ?? 'The server rejected the request. Please review your input and try again.',
+        description:
+          detail ??
+          'The server rejected the request. Please review your input and try again.',
         detail,
       }
     }
@@ -149,33 +156,37 @@ export function classifyError(error: unknown): FriendlyError {
     kind: 'unknown',
     title: 'Something went wrong',
     description:
-      message ?? 'An unexpected error occurred. Please try again, or reload the page if the problem continues.',
+      message ??
+      'An unexpected error occurred. Please try again, or reload the page if the problem continues.',
     detail: message,
   }
 }
 
 export function isServerError(error: unknown): boolean {
-  return error instanceof AxiosError && (error.response?.status ?? 0) >= 500
+  return error instanceof ApiError && error.status >= 500
 }
 
 /**
  * Describe an error for the "Show technical details" panel in a way that's
  * useful to forward to a support person. Prefers the backend's `detail`
- * message; for AxiosErrors with no detail, describes the HTTP exchange
+ * message; for HTTP errors with no detail, describes the HTTP exchange
  * (method, URL, status) rather than the JS stack — so a 503 reads as a
- * backend problem, not an "AxiosError". Falls back to stack/message for
- * non-Axios errors.
+ * backend problem, not a JS error. Falls back to stack/message for
+ * other errors.
  */
-export function getTechnicalDetail(error: unknown, info: FriendlyError): string {
+export function getTechnicalDetail(
+  error: unknown,
+  info: FriendlyError,
+): string {
   if (info.detail) return info.detail
-  if (error instanceof AxiosError) {
-    const method = error.config?.method?.toUpperCase() ?? 'REQUEST'
-    const url = error.config?.url ?? '(unknown URL)'
-    if (error.response) {
-      const statusText = error.response.statusText || ''
-      return `HTTP ${error.response.status} ${statusText}`.trim() + ` from ${method} ${url}\nThe server did not provide additional details.`
-    }
-    return `${method} ${url}\nNo response from server: ${error.message}`
+  if (error instanceof ApiError) {
+    return (
+      `HTTP ${error.status} ${error.statusText}`.trim() +
+      ` from ${error.method.toUpperCase()} ${error.url}\nThe server did not provide additional details.`
+    )
+  }
+  if (error instanceof NetworkError) {
+    return `${error.method} ${error.url}\nNo response from server: ${error.message}`
   }
   if (error instanceof Error) return error.stack ?? error.message
   return String(error)
@@ -199,7 +210,10 @@ export function toastApiError(error: unknown, fallbackTitle: string): void {
  * Return a single-line error message suitable for inline form display
  * (e.g. react-hook-form's `setError('root', { message })`).
  */
-export function getFormApiErrorMessage(error: unknown, fallbackTitle: string): string {
+export function getFormApiErrorMessage(
+  error: unknown,
+  fallbackTitle: string,
+): string {
   const info = classifyError(error)
   if (info.kind === 'server' || info.kind === 'network') return info.description
   return info.detail ?? fallbackTitle
