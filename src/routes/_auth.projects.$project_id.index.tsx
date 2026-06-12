@@ -105,7 +105,7 @@ function RouteComponent() {
       )
     },
     onError: (err) => {
-      toast.error(`Error uploading sample metadata: ${err.message || 'Unknown error'}`)
+      toast.error(`Error uploading sample metadata: ${err instanceof Error ? err.message : 'Unknown error'}`)
     },
   })
 

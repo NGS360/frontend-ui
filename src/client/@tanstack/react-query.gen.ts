@@ -17,6 +17,7 @@ import {
   browseS3,
   bulkCreateSamples,
   changePassword,
+  chat,
   clearSamplesForRun,
   confirmPasswordReset,
   createApiKey,
@@ -151,6 +152,8 @@ import type {
   ChangePasswordData,
   ChangePasswordError,
   ChangePasswordResponse,
+  ChatData,
+  ChatError,
   ClearSamplesForRunData,
   ClearSamplesForRunError,
   ClearSamplesForRunResponse,
@@ -381,10 +384,9 @@ import type {
   VerifyEmailError,
   VerifyEmailResponse,
 } from '../types.gen'
-import type { AxiosError } from 'axios'
 
 export type QueryKey<TOptions extends Options> = [
-  Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
+  Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
     _id: string
     _infinite?: boolean
   },
@@ -397,8 +399,8 @@ const createQueryKey = <TOptions extends Options>(
 ): [QueryKey<TOptions>[0]] => {
   const params: QueryKey<TOptions>[0] = {
     _id: id,
-    baseURL: (options?.client ?? _heyApiClient).getConfig().baseURL,
-  }
+    baseUrl: (options?.client ?? _heyApiClient).getConfig().baseUrl,
+  } as QueryKey<TOptions>[0]
   if (infinite) {
     params._infinite = infinite
   }
@@ -517,12 +519,12 @@ export const registerMutation = (
   options?: Partial<Options<RegisterData>>,
 ): UseMutationOptions<
   RegisterResponse,
-  AxiosError<RegisterError>,
+  RegisterError,
   Options<RegisterData>
 > => {
   const mutationOptions: UseMutationOptions<
     RegisterResponse,
-    AxiosError<RegisterError>,
+    RegisterError,
     Options<RegisterData>
   > = {
     mutationFn: async (localOptions) => {
@@ -595,14 +597,10 @@ export const loginOptions = (options: Options<LoginData>) => {
  */
 export const loginMutation = (
   options?: Partial<Options<LoginData>>,
-): UseMutationOptions<
-  LoginResponse,
-  AxiosError<LoginError>,
-  Options<LoginData>
-> => {
+): UseMutationOptions<LoginResponse, LoginError, Options<LoginData>> => {
   const mutationOptions: UseMutationOptions<
     LoginResponse,
-    AxiosError<LoginError>,
+    LoginError,
     Options<LoginData>
   > = {
     mutationFn: async (localOptions) => {
@@ -673,12 +671,12 @@ export const refreshTokenMutation = (
   options?: Partial<Options<RefreshTokenData>>,
 ): UseMutationOptions<
   RefreshTokenResponse,
-  AxiosError<RefreshTokenError>,
+  RefreshTokenError,
   Options<RefreshTokenData>
 > => {
   const mutationOptions: UseMutationOptions<
     RefreshTokenResponse,
-    AxiosError<RefreshTokenError>,
+    RefreshTokenError,
     Options<RefreshTokenData>
   > = {
     mutationFn: async (localOptions) => {
@@ -741,14 +739,10 @@ export const logoutOptions = (options: Options<LogoutData>) => {
  */
 export const logoutMutation = (
   options?: Partial<Options<LogoutData>>,
-): UseMutationOptions<
-  LogoutResponse,
-  AxiosError<LogoutError>,
-  Options<LogoutData>
-> => {
+): UseMutationOptions<LogoutResponse, LogoutError, Options<LogoutData>> => {
   const mutationOptions: UseMutationOptions<
     LogoutResponse,
-    AxiosError<LogoutError>,
+    LogoutError,
     Options<LogoutData>
   > = {
     mutationFn: async (localOptions) => {
@@ -853,12 +847,12 @@ export const requestPasswordResetMutation = (
   options?: Partial<Options<RequestPasswordResetData>>,
 ): UseMutationOptions<
   RequestPasswordResetResponse,
-  AxiosError<RequestPasswordResetError>,
+  RequestPasswordResetError,
   Options<RequestPasswordResetData>
 > => {
   const mutationOptions: UseMutationOptions<
     RequestPasswordResetResponse,
-    AxiosError<RequestPasswordResetError>,
+    RequestPasswordResetError,
     Options<RequestPasswordResetData>
   > = {
     mutationFn: async (localOptions) => {
@@ -930,12 +924,12 @@ export const confirmPasswordResetMutation = (
   options?: Partial<Options<ConfirmPasswordResetData>>,
 ): UseMutationOptions<
   ConfirmPasswordResetResponse,
-  AxiosError<ConfirmPasswordResetError>,
+  ConfirmPasswordResetError,
   Options<ConfirmPasswordResetData>
 > => {
   const mutationOptions: UseMutationOptions<
     ConfirmPasswordResetResponse,
-    AxiosError<ConfirmPasswordResetError>,
+    ConfirmPasswordResetError,
     Options<ConfirmPasswordResetData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1010,12 +1004,12 @@ export const changePasswordMutation = (
   options?: Partial<Options<ChangePasswordData>>,
 ): UseMutationOptions<
   ChangePasswordResponse,
-  AxiosError<ChangePasswordError>,
+  ChangePasswordError,
   Options<ChangePasswordData>
 > => {
   const mutationOptions: UseMutationOptions<
     ChangePasswordResponse,
-    AxiosError<ChangePasswordError>,
+    ChangePasswordError,
     Options<ChangePasswordData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1084,12 +1078,12 @@ export const verifyEmailMutation = (
   options?: Partial<Options<VerifyEmailData>>,
 ): UseMutationOptions<
   VerifyEmailResponse,
-  AxiosError<VerifyEmailError>,
+  VerifyEmailError,
   Options<VerifyEmailData>
 > => {
   const mutationOptions: UseMutationOptions<
     VerifyEmailResponse,
-    AxiosError<VerifyEmailError>,
+    VerifyEmailError,
     Options<VerifyEmailData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1163,12 +1157,12 @@ export const resendVerificationMutation = (
   options?: Partial<Options<ResendVerificationData>>,
 ): UseMutationOptions<
   ResendVerificationResponse,
-  AxiosError<ResendVerificationError>,
+  ResendVerificationError,
   Options<ResendVerificationData>
 > => {
   const mutationOptions: UseMutationOptions<
     ResendVerificationResponse,
-    AxiosError<ResendVerificationError>,
+    ResendVerificationError,
     Options<ResendVerificationData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1255,7 +1249,7 @@ export const listApiKeysInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     ListApiKeysResponse,
-    AxiosError<ListApiKeysError>,
+    ListApiKeysError,
     InfiniteData<ListApiKeysResponse>,
     QueryKey<Options<ListApiKeysData>>,
     | number
@@ -1323,12 +1317,12 @@ export const createApiKeyMutation = (
   options?: Partial<Options<CreateApiKeyData>>,
 ): UseMutationOptions<
   CreateApiKeyResponse,
-  AxiosError<CreateApiKeyError>,
+  CreateApiKeyError,
   Options<CreateApiKeyData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreateApiKeyResponse,
-    AxiosError<CreateApiKeyError>,
+    CreateApiKeyError,
     Options<CreateApiKeyData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1351,12 +1345,12 @@ export const deleteApiKeyMutation = (
   options?: Partial<Options<DeleteApiKeyData>>,
 ): UseMutationOptions<
   DeleteApiKeyResponse,
-  AxiosError<DeleteApiKeyError>,
+  DeleteApiKeyError,
   Options<DeleteApiKeyData>
 > => {
   const mutationOptions: UseMutationOptions<
     DeleteApiKeyResponse,
-    AxiosError<DeleteApiKeyError>,
+    DeleteApiKeyError,
     Options<DeleteApiKeyData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1401,12 +1395,12 @@ export const revokeApiKeyMutation = (
   options?: Partial<Options<RevokeApiKeyData>>,
 ): UseMutationOptions<
   RevokeApiKeyResponse,
-  AxiosError<RevokeApiKeyError>,
+  RevokeApiKeyError,
   Options<RevokeApiKeyData>
 > => {
   const mutationOptions: UseMutationOptions<
     RevokeApiKeyResponse,
-    AxiosError<RevokeApiKeyError>,
+    RevokeApiKeyError,
     Options<RevokeApiKeyData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1588,12 +1582,12 @@ export const linkOauthProviderMutation = (
   options?: Partial<Options<LinkOauthProviderData>>,
 ): UseMutationOptions<
   LinkOauthProviderResponse,
-  AxiosError<LinkOauthProviderError>,
+  LinkOauthProviderError,
   Options<LinkOauthProviderData>
 > => {
   const mutationOptions: UseMutationOptions<
     LinkOauthProviderResponse,
-    AxiosError<LinkOauthProviderError>,
+    LinkOauthProviderError,
     Options<LinkOauthProviderData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1632,12 +1626,12 @@ export const unlinkOauthProviderMutation = (
   options?: Partial<Options<UnlinkOauthProviderData>>,
 ): UseMutationOptions<
   UnlinkOauthProviderResponse,
-  AxiosError<UnlinkOauthProviderError>,
+  UnlinkOauthProviderError,
   Options<UnlinkOauthProviderData>
 > => {
   const mutationOptions: UseMutationOptions<
     UnlinkOauthProviderResponse,
-    AxiosError<UnlinkOauthProviderError>,
+    UnlinkOauthProviderError,
     Options<UnlinkOauthProviderData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1740,12 +1734,12 @@ export const validateActionConfigMutation = (
   options?: Partial<Options<ValidateActionConfigData>>,
 ): UseMutationOptions<
   ValidateActionConfigResponse,
-  AxiosError<ValidateActionConfigError>,
+  ValidateActionConfigError,
   Options<ValidateActionConfigData>
 > => {
   const mutationOptions: UseMutationOptions<
     ValidateActionConfigResponse,
-    AxiosError<ValidateActionConfigError>,
+    ValidateActionConfigError,
     Options<ValidateActionConfigData>
   > = {
     mutationFn: async (localOptions) => {
@@ -1846,6 +1840,52 @@ export const getActionTypesOptions = (options: Options<GetActionTypesData>) => {
   })
 }
 
+export const chatQueryKey = (options: Options<ChatData>) =>
+  createQueryKey('chat', options)
+
+/**
+ * Chat
+ * Stream an assistant reply for the given message history.
+ */
+export const chatOptions = (options: Options<ChatData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await chat({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: chatQueryKey(options),
+  })
+}
+
+/**
+ * Chat
+ * Stream an assistant reply for the given message history.
+ */
+export const chatMutation = (
+  options?: Partial<Options<ChatData>>,
+): UseMutationOptions<unknown, ChatError, Options<ChatData>> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    ChatError,
+    Options<ChatData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await chat({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const listFilesQueryKey = (options?: Options<ListFilesData>) =>
   createQueryKey('listFiles', options)
 
@@ -1892,7 +1932,7 @@ export const listFilesInfiniteQueryKey = (
 export const listFilesInfiniteOptions = (options?: Options<ListFilesData>) => {
   return infiniteQueryOptions<
     ListFilesResponse,
-    AxiosError<ListFilesError>,
+    ListFilesError,
     InfiniteData<ListFilesResponse>,
     QueryKey<Options<ListFilesData>>,
     | number
@@ -1994,12 +2034,12 @@ export const createFileMutation = (
   options?: Partial<Options<CreateFileData>>,
 ): UseMutationOptions<
   CreateFileResponse,
-  AxiosError<CreateFileError>,
+  CreateFileError,
   Options<CreateFileData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreateFileResponse,
-    AxiosError<CreateFileError>,
+    CreateFileError,
     Options<CreateFileData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2082,12 +2122,12 @@ export const uploadFileMutation = (
   options?: Partial<Options<UploadFileData>>,
 ): UseMutationOptions<
   UploadFileResponse,
-  AxiosError<UploadFileError>,
+  UploadFileError,
   Options<UploadFileData>
 > => {
   const mutationOptions: UseMutationOptions<
     UploadFileResponse,
-    AxiosError<UploadFileError>,
+    UploadFileError,
     Options<UploadFileData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2168,12 +2208,12 @@ export const deleteFileMutation = (
   options?: Partial<Options<DeleteFileData>>,
 ): UseMutationOptions<
   DeleteFileResponse,
-  AxiosError<DeleteFileError>,
+  DeleteFileError,
   Options<DeleteFileData>
 > => {
   const mutationOptions: UseMutationOptions<
     DeleteFileResponse,
-    AxiosError<DeleteFileError>,
+    DeleteFileError,
     Options<DeleteFileData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2228,12 +2268,12 @@ export const updateFileMutation = (
   options?: Partial<Options<UpdateFileData>>,
 ): UseMutationOptions<
   UpdateFileResponse,
-  AxiosError<UpdateFileError>,
+  UpdateFileError,
   Options<UpdateFileData>
 > => {
   const mutationOptions: UseMutationOptions<
     UpdateFileResponse,
-    AxiosError<UpdateFileError>,
+    UpdateFileError,
     Options<UpdateFileData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2361,12 +2401,12 @@ export const submitJobMutation = (
   options?: Partial<Options<SubmitJobData>>,
 ): UseMutationOptions<
   SubmitJobResponse,
-  AxiosError<SubmitJobError>,
+  SubmitJobError,
   Options<SubmitJobData>
 > => {
   const mutationOptions: UseMutationOptions<
     SubmitJobResponse,
-    AxiosError<SubmitJobError>,
+    SubmitJobError,
     Options<SubmitJobData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2426,12 +2466,12 @@ export const updateJobMutation = (
   options?: Partial<Options<UpdateJobData>>,
 ): UseMutationOptions<
   UpdateJobResponse,
-  AxiosError<UpdateJobError>,
+  UpdateJobError,
   Options<UpdateJobData>
 > => {
   const mutationOptions: UseMutationOptions<
     UpdateJobResponse,
-    AxiosError<UpdateJobError>,
+    UpdateJobError,
     Options<UpdateJobData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2600,12 +2640,12 @@ export const uploadManifestMutation = (
   options?: Partial<Options<UploadManifestData>>,
 ): UseMutationOptions<
   UploadManifestResponse,
-  AxiosError<UploadManifestError>,
+  UploadManifestError,
   Options<UploadManifestData>
 > => {
   const mutationOptions: UseMutationOptions<
     UploadManifestResponse,
-    AxiosError<UploadManifestError>,
+    UploadManifestError,
     Options<UploadManifestData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2681,12 +2721,12 @@ export const validateManifestMutation = (
   options?: Partial<Options<ValidateManifestData>>,
 ): UseMutationOptions<
   ValidateManifestResponse,
-  AxiosError<ValidateManifestError>,
+  ValidateManifestError,
   Options<ValidateManifestData>
 > => {
   const mutationOptions: UseMutationOptions<
     ValidateManifestResponse,
-    AxiosError<ValidateManifestError>,
+    ValidateManifestError,
     Options<ValidateManifestData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2737,7 +2777,7 @@ export const getProjectsInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     GetProjectsResponse,
-    AxiosError<GetProjectsError>,
+    GetProjectsError,
     InfiniteData<GetProjectsResponse>,
     QueryKey<Options<GetProjectsData>>,
     | number
@@ -2805,12 +2845,12 @@ export const createProjectMutation = (
   options?: Partial<Options<CreateProjectData>>,
 ): UseMutationOptions<
   CreateProjectResponse,
-  AxiosError<CreateProjectError>,
+  CreateProjectError,
   Options<CreateProjectData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreateProjectResponse,
-    AxiosError<CreateProjectError>,
+    CreateProjectError,
     Options<CreateProjectData>
   > = {
     mutationFn: async (localOptions) => {
@@ -2890,7 +2930,7 @@ export const searchProjectsInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     SearchProjectsResponse,
-    AxiosError<SearchProjectsError>,
+    SearchProjectsError,
     InfiniteData<SearchProjectsResponse>,
     QueryKey<Options<SearchProjectsData>>,
     | number
@@ -2959,14 +2999,10 @@ export const reindexProjectsOptions = (
  */
 export const reindexProjectsMutation = (
   options?: Partial<Options<ReindexProjectsData>>,
-): UseMutationOptions<
-  unknown,
-  AxiosError<DefaultError>,
-  Options<ReindexProjectsData>
-> => {
+): UseMutationOptions<unknown, DefaultError, Options<ReindexProjectsData>> => {
   const mutationOptions: UseMutationOptions<
     unknown,
-    AxiosError<DefaultError>,
+    DefaultError,
     Options<ReindexProjectsData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3020,12 +3056,12 @@ export const patchProjectMutation = (
   options?: Partial<Options<PatchProjectData>>,
 ): UseMutationOptions<
   PatchProjectResponse,
-  AxiosError<PatchProjectError>,
+  PatchProjectError,
   Options<PatchProjectData>
 > => {
   const mutationOptions: UseMutationOptions<
     PatchProjectResponse,
-    AxiosError<PatchProjectError>,
+    PatchProjectError,
     Options<PatchProjectData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3052,12 +3088,12 @@ export const updateProjectMutation = (
   options?: Partial<Options<UpdateProjectData>>,
 ): UseMutationOptions<
   UpdateProjectResponse,
-  AxiosError<UpdateProjectError>,
+  UpdateProjectError,
   Options<UpdateProjectData>
 > => {
   const mutationOptions: UseMutationOptions<
     UpdateProjectResponse,
-    AxiosError<UpdateProjectError>,
+    UpdateProjectError,
     Options<UpdateProjectData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3143,12 +3179,12 @@ export const addSampleToProjectMutation = (
   options?: Partial<Options<AddSampleToProjectData>>,
 ): UseMutationOptions<
   AddSampleToProjectResponse,
-  AxiosError<AddSampleToProjectError>,
+  AddSampleToProjectError,
   Options<AddSampleToProjectData>
 > => {
   const mutationOptions: UseMutationOptions<
     AddSampleToProjectResponse,
-    AxiosError<AddSampleToProjectError>,
+    AddSampleToProjectError,
     Options<AddSampleToProjectData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3212,12 +3248,12 @@ export const uploadSamplesFileMutation = (
   options?: Partial<Options<UploadSamplesFileData>>,
 ): UseMutationOptions<
   UploadSamplesFileResponse,
-  AxiosError<UploadSamplesFileError>,
+  UploadSamplesFileError,
   Options<UploadSamplesFileData>
 > => {
   const mutationOptions: UseMutationOptions<
     UploadSamplesFileResponse,
-    AxiosError<UploadSamplesFileError>,
+    UploadSamplesFileError,
     Options<UploadSamplesFileData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3273,12 +3309,12 @@ export const bulkCreateSamplesMutation = (
   options?: Partial<Options<BulkCreateSamplesData>>,
 ): UseMutationOptions<
   BulkCreateSamplesResponse,
-  AxiosError<BulkCreateSamplesError>,
+  BulkCreateSamplesError,
   Options<BulkCreateSamplesData>
 > => {
   const mutationOptions: UseMutationOptions<
     BulkCreateSamplesResponse,
-    AxiosError<BulkCreateSamplesError>,
+    BulkCreateSamplesError,
     Options<BulkCreateSamplesData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3306,12 +3342,12 @@ export const deleteSampleFromProjectMutation = (
   options?: Partial<Options<DeleteSampleFromProjectData>>,
 ): UseMutationOptions<
   DeleteSampleFromProjectResponse,
-  AxiosError<DeleteSampleFromProjectError>,
+  DeleteSampleFromProjectError,
   Options<DeleteSampleFromProjectData>
 > => {
   const mutationOptions: UseMutationOptions<
     DeleteSampleFromProjectResponse,
-    AxiosError<DeleteSampleFromProjectError>,
+    DeleteSampleFromProjectError,
     Options<DeleteSampleFromProjectData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3334,12 +3370,12 @@ export const updateSampleInProjectMutation = (
   options?: Partial<Options<UpdateSampleInProjectData>>,
 ): UseMutationOptions<
   UpdateSampleInProjectResponse,
-  AxiosError<UpdateSampleInProjectError>,
+  UpdateSampleInProjectError,
   Options<UpdateSampleInProjectData>
 > => {
   const mutationOptions: UseMutationOptions<
     UpdateSampleInProjectResponse,
-    AxiosError<UpdateSampleInProjectError>,
+    UpdateSampleInProjectError,
     Options<UpdateSampleInProjectData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3427,12 +3463,12 @@ export const submitPipelineJobMutation = (
   options?: Partial<Options<SubmitPipelineJobData>>,
 ): UseMutationOptions<
   SubmitPipelineJobResponse,
-  AxiosError<SubmitPipelineJobError>,
+  SubmitPipelineJobError,
   Options<SubmitPipelineJobData>
 > => {
   const mutationOptions: UseMutationOptions<
     SubmitPipelineJobResponse,
-    AxiosError<SubmitPipelineJobError>,
+    SubmitPipelineJobError,
     Options<SubmitPipelineJobData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3486,12 +3522,12 @@ export const ingestVendorDataMutation = (
   options?: Partial<Options<IngestVendorDataData>>,
 ): UseMutationOptions<
   IngestVendorDataResponse,
-  AxiosError<IngestVendorDataError>,
+  IngestVendorDataError,
   Options<IngestVendorDataData>
 > => {
   const mutationOptions: UseMutationOptions<
     IngestVendorDataResponse,
-    AxiosError<IngestVendorDataError>,
+    IngestVendorDataError,
     Options<IngestVendorDataData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3640,12 +3676,12 @@ export const createQcrecordMutation = (
   options?: Partial<Options<CreateQcrecordData>>,
 ): UseMutationOptions<
   CreateQcrecordResponse,
-  AxiosError<CreateQcrecordError>,
+  CreateQcrecordError,
   Options<CreateQcrecordData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreateQcrecordResponse,
-    AxiosError<CreateQcrecordError>,
+    CreateQcrecordError,
     Options<CreateQcrecordData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3729,7 +3765,7 @@ export const searchQcrecordsGetInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     SearchQcrecordsGetResponse,
-    AxiosError<SearchQcrecordsGetError>,
+    SearchQcrecordsGetError,
     InfiniteData<SearchQcrecordsGetResponse>,
     QueryKey<Options<SearchQcrecordsGetData>>,
     | number
@@ -3864,7 +3900,7 @@ export const searchQcrecordsPostInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     SearchQcrecordsPostResponse,
-    AxiosError<SearchQcrecordsPostError>,
+    SearchQcrecordsPostError,
     InfiniteData<SearchQcrecordsPostResponse>,
     QueryKey<Options<SearchQcrecordsPostData>>,
     | number
@@ -3939,12 +3975,12 @@ export const searchQcrecordsPostMutation = (
   options?: Partial<Options<SearchQcrecordsPostData>>,
 ): UseMutationOptions<
   SearchQcrecordsPostResponse,
-  AxiosError<SearchQcrecordsPostError>,
+  SearchQcrecordsPostError,
   Options<SearchQcrecordsPostData>
 > => {
   const mutationOptions: UseMutationOptions<
     SearchQcrecordsPostResponse,
-    AxiosError<SearchQcrecordsPostError>,
+    SearchQcrecordsPostError,
     Options<SearchQcrecordsPostData>
   > = {
     mutationFn: async (localOptions) => {
@@ -3975,12 +4011,12 @@ export const deleteQcrecordMutation = (
   options?: Partial<Options<DeleteQcrecordData>>,
 ): UseMutationOptions<
   DeleteQcrecordResponse,
-  AxiosError<DeleteQcrecordError>,
+  DeleteQcrecordError,
   Options<DeleteQcrecordData>
 > => {
   const mutationOptions: UseMutationOptions<
     DeleteQcrecordResponse,
-    AxiosError<DeleteQcrecordError>,
+    DeleteQcrecordError,
     Options<DeleteQcrecordData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4052,7 +4088,7 @@ export const getRunsInfiniteQueryKey = (
 export const getRunsInfiniteOptions = (options?: Options<GetRunsData>) => {
   return infiniteQueryOptions<
     GetRunsResponse,
-    AxiosError<GetRunsError>,
+    GetRunsError,
     InfiniteData<GetRunsResponse>,
     QueryKey<Options<GetRunsData>>,
     | number
@@ -4118,14 +4154,10 @@ export const addRunOptions = (options: Options<AddRunData>) => {
  */
 export const addRunMutation = (
   options?: Partial<Options<AddRunData>>,
-): UseMutationOptions<
-  AddRunResponse,
-  AxiosError<AddRunError>,
-  Options<AddRunData>
-> => {
+): UseMutationOptions<AddRunResponse, AddRunError, Options<AddRunData>> => {
   const mutationOptions: UseMutationOptions<
     AddRunResponse,
-    AxiosError<AddRunError>,
+    AddRunError,
     Options<AddRunData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4174,7 +4206,7 @@ export const searchRunsInfiniteQueryKey = (
 export const searchRunsInfiniteOptions = (options: Options<SearchRunsData>) => {
   return infiniteQueryOptions<
     SearchRunsResponse,
-    AxiosError<SearchRunsError>,
+    SearchRunsError,
     InfiniteData<SearchRunsResponse>,
     QueryKey<Options<SearchRunsData>>,
     | number
@@ -4240,14 +4272,10 @@ export const reindexRunsOptions = (options?: Options<ReindexRunsData>) => {
  */
 export const reindexRunsMutation = (
   options?: Partial<Options<ReindexRunsData>>,
-): UseMutationOptions<
-  unknown,
-  AxiosError<DefaultError>,
-  Options<ReindexRunsData>
-> => {
+): UseMutationOptions<unknown, DefaultError, Options<ReindexRunsData>> => {
   const mutationOptions: UseMutationOptions<
     unknown,
-    AxiosError<DefaultError>,
+    DefaultError,
     Options<ReindexRunsData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4336,12 +4364,12 @@ export const submitDemultiplexWorkflowJobMutation = (
   options?: Partial<Options<SubmitDemultiplexWorkflowJobData>>,
 ): UseMutationOptions<
   SubmitDemultiplexWorkflowJobResponse,
-  AxiosError<SubmitDemultiplexWorkflowJobError>,
+  SubmitDemultiplexWorkflowJobError,
   Options<SubmitDemultiplexWorkflowJobData>
 > => {
   const mutationOptions: UseMutationOptions<
     SubmitDemultiplexWorkflowJobResponse,
-    AxiosError<SubmitDemultiplexWorkflowJobError>,
+    SubmitDemultiplexWorkflowJobError,
     Options<SubmitDemultiplexWorkflowJobData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4419,12 +4447,12 @@ export const updateRunMutation = (
   options?: Partial<Options<UpdateRunData>>,
 ): UseMutationOptions<
   UpdateRunResponse,
-  AxiosError<UpdateRunError>,
+  UpdateRunError,
   Options<UpdateRunData>
 > => {
   const mutationOptions: UseMutationOptions<
     UpdateRunResponse,
-    AxiosError<UpdateRunError>,
+    UpdateRunError,
     Options<UpdateRunData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4497,12 +4525,12 @@ export const postRunSamplesheetMutation = (
   options?: Partial<Options<PostRunSamplesheetData>>,
 ): UseMutationOptions<
   PostRunSamplesheetResponse,
-  AxiosError<PostRunSamplesheetError>,
+  PostRunSamplesheetError,
   Options<PostRunSamplesheetData>
 > => {
   const mutationOptions: UseMutationOptions<
     PostRunSamplesheetResponse,
-    AxiosError<PostRunSamplesheetError>,
+    PostRunSamplesheetError,
     Options<PostRunSamplesheetData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4552,12 +4580,12 @@ export const clearSamplesForRunMutation = (
   options?: Partial<Options<ClearSamplesForRunData>>,
 ): UseMutationOptions<
   ClearSamplesForRunResponse,
-  AxiosError<ClearSamplesForRunError>,
+  ClearSamplesForRunError,
   Options<ClearSamplesForRunData>
 > => {
   const mutationOptions: UseMutationOptions<
     ClearSamplesForRunResponse,
-    AxiosError<ClearSamplesForRunError>,
+    ClearSamplesForRunError,
     Options<ClearSamplesForRunData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4630,12 +4658,12 @@ export const associateSampleWithRunMutation = (
   options?: Partial<Options<AssociateSampleWithRunData>>,
 ): UseMutationOptions<
   AssociateSampleWithRunResponse,
-  AxiosError<AssociateSampleWithRunError>,
+  AssociateSampleWithRunError,
   Options<AssociateSampleWithRunData>
 > => {
   const mutationOptions: UseMutationOptions<
     AssociateSampleWithRunResponse,
-    AxiosError<AssociateSampleWithRunError>,
+    AssociateSampleWithRunError,
     Options<AssociateSampleWithRunData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4658,12 +4686,12 @@ export const removeSampleFromRunMutation = (
   options?: Partial<Options<RemoveSampleFromRunData>>,
 ): UseMutationOptions<
   RemoveSampleFromRunResponse,
-  AxiosError<RemoveSampleFromRunError>,
+  RemoveSampleFromRunError,
   Options<RemoveSampleFromRunData>
 > => {
   const mutationOptions: UseMutationOptions<
     RemoveSampleFromRunResponse,
-    AxiosError<RemoveSampleFromRunError>,
+    RemoveSampleFromRunError,
     Options<RemoveSampleFromRunData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4692,7 +4720,7 @@ export const searchSamplesGetQueryKey = (
  * Supported filter keys:
  * - ``projectid``: exact match on project ID
  * - ``samplename``: exact match on sample name
- * - ``created_on``: date prefix match (YYYY-MM-DD) on created_at
+ * - ``created_at``: date prefix match (YYYY-MM-DD) on created_at
  * - Any other key: matched against sample attributes (case-insensitive key)
  *
  * Multiple filters are AND'd together.
@@ -4729,7 +4757,7 @@ export const searchSamplesGetInfiniteQueryKey = (
  * Supported filter keys:
  * - ``projectid``: exact match on project ID
  * - ``samplename``: exact match on sample name
- * - ``created_on``: date prefix match (YYYY-MM-DD) on created_at
+ * - ``created_at``: date prefix match (YYYY-MM-DD) on created_at
  * - Any other key: matched against sample attributes (case-insensitive key)
  *
  * Multiple filters are AND'd together.
@@ -4739,7 +4767,7 @@ export const searchSamplesGetInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     SearchSamplesGetResponse,
-    AxiosError<SearchSamplesGetError>,
+    SearchSamplesGetError,
     InfiniteData<SearchSamplesGetResponse>,
     QueryKey<Options<SearchSamplesGetData>>,
     | number
@@ -4801,7 +4829,7 @@ export const searchSamplesPostQueryKey = (
  * ``filter_on`` supports:
  * - ``projectid`` (str or list)
  * - ``samplename`` (str or list)
- * - ``created_on`` (str, date prefix match)
+ * - ``created_at`` (str, date prefix match)
  * - ``tags`` (dict of key/value pairs, matched case-insensitively)
  * - Any other key is matched against sample attributes
  *
@@ -4849,7 +4877,7 @@ export const searchSamplesPostInfiniteQueryKey = (
  * ``filter_on`` supports:
  * - ``projectid`` (str or list)
  * - ``samplename`` (str or list)
- * - ``created_on`` (str, date prefix match)
+ * - ``created_at`` (str, date prefix match)
  * - ``tags`` (dict of key/value pairs, matched case-insensitively)
  * - Any other key is matched against sample attributes
  *
@@ -4860,7 +4888,7 @@ export const searchSamplesPostInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     SearchSamplesPostResponse,
-    AxiosError<SearchSamplesPostError>,
+    SearchSamplesPostError,
     InfiniteData<SearchSamplesPostResponse>,
     QueryKey<Options<SearchSamplesPostData>>,
     | number
@@ -4918,7 +4946,7 @@ export const searchSamplesPostInfiniteOptions = (
  * ``filter_on`` supports:
  * - ``projectid`` (str or list)
  * - ``samplename`` (str or list)
- * - ``created_on`` (str, date prefix match)
+ * - ``created_at`` (str, date prefix match)
  * - ``tags`` (dict of key/value pairs, matched case-insensitively)
  * - Any other key is matched against sample attributes
  *
@@ -4928,12 +4956,12 @@ export const searchSamplesPostMutation = (
   options?: Partial<Options<SearchSamplesPostData>>,
 ): UseMutationOptions<
   SearchSamplesPostResponse,
-  AxiosError<SearchSamplesPostError>,
+  SearchSamplesPostError,
   Options<SearchSamplesPostData>
 > => {
   const mutationOptions: UseMutationOptions<
     SearchSamplesPostResponse,
-    AxiosError<SearchSamplesPostError>,
+    SearchSamplesPostError,
     Options<SearchSamplesPostData>
   > = {
     mutationFn: async (localOptions) => {
@@ -4978,14 +5006,10 @@ export const reindexSamplesOptions = (
  */
 export const reindexSamplesMutation = (
   options?: Partial<Options<ReindexSamplesData>>,
-): UseMutationOptions<
-  unknown,
-  AxiosError<DefaultError>,
-  Options<ReindexSamplesData>
-> => {
+): UseMutationOptions<unknown, DefaultError, Options<ReindexSamplesData>> => {
   const mutationOptions: UseMutationOptions<
     unknown,
-    AxiosError<DefaultError>,
+    DefaultError,
     Options<ReindexSamplesData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5079,12 +5103,12 @@ export const updateSettingMutation = (
   options?: Partial<Options<UpdateSettingData>>,
 ): UseMutationOptions<
   UpdateSettingResponse,
-  AxiosError<UpdateSettingError>,
+  UpdateSettingError,
   Options<UpdateSettingData>
 > => {
   const mutationOptions: UseMutationOptions<
     UpdateSettingResponse,
-    AxiosError<UpdateSettingError>,
+    UpdateSettingError,
     Options<UpdateSettingData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5151,12 +5175,12 @@ export const addVendorMutation = (
   options?: Partial<Options<AddVendorData>>,
 ): UseMutationOptions<
   AddVendorResponse,
-  AxiosError<AddVendorError>,
+  AddVendorError,
   Options<AddVendorData>
 > => {
   const mutationOptions: UseMutationOptions<
     AddVendorResponse,
-    AxiosError<AddVendorError>,
+    AddVendorError,
     Options<AddVendorData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5179,12 +5203,12 @@ export const deleteVendorMutation = (
   options?: Partial<Options<DeleteVendorData>>,
 ): UseMutationOptions<
   DeleteVendorResponse,
-  AxiosError<DeleteVendorError>,
+  DeleteVendorError,
   Options<DeleteVendorData>
 > => {
   const mutationOptions: UseMutationOptions<
     DeleteVendorResponse,
-    AxiosError<DeleteVendorError>,
+    DeleteVendorError,
     Options<DeleteVendorData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5229,12 +5253,12 @@ export const updateVendorMutation = (
   options?: Partial<Options<UpdateVendorData>>,
 ): UseMutationOptions<
   UpdateVendorResponse,
-  AxiosError<UpdateVendorError>,
+  UpdateVendorError,
   Options<UpdateVendorData>
 > => {
   const mutationOptions: UseMutationOptions<
     UpdateVendorResponse,
-    AxiosError<UpdateVendorError>,
+    UpdateVendorError,
     Options<UpdateVendorData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5285,7 +5309,7 @@ export const getWorkflowsInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     GetWorkflowsResponse,
-    AxiosError<GetWorkflowsError>,
+    GetWorkflowsError,
     InfiniteData<GetWorkflowsResponse>,
     QueryKey<Options<GetWorkflowsData>>,
     | number
@@ -5353,12 +5377,12 @@ export const createWorkflowMutation = (
   options?: Partial<Options<CreateWorkflowData>>,
 ): UseMutationOptions<
   CreateWorkflowResponse,
-  AxiosError<CreateWorkflowError>,
+  CreateWorkflowError,
   Options<CreateWorkflowData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreateWorkflowResponse,
-    AxiosError<CreateWorkflowError>,
+    CreateWorkflowError,
     Options<CreateWorkflowData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5456,12 +5480,12 @@ export const createWorkflowVersionMutation = (
   options?: Partial<Options<CreateWorkflowVersionData>>,
 ): UseMutationOptions<
   CreateWorkflowVersionResponse,
-  AxiosError<CreateWorkflowVersionError>,
+  CreateWorkflowVersionError,
   Options<CreateWorkflowVersionData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreateWorkflowVersionResponse,
-    AxiosError<CreateWorkflowVersionError>,
+    CreateWorkflowVersionError,
     Options<CreateWorkflowVersionData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5509,12 +5533,12 @@ export const deleteWorkflowVersionAliasMutation = (
   options?: Partial<Options<DeleteWorkflowVersionAliasData>>,
 ): UseMutationOptions<
   DeleteWorkflowVersionAliasResponse,
-  AxiosError<DeleteWorkflowVersionAliasError>,
+  DeleteWorkflowVersionAliasError,
   Options<DeleteWorkflowVersionAliasData>
 > => {
   const mutationOptions: UseMutationOptions<
     DeleteWorkflowVersionAliasResponse,
-    AxiosError<DeleteWorkflowVersionAliasError>,
+    DeleteWorkflowVersionAliasError,
     Options<DeleteWorkflowVersionAliasData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5537,12 +5561,12 @@ export const setWorkflowVersionAliasMutation = (
   options?: Partial<Options<SetWorkflowVersionAliasData>>,
 ): UseMutationOptions<
   SetWorkflowVersionAliasResponse,
-  AxiosError<SetWorkflowVersionAliasError>,
+  SetWorkflowVersionAliasError,
   Options<SetWorkflowVersionAliasData>
 > => {
   const mutationOptions: UseMutationOptions<
     SetWorkflowVersionAliasResponse,
-    AxiosError<SetWorkflowVersionAliasError>,
+    SetWorkflowVersionAliasError,
     Options<SetWorkflowVersionAliasData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5673,12 +5697,12 @@ export const createWorkflowDeploymentMutation = (
   options?: Partial<Options<CreateWorkflowDeploymentData>>,
 ): UseMutationOptions<
   CreateWorkflowDeploymentResponse,
-  AxiosError<CreateWorkflowDeploymentError>,
+  CreateWorkflowDeploymentError,
   Options<CreateWorkflowDeploymentData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreateWorkflowDeploymentResponse,
-    AxiosError<CreateWorkflowDeploymentError>,
+    CreateWorkflowDeploymentError,
     Options<CreateWorkflowDeploymentData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5701,12 +5725,12 @@ export const deleteWorkflowDeploymentMutation = (
   options?: Partial<Options<DeleteWorkflowDeploymentData>>,
 ): UseMutationOptions<
   DeleteWorkflowDeploymentResponse,
-  AxiosError<DeleteWorkflowDeploymentError>,
+  DeleteWorkflowDeploymentError,
   Options<DeleteWorkflowDeploymentData>
 > => {
   const mutationOptions: UseMutationOptions<
     DeleteWorkflowDeploymentResponse,
-    AxiosError<DeleteWorkflowDeploymentError>,
+    DeleteWorkflowDeploymentError,
     Options<DeleteWorkflowDeploymentData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5757,7 +5781,7 @@ export const getPipelinesInfiniteOptions = (
 ) => {
   return infiniteQueryOptions<
     GetPipelinesResponse,
-    AxiosError<GetPipelinesError>,
+    GetPipelinesError,
     InfiniteData<GetPipelinesResponse>,
     QueryKey<Options<GetPipelinesData>>,
     | number
@@ -5825,12 +5849,12 @@ export const createPipelineMutation = (
   options?: Partial<Options<CreatePipelineData>>,
 ): UseMutationOptions<
   CreatePipelineResponse,
-  AxiosError<CreatePipelineError>,
+  CreatePipelineError,
   Options<CreatePipelineData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreatePipelineResponse,
-    AxiosError<CreatePipelineError>,
+    CreatePipelineError,
     Options<CreatePipelineData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5903,12 +5927,12 @@ export const addWorkflowToPipelineMutation = (
   options?: Partial<Options<AddWorkflowToPipelineData>>,
 ): UseMutationOptions<
   AddWorkflowToPipelineResponse,
-  AxiosError<AddWorkflowToPipelineError>,
+  AddWorkflowToPipelineError,
   Options<AddWorkflowToPipelineData>
 > => {
   const mutationOptions: UseMutationOptions<
     AddWorkflowToPipelineResponse,
-    AxiosError<AddWorkflowToPipelineError>,
+    AddWorkflowToPipelineError,
     Options<AddWorkflowToPipelineData>
   > = {
     mutationFn: async (localOptions) => {
@@ -5931,12 +5955,12 @@ export const removeWorkflowFromPipelineMutation = (
   options?: Partial<Options<RemoveWorkflowFromPipelineData>>,
 ): UseMutationOptions<
   RemoveWorkflowFromPipelineResponse,
-  AxiosError<RemoveWorkflowFromPipelineError>,
+  RemoveWorkflowFromPipelineError,
   Options<RemoveWorkflowFromPipelineData>
 > => {
   const mutationOptions: UseMutationOptions<
     RemoveWorkflowFromPipelineResponse,
-    AxiosError<RemoveWorkflowFromPipelineError>,
+    RemoveWorkflowFromPipelineError,
     Options<RemoveWorkflowFromPipelineData>
   > = {
     mutationFn: async (localOptions) => {
@@ -6003,12 +6027,12 @@ export const createPlatformMutation = (
   options?: Partial<Options<CreatePlatformData>>,
 ): UseMutationOptions<
   CreatePlatformResponse,
-  AxiosError<CreatePlatformError>,
+  CreatePlatformError,
   Options<CreatePlatformData>
 > => {
   const mutationOptions: UseMutationOptions<
     CreatePlatformResponse,
-    AxiosError<CreatePlatformError>,
+    CreatePlatformError,
     Options<CreatePlatformData>
   > = {
     mutationFn: async (localOptions) => {

@@ -215,7 +215,6 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -594,6 +593,19 @@ export type BulkSampleItemResponse = {
    * Files Skipped
    */
   files_skipped?: number
+}
+
+/**
+ * ChatRequest
+ * Request body sent by useChat: the full UIMessage history.
+ */
+export type ChatRequest = {
+  /**
+   * Messages
+   */
+  messages: Array<{
+    [key: string]: unknown
+  }>
 }
 
 /**
@@ -1511,7 +1523,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflow Ids
    */
@@ -1545,7 +1557,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflows
    */
@@ -1647,7 +1659,7 @@ export type ProjectCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiProjectModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -1685,7 +1697,7 @@ export type ProjectPublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiProjectModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Sequencing Runs
    */
@@ -1704,7 +1716,7 @@ export type ProjectUpdate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiProjectModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2148,6 +2160,10 @@ export type SamplePublic = {
    * Run Id
    */
   run_id?: string | null
+  /**
+   * Created At
+   */
+  created_at?: string | null
 }
 
 /**
@@ -2228,6 +2244,10 @@ export type SampleWithFilesPublic = {
    * Run Id
    */
   run_id?: string | null
+  /**
+   * Created At
+   */
+  created_at?: string | null
   /**
    * Files
    */
@@ -2900,7 +2920,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2970,7 +2990,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Versions
    */
@@ -3052,7 +3072,7 @@ export type WorkflowVersionCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -3090,7 +3110,7 @@ export type WorkflowVersionPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -3123,7 +3143,7 @@ export type WorkflowVersionSummary = {
 /**
  * Attribute
  */
-export type ApiProjectModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -3136,8 +3156,9 @@ export type ApiProjectModelsAttribute = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiWorkflowModelsAttribute = {
   /**
    * Key
    */
@@ -3858,6 +3879,29 @@ export type GetActionTypesResponses = {
 
 export type GetActionTypesResponse =
   GetActionTypesResponses[keyof GetActionTypesResponses]
+
+export type ChatData = {
+  body: ChatRequest
+  path?: never
+  query?: never
+  url: '/api/v1/chat'
+}
+
+export type ChatErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ChatError = ChatErrors[keyof ChatErrors]
+
+export type ChatResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
 
 export type ListFilesData = {
   body?: never
@@ -6902,5 +6946,5 @@ export type SearchUsersResponse =
   SearchUsersResponses[keyof SearchUsersResponses]
 
 export type ClientOptions = {
-  baseURL: 'http://apiserver:3000' | (string & {})
+  baseUrl: 'http://localhost:3000' | (string & {})
 }
