@@ -77,8 +77,8 @@ function RouteComponent() {
             {/* Left Column */}
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                <Server className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <Server className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Job ID</p>
                   <CopyableText text={job.id} className="text-sm text-muted-foreground font-mono" />
                 </div>
@@ -87,8 +87,8 @@ function RouteComponent() {
               <Separator />
 
               <div className="flex items-start gap-4">
-                <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <User className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Submitted By</p>
                   <p className="text-sm text-muted-foreground">{job.user}</p>
                 </div>
@@ -97,8 +97,8 @@ function RouteComponent() {
               <Separator />
 
               <div className="flex items-start gap-4">
-                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <Calendar className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Submitted On</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(job.submitted_on).toLocaleString()}
@@ -112,8 +112,8 @@ function RouteComponent() {
             {/* Right Column */}
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <FileText className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Log Stream Name</p>
                   {job.log_stream_name ? (
                     <CopyableText text={job.log_stream_name} className="text-sm text-muted-foreground font-mono break-all" />
@@ -126,8 +126,8 @@ function RouteComponent() {
               <Separator />
 
               <div className="flex items-start gap-4">
-                <Terminal className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <Terminal className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Command</p>
                   <code className="block text-sm text-muted-foreground bg-muted p-2 rounded break-all">
                     {job.command}
