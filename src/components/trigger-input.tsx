@@ -5,6 +5,7 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandItem, CommandList } from "@/components/ui/command"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { useTriggerCombobox } from "@/hooks/use-trigger-combobox"
 import { searchOptions, searchUsersOptions } from "@/client/@tanstack/react-query.gen"
 import { entityMeta } from "@/lib/entity-icons"
@@ -18,15 +19,45 @@ interface SearchItem {
   attributes?: Array<Attribute> | null
 }
 
-interface TriggerInputProps extends Omit<React.ComponentProps<typeof Input>, "onChange"> {
+/** Bindings the combobox supplies for whichever control (input/textarea) it wraps. */
+interface ControlBindings {
+  ref: (el: HTMLInputElement | HTMLTextAreaElement | null) => void
   value: string
-  onChange: (value: string) => void
+  onChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
+  onKeyDown: React.KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement>
 }
 
-export const TriggerInput: React.FC<TriggerInputProps> = ({
+/** A referenced entity chosen from the "@/#" results. */
+export interface TriggerReference {
+  type: "project" | "run" | "sample" | "user"
+  id: string
+}
+
+interface TriggerComboboxProps {
+  value: string
+  onChange: (value: string) => void
+  /** Consumer keydown, invoked only when the trigger popover isn't handling the key. */
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement>
+  /** Which side the results popover opens toward (default "bottom"). */
+  side?: "top" | "bottom"
+  /** Fired when a result is picked, so consumers can track referenced entities. */
+  onReference?: (reference: TriggerReference) => void
+  renderControl: (bindings: ControlBindings) => React.ReactNode
+}
+
+/**
+ * Shared "@/#" reference combobox. Detects the active trigger, searches users
+ * (`@`) or projects/runs/samples (`#`), and renders the results popover. The
+ * control element is supplied by the caller via `renderControl`, so the same
+ * logic backs both a single-line input and a multi-line textarea.
+ */
+export const TriggerCombobox: React.FC<TriggerComboboxProps> = ({
   value,
   onChange,
-  ...inputProps
+  onKeyDown,
+  side = "bottom",
+  onReference,
+  renderControl,
 }) => {
   const [searchQuery, setSearchQuery] = useState("")
   const [userSearchQuery, setUserSearchQuery] = useState("")
@@ -162,47 +193,52 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
     }
   }, [popoverOpen])
 
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = e.target.value
     onChange(newValue)
     const cursorPos = e.target.selectionStart ?? newValue.length
     handleInputChange(newValue, cursorPos)
   }
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!popoverOpen) return
-    if (e.key === "Escape") {
-      e.preventDefault()
-      e.stopPropagation()
-      dismiss()
-    } else if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
-      e.preventDefault()
-      const cmdk = commandRef.current?.querySelector("[cmdk-root]") as HTMLElement | null
-      cmdk?.dispatchEvent(
-        new KeyboardEvent("keydown", { key: e.key, bubbles: true })
-      )
-      // Update highlighted item after cmdk processes the event
-      requestAnimationFrame(() => {
-        const selected = commandRef.current?.querySelector("[data-selected=true]") as HTMLElement | null
-        setHighlightedId(selected?.getAttribute("data-value") ?? null)
-      })
+  const onControlKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // While the trigger popover is open, capture navigation keys for it and
+    // keep them from reaching the consumer (e.g. Enter shouldn't submit).
+    if (popoverOpen && triggerState.isActive) {
+      if (e.key === "Escape") {
+        e.preventDefault()
+        e.stopPropagation()
+        dismiss()
+        return
+      }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
+        e.preventDefault()
+        const cmdk = commandRef.current?.querySelector("[cmdk-root]") as HTMLElement | null
+        cmdk?.dispatchEvent(
+          new KeyboardEvent("keydown", { key: e.key, bubbles: true })
+        )
+        requestAnimationFrame(() => {
+          const selected = commandRef.current?.querySelector("[data-selected=true]") as HTMLElement | null
+          setHighlightedId(selected?.getAttribute("data-value") ?? null)
+        })
+        return
+      }
     }
+    onKeyDown?.(e)
   }
 
   return (
     <Popover open={popoverOpen && triggerState.isActive} onOpenChange={(open) => { if (!open) dismiss() }}>
       <PopoverAnchor asChild>
-        <Input
-          {...inputProps}
-          ref={(el) => { inputRef.current = el }}
-          value={value}
-          onChange={onInputChange}
-          onKeyDown={onKeyDown}
-        />
+        {renderControl({
+          ref: (el) => { inputRef.current = el },
+          value,
+          onChange: onInputChange,
+          onKeyDown: onControlKeyDown,
+        })}
       </PopoverAnchor>
       <PopoverContent
         className="p-0 w-auto"
-        side="bottom"
+        side={side}
         align="start"
         sideOffset={4}
         onOpenAutoFocus={(e) => e.preventDefault()}
@@ -228,7 +264,10 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
                       <CommandItem
                         key={`${item.type}-${item.id}`}
                         value={item.id}
-                        onSelect={() => selectItem(item.id)}
+                        onSelect={() => {
+                          selectItem(item.id)
+                          onReference?.({ type: item.type, id: item.id })
+                        }}
                         onMouseEnter={() => setHighlightedId(item.id)}
                       >
                         <Icon className={`size-4 ${colorClass}`} />
@@ -281,3 +320,67 @@ export const TriggerInput: React.FC<TriggerInputProps> = ({
     </Popover>
   )
 }
+
+interface TriggerInputProps extends Omit<React.ComponentProps<typeof Input>, "onChange"> {
+  value: string
+  onChange: (value: string) => void
+}
+
+/** Single-line input with "@/#" reference search. */
+export const TriggerInput: React.FC<TriggerInputProps> = ({
+  value,
+  onChange,
+  onKeyDown,
+  ...inputProps
+}) => (
+  <TriggerCombobox
+    value={value}
+    onChange={onChange}
+    onKeyDown={onKeyDown}
+    renderControl={(bind) => (
+      <Input
+        {...inputProps}
+        ref={bind.ref}
+        value={bind.value}
+        onChange={bind.onChange}
+        onKeyDown={bind.onKeyDown}
+      />
+    )}
+  />
+)
+
+interface TriggerTextareaProps extends Omit<React.ComponentProps<typeof Textarea>, "onChange"> {
+  value: string
+  onChange: (value: string) => void
+  /** Popover side; default "top" since chat composers sit at the bottom. */
+  side?: "top" | "bottom"
+  /** Fired when a result is picked, so consumers can track referenced entities. */
+  onReference?: (reference: TriggerReference) => void
+}
+
+/** Multi-line textarea with "@/#" reference search. */
+export const TriggerTextarea: React.FC<TriggerTextareaProps> = ({
+  value,
+  onChange,
+  onKeyDown,
+  side = "top",
+  onReference,
+  ...textareaProps
+}) => (
+  <TriggerCombobox
+    value={value}
+    onChange={onChange}
+    onKeyDown={onKeyDown}
+    side={side}
+    onReference={onReference}
+    renderControl={(bind) => (
+      <Textarea
+        {...textareaProps}
+        ref={bind.ref}
+        value={bind.value}
+        onChange={bind.onChange}
+        onKeyDown={bind.onKeyDown}
+      />
+    )}
+  />
+)

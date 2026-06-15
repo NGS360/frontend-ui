@@ -9,6 +9,27 @@ export function cn(...inputs: Array<ClassValue>) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Formats a timestamp as a short relative time string (e.g. "5m ago", "3h ago",
+ * "2d ago"), falling back to a localized date for anything older than a week.
+ */
+export function relativeTime(timestamp: number): string {
+  const diff = Date.now() - timestamp
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+  if (diff < hour) {
+    const mins = Math.max(1, Math.round(diff / minute))
+    return `${mins}m ago`
+  }
+  if (diff < day) return `${Math.round(diff / hour)}h ago`
+  if (diff < 7 * day) return `${Math.round(diff / day)}d ago`
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export function isValidHttpURL(text: string | null) {
   if (!text) return false
   try {
