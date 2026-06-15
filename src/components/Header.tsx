@@ -1,6 +1,6 @@
-import { Link, useNavigate } from '@tanstack/react-router'
-import { BookOpen, MenuIcon, ShieldCheck, Sparkles, XIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
+import { BookOpen, ChevronDown, MenuIcon, ShieldCheck, Sparkles, XIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from './ui/button'
 import { CreateProjectForm } from './create-project-form'
 import { SearchBar } from './search-bar'
@@ -38,7 +38,21 @@ export default function Header() {
   const { open: aiSidebarOpen, openMobile: aiSidebarOpenMobile, isMobile: isMobileViewport, toggleSidebar } = useSidebar()
   const aiActive = isMobileViewport ? aiSidebarOpenMobile : aiSidebarOpen
   const [menuOpen, setMenuOpen] = useState(false)
+  const [condensedNavOpen, setCondensedNavOpen] = useState(false)
   const headerRef = useRef<HTMLElement>(null)
+
+  // The hamburger menu content is rendered in a portal, so container queries
+  // on the header can't reach it — track the width in JS instead.
+  const [headerWidth, setHeaderWidth] = useState(0)
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => setHeaderWidth(entry.contentRect.width))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+  // matches the @2xl container breakpoint (42rem) where the header search is shown
+  const searchInHeader = headerWidth >= 672
 
   const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
 
@@ -51,8 +65,13 @@ export default function Header() {
 
   const navId = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
+  const { pathname } = useLocation()
+  const currentNavItem = navItems.find(
+    ({ to, isExternal }) => !isExternal && (pathname === to || pathname.startsWith(`${to}/`))
+  )
+
   return (
-    <header ref={headerRef} id="app-header" className="@container sticky top-0 left-0 w-full h-14 flex items-center shadow-md bg-semi-transparent backdrop-blur-sm z-10">
+    <header ref={headerRef} id="app-header" className="@container sticky top-0 left-0 w-full h-14 flex items-center gap-3 shadow-md bg-semi-transparent backdrop-blur-sm z-10">
       {/* Logo and Nav Items - Left Side */}
       <div id="header-left" className="flex items-center">
         {/* Logo */}
@@ -92,17 +111,61 @@ export default function Header() {
             </NavigationMenuList>
           </NavigationMenu>
         </div>
+
+        {/* Condensed Nav Dropdown - intermediate width */}
+        <div id="header-nav-condensed" className="hidden @4xl:block @7xl:hidden ml-4">
+          <DropdownMenu open={condensedNavOpen} onOpenChange={setCondensedNavOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                id="header-nav-condensed-toggle"
+                variant="ghost"
+                aria-label="Navigation menu"
+              >
+                {currentNavItem ? (
+                  <div className='flex items-center gap-1'>
+                    {currentNavItem.icon}
+                    {currentNavItem.label}
+                  </div>
+                ) : (
+                  'Menu'
+                )}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent id="header-nav-condensed-menu" align="start" sideOffset={4}>
+              {navItems.map(({ to, label, icon, search, isExternal }) => (
+                <DropdownMenuItem asChild key={to}>
+                  {isExternal ? (
+                    <a id={`header-condensed-nav-${navId(label)}`} href={to} target="_blank" rel="noopener noreferrer" onClick={() => setCondensedNavOpen(false)}>
+                      <div className='flex items-center gap-1'>
+                        {icon}
+                        {label}
+                      </div>
+                    </a>
+                  ) : (
+                    <Link id={`header-condensed-nav-${navId(label)}`} to={to} search={search} onClick={() => setCondensedNavOpen(false)}>
+                      <div className='flex items-center gap-1'>
+                        {icon}
+                        {label}
+                      </div>
+                    </Link>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Search bar and Create Button - Right Side */}
-      <div id="header-right" className="flex items-center gap-3 ml-auto pr-2">
+      <div id="header-right" className="flex flex-1 items-center justify-end gap-3 ml-auto pr-2">
         {/* Search bar - narrower version for header */}
-        <div id="header-search" className="hidden @7xl:block w-64 @7xl:w-80">
+        <div id="header-search" className="hidden @2xl:block flex-1 min-w-0">
           <SearchBar idPrefix="header-search" />
         </div>
 
         {/* Desktop Create Button */}
-        <div id="header-create-project" className="hidden @7xl:block">
+        <div id="header-create-project" className="hidden @4xl:block">
           <CreateProjectForm
             idPrefix="header-create-project"
             trigger={(
@@ -113,7 +176,7 @@ export default function Header() {
 
         {/* Notifications Dropdown - Only show when authenticated */}
         {isAuthenticated && (
-          <div id="header-notifications" className="hidden @7xl:block">
+          <div id="header-notifications">
             <NotificationsDropdown />
           </div>
         )}
@@ -157,7 +220,7 @@ export default function Header() {
             <Button
               id="header-mobile-menu-toggle"
               variant="outline"
-              className="@7xl:hidden"
+              className="@4xl:hidden"
               aria-label="Toggle navigation"
             >
               {menuOpen ? (
@@ -195,9 +258,11 @@ export default function Header() {
                 )}
               </DropdownMenuItem>
             ))}
-            <div id="header-mobile-search" className="px-2 py-2">
-              <SearchBar idPrefix="header-mobile-search" onResultClick={() => setMenuOpen(false)} />
-            </div>
+            {!searchInHeader && (
+              <div id="header-mobile-search" className="px-2 py-2">
+                <SearchBar idPrefix="header-mobile-search" onResultClick={() => setMenuOpen(false)} />
+              </div>
+            )}
             <DropdownMenuItem asChild>
               <CreateProjectForm
                 idPrefix="header-mobile-create-project"
