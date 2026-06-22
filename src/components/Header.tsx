@@ -9,6 +9,7 @@ import { UserAvatar } from './user-avatar'
 import { NGS360Logo } from '@/components/ngs360-logo'
 import { useAuth } from '@/context/auth-context'
 import { entityIcons } from '@/lib/entity-icons'
+import { NGS360_LETTER_COLORS } from '@/lib/ngs360-brand'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -53,6 +54,17 @@ export default function Header() {
   }, [])
   // matches the @2xl container breakpoint (42rem) where the header search is shown
   const searchInHeader = headerWidth >= 672
+
+  // Cycle the AI icon through the NGS360 letter colors once per second while the
+  // sidebar is closed (button unclicked). Pauses when active.
+  const [aiColorIndex, setAiColorIndex] = useState(0)
+  useEffect(() => {
+    if (aiActive) return
+    const id = setInterval(() => {
+      setAiColorIndex((i) => (i + 1) % NGS360_LETTER_COLORS.length)
+    }, 1000)
+    return () => clearInterval(id)
+  }, [aiActive])
 
   const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
 
@@ -194,7 +206,10 @@ export default function Header() {
               className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
               onClick={toggleSidebar}
             >
-              <Sparkles className="h-5 w-5" />
+              <Sparkles
+                className="h-5 w-5 transition-colors duration-500"
+                style={aiActive ? undefined : { color: NGS360_LETTER_COLORS[aiColorIndex] }}
+              />
               <span className="sr-only">AI Assistant</span>
             </Button>
           </TooltipTrigger>
