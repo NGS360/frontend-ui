@@ -215,6 +215,7 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -596,8 +597,41 @@ export type BulkSampleItemResponse = {
 }
 
 /**
+ * ChatContext
+ * Context the user attached when sending a message: the page they're on
+ * and any entities they referenced via "@/#", so the assistant can scope its
+ * answer.
+ */
+export type ChatContext = {
+  page?: ChatContextEntity | null
+  /**
+   * References
+   */
+  references?: Array<ChatContextEntity>
+}
+
+/**
+ * ChatContextEntity
+ * An entity attached to a chat message: type ("project", "run", "sample",
+ * "user", ...) and its id.
+ */
+export type ChatContextEntity = {
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Id
+   */
+  id: string
+}
+
+/**
  * ChatRequest
- * Request body sent by useChat: the full UIMessage history.
+ * Request body sent by the frontend's useChat hook: the full UIMessage
+ * history. Messages are kept loosely typed — the UIMessage shape (ids,
+ * roles, typed parts) is owned by the Vercel AI SDK protocol, and the
+ * orchestrator only consumes the parts it understands.
  */
 export type ChatRequest = {
   /**
@@ -606,6 +640,7 @@ export type ChatRequest = {
   messages: Array<{
     [key: string]: unknown
   }>
+  context?: ChatContext | null
 }
 
 /**
@@ -1523,7 +1558,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflow Ids
    */
@@ -1557,7 +1592,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflows
    */
@@ -1659,7 +1694,7 @@ export type ProjectCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -1697,7 +1732,7 @@ export type ProjectPublic = {
   /**
    * Attributes
    */
-  attributes: Array<Attribute> | null
+  attributes: Array<ApiProjectModelsAttribute> | null
   /**
    * Sequencing Runs
    */
@@ -1716,7 +1751,7 @@ export type ProjectUpdate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiProjectModelsAttribute> | null
 }
 
 /**
@@ -2920,7 +2955,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2990,7 +3025,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Versions
    */
@@ -3072,7 +3107,7 @@ export type WorkflowVersionCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -3110,7 +3145,7 @@ export type WorkflowVersionPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -3143,7 +3178,7 @@ export type WorkflowVersionSummary = {
 /**
  * Attribute
  */
-export type ApiSamplesModelsAttribute = {
+export type ApiProjectModelsAttribute = {
   /**
    * Key
    */
@@ -3156,9 +3191,8 @@ export type ApiSamplesModelsAttribute = {
 
 /**
  * Attribute
- * Reusable key-value pair for request/response payloads.
  */
-export type ApiWorkflowModelsAttribute = {
+export type ApiSamplesModelsAttribute = {
   /**
    * Key
    */
@@ -6946,5 +6980,5 @@ export type SearchUsersResponse =
   SearchUsersResponses[keyof SearchUsersResponses]
 
 export type ClientOptions = {
-  baseUrl: 'http://localhost:3000' | (string & {})
+  baseUrl: 'http://apiserver:3000' | (string & {})
 }
