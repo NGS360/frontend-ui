@@ -1,4 +1,5 @@
 import { useChat } from '@ai-sdk/react'
+import { useNavigate } from '@tanstack/react-router'
 import {
   Briefcase,
   History,
@@ -23,6 +24,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { useChatHistory } from '@/hooks/use-chat-history'
 import { useDragResize } from '@/hooks/use-drag-resize'
 import { usePageContext } from '@/hooks/use-page-context'
+import { handleChatDataPart } from '@/lib/chat-directives'
 import { chatTransport } from '@/lib/chat-transport'
 import { entityMeta } from '@/lib/entity-icons'
 import { cn } from '@/lib/utils'
@@ -167,9 +169,14 @@ export function AiChatSidebarProvider({
     if (!next) setIsExpanded(false)
   }
 
+  const navigate = useNavigate()
   const { messages, setMessages, sendMessage, status, stop, error, regenerate } =
     useChat({
       transport: chatTransport,
+      // The assistant drives UI actions by streaming data-part directives
+      // (e.g. data-navigate); we act on them here. These are one-way — nothing
+      // is returned to the model — so there's no tool lifecycle to manage.
+      onData: (part) => handleChatDataPart(part, navigate),
     })
   const isBusy = status === 'submitted' || status === 'streaming'
 
@@ -207,7 +214,7 @@ export function AiChatSidebarProvider({
     )
 
   const hasContext = Boolean(activeContext) || references.length > 0
-  const contextRequest = hasContext
+  const requestOptions = hasContext
     ? {
         body: {
           context: {
@@ -299,14 +306,14 @@ export function AiChatSidebarProvider({
   const handleSend = () => {
     const content = input.trim()
     if (!content || isBusy) return
-    void sendMessage({ text: content }, contextRequest)
+    void sendMessage({ text: content }, requestOptions)
     setInput('')
     setReferences([])
   }
 
   const handleSuggestion = (text: string) => {
     if (isBusy) return
-    void sendMessage({ text }, contextRequest)
+    void sendMessage({ text }, requestOptions)
     setInput('')
     setReferences([])
   }
