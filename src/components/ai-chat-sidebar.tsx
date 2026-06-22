@@ -452,8 +452,7 @@ export function AiChatSidebarProvider({
         {/* The history rows are interactive content, not menu items, so stop the
             menu's key handling from hijacking clicks inside the scroll area. */}
         <ScrollArea
-          className="max-h-72"
-          viewportProps={{ className: 'overscroll-contain' }}
+          viewportProps={{ className: 'max-h-72 overscroll-contain' }}
         >
           <div onClick={(e) => e.stopPropagation()}>{historyListEl}</div>
         </ScrollArea>
@@ -516,8 +515,7 @@ export function AiChatSidebarProvider({
             )}
           </div>
           <ScrollArea
-            className="max-h-80"
-            viewportProps={{ className: 'overscroll-contain' }}
+            viewportProps={{ className: 'max-h-80 overscroll-contain' }}
           >
             {historyListEl}
           </ScrollArea>
