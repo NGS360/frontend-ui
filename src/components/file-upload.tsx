@@ -2,7 +2,13 @@ import clsx from "clsx";
 import { CloudUpload } from "lucide-react";
 import { useCallback } from "react";
 import { useDropzone } from 'react-dropzone';
-import type { DropEvent, FileRejection } from "react-dropzone";
+import type { Accept, DropEvent, FileRejection } from "react-dropzone";
+
+// Accepted file types for samplesheet/metadata uploads (csv/tsv/txt).
+export const SAMPLESHEET_ACCEPT: Accept = {
+  'text/plain': ['.csv', '.tsv', '.txt'],
+  'application/vnd.ms-excel': ['.csv', '.tsv', '.txt'],
+};
 
 // Generic file upload component
 interface FileUploadProps {
@@ -155,6 +161,12 @@ interface ContainerDropzoneProps {
 
   className?: string,
   children: React.ReactNode,
+
+  /** Accepted file types; omit to accept any type. */
+  accept?: Accept,
+
+  /** Allow dropping/selecting more than one file at a time. */
+  multiple?: boolean,
 }
 
 export const ContainerDropzone: React.FC<ContainerDropzoneProps> = ({
@@ -162,6 +174,8 @@ export const ContainerDropzone: React.FC<ContainerDropzoneProps> = ({
   onDrop: onDropProp,
   className,
   children,
+  accept,
+  multiple = false,
 }) => {
 
   const onDrop = onDropProp ?? useCallback((
@@ -176,11 +190,8 @@ export const ContainerDropzone: React.FC<ContainerDropzoneProps> = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'text/plain': ['.csv', '.tsv', '.txt'],
-      'application/vnd.ms-excel': ['.csv', '.tsv', '.txt']
-    },
-    multiple: false,
+    accept,
+    multiple,
     noClick: true,
   })
 

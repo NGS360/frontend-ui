@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
   PanelRightClose,
   PanelRightOpen,
+  Paperclip,
   Plus,
   Send,
   Sparkles,
@@ -17,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { TriggerReference } from '@/components/trigger-input'
 import { ChatHistoryList } from '@/components/ai-chat-history-list'
+import { ContainerDropzone } from '@/components/file-upload'
 import { ResizeHandle } from '@/components/resize-handle'
 import { TriggerTextarea } from '@/components/trigger-input'
 import { Button } from '@/components/ui/button'
@@ -27,7 +29,7 @@ import { usePageContext } from '@/hooks/use-page-context'
 import { handleChatDataPart } from '@/lib/chat-directives'
 import { chatTransport } from '@/lib/chat-transport'
 import { entityMeta } from '@/lib/entity-icons'
-import { cn } from '@/lib/utils'
+import { cn, formatBytes } from '@/lib/utils'
 import {
   Sidebar,
   SidebarFooter,
@@ -100,6 +102,13 @@ const TYPE_LABELS: Record<ContextEntity['type'], string> = {
   sample: 'Sample',
   job: 'Job',
   user: 'User',
+}
+
+// A file the user attached to the chat (via the paperclip or by dropping it on
+// the sidebar). Staged as context and shown as a chip alongside page/@-references.
+type Attachment = {
+  id: string
+  file: File
 }
 
 // Fullscreen left rail (history panel) resize bounds.
@@ -213,8 +222,25 @@ export function AiChatSidebarProvider({
       prev.filter((r) => !(r.type === entity.type && r.id === entity.id)),
     )
 
-  const hasContext = Boolean(activeContext) || references.length > 0
-  const requestOptions = hasContext
+  // Files attached to the chat (paperclip picker or drag-and-drop). Any file
+  // type is allowed; they're staged here and surfaced as context chips.
+  const [attachments, setAttachments] = useState<Array<Attachment>>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const addFiles = useCallback((files: Array<File>) => {
+    if (files.length === 0) return
+    setAttachments((prev) => [
+      ...prev,
+      ...files.map((file) => ({ id: crypto.randomUUID(), file })),
+    ])
+  }, [])
+  const removeAttachment = (id: string) =>
+    setAttachments((prev) => prev.filter((a) => a.id !== id))
+
+  // Page/@-reference context is understood by the backend and sent with each
+  // message; attachments only widen what counts as "context" for the chip row.
+  const hasSendableContext = Boolean(activeContext) || references.length > 0
+  const hasContext = hasSendableContext || attachments.length > 0
+  const requestOptions = hasSendableContext
     ? {
         body: {
           context: {
@@ -238,6 +264,7 @@ export function AiChatSidebarProvider({
     setMessages([])
     setInput('')
     setReferences([])
+    setAttachments([])
     closeMenus()
   }
 
@@ -255,6 +282,7 @@ export function AiChatSidebarProvider({
       history.startNewChat()
       setMessages([])
       setReferences([])
+      setAttachments([])
     }
   }
 
@@ -309,6 +337,7 @@ export function AiChatSidebarProvider({
     void sendMessage({ text: content }, requestOptions)
     setInput('')
     setReferences([])
+    setAttachments([])
   }
 
   const handleSuggestion = (text: string) => {
@@ -316,6 +345,7 @@ export function AiChatSidebarProvider({
     void sendMessage({ text }, requestOptions)
     setInput('')
     setReferences([])
+    setAttachments([])
   }
 
   // Put the cursor in the input whenever the panel opens (or toggles between
@@ -813,6 +843,28 @@ export function AiChatSidebarProvider({
               {references.map((ref) =>
                 renderContextChip(ref, () => removeReference(ref)),
               )}
+              {attachments.map((att) => (
+                <span
+                  key={att.id}
+                  className="inline-flex min-w-0 items-center gap-1 rounded-full border bg-muted/50 px-2 py-0.5 text-xs"
+                >
+                  <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 truncate font-medium">
+                    {att.file.name}
+                  </span>
+                  <span className="shrink-0 text-muted-foreground">
+                    {formatBytes(att.file.size)}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${att.file.name}`}
+                    onClick={() => removeAttachment(att.id)}
+                    className="shrink-0 rounded-full p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ))}
             </div>
           )}
           <form
@@ -823,21 +875,45 @@ export function AiChatSidebarProvider({
               handleSend()
             }}
           >
-            <TriggerTextarea
-              id="ai-chat-input"
-              placeholder="Ask anything…"
-              rows={2}
-              value={input}
-              onChange={setInput}
-              onReference={handleReference}
-              className="max-h-40 min-h-0 flex-1 resize-none"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  e.currentTarget.form?.requestSubmit()
-                }
-              }}
-            />
+            {/* Paperclip floats inside the input on the left (like the search
+                bar's icon); pl-9 keeps the text clear of it. */}
+            <div className="relative flex-1">
+              <button
+                id="ai-chat-attach"
+                type="button"
+                aria-label="Attach files"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-2 left-2 z-10 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <Paperclip className="size-4" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  addFiles(Array.from(e.target.files ?? []))
+                  // Reset so picking the same file again still fires onChange.
+                  e.target.value = ''
+                }}
+              />
+              <TriggerTextarea
+                id="ai-chat-input"
+                placeholder="Ask anything…"
+                rows={2}
+                value={input}
+                onChange={setInput}
+                onReference={handleReference}
+                className="max-h-40 min-h-0 w-full resize-none pl-9"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    e.currentTarget.form?.requestSubmit()
+                  }
+                }}
+              />
+            </div>
             {isBusy ? (
               <Button
                 id="ai-chat-stop"
@@ -877,8 +953,15 @@ export function AiChatSidebarProvider({
           {closeButton}
         </div>
       </SidebarHeader>
-      {messagesArea}
-      {composer}
+      <ContainerDropzone
+        multiple
+        onDrop={(files) => addFiles(files)}
+        subject="to the chat"
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        {messagesArea}
+        {composer}
+      </ContainerDropzone>
       {clearDialog}
       {clearAllDialog}
     </>
@@ -895,8 +978,15 @@ export function AiChatSidebarProvider({
           <span className="text-lg font-semibold">AI Assistant</span>
           <div className="ml-auto">{closeButton}</div>
         </SidebarHeader>
-        {messagesArea}
-        {composer}
+        <ContainerDropzone
+          multiple
+          onDrop={(files) => addFiles(files)}
+          subject="to the chat"
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          {messagesArea}
+          {composer}
+        </ContainerDropzone>
       </div>
       {clearDialog}
       {clearAllDialog}
