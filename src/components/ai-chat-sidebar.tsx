@@ -81,6 +81,14 @@ const clampWidth = (w: number, viewport: number) => {
 // Below this docked width the toolbar actions collapse into an overflow menu.
 const TOOLBAR_COLLAPSE_WIDTH = 360
 
+// Max cadence (ms) at which streamed assistant tokens are flushed to a React
+// render. The SDK re-renders once per token; when the proxy in front of the
+// deployment buffers the SSE and delivers a burst of chunks at once, rendering
+// each one synchronously trips React's "Maximum update depth" guard and aborts
+// the stream mid-reply. Coalescing to one render per interval keeps the cadence
+// bounded regardless of how the bytes are delivered.
+const STREAM_RENDER_INTERVAL_MS = 50
+
 // Starter prompts shown above the input when a conversation is empty.
 const SUGGESTED_PROMPTS = [
   'Which runs failed QC recently?',
@@ -182,6 +190,10 @@ export function AiChatSidebarProvider({
   const { messages, setMessages, sendMessage, status, stop, error, regenerate } =
     useChat({
       transport: chatTransport,
+      // Bound the streamed-render cadence so a proxy-buffered burst of SSE
+      // chunks can't fire enough synchronous renders to trip React's update
+      // guard and abort the stream. See STREAM_RENDER_INTERVAL_MS.
+      experimental_throttle: STREAM_RENDER_INTERVAL_MS,
       // The assistant drives UI actions by streaming data-part directives
       // (e.g. data-navigate); we act on them here. These are one-way — nothing
       // is returned to the model — so there's no tool lifecycle to manage.
