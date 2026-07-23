@@ -12,41 +12,41 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as UserRouteRouteImport } from './routes/_user.route'
 import { Route as AuthIndexRouteImport } from './routes/_auth.index'
-import { Route as UserVerifyEmailRouteImport } from './routes/_user.verify-email'
-import { Route as UserResetPasswordRouteImport } from './routes/_user.reset-password'
-import { Route as AuthRunsRouteRouteImport } from './routes/_auth.runs.route'
-import { Route as AuthProjectsRouteRouteImport } from './routes/_auth.projects.route'
-import { Route as AuthProfileRouteRouteImport } from './routes/_auth.profile.route'
-import { Route as AuthJobsRouteRouteImport } from './routes/_auth.jobs.route'
 import { Route as AuthAdminRouteRouteImport } from './routes/_auth.admin.route'
-import { Route as UserRegisterIndexRouteImport } from './routes/_user.register.index'
-import { Route as UserLoginIndexRouteImport } from './routes/_user.login.index'
-import { Route as UserForgotPasswordIndexRouteImport } from './routes/_user.forgot-password.index'
-import { Route as UserAccessDeniedIndexRouteImport } from './routes/_user.access-denied.index'
-import { Route as AuthRunsIndexRouteImport } from './routes/_auth.runs.index'
-import { Route as AuthProjectsIndexRouteImport } from './routes/_auth.projects.index'
-import { Route as AuthProfileIndexRouteImport } from './routes/_auth.profile.index'
-import { Route as AuthJobsIndexRouteImport } from './routes/_auth.jobs.index'
+import { Route as AuthJobsRouteRouteImport } from './routes/_auth.jobs.route'
+import { Route as AuthProfileRouteRouteImport } from './routes/_auth.profile.route'
+import { Route as AuthProjectsRouteRouteImport } from './routes/_auth.projects.route'
+import { Route as AuthRunsRouteRouteImport } from './routes/_auth.runs.route'
+import { Route as UserResetPasswordRouteImport } from './routes/_user.reset-password'
+import { Route as UserVerifyEmailRouteImport } from './routes/_user.verify-email'
 import { Route as AuthAdminIndexRouteImport } from './routes/_auth.admin.index'
-import { Route as AuthRunsRun_idRouteRouteImport } from './routes/_auth.runs.$run_id.route'
-import { Route as AuthProjectsProject_idRouteRouteImport } from './routes/_auth.projects.$project_id.route'
-import { Route as AuthJobsJob_idRouteRouteImport } from './routes/_auth.jobs.$job_id.route'
-import { Route as AuthAdminVendorsRouteRouteImport } from './routes/_auth.admin.vendors.route'
-import { Route as AuthAdminRunSettingsRouteRouteImport } from './routes/_auth.admin.run-settings.route'
-import { Route as AuthAdminProjectSettingsRouteRouteImport } from './routes/_auth.admin.project-settings.route'
 import { Route as AuthAdminJobsRouteRouteImport } from './routes/_auth.admin.jobs.route'
-import { Route as AuthRunsRun_idIndexRouteImport } from './routes/_auth.runs.$run_id.index'
-import { Route as AuthProjectsProject_idIndexRouteImport } from './routes/_auth.projects.$project_id.index'
-import { Route as AuthJobsJob_idIndexRouteImport } from './routes/_auth.jobs.$job_id.index'
-import { Route as AuthAdminVendorsIndexRouteImport } from './routes/_auth.admin.vendors.index'
-import { Route as AuthAdminRunSettingsIndexRouteImport } from './routes/_auth.admin.run-settings.index'
-import { Route as AuthAdminProjectSettingsIndexRouteImport } from './routes/_auth.admin.project-settings.index'
+import { Route as AuthAdminProjectSettingsRouteRouteImport } from './routes/_auth.admin.project-settings.route'
+import { Route as AuthAdminRunSettingsRouteRouteImport } from './routes/_auth.admin.run-settings.route'
+import { Route as AuthAdminVendorsRouteRouteImport } from './routes/_auth.admin.vendors.route'
+import { Route as AuthJobsIndexRouteImport } from './routes/_auth.jobs.index'
+import { Route as AuthJobsJob_idRouteRouteImport } from './routes/_auth.jobs.$job_id.route'
+import { Route as AuthProfileIndexRouteImport } from './routes/_auth.profile.index'
+import { Route as AuthProjectsIndexRouteImport } from './routes/_auth.projects.index'
+import { Route as AuthProjectsProject_idRouteRouteImport } from './routes/_auth.projects.$project_id.route'
+import { Route as AuthRunsIndexRouteImport } from './routes/_auth.runs.index'
+import { Route as AuthRunsRun_idRouteRouteImport } from './routes/_auth.runs.$run_id.route'
+import { Route as UserAccessDeniedIndexRouteImport } from './routes/_user.access-denied.index'
+import { Route as UserForgotPasswordIndexRouteImport } from './routes/_user.forgot-password.index'
+import { Route as UserLoginIndexRouteImport } from './routes/_user.login.index'
+import { Route as UserRegisterIndexRouteImport } from './routes/_user.register.index'
 import { Route as AuthAdminJobsIndexRouteImport } from './routes/_auth.admin.jobs.index'
-import { Route as UserOauthProviderCallbackRouteImport } from './routes/_user.oauth.$provider.callback'
-import { Route as AuthRunsRun_idSamplesheetRouteRouteImport } from './routes/_auth.runs.$run_id.samplesheet.route'
+import { Route as AuthAdminProjectSettingsIndexRouteImport } from './routes/_auth.admin.project-settings.index'
+import { Route as AuthAdminRunSettingsIndexRouteImport } from './routes/_auth.admin.run-settings.index'
+import { Route as AuthAdminVendorsIndexRouteImport } from './routes/_auth.admin.vendors.index'
+import { Route as AuthJobsJob_idIndexRouteImport } from './routes/_auth.jobs.$job_id.index'
+import { Route as AuthProjectsProject_idIndexRouteImport } from './routes/_auth.projects.$project_id.index'
+import { Route as AuthRunsRun_idIndexRouteImport } from './routes/_auth.runs.$run_id.index'
 import { Route as AuthRunsRun_idIndexqcRouteRouteImport } from './routes/_auth.runs.$run_id.indexqc.route'
-import { Route as AuthRunsRun_idSamplesheetIndexRouteImport } from './routes/_auth.runs.$run_id.samplesheet.index'
+import { Route as AuthRunsRun_idSamplesheetRouteRouteImport } from './routes/_auth.runs.$run_id.samplesheet.route'
+import { Route as UserOauthProviderCallbackRouteImport } from './routes/_user.oauth.$provider.callback'
 import { Route as AuthRunsRun_idIndexqcIndexRouteImport } from './routes/_auth.runs.$run_id.indexqc.index'
+import { Route as AuthRunsRun_idSamplesheetIndexRouteImport } from './routes/_auth.runs.$run_id.samplesheet.index'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
@@ -61,29 +61,9 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthRoute,
 } as any)
-const UserVerifyEmailRoute = UserVerifyEmailRouteImport.update({
-  id: '/verify-email',
-  path: '/verify-email',
-  getParentRoute: () => UserRouteRoute,
-} as any)
-const UserResetPasswordRoute = UserResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => UserRouteRoute,
-} as any)
-const AuthRunsRouteRoute = AuthRunsRouteRouteImport.update({
-  id: '/runs',
-  path: '/runs',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthProjectsRouteRoute = AuthProjectsRouteRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthProfileRouteRoute = AuthProfileRouteRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthAdminRouteRoute = AuthAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthJobsRouteRoute = AuthJobsRouteRouteImport.update({
@@ -91,60 +71,77 @@ const AuthJobsRouteRoute = AuthJobsRouteRouteImport.update({
   path: '/jobs',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthAdminRouteRoute = AuthAdminRouteRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AuthProfileRouteRoute = AuthProfileRouteRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthRoute,
 } as any)
-const UserRegisterIndexRoute = UserRegisterIndexRouteImport.update({
-  id: '/register/',
-  path: '/register/',
+const AuthProjectsRouteRoute = AuthProjectsRouteRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRunsRouteRoute = AuthRunsRouteRouteImport.update({
+  id: '/runs',
+  path: '/runs',
+  getParentRoute: () => AuthRoute,
+} as any)
+const UserResetPasswordRoute = UserResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => UserRouteRoute,
 } as any)
-const UserLoginIndexRoute = UserLoginIndexRouteImport.update({
-  id: '/login/',
-  path: '/login/',
+const UserVerifyEmailRoute = UserVerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
   getParentRoute: () => UserRouteRoute,
-} as any)
-const UserForgotPasswordIndexRoute = UserForgotPasswordIndexRouteImport.update({
-  id: '/forgot-password/',
-  path: '/forgot-password/',
-  getParentRoute: () => UserRouteRoute,
-} as any)
-const UserAccessDeniedIndexRoute = UserAccessDeniedIndexRouteImport.update({
-  id: '/access-denied/',
-  path: '/access-denied/',
-  getParentRoute: () => UserRouteRoute,
-} as any)
-const AuthRunsIndexRoute = AuthRunsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthRunsRouteRoute,
-} as any)
-const AuthProjectsIndexRoute = AuthProjectsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthProjectsRouteRoute,
-} as any)
-const AuthProfileIndexRoute = AuthProfileIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthProfileRouteRoute,
-} as any)
-const AuthJobsIndexRoute = AuthJobsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthJobsRouteRoute,
 } as any)
 const AuthAdminIndexRoute = AuthAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthAdminRouteRoute,
 } as any)
-const AuthRunsRun_idRouteRoute = AuthRunsRun_idRouteRouteImport.update({
-  id: '/$run_id',
-  path: '/$run_id',
-  getParentRoute: () => AuthRunsRouteRoute,
+const AuthAdminJobsRouteRoute = AuthAdminJobsRouteRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AuthAdminRouteRoute,
+} as any)
+const AuthAdminProjectSettingsRouteRoute =
+  AuthAdminProjectSettingsRouteRouteImport.update({
+    id: '/project-settings',
+    path: '/project-settings',
+    getParentRoute: () => AuthAdminRouteRoute,
+  } as any)
+const AuthAdminRunSettingsRouteRoute =
+  AuthAdminRunSettingsRouteRouteImport.update({
+    id: '/run-settings',
+    path: '/run-settings',
+    getParentRoute: () => AuthAdminRouteRoute,
+  } as any)
+const AuthAdminVendorsRouteRoute = AuthAdminVendorsRouteRouteImport.update({
+  id: '/vendors',
+  path: '/vendors',
+  getParentRoute: () => AuthAdminRouteRoute,
+} as any)
+const AuthJobsIndexRoute = AuthJobsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthJobsRouteRoute,
+} as any)
+const AuthJobsJob_idRouteRoute = AuthJobsJob_idRouteRouteImport.update({
+  id: '/$job_id',
+  path: '/$job_id',
+  getParentRoute: () => AuthJobsRouteRoute,
+} as any)
+const AuthProfileIndexRoute = AuthProfileIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthProfileRouteRoute,
+} as any)
+const AuthProjectsIndexRoute = AuthProjectsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthProjectsRouteRoute,
 } as any)
 const AuthProjectsProject_idRouteRoute =
   AuthProjectsProject_idRouteRouteImport.update({
@@ -152,37 +149,62 @@ const AuthProjectsProject_idRouteRoute =
     path: '/$project_id',
     getParentRoute: () => AuthProjectsRouteRoute,
   } as any)
-const AuthJobsJob_idRouteRoute = AuthJobsJob_idRouteRouteImport.update({
-  id: '/$job_id',
-  path: '/$job_id',
-  getParentRoute: () => AuthJobsRouteRoute,
-} as any)
-const AuthAdminVendorsRouteRoute = AuthAdminVendorsRouteRouteImport.update({
-  id: '/vendors',
-  path: '/vendors',
-  getParentRoute: () => AuthAdminRouteRoute,
-} as any)
-const AuthAdminRunSettingsRouteRoute =
-  AuthAdminRunSettingsRouteRouteImport.update({
-    id: '/run-settings',
-    path: '/run-settings',
-    getParentRoute: () => AuthAdminRouteRoute,
-  } as any)
-const AuthAdminProjectSettingsRouteRoute =
-  AuthAdminProjectSettingsRouteRouteImport.update({
-    id: '/project-settings',
-    path: '/project-settings',
-    getParentRoute: () => AuthAdminRouteRoute,
-  } as any)
-const AuthAdminJobsRouteRoute = AuthAdminJobsRouteRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
-  getParentRoute: () => AuthAdminRouteRoute,
-} as any)
-const AuthRunsRun_idIndexRoute = AuthRunsRun_idIndexRouteImport.update({
+const AuthRunsIndexRoute = AuthRunsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthRunsRun_idRouteRoute,
+  getParentRoute: () => AuthRunsRouteRoute,
+} as any)
+const AuthRunsRun_idRouteRoute = AuthRunsRun_idRouteRouteImport.update({
+  id: '/$run_id',
+  path: '/$run_id',
+  getParentRoute: () => AuthRunsRouteRoute,
+} as any)
+const UserAccessDeniedIndexRoute = UserAccessDeniedIndexRouteImport.update({
+  id: '/access-denied/',
+  path: '/access-denied/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+const UserForgotPasswordIndexRoute = UserForgotPasswordIndexRouteImport.update({
+  id: '/forgot-password/',
+  path: '/forgot-password/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+const UserLoginIndexRoute = UserLoginIndexRouteImport.update({
+  id: '/login/',
+  path: '/login/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+const UserRegisterIndexRoute = UserRegisterIndexRouteImport.update({
+  id: '/register/',
+  path: '/register/',
+  getParentRoute: () => UserRouteRoute,
+} as any)
+const AuthAdminJobsIndexRoute = AuthAdminJobsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthAdminJobsRouteRoute,
+} as any)
+const AuthAdminProjectSettingsIndexRoute =
+  AuthAdminProjectSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthAdminProjectSettingsRouteRoute,
+  } as any)
+const AuthAdminRunSettingsIndexRoute =
+  AuthAdminRunSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthAdminRunSettingsRouteRoute,
+  } as any)
+const AuthAdminVendorsIndexRoute = AuthAdminVendorsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthAdminVendorsRouteRoute,
+} as any)
+const AuthJobsJob_idIndexRoute = AuthJobsJob_idIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthJobsJob_idRouteRoute,
 } as any)
 const AuthProjectsProject_idIndexRoute =
   AuthProjectsProject_idIndexRouteImport.update({
@@ -190,38 +212,16 @@ const AuthProjectsProject_idIndexRoute =
     path: '/',
     getParentRoute: () => AuthProjectsProject_idRouteRoute,
   } as any)
-const AuthJobsJob_idIndexRoute = AuthJobsJob_idIndexRouteImport.update({
+const AuthRunsRun_idIndexRoute = AuthRunsRun_idIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthJobsJob_idRouteRoute,
+  getParentRoute: () => AuthRunsRun_idRouteRoute,
 } as any)
-const AuthAdminVendorsIndexRoute = AuthAdminVendorsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthAdminVendorsRouteRoute,
-} as any)
-const AuthAdminRunSettingsIndexRoute =
-  AuthAdminRunSettingsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthAdminRunSettingsRouteRoute,
-  } as any)
-const AuthAdminProjectSettingsIndexRoute =
-  AuthAdminProjectSettingsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthAdminProjectSettingsRouteRoute,
-  } as any)
-const AuthAdminJobsIndexRoute = AuthAdminJobsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthAdminJobsRouteRoute,
-} as any)
-const UserOauthProviderCallbackRoute =
-  UserOauthProviderCallbackRouteImport.update({
-    id: '/oauth/$provider/callback',
-    path: '/oauth/$provider/callback',
-    getParentRoute: () => UserRouteRoute,
+const AuthRunsRun_idIndexqcRouteRoute =
+  AuthRunsRun_idIndexqcRouteRouteImport.update({
+    id: '/indexqc',
+    path: '/indexqc',
+    getParentRoute: () => AuthRunsRun_idRouteRoute,
   } as any)
 const AuthRunsRun_idSamplesheetRouteRoute =
   AuthRunsRun_idSamplesheetRouteRouteImport.update({
@@ -229,23 +229,23 @@ const AuthRunsRun_idSamplesheetRouteRoute =
     path: '/samplesheet',
     getParentRoute: () => AuthRunsRun_idRouteRoute,
   } as any)
-const AuthRunsRun_idIndexqcRouteRoute =
-  AuthRunsRun_idIndexqcRouteRouteImport.update({
-    id: '/indexqc',
-    path: '/indexqc',
-    getParentRoute: () => AuthRunsRun_idRouteRoute,
-  } as any)
-const AuthRunsRun_idSamplesheetIndexRoute =
-  AuthRunsRun_idSamplesheetIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthRunsRun_idSamplesheetRouteRoute,
+const UserOauthProviderCallbackRoute =
+  UserOauthProviderCallbackRouteImport.update({
+    id: '/oauth/$provider/callback',
+    path: '/oauth/$provider/callback',
+    getParentRoute: () => UserRouteRoute,
   } as any)
 const AuthRunsRun_idIndexqcIndexRoute =
   AuthRunsRun_idIndexqcIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthRunsRun_idIndexqcRouteRoute,
+  } as any)
+const AuthRunsRun_idSamplesheetIndexRoute =
+  AuthRunsRun_idSamplesheetIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthRunsRun_idSamplesheetRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -484,39 +484,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_user/verify-email': {
-      id: '/_user/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof UserVerifyEmailRouteImport
-      parentRoute: typeof UserRouteRoute
-    }
-    '/_user/reset-password': {
-      id: '/_user/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof UserResetPasswordRouteImport
-      parentRoute: typeof UserRouteRoute
-    }
-    '/_auth/runs': {
-      id: '/_auth/runs'
-      path: '/runs'
-      fullPath: '/runs'
-      preLoaderRoute: typeof AuthRunsRouteRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/projects': {
-      id: '/_auth/projects'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof AuthProjectsRouteRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/profile': {
-      id: '/_auth/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthProfileRouteRouteImport
+    '/_auth/admin': {
+      id: '/_auth/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthAdminRouteRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/jobs': {
@@ -526,116 +498,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthJobsRouteRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/admin': {
-      id: '/_auth/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthAdminRouteRouteImport
+    '/_auth/profile': {
+      id: '/_auth/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthProfileRouteRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_user/register/': {
-      id: '/_user/register/'
-      path: '/register'
-      fullPath: '/register/'
-      preLoaderRoute: typeof UserRegisterIndexRouteImport
+    '/_auth/projects': {
+      id: '/_auth/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AuthProjectsRouteRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/runs': {
+      id: '/_auth/runs'
+      path: '/runs'
+      fullPath: '/runs'
+      preLoaderRoute: typeof AuthRunsRouteRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_user/reset-password': {
+      id: '/_user/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof UserResetPasswordRouteImport
       parentRoute: typeof UserRouteRoute
     }
-    '/_user/login/': {
-      id: '/_user/login/'
-      path: '/login'
-      fullPath: '/login/'
-      preLoaderRoute: typeof UserLoginIndexRouteImport
+    '/_user/verify-email': {
+      id: '/_user/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof UserVerifyEmailRouteImport
       parentRoute: typeof UserRouteRoute
-    }
-    '/_user/forgot-password/': {
-      id: '/_user/forgot-password/'
-      path: '/forgot-password'
-      fullPath: '/forgot-password/'
-      preLoaderRoute: typeof UserForgotPasswordIndexRouteImport
-      parentRoute: typeof UserRouteRoute
-    }
-    '/_user/access-denied/': {
-      id: '/_user/access-denied/'
-      path: '/access-denied'
-      fullPath: '/access-denied/'
-      preLoaderRoute: typeof UserAccessDeniedIndexRouteImport
-      parentRoute: typeof UserRouteRoute
-    }
-    '/_auth/runs/': {
-      id: '/_auth/runs/'
-      path: '/'
-      fullPath: '/runs/'
-      preLoaderRoute: typeof AuthRunsIndexRouteImport
-      parentRoute: typeof AuthRunsRouteRoute
-    }
-    '/_auth/projects/': {
-      id: '/_auth/projects/'
-      path: '/'
-      fullPath: '/projects/'
-      preLoaderRoute: typeof AuthProjectsIndexRouteImport
-      parentRoute: typeof AuthProjectsRouteRoute
-    }
-    '/_auth/profile/': {
-      id: '/_auth/profile/'
-      path: '/'
-      fullPath: '/profile/'
-      preLoaderRoute: typeof AuthProfileIndexRouteImport
-      parentRoute: typeof AuthProfileRouteRoute
-    }
-    '/_auth/jobs/': {
-      id: '/_auth/jobs/'
-      path: '/'
-      fullPath: '/jobs/'
-      preLoaderRoute: typeof AuthJobsIndexRouteImport
-      parentRoute: typeof AuthJobsRouteRoute
     }
     '/_auth/admin/': {
       id: '/_auth/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthAdminIndexRouteImport
-      parentRoute: typeof AuthAdminRouteRoute
-    }
-    '/_auth/runs/$run_id': {
-      id: '/_auth/runs/$run_id'
-      path: '/$run_id'
-      fullPath: '/runs/$run_id'
-      preLoaderRoute: typeof AuthRunsRun_idRouteRouteImport
-      parentRoute: typeof AuthRunsRouteRoute
-    }
-    '/_auth/projects/$project_id': {
-      id: '/_auth/projects/$project_id'
-      path: '/$project_id'
-      fullPath: '/projects/$project_id'
-      preLoaderRoute: typeof AuthProjectsProject_idRouteRouteImport
-      parentRoute: typeof AuthProjectsRouteRoute
-    }
-    '/_auth/jobs/$job_id': {
-      id: '/_auth/jobs/$job_id'
-      path: '/$job_id'
-      fullPath: '/jobs/$job_id'
-      preLoaderRoute: typeof AuthJobsJob_idRouteRouteImport
-      parentRoute: typeof AuthJobsRouteRoute
-    }
-    '/_auth/admin/vendors': {
-      id: '/_auth/admin/vendors'
-      path: '/vendors'
-      fullPath: '/admin/vendors'
-      preLoaderRoute: typeof AuthAdminVendorsRouteRouteImport
-      parentRoute: typeof AuthAdminRouteRoute
-    }
-    '/_auth/admin/run-settings': {
-      id: '/_auth/admin/run-settings'
-      path: '/run-settings'
-      fullPath: '/admin/run-settings'
-      preLoaderRoute: typeof AuthAdminRunSettingsRouteRouteImport
-      parentRoute: typeof AuthAdminRouteRoute
-    }
-    '/_auth/admin/project-settings': {
-      id: '/_auth/admin/project-settings'
-      path: '/project-settings'
-      fullPath: '/admin/project-settings'
-      preLoaderRoute: typeof AuthAdminProjectSettingsRouteRouteImport
       parentRoute: typeof AuthAdminRouteRoute
     }
     '/_auth/admin/jobs': {
@@ -645,47 +547,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAdminJobsRouteRouteImport
       parentRoute: typeof AuthAdminRouteRoute
     }
-    '/_auth/runs/$run_id/': {
-      id: '/_auth/runs/$run_id/'
-      path: '/'
-      fullPath: '/runs/$run_id/'
-      preLoaderRoute: typeof AuthRunsRun_idIndexRouteImport
-      parentRoute: typeof AuthRunsRun_idRouteRoute
+    '/_auth/admin/project-settings': {
+      id: '/_auth/admin/project-settings'
+      path: '/project-settings'
+      fullPath: '/admin/project-settings'
+      preLoaderRoute: typeof AuthAdminProjectSettingsRouteRouteImport
+      parentRoute: typeof AuthAdminRouteRoute
     }
-    '/_auth/projects/$project_id/': {
-      id: '/_auth/projects/$project_id/'
-      path: '/'
-      fullPath: '/projects/$project_id/'
-      preLoaderRoute: typeof AuthProjectsProject_idIndexRouteImport
-      parentRoute: typeof AuthProjectsProject_idRouteRoute
+    '/_auth/admin/run-settings': {
+      id: '/_auth/admin/run-settings'
+      path: '/run-settings'
+      fullPath: '/admin/run-settings'
+      preLoaderRoute: typeof AuthAdminRunSettingsRouteRouteImport
+      parentRoute: typeof AuthAdminRouteRoute
     }
-    '/_auth/jobs/$job_id/': {
-      id: '/_auth/jobs/$job_id/'
-      path: '/'
-      fullPath: '/jobs/$job_id/'
-      preLoaderRoute: typeof AuthJobsJob_idIndexRouteImport
-      parentRoute: typeof AuthJobsJob_idRouteRoute
+    '/_auth/admin/vendors': {
+      id: '/_auth/admin/vendors'
+      path: '/vendors'
+      fullPath: '/admin/vendors'
+      preLoaderRoute: typeof AuthAdminVendorsRouteRouteImport
+      parentRoute: typeof AuthAdminRouteRoute
     }
-    '/_auth/admin/vendors/': {
-      id: '/_auth/admin/vendors/'
+    '/_auth/jobs/': {
+      id: '/_auth/jobs/'
       path: '/'
-      fullPath: '/admin/vendors/'
-      preLoaderRoute: typeof AuthAdminVendorsIndexRouteImport
-      parentRoute: typeof AuthAdminVendorsRouteRoute
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof AuthJobsIndexRouteImport
+      parentRoute: typeof AuthJobsRouteRoute
     }
-    '/_auth/admin/run-settings/': {
-      id: '/_auth/admin/run-settings/'
-      path: '/'
-      fullPath: '/admin/run-settings/'
-      preLoaderRoute: typeof AuthAdminRunSettingsIndexRouteImport
-      parentRoute: typeof AuthAdminRunSettingsRouteRoute
+    '/_auth/jobs/$job_id': {
+      id: '/_auth/jobs/$job_id'
+      path: '/$job_id'
+      fullPath: '/jobs/$job_id'
+      preLoaderRoute: typeof AuthJobsJob_idRouteRouteImport
+      parentRoute: typeof AuthJobsRouteRoute
     }
-    '/_auth/admin/project-settings/': {
-      id: '/_auth/admin/project-settings/'
+    '/_auth/profile/': {
+      id: '/_auth/profile/'
       path: '/'
-      fullPath: '/admin/project-settings/'
-      preLoaderRoute: typeof AuthAdminProjectSettingsIndexRouteImport
-      parentRoute: typeof AuthAdminProjectSettingsRouteRoute
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthProfileIndexRouteImport
+      parentRoute: typeof AuthProfileRouteRoute
+    }
+    '/_auth/projects/': {
+      id: '/_auth/projects/'
+      path: '/'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof AuthProjectsIndexRouteImport
+      parentRoute: typeof AuthProjectsRouteRoute
+    }
+    '/_auth/projects/$project_id': {
+      id: '/_auth/projects/$project_id'
+      path: '/$project_id'
+      fullPath: '/projects/$project_id'
+      preLoaderRoute: typeof AuthProjectsProject_idRouteRouteImport
+      parentRoute: typeof AuthProjectsRouteRoute
+    }
+    '/_auth/runs/': {
+      id: '/_auth/runs/'
+      path: '/'
+      fullPath: '/runs/'
+      preLoaderRoute: typeof AuthRunsIndexRouteImport
+      parentRoute: typeof AuthRunsRouteRoute
+    }
+    '/_auth/runs/$run_id': {
+      id: '/_auth/runs/$run_id'
+      path: '/$run_id'
+      fullPath: '/runs/$run_id'
+      preLoaderRoute: typeof AuthRunsRun_idRouteRouteImport
+      parentRoute: typeof AuthRunsRouteRoute
+    }
+    '/_user/access-denied/': {
+      id: '/_user/access-denied/'
+      path: '/access-denied'
+      fullPath: '/access-denied/'
+      preLoaderRoute: typeof UserAccessDeniedIndexRouteImport
+      parentRoute: typeof UserRouteRoute
+    }
+    '/_user/forgot-password/': {
+      id: '/_user/forgot-password/'
+      path: '/forgot-password'
+      fullPath: '/forgot-password/'
+      preLoaderRoute: typeof UserForgotPasswordIndexRouteImport
+      parentRoute: typeof UserRouteRoute
+    }
+    '/_user/login/': {
+      id: '/_user/login/'
+      path: '/login'
+      fullPath: '/login/'
+      preLoaderRoute: typeof UserLoginIndexRouteImport
+      parentRoute: typeof UserRouteRoute
+    }
+    '/_user/register/': {
+      id: '/_user/register/'
+      path: '/register'
+      fullPath: '/register/'
+      preLoaderRoute: typeof UserRegisterIndexRouteImport
+      parentRoute: typeof UserRouteRoute
     }
     '/_auth/admin/jobs/': {
       id: '/_auth/admin/jobs/'
@@ -694,18 +652,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAdminJobsIndexRouteImport
       parentRoute: typeof AuthAdminJobsRouteRoute
     }
-    '/_user/oauth/$provider/callback': {
-      id: '/_user/oauth/$provider/callback'
-      path: '/oauth/$provider/callback'
-      fullPath: '/oauth/$provider/callback'
-      preLoaderRoute: typeof UserOauthProviderCallbackRouteImport
-      parentRoute: typeof UserRouteRoute
+    '/_auth/admin/project-settings/': {
+      id: '/_auth/admin/project-settings/'
+      path: '/'
+      fullPath: '/admin/project-settings/'
+      preLoaderRoute: typeof AuthAdminProjectSettingsIndexRouteImport
+      parentRoute: typeof AuthAdminProjectSettingsRouteRoute
     }
-    '/_auth/runs/$run_id/samplesheet': {
-      id: '/_auth/runs/$run_id/samplesheet'
-      path: '/samplesheet'
-      fullPath: '/runs/$run_id/samplesheet'
-      preLoaderRoute: typeof AuthRunsRun_idSamplesheetRouteRouteImport
+    '/_auth/admin/run-settings/': {
+      id: '/_auth/admin/run-settings/'
+      path: '/'
+      fullPath: '/admin/run-settings/'
+      preLoaderRoute: typeof AuthAdminRunSettingsIndexRouteImport
+      parentRoute: typeof AuthAdminRunSettingsRouteRoute
+    }
+    '/_auth/admin/vendors/': {
+      id: '/_auth/admin/vendors/'
+      path: '/'
+      fullPath: '/admin/vendors/'
+      preLoaderRoute: typeof AuthAdminVendorsIndexRouteImport
+      parentRoute: typeof AuthAdminVendorsRouteRoute
+    }
+    '/_auth/jobs/$job_id/': {
+      id: '/_auth/jobs/$job_id/'
+      path: '/'
+      fullPath: '/jobs/$job_id/'
+      preLoaderRoute: typeof AuthJobsJob_idIndexRouteImport
+      parentRoute: typeof AuthJobsJob_idRouteRoute
+    }
+    '/_auth/projects/$project_id/': {
+      id: '/_auth/projects/$project_id/'
+      path: '/'
+      fullPath: '/projects/$project_id/'
+      preLoaderRoute: typeof AuthProjectsProject_idIndexRouteImport
+      parentRoute: typeof AuthProjectsProject_idRouteRoute
+    }
+    '/_auth/runs/$run_id/': {
+      id: '/_auth/runs/$run_id/'
+      path: '/'
+      fullPath: '/runs/$run_id/'
+      preLoaderRoute: typeof AuthRunsRun_idIndexRouteImport
       parentRoute: typeof AuthRunsRun_idRouteRoute
     }
     '/_auth/runs/$run_id/indexqc': {
@@ -715,12 +701,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRunsRun_idIndexqcRouteRouteImport
       parentRoute: typeof AuthRunsRun_idRouteRoute
     }
-    '/_auth/runs/$run_id/samplesheet/': {
-      id: '/_auth/runs/$run_id/samplesheet/'
-      path: '/'
-      fullPath: '/runs/$run_id/samplesheet/'
-      preLoaderRoute: typeof AuthRunsRun_idSamplesheetIndexRouteImport
-      parentRoute: typeof AuthRunsRun_idSamplesheetRouteRoute
+    '/_auth/runs/$run_id/samplesheet': {
+      id: '/_auth/runs/$run_id/samplesheet'
+      path: '/samplesheet'
+      fullPath: '/runs/$run_id/samplesheet'
+      preLoaderRoute: typeof AuthRunsRun_idSamplesheetRouteRouteImport
+      parentRoute: typeof AuthRunsRun_idRouteRoute
+    }
+    '/_user/oauth/$provider/callback': {
+      id: '/_user/oauth/$provider/callback'
+      path: '/oauth/$provider/callback'
+      fullPath: '/oauth/$provider/callback'
+      preLoaderRoute: typeof UserOauthProviderCallbackRouteImport
+      parentRoute: typeof UserRouteRoute
     }
     '/_auth/runs/$run_id/indexqc/': {
       id: '/_auth/runs/$run_id/indexqc/'
@@ -728,6 +721,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs/$run_id/indexqc/'
       preLoaderRoute: typeof AuthRunsRun_idIndexqcIndexRouteImport
       parentRoute: typeof AuthRunsRun_idIndexqcRouteRoute
+    }
+    '/_auth/runs/$run_id/samplesheet/': {
+      id: '/_auth/runs/$run_id/samplesheet/'
+      path: '/'
+      fullPath: '/runs/$run_id/samplesheet/'
+      preLoaderRoute: typeof AuthRunsRun_idSamplesheetIndexRouteImport
+      parentRoute: typeof AuthRunsRun_idSamplesheetRouteRoute
     }
   }
 }

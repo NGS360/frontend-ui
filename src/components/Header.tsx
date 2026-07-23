@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { BookOpen, ChevronDown, MenuIcon, ShieldCheck, Sparkles, XIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from './ui/button'
+import { AiChatTip, useAiChatTip } from './ai-chat-tip'
 import { CreateProjectForm } from './create-project-form'
 import { SearchBar } from './search-bar'
 import { NotificationsDropdown } from './notifications-dropdown'
@@ -66,6 +67,8 @@ export default function Header() {
     return () => clearInterval(id)
   }, [aiActive])
 
+  const aiChatTip = useAiChatTip(aiActive)
+
   const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
 
   const navItems: Array<NavItemType> = [
@@ -82,8 +85,30 @@ export default function Header() {
     ({ to, isExternal }) => !isExternal && (pathname === to || pathname.startsWith(`${to}/`))
   )
 
+  const aiButton = (
+    <Button
+      id="header-ai-button"
+      variant="ghost"
+      size="icon"
+      aria-label="AI Assistant"
+      aria-pressed={aiActive}
+      data-active={aiActive}
+      className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+      onClick={toggleSidebar}
+    >
+      <Sparkles
+        className="h-5 w-5 transition-colors duration-500"
+        style={aiActive ? undefined : { color: NGS360_LETTER_COLORS[aiColorIndex] }}
+      />
+      <span className="sr-only">AI Assistant</span>
+    </Button>
+  )
+
   return (
-    <header ref={headerRef} id="app-header" className="@container sticky top-0 left-0 w-full h-14 flex items-center gap-3 shadow-md bg-semi-transparent backdrop-blur-sm z-10">
+    // z-30: must beat in-page layers like the home hero (relative z-10) so the
+    // sticky header — and the AI tip that hangs below it — paint above page
+    // content, while staying under portaled overlays at z-50.
+    <header ref={headerRef} id="app-header" className="@container sticky top-0 left-0 w-full h-14 flex items-center gap-3 shadow-md bg-semi-transparent backdrop-blur-sm z-30">
       {/* Logo and Nav Items - Left Side */}
       <div id="header-left" className="flex items-center">
         {/* Logo */}
@@ -193,28 +218,19 @@ export default function Header() {
           </div>
         )}
 
-        {/* AI Assistant sidebar toggle */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              id="header-ai-button"
-              variant="ghost"
-              size="icon"
-              aria-label="AI Assistant"
-              aria-pressed={aiActive}
-              data-active={aiActive}
-              className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
-              onClick={toggleSidebar}
-            >
-              <Sparkles
-                className="h-5 w-5 transition-colors duration-500"
-                style={aiActive ? undefined : { color: NGS360_LETTER_COLORS[aiColorIndex] }}
-              />
-              <span className="sr-only">AI Assistant</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{aiActive ? 'Close AI Assistant' : 'Open AI Assistant'}</TooltipContent>
-        </Tooltip>
+        {/* AI Assistant sidebar toggle. While the intro tip is up, skip the
+            tooltip: it portals to <body> at z-50 and, flipped below the
+            button, would cover the tip's dismiss button and swallow its
+            clicks. */}
+        <div id="header-ai" className="relative">
+          {aiChatTip.visible ? aiButton : (
+            <Tooltip>
+              <TooltipTrigger asChild>{aiButton}</TooltipTrigger>
+              <TooltipContent>{aiActive ? 'Close AI Assistant' : 'Open AI Assistant'}</TooltipContent>
+            </Tooltip>
+          )}
+          <AiChatTip visible={aiChatTip.visible} onDismiss={aiChatTip.dismiss} />
+        </div>
 
         {/* Avatar or Sign In */}
         <div id="header-user-actions">
