@@ -6,7 +6,8 @@ import { CopyableText } from '@/components/copyable-text'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ClientDataTable } from '@/components/data-table/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {  IndexQCBarChart } from '@/components/indexqc-barchart';
+// TEMPORARY: swap back to '@/components/indexqc-barchart' to drop the comparison tabs
+import { IndexQCBarChartComparison } from '@/components/indexqc-barchart-comparison';
 import { NotFoundComponent } from '@/components/indexqc-not-found-component';
 import { getRunMetrics } from '@/client';
 import { FullscreenSpinner } from '@/components/spinner';
@@ -136,7 +137,7 @@ function RouteComponent() {
         rowClickCallback={handleRowClick}
       />
       {filteredBarChartData && (
-        <IndexQCBarChart
+        <IndexQCBarChartComparison
           barChartData={filteredBarChartData}
           title={`Lane ${lane}`}
           isMobile={isMobile}
