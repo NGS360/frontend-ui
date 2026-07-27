@@ -12,6 +12,6 @@ import { fetchWithAuth } from './auth-fetch'
  * the same fetchWithAuth and base URL as the generated client.
  */
 export const chatTransport = new DefaultChatTransport({
-  api: `${String(client.getConfig().baseUrl ?? '').replace(/\/$/, '')}/api/v1/chat`,
+  api: `${String(client.getConfig().baseUrl ?? '').replace(/\/$/, '')}/api/v1/chat/stream`,
   fetch: fetchWithAuth,
 })
