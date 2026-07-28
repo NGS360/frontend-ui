@@ -28,16 +28,16 @@ function App() {
           <span className="font-normal text-muted-foreground">Welcome to</span>
           <NGS360Logo showIcon={false} textSize="text-3xl @2xl:text-4xl @3xl:text-5xl @5xl:text-6xl" gap="gap-0" />
         </h1>
-        <h2 id="home-subtitle" className="text-sm @2xl:text-base @3xl:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0, animationFillMode: 'forwards' }}>
+        <h2 id="home-subtitle" className="text-sm @2xl:text-base @3xl:text-lg text-muted-foreground text-wrap max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           Your comprehensive next-generation sequencing data management platform.
           Search, analyze, and manage your genomic data with ease.
         </h2>
-        <div id="home-search" className="max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.2s', opacity: 0, animationFillMode: 'forwards' }}>
+        <div id="home-search" className="max-w-2xl w-[95%] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <SearchBar idPrefix="home-search" />
         </div>
         
         {/* Quick Access Cards */}
-        <div id="home-quick-access" className="grid grid-cols-1 @3xl:grid-cols-2 gap-6 max-w-4xl w-[95%] mt-8 animate-fade-in-up" style={{ animationDelay: '0.3s', opacity: 0, animationFillMode: 'forwards' }}>
+        <div id="home-quick-access" className="grid grid-cols-1 @3xl:grid-cols-2 gap-6 max-w-4xl w-[95%] mt-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <Link id="home-runs-link" to="/runs" className="group">
             <Card id="home-runs-card" className="h-full transition-all duration-300 hover:border-accent3 hover:scale-[1.01] cursor-pointer border-2 shadow-none relative overflow-hidden">
               <CardHeader className="relative z-10">

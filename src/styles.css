@@ -4,22 +4,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Always reserve the scrollbar gutter so nothing shifts when Radix
-   overlays (dropdowns, selects, dialogs) lock body scroll and remove
-   the scrollbar. overflow-y: scroll keeps the track visible even on
-   pages too short to scroll, so the reserved gutter reads as a
-   scrollbar instead of an empty gap next to the header. */
+/* Reserve the scrollbar gutter so Radix overlays locking body scroll don't
+   shift the layout. overflow-y: scroll keeps the gutter reading as a
+   scrollbar rather than an empty gap on short pages. */
 html {
   overflow-y: scroll;
   scrollbar-gutter: stable;
-  /* Slim native page scrollbar (Firefox) matching the shadcn ScrollArea look. */
+  /* Firefox; matches the shadcn ScrollArea look. */
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
 
-/* Slim native page scrollbar (WebKit/Chromium) to match the styled scroll
-   areas used elsewhere; the inset transparent border keeps the thumb pill
-   away from the track edges. */
+/* WebKit equivalent. The inset transparent border keeps the thumb pill off
+   the track edges. */
 html::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -37,10 +34,8 @@ html::-webkit-scrollbar-thumb:hover {
   background-color: var(--muted-foreground);
 }
 
-/* With the gutter reserved, the scrollbar-width compensation that
-   react-remove-scroll applies to the body during scroll lock would
-   itself shift the layout, so neutralize it. The doubled attribute
-   raises specificity above the injected rule. */
+/* The gutter is already reserved, so react-remove-scroll's own compensation
+   would shift the layout. Doubled attribute outranks its injected rule. */
 body[data-scroll-locked][data-scroll-locked] {
   margin-right: 0 !important;
   padding-right: 0 !important;
@@ -212,28 +207,124 @@ code {
   }
 }
 
-/* Custom animations */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+/* A theme token, so `animate-fade-in-up` is a real utility rather than a bare
+   class. Keep it a plain @theme — the override below needs a real custom
+   property, which `@theme inline` would not emit.
+
+   `backwards`, not `both`: it covers animation-delay so staggered elements
+   need no inline opacity:0, without persisting the final translateY(0).
+   A non-none transform would make the element a containing block and clip
+   FileUpload's full-screen drag overlay. */
+@theme {
+  --animate-fade-in-up: fade-in-up 0.5s ease-out backwards;
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out;
+/* Blanking the token guards every call site at once. The fill mode goes with
+   it, so elements land at their natural opacity rather than stranded invisible. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-fade-in-up: none;
+  }
 }
 
 /* Gradient text */
-.gradient-text {
+@utility gradient-text {
   background: linear-gradient(135deg, var(--bms-primary-1) 0%, var(--bms-primary-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Decorative brand wash behind the chat content; expects an isolated parent.
+   Light theme only for now. Both variants are a short top glow that fades out
+   before the message list — data-variant only controls how short. */
+@utility ai-chat-gradient {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: 150% 150%;
+  /* Brand hues kept high so the mask doesn't clip them. #ffc180 is the NGS360
+     peach; the rest are theme vars. */
+  background-image:
+    radial-gradient(55% 45% at 12% 14%, color-mix(in oklab, var(--bms-primary-1) 7%, transparent) 0%, transparent 62%),
+    radial-gradient(52% 44% at 40% 18%, color-mix(in oklab, var(--bms-primary-2) 6%, transparent) 0%, transparent 62%),
+    radial-gradient(52% 44% at 66% 13%, color-mix(in oklab, #ffc180 9%, transparent) 0%, transparent 62%),
+    radial-gradient(55% 45% at 90% 18%, color-mix(in oklab, var(--accent2) 6%, transparent) 0%, transparent 62%);
+  animation: ai-chat-gradient-flow 24s ease-in-out infinite alternate;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 8%, transparent 42%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 8%, transparent 42%);
+
+  /* Active conversation: shorter band, so the message list is clean sooner. */
+  &[data-variant='top'] {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 5%, transparent 26%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 5%, transparent 26%);
+  }
+
+  /* Keep the wash, drop the drift. */
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* Bottom-right companion to the top band, shown in the empty state. Separate
+   layer so the top band's mask doesn't clip it; retreats into the corner once
+   a conversation starts. */
+@utility ai-chat-corner-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-image:
+    radial-gradient(42% 40% at 100% 78%, color-mix(in oklab, var(--bms-primary-1) 6%, transparent) 0%, transparent 60%),
+    radial-gradient(46% 44% at 78% 100%, color-mix(in oklab, var(--bms-primary-2) 6%, transparent) 0%, transparent 60%),
+    radial-gradient(44% 42% at 100% 98%, color-mix(in oklab, #ffc180 9%, transparent) 0%, transparent 60%),
+    radial-gradient(46% 44% at 90% 88%, color-mix(in oklab, var(--accent2) 6%, transparent) 0%, transparent 60%);
+  transition: transform 600ms ease, opacity 600ms ease;
+
+  &[data-variant='top'] {
+    transform: translate(30%, 30%);
+    opacity: 0;
+  }
+
+  /* Still retreats, just without the slide. */
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@keyframes ai-chat-gradient-flow {
+  0%   { background-position: 0% 0%,     100% 0%,   100% 100%, 0% 100%; }
+  50%  { background-position: 40% 30%,   60% 25%,   55% 70%,   30% 60%; }
+  100% { background-position: 100% 100%, 0% 100%,   0% 0%,     100% 0%; }
+}
+
+/* Suggested-prompt pills. Each pill's brand hue arrives as --pill, set per
+   button; falls back to the neutral border color if unset. */
+@utility suggestion-pill {
+  --pill: var(--border);
+  color: var(--foreground);
+  border-color: color-mix(in oklab, var(--pill) 45%, var(--border));
+  background-color: color-mix(in oklab, var(--pill) 9%, var(--background));
+
+  &:hover {
+    color: color-mix(in oklab, var(--pill) 70%, var(--foreground));
+    border-color: color-mix(in oklab, var(--pill) 65%, transparent);
+    background-color: color-mix(in oklab, var(--pill) 16%, var(--background));
+  }
 }
 
 /* Smooth scrolling */

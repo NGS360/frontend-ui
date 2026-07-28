@@ -96,6 +96,9 @@ const SUGGESTED_PROMPTS = [
   'Find samples missing manifests',
 ]
 
+// Brand hues cycled across the suggestion pills, passed through as --pill.
+const SUGGESTION_ACCENTS = ['#298fff', '#45b14e', '#eb6341']
+
 // An entity attached to the chat as context: the page the user is on, or an
 // "@/#" reference they typed into the input.
 type ContextEntity = {
@@ -722,22 +725,32 @@ export function AiChatSidebarProvider({
               centeredClass,
             )}
           >
-            <Sparkles className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm font-medium">How can I help?</p>
-            <p className="text-sm text-muted-foreground">
+            <div className="mb-1 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary-2/15 ring-1 ring-border">
+              <Sparkles className="size-6 text-primary" />
+            </div>
+            <p className="gradient-text text-xl font-semibold tracking-tight">
+              How can I help?
+            </p>
+            <p className="max-w-56 text-sm text-muted-foreground">
               Ask a question about your projects, runs, or samples.
             </p>
             <div
               id="ai-chat-suggestions"
-              className="mt-2 flex flex-wrap justify-center gap-1.5"
+              className="mt-3 flex flex-wrap justify-center gap-2"
             >
-              {SUGGESTED_PROMPTS.map((prompt) => (
+              {SUGGESTED_PROMPTS.map((prompt, i) => (
                 <button
                   key={prompt}
                   type="button"
                   disabled={isBusy}
                   onClick={() => handleSuggestion(prompt)}
-                  className="rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+                  style={
+                    {
+                      '--pill':
+                        SUGGESTION_ACCENTS[i % SUGGESTION_ACCENTS.length],
+                    } as React.CSSProperties
+                  }
+                  className="suggestion-pill inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:-translate-y-px hover:shadow disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   {prompt}
                 </button>
@@ -957,23 +970,35 @@ export function AiChatSidebarProvider({
   // toolbar; messages and composer sit below.
   const dockedPanel = (
     <>
-      <SidebarHeader className="flex-row items-center gap-1 h-14 py-0">
-        {expandToggle}
-        <span className="text-lg font-semibold">AI Assistant</span>
-        <div className="ml-auto flex items-center gap-0.5">
-          {compactToolbar}
-          {closeButton}
-        </div>
-      </SidebarHeader>
-      <ContainerDropzone
-        multiple
-        onDrop={(files) => addFiles(files)}
-        subject="to the chat"
-        className="flex min-h-0 flex-1 flex-col"
-      >
-        {messagesArea}
-        {composer}
-      </ContainerDropzone>
+      <div className="relative isolate flex min-h-0 flex-1 flex-col">
+        <div
+          aria-hidden
+          className="ai-chat-gradient"
+          data-variant={hasMessages ? 'top' : 'full'}
+        />
+        <div
+          aria-hidden
+          className="ai-chat-corner-glow"
+          data-variant={hasMessages ? 'top' : 'full'}
+        />
+        <SidebarHeader className="flex-row items-center gap-1 h-14 py-0">
+          {expandToggle}
+          <span className="text-lg font-semibold">AI Assistant</span>
+          <div className="ml-auto flex items-center gap-0.5">
+            {compactToolbar}
+            {closeButton}
+          </div>
+        </SidebarHeader>
+        <ContainerDropzone
+          multiple
+          onDrop={(files) => addFiles(files)}
+          subject="to the chat"
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          {messagesArea}
+          {composer}
+        </ContainerDropzone>
+      </div>
       {clearDialog}
       {clearAllDialog}
     </>
@@ -984,7 +1009,17 @@ export function AiChatSidebarProvider({
   const fullscreenPanel = (
     <div className="flex min-h-0 w-full flex-1">
       {leftRail}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="relative isolate flex min-h-0 min-w-0 flex-1 flex-col">
+        <div
+          aria-hidden
+          className="ai-chat-gradient"
+          data-variant={hasMessages ? 'top' : 'full'}
+        />
+        <div
+          aria-hidden
+          className="ai-chat-corner-glow"
+          data-variant={hasMessages ? 'top' : 'full'}
+        />
         <SidebarHeader className="flex-row items-center gap-1 h-14 py-0">
           {expandToggle}
           <span className="text-lg font-semibold">AI Assistant</span>
