@@ -2,6 +2,11 @@
 
 @plugin "tailwindcss-animate";
 
+/* Streamdown's utility classes live inside its shipped JS, which Tailwind's
+   source detection skips — without these the assistant's markdown is unstyled. */
+@source "../node_modules/streamdown/dist/*.js";
+@source "../node_modules/@streamdown/code/dist/*.js";
+
 @custom-variant dark (&:is(.dark *));
 
 /* Reserve the scrollbar gutter so Radix overlays locking body scroll don't
@@ -324,6 +329,108 @@ code {
     color: color-mix(in oklab, var(--pill) 70%, var(--foreground));
     border-color: color-mix(in oklab, var(--pill) 65%, transparent);
     background-color: color-mix(in oklab, var(--pill) 16%, var(--background));
+  }
+}
+
+/* Assistant markdown in the AI chat. Streamdown ships shadcn-flavored defaults
+   scaled for a full-width page; this rescales them for a bubble that can be as
+   narrow as 240px, and repairs one token collision. Selectors key off
+   data-streamdown attributes rather than Streamdown's utility classes, which
+   are an implementation detail of its build. Every selector is doubled (&&) so
+   it outranks the single-class utilities it replaces — same trick as the
+   scroll-lock rule near the top of this file. */
+@utility ai-chat-markdown {
+  /* Streamdown paints code blocks, tables and their action bars with
+     bg-sidebar. --sidebar is `none` here so the app sidebar reads transparent,
+     and `background-color: none` is invalid at computed-value time — it falls
+     back to transparent while border-color falls back to currentColor, so light
+     mode would lose every code/table surface and gain a dark border. Give the
+     subtree a real surface; --sidebar is set directly because --color-sidebar is
+     declared in `@theme inline`. */
+  --sidebar: color-mix(in oklab, var(--foreground) 4%, var(--background));
+
+  /* Tighter rhythm than Streamdown's space-y-4 and the per-element mt-6/mb-2. */
+  && > * {
+    margin-block-end: 0;
+  }
+  && > * + * {
+    margin-block-start: 0.5rem;
+  }
+
+  /* An h1 at text-3xl in a 384px column is noise. */
+  && :is([data-streamdown^='heading-']) {
+    margin-block: 0.75rem 0.25rem;
+    font-size: inherit;
+    font-weight: 600;
+  }
+  && :is([data-streamdown='heading-1'], [data-streamdown='heading-2']) {
+    font-size: 0.9375rem;
+  }
+
+  /* Outside markers: list-inside reflows wrapped lines under the marker, which
+     is unreadable once lines wrap every few words. */
+  && :is([data-streamdown='unordered-list'], [data-streamdown='ordered-list']) {
+    margin-block: 0.25rem;
+    padding-left: 1.125rem;
+    list-style-position: outside;
+  }
+  /* Restores the nested indent that Streamdown's own [li_&]:pl-6 provided. */
+  &&
+    [data-streamdown='list-item']
+    :is([data-streamdown='unordered-list'], [data-streamdown='ordered-list']) {
+    padding-left: 1rem;
+  }
+  && [data-streamdown='list-item'] {
+    padding-block: 0.0625rem;
+  }
+
+  &&
+    :is(
+      [data-streamdown='code-block'],
+      [data-streamdown='table-wrapper'],
+      [data-streamdown='blockquote'],
+      [data-streamdown='horizontal-rule'],
+      [data-streamdown='mermaid-block']
+    ) {
+    margin-block: 0.5rem;
+  }
+
+  /* These scroll containers are the only escape hatch for content wider than
+     the sidebar — the chat ScrollArea renders no horizontal scrollbar — so they
+     have to be able to shrink below their content. */
+  &&
+    :is(
+      [data-streamdown='code-block'],
+      [data-streamdown='code-block-body'],
+      [data-streamdown='table-wrapper']
+    ) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* SQL is the common fence here; buy back horizontal room. */
+  && [data-streamdown='code-block-body'] {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+  && [data-streamdown='inline-code'] {
+    font-size: 0.8125em;
+  }
+  &&
+    :is([data-streamdown='table-cell'], [data-streamdown='table-header-cell']) {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  && [data-streamdown='link'] {
+    color: var(--bms-primary-1);
+    text-underline-offset: 2px;
+  }
+  /* Placeholder href on a half-streamed link — no affordance until it resolves. */
+  && [data-streamdown='link'][data-incomplete='true'] {
+    color: inherit;
+    text-decoration: none;
   }
 }
 

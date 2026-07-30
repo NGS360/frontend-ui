@@ -4,7 +4,12 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import type { FC, ReactNode } from 'react'
-import type { Attribute, ProjectPublic, SamplePublic, SequencingRunPublic } from '@/client'
+import type {
+  ApiProjectModelsAttribute,
+  ProjectPublic,
+  SamplePublic,
+  SequencingRunPublic,
+} from '@/client'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { searchOptions } from '@/client/@tanstack/react-query.gen'
@@ -13,6 +18,11 @@ import { Separator } from '@/components/ui/separator'
 import { highlightMatch } from '@/lib/utils'
 import { ErrorBanner } from '@/components/error-banner'
 import { entityMeta } from '@/lib/entity-icons'
+
+// The API declares an Attribute per module (project/samples/workflow) and they
+// are structurally identical; these views span several entity types.
+type Attribute = ApiProjectModelsAttribute
+
 
 // Search item component
 interface SearchItemProps {

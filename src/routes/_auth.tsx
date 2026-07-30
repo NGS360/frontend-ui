@@ -2,7 +2,7 @@ import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 
 import Header from '../components/Header'
 
-import { AiChatSidebarProvider } from '@/components/ai-chat-sidebar'
+import { AiChatSidebarProvider } from '@/components/ai-chat/sidebar'
 import { BreadcrumbNav } from '@/components/breadcrumb-nav.tsx'
 import { Toaster } from '@/components/ui/sonner.tsx'
 import { useAuth } from '@/context/auth-context'

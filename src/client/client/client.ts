@@ -161,7 +161,7 @@ export const createClient = (config: Config = {}): Client => {
       }
     }
 
-    finalError = finalError || ({})
+    finalError = finalError || ({} as string)
 
     if (opts.throwOnError) {
       throw finalError

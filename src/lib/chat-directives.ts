@@ -2,25 +2,38 @@ import { z } from 'zod'
 import type { useNavigate } from '@tanstack/react-router'
 
 /**
- * UI directives the assistant streams as data parts (consumed via useChat's
- * onData). Directives are one-way: the browser acts on them and nothing is
- * returned to the model — lighter than a tool call, which is why navigation
- * (and similar fire-and-forget UI actions) use this instead.
+ * Data parts the server streams alongside a reply, consumed via useChat's
+ * onData: one-way UI directives from the assistant, and the assigned thread id.
  */
 
 type NavigateFn = ReturnType<typeof useNavigate>
 
-// Validates the (untrusted) payload of a `data-navigate` directive before we
-// touch the router. Mirrors what the orchestrator emits.
+// The API assigns thread ids, so this part is the only way a client learns the
+// id of a conversation it just started.
+const threadData = z.object({ thread_id: z.string().uuid() })
+
+/**
+ * The thread id carried by this part, if it carries one. Validated because it
+ * ends up in the URL and in later requests.
+ */
+export function threadIdFromDataPart(part: {
+  type: string
+  data?: unknown
+}): string | undefined {
+  if (part.type !== 'data-thread') return undefined
+  const parsed = threadData.safeParse(part.data)
+  return parsed.success ? parsed.data.thread_id : undefined
+}
+
+// Validates a `data-navigate` payload before we touch the router.
 const navigateData = z.object({
   destination: z.enum(['project', 'run', 'job']),
   id: z.string().min(1),
 })
 
 /**
- * Act on a UI directive data part. Unknown part types and invalid payloads are
- * ignored. Navigation maps the validated payload to a typed route — never a raw
- * string from the model.
+ * Act on a UI directive data part, ignoring unknown types and invalid payloads.
+ * Navigation maps to a typed route, never a raw string from the model.
  */
 export function handleChatDataPart(
   part: { type: string; data?: unknown },

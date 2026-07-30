@@ -1,6 +1,6 @@
 import { Sparkles, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useAiChatTipStore } from '@/stores/ai-chat-tip-store'
 
@@ -8,14 +8,12 @@ import { useAiChatTipStore } from '@/stores/ai-chat-tip-store'
 const AUTO_HIDE_MS = 10_000
 
 /**
- * Visibility logic for the AI Assistant intro tip. The tip auto-hides after
- * 10 seconds (and will show again next visit), but dismissing it — or opening
- * the sidebar itself — hides it permanently for the signed-in user.
+ * Visibility logic for the AI Assistant intro tip. It auto-hides after 10
+ * seconds and returns next visit; dismissing it — or opening the sidebar —
+ * hides it for good.
  *
- * Exposed as a hook so the header can also suppress the AI button's tooltip
- * while the tip is up: the tooltip portals to <body> at z-50 and, flipped
- * below the button at the top of the viewport, would otherwise sit exactly
- * over the tip's dismiss button and swallow its clicks.
+ * A hook so the header can also suppress the AI button's tooltip meanwhile,
+ * which would otherwise sit over the tip's dismiss button and eat its clicks.
  */
 export function useAiChatTip(aiSidebarOpen: boolean) {
   const { data: user } = useCurrentUser()

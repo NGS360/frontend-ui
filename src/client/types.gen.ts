@@ -214,21 +214,6 @@ export type ActionSubmitRequest = {
 }
 
 /**
- * Attribute
- * Reusable key-value pair for request/response payloads.
- */
-export type Attribute = {
-  /**
-   * Key
-   */
-  key: string | null
-  /**
-   * Value
-   */
-  value: string | null
-}
-
-/**
  * AvailableProvidersResponse
  * Available OAuth providers response
  */
@@ -479,7 +464,7 @@ export type BodyUploadFile = {
   /**
    * Content
    */
-  content?: (Blob | File) | null
+  content?: string | null
 }
 
 /**
@@ -628,19 +613,107 @@ export type ChatContextEntity = {
 
 /**
  * ChatRequest
- * Request body sent by the frontend's useChat hook: the full UIMessage
- * history. Messages are kept loosely typed — the UIMessage shape (ids,
- * roles, typed parts) is owned by the Vercel AI SDK protocol, and the
- * orchestrator only consumes the parts it understands.
+ * The default request body sent by the frontend's useChat hook (Vercel AI
+ * SDK). The stable chat ``id`` doubles as the LangGraph thread id, so
+ * multi-turn continuity needs no extra round-trip. ``context`` is merged in by
+ * the SDK from ``sendMessage(text, {body: {context}})``.
  */
 export type ChatRequest = {
   /**
+   * Id
+   */
+  id: string
+  /**
    * Messages
    */
-  messages: Array<{
-    [key: string]: unknown
-  }>
+  messages: Array<UiMessage>
+  /**
+   * Trigger
+   */
+  trigger?: string | null
   context?: ChatContext | null
+}
+
+/**
+ * ChatThreadMessages
+ * A thread's messages as the user saw them, ready to replay in the chat UI.
+ *
+ * The agent's tool calls and raw query output are filtered out, and what's left
+ * is mapped to AI SDK UIMessages. Fetch the thread itself for the full
+ * checkpointed state, tool output included.
+ */
+export type ChatThreadMessages = {
+  /**
+   * Thread Id
+   */
+  thread_id: string
+  /**
+   * Messages
+   */
+  messages?: Array<UiMessage>
+}
+
+/**
+ * ChatThreadPublic
+ * One of the caller's chat threads.
+ *
+ * Threads aren't stored here — they belong to the agent deployment, and are
+ * listed by the owner recorded in each thread's metadata. ``id`` is the thread
+ * id, which is also the chat id the UI sends. ``title`` is derived from the
+ * thread's first message; the agent stores no title of its own.
+ */
+export type ChatThreadPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Title
+   */
+  title: string
+  /**
+   * Created At
+   */
+  created_at?: string | null
+  /**
+   * Updated At
+   */
+  updated_at?: string | null
+}
+
+/**
+ * ChatThreadsPublic
+ * A page of chat threads, shaped like the other list endpoints.
+ */
+export type ChatThreadsPublic = {
+  /**
+   * Data
+   */
+  data: Array<ChatThreadPublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
 }
 
 /**
@@ -1558,7 +1631,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflow Ids
    */
@@ -1592,7 +1665,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Workflows
    */
@@ -1716,11 +1789,11 @@ export type ProjectPublic = {
   /**
    * Created At
    */
-  created_at: string
+  created_at: string | null
   /**
    * Last Modified
    */
-  last_modified: string
+  last_modified: string | null
   /**
    * Data Folder Uri
    */
@@ -2648,6 +2721,41 @@ export type TokenResponse = {
 }
 
 /**
+ * UIMessage
+ * A Vercel AI SDK UIMessage: a role plus an ordered list of typed parts.
+ */
+export type UiMessage = {
+  /**
+   * Id
+   */
+  id?: string | null
+  /**
+   * Role
+   */
+  role: string
+  /**
+   * Parts
+   */
+  parts?: Array<UiMessagePart>
+}
+
+/**
+ * UIMessagePart
+ * One part of a Vercel AI SDK UIMessage. Text parts carry ``text``; other
+ * part types (tool calls, files, ...) are tolerated and ignored.
+ */
+export type UiMessagePart = {
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Text
+   */
+  text?: string | null
+}
+
+/**
  * UndeterminedType
  */
 export type UndeterminedType = {
@@ -2955,7 +3063,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -2969,7 +3077,7 @@ export type WorkflowDeploymentCreate = {
   /**
    * External Id
    */
-  external_id: string
+  external_id?: string | null
 }
 
 /**
@@ -3025,7 +3133,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
   /**
    * Versions
    */
@@ -3107,7 +3215,7 @@ export type WorkflowVersionCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -3145,7 +3253,7 @@ export type WorkflowVersionPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<Attribute> | null
+  attributes?: Array<ApiWorkflowModelsAttribute> | null
 }
 
 /**
@@ -3193,6 +3301,21 @@ export type ApiProjectModelsAttribute = {
  * Attribute
  */
 export type ApiSamplesModelsAttribute = {
+  /**
+   * Key
+   */
+  key: string | null
+  /**
+   * Value
+   */
+  value: string | null
+}
+
+/**
+ * Attribute
+ * Reusable key-value pair for request/response payloads.
+ */
+export type ApiWorkflowModelsAttribute = {
   /**
    * Key
    */
@@ -3931,6 +4054,176 @@ export type ChatErrors = {
 export type ChatError = ChatErrors[keyof ChatErrors]
 
 export type ChatResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
+export type ChatStreamData = {
+  body: ChatRequest
+  path?: never
+  query?: never
+  url: '/api/v1/chat/stream'
+}
+
+export type ChatStreamErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ChatStreamError = ChatStreamErrors[keyof ChatStreamErrors]
+
+export type ChatStreamResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
+export type DeleteAllChatThreadsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/chat/threads'
+}
+
+export type DeleteAllChatThreadsResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteAllChatThreadsResponse =
+  DeleteAllChatThreadsResponses[keyof DeleteAllChatThreadsResponses]
+
+export type ListChatThreadsData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Skip
+     * Number of threads to skip
+     */
+    skip?: number
+    /**
+     * Limit
+     * Maximum number of threads to return
+     */
+    limit?: number
+  }
+  url: '/api/v1/chat/threads'
+}
+
+export type ListChatThreadsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ListChatThreadsError =
+  ListChatThreadsErrors[keyof ListChatThreadsErrors]
+
+export type ListChatThreadsResponses = {
+  /**
+   * Successful Response
+   */
+  200: ChatThreadsPublic
+}
+
+export type ListChatThreadsResponse =
+  ListChatThreadsResponses[keyof ListChatThreadsResponses]
+
+export type GetChatThreadMessagesData = {
+  body?: never
+  path: {
+    /**
+     * Thread Id
+     */
+    thread_id: string
+  }
+  query?: never
+  url: '/api/v1/chat/threads/{thread_id}/messages'
+}
+
+export type GetChatThreadMessagesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetChatThreadMessagesError =
+  GetChatThreadMessagesErrors[keyof GetChatThreadMessagesErrors]
+
+export type GetChatThreadMessagesResponses = {
+  /**
+   * Successful Response
+   */
+  200: ChatThreadMessages
+}
+
+export type GetChatThreadMessagesResponse =
+  GetChatThreadMessagesResponses[keyof GetChatThreadMessagesResponses]
+
+export type DeleteChatThreadData = {
+  body?: never
+  path: {
+    /**
+     * Thread Id
+     */
+    thread_id: string
+  }
+  query?: never
+  url: '/api/v1/chat/threads/{thread_id}'
+}
+
+export type DeleteChatThreadErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteChatThreadError =
+  DeleteChatThreadErrors[keyof DeleteChatThreadErrors]
+
+export type DeleteChatThreadResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteChatThreadResponse =
+  DeleteChatThreadResponses[keyof DeleteChatThreadResponses]
+
+export type GetThreadData = {
+  body?: never
+  path: {
+    /**
+     * Thread Id
+     */
+    thread_id: string
+  }
+  query?: never
+  url: '/api/v1/chat/threads/{thread_id}'
+}
+
+export type GetThreadErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetThreadError = GetThreadErrors[keyof GetThreadErrors]
+
+export type GetThreadResponses = {
   /**
    * Successful Response
    */

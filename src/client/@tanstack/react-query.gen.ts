@@ -18,6 +18,7 @@ import {
   bulkCreateSamples,
   changePassword,
   chat,
+  chatStream,
   clearSamplesForRun,
   confirmPasswordReset,
   createApiKey,
@@ -29,7 +30,9 @@ import {
   createWorkflow,
   createWorkflowDeployment,
   createWorkflowVersion,
+  deleteAllChatThreads,
   deleteApiKey,
+  deleteChatThread,
   deleteFile,
   deleteQcrecord,
   deleteSampleFromProject,
@@ -42,6 +45,7 @@ import {
   getActionTypes,
   getAllConfigs,
   getAvailableOauthProviders,
+  getChatThreadMessages,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
   getFile,
@@ -67,6 +71,7 @@ import {
   getSamplesForRun,
   getSetting,
   getSettingsByTag,
+  getThread,
   getVendor,
   getVendors,
   getWorkflowById,
@@ -80,6 +85,7 @@ import {
   ingestVendorData,
   linkOauthProvider,
   listApiKeys,
+  listChatThreads,
   listDemultiplexWorkflows,
   listFiles,
   login,
@@ -154,6 +160,8 @@ import type {
   ChangePasswordResponse,
   ChatData,
   ChatError,
+  ChatStreamData,
+  ChatStreamError,
   ClearSamplesForRunData,
   ClearSamplesForRunError,
   ClearSamplesForRunResponse,
@@ -187,9 +195,14 @@ import type {
   CreateWorkflowVersionData,
   CreateWorkflowVersionError,
   CreateWorkflowVersionResponse,
+  DeleteAllChatThreadsData,
+  DeleteAllChatThreadsResponse,
   DeleteApiKeyData,
   DeleteApiKeyError,
   DeleteApiKeyResponse,
+  DeleteChatThreadData,
+  DeleteChatThreadError,
+  DeleteChatThreadResponse,
   DeleteFileData,
   DeleteFileError,
   DeleteFileResponse,
@@ -214,6 +227,7 @@ import type {
   GetActionTypesData,
   GetAllConfigsData,
   GetAvailableOauthProvidersData,
+  GetChatThreadMessagesData,
   GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
   GetFileData,
@@ -245,6 +259,7 @@ import type {
   GetSamplesForRunData,
   GetSettingData,
   GetSettingsByTagData,
+  GetThreadData,
   GetVendorData,
   GetVendorsData,
   GetWorkflowByIdData,
@@ -266,6 +281,7 @@ import type {
   ListApiKeysData,
   ListApiKeysError,
   ListApiKeysResponse,
+  ListChatThreadsData,
   ListDemultiplexWorkflowsData,
   ListFilesData,
   ListFilesError,
@@ -400,7 +416,7 @@ const createQueryKey = <TOptions extends Options>(
   const params: QueryKey<TOptions>[0] = {
     _id: id,
     baseUrl: (options?.client ?? _heyApiClient).getConfig().baseUrl,
-  }
+  } as QueryKey<TOptions>[0]
   if (infinite) {
     params._infinite = infinite
   }
@@ -445,6 +461,11 @@ export const healthCheckQueryKey = (options?: Options<HealthCheckData>) =>
 
 /**
  * Health Check
+ * Health check that also probes database connectivity.
+ *
+ * Returns 503 when the database is unreachable so the load balancer marks the
+ * target unhealthy instead of routing traffic to an instance that can't serve
+ * DB-backed requests (e.g. new instances that lack RDS security-group access).
  */
 export const healthCheckOptions = (options?: Options<HealthCheckData>) => {
   return queryOptions({
@@ -1845,7 +1866,7 @@ export const chatQueryKey = (options: Options<ChatData>) =>
 
 /**
  * Chat
- * Stream an assistant reply for the given message history.
+ * Non-streaming JSON chat for simple clients and tests.
  */
 export const chatOptions = (options: Options<ChatData>) => {
   return queryOptions({
@@ -1864,7 +1885,7 @@ export const chatOptions = (options: Options<ChatData>) => {
 
 /**
  * Chat
- * Stream an assistant reply for the given message history.
+ * Non-streaming JSON chat for simple clients and tests.
  */
 export const chatMutation = (
   options?: Partial<Options<ChatData>>,
@@ -1884,6 +1905,183 @@ export const chatMutation = (
     },
   }
   return mutationOptions
+}
+
+export const chatStreamQueryKey = (options: Options<ChatStreamData>) =>
+  createQueryKey('chatStream', options)
+
+/**
+ * Chat Stream
+ * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ */
+export const chatStreamOptions = (options: Options<ChatStreamData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await chatStream({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: chatStreamQueryKey(options),
+  })
+}
+
+/**
+ * Chat Stream
+ * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ */
+export const chatStreamMutation = (
+  options?: Partial<Options<ChatStreamData>>,
+): UseMutationOptions<unknown, ChatStreamError, Options<ChatStreamData>> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    ChatStreamError,
+    Options<ChatStreamData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await chatStream({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete All Chat Threads
+ * Delete all of the caller's chat threads.
+ */
+export const deleteAllChatThreadsMutation = (
+  options?: Partial<Options<DeleteAllChatThreadsData>>,
+): UseMutationOptions<
+  DeleteAllChatThreadsResponse,
+  DefaultError,
+  Options<DeleteAllChatThreadsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAllChatThreadsResponse,
+    DefaultError,
+    Options<DeleteAllChatThreadsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAllChatThreads({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const listChatThreadsQueryKey = (
+  options?: Options<ListChatThreadsData>,
+) => createQueryKey('listChatThreads', options)
+
+/**
+ * List Chat Threads
+ * List the caller's chat threads, most recently active first.
+ */
+export const listChatThreadsOptions = (
+  options?: Options<ListChatThreadsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listChatThreads({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listChatThreadsQueryKey(options),
+  })
+}
+
+export const getChatThreadMessagesQueryKey = (
+  options: Options<GetChatThreadMessagesData>,
+) => createQueryKey('getChatThreadMessages', options)
+
+/**
+ * Get Chat Thread Messages
+ * A thread's transcript as the user saw it, for reloading it into the chat.
+ *
+ * The thread itself carries the agent's full working state; this is the subset
+ * that was on screen. See GET /chat/threads/{thread_id} for everything.
+ */
+export const getChatThreadMessagesOptions = (
+  options: Options<GetChatThreadMessagesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getChatThreadMessages({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getChatThreadMessagesQueryKey(options),
+  })
+}
+
+/**
+ * Delete Chat Thread
+ * Delete one thread, including the agent's memory of it.
+ */
+export const deleteChatThreadMutation = (
+  options?: Partial<Options<DeleteChatThreadData>>,
+): UseMutationOptions<
+  DeleteChatThreadResponse,
+  DeleteChatThreadError,
+  Options<DeleteChatThreadData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteChatThreadResponse,
+    DeleteChatThreadError,
+    Options<DeleteChatThreadData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteChatThread({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getThreadQueryKey = (options: Options<GetThreadData>) =>
+  createQueryKey('getThread', options)
+
+/**
+ * Get Thread
+ * Fetch a thread's full checkpointed state, tool calls and executed SQL included.
+ */
+export const getThreadOptions = (options: Options<GetThreadData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getThread({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getThreadQueryKey(options),
+  })
 }
 
 export const listFilesQueryKey = (options?: Options<ListFilesData>) =>

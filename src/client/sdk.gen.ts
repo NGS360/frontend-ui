@@ -37,6 +37,9 @@ import type {
   ChatData,
   ChatErrors,
   ChatResponses,
+  ChatStreamData,
+  ChatStreamErrors,
+  ChatStreamResponses,
   ClearSamplesForRunData,
   ClearSamplesForRunErrors,
   ClearSamplesForRunResponses,
@@ -70,9 +73,14 @@ import type {
   CreateWorkflowVersionData,
   CreateWorkflowVersionErrors,
   CreateWorkflowVersionResponses,
+  DeleteAllChatThreadsData,
+  DeleteAllChatThreadsResponses,
   DeleteApiKeyData,
   DeleteApiKeyErrors,
   DeleteApiKeyResponses,
+  DeleteChatThreadData,
+  DeleteChatThreadErrors,
+  DeleteChatThreadResponses,
   DeleteFileData,
   DeleteFileErrors,
   DeleteFileResponses,
@@ -105,6 +113,9 @@ import type {
   GetAllConfigsResponses,
   GetAvailableOauthProvidersData,
   GetAvailableOauthProvidersResponses,
+  GetChatThreadMessagesData,
+  GetChatThreadMessagesErrors,
+  GetChatThreadMessagesResponses,
   GetCurrentUserInfoData,
   GetCurrentUserInfoResponses,
   GetDemultiplexWorkflowConfigData,
@@ -177,6 +188,9 @@ import type {
   GetSettingsByTagData,
   GetSettingsByTagErrors,
   GetSettingsByTagResponses,
+  GetThreadData,
+  GetThreadErrors,
+  GetThreadResponses,
   GetVendorData,
   GetVendorErrors,
   GetVendorResponses,
@@ -215,6 +229,9 @@ import type {
   ListApiKeysData,
   ListApiKeysErrors,
   ListApiKeysResponses,
+  ListChatThreadsData,
+  ListChatThreadsErrors,
+  ListChatThreadsResponses,
   ListDemultiplexWorkflowsData,
   ListDemultiplexWorkflowsResponses,
   ListFilesData,
@@ -382,6 +399,11 @@ export const root = <ThrowOnError extends boolean = false>(
 
 /**
  * Health Check
+ * Health check that also probes database connectivity.
+ *
+ * Returns 503 when the database is unreachable so the load balancer marks the
+ * target unhealthy instead of routing traffic to an instance that can't serve
+ * DB-backed requests (e.g. new instances that lack RDS security-group access).
  */
 export const healthCheck = <ThrowOnError extends boolean = false>(
   options?: Options<HealthCheckData, ThrowOnError>,
@@ -1124,7 +1146,7 @@ export const getActionTypes = <ThrowOnError extends boolean = false>(
 
 /**
  * Chat
- * Stream an assistant reply for the given message history.
+ * Non-streaming JSON chat for simple clients and tests.
  */
 export const chat = <ThrowOnError extends boolean = false>(
   options: Options<ChatData, ThrowOnError>,
@@ -1146,6 +1168,151 @@ export const chat = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Chat Stream
+ * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ */
+export const chatStream = <ThrowOnError extends boolean = false>(
+  options: Options<ChatStreamData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ChatStreamResponses,
+    ChatStreamErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat/stream',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Delete All Chat Threads
+ * Delete all of the caller's chat threads.
+ */
+export const deleteAllChatThreads = <ThrowOnError extends boolean = false>(
+  options?: Options<DeleteAllChatThreadsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).delete<
+    DeleteAllChatThreadsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat/threads',
+    ...options,
+  })
+}
+
+/**
+ * List Chat Threads
+ * List the caller's chat threads, most recently active first.
+ */
+export const listChatThreads = <ThrowOnError extends boolean = false>(
+  options?: Options<ListChatThreadsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListChatThreadsResponses,
+    ListChatThreadsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat/threads',
+    ...options,
+  })
+}
+
+/**
+ * Get Chat Thread Messages
+ * A thread's transcript as the user saw it, for reloading it into the chat.
+ *
+ * The thread itself carries the agent's full working state; this is the subset
+ * that was on screen. See GET /chat/threads/{thread_id} for everything.
+ */
+export const getChatThreadMessages = <ThrowOnError extends boolean = false>(
+  options: Options<GetChatThreadMessagesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetChatThreadMessagesResponses,
+    GetChatThreadMessagesErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat/threads/{thread_id}/messages',
+    ...options,
+  })
+}
+
+/**
+ * Delete Chat Thread
+ * Delete one thread, including the agent's memory of it.
+ */
+export const deleteChatThread = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteChatThreadData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteChatThreadResponses,
+    DeleteChatThreadErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat/threads/{thread_id}',
+    ...options,
+  })
+}
+
+/**
+ * Get Thread
+ * Fetch a thread's full checkpointed state, tool calls and executed SQL included.
+ */
+export const getThread = <ThrowOnError extends boolean = false>(
+  options: Options<GetThreadData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetThreadResponses,
+    GetThreadErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat/threads/{thread_id}',
+    ...options,
   })
 }
 
