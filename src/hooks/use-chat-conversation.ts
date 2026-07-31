@@ -2,6 +2,7 @@ import { useChat } from '@ai-sdk/react'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 import { useChatHistory } from '@/hooks/use-chat-history'
+import { ApiError } from '@/lib/api-error'
 import { handleChatDataPart, threadIdFromDataPart } from '@/lib/chat-directives'
 import { toUIMessages } from '@/lib/chat-messages'
 import { chatTransport } from '@/lib/chat-transport'
@@ -85,9 +86,16 @@ export function useChatConversation() {
   // The stored thread can be gone — deleted from another tab, or expired. Its
   // transcript 404s, and sending to it would 404 too, so fall back to a new
   // chat rather than leaving a pane that can't recover.
+  //
+  // Only on 404. A 502 means the agent upstream is unreachable, which is
+  // transient; discarding the thread then would lose a conversation that is
+  // still there once it recovers.
   useEffect(() => {
-    if (history.transcriptQuery.isError) showThread(undefined)
-  }, [history.transcriptQuery.isError])
+    const transcriptError = history.transcriptQuery.error
+    if (transcriptError instanceof ApiError && transcriptError.status === 404) {
+      showThread(undefined)
+    }
+  }, [history.transcriptQuery.error])
 
   const threads = history.threadsQuery.data?.data ?? []
   const hasMessages = messages.length > 0
