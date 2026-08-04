@@ -46,12 +46,16 @@ function DialogOverlay({
 
 function DialogContent({
   className,
+  overlayClassName,
   children,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content>) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  /** Extra backdrop classes, e.g. a blur, without changing every dialog. */
+  overlayClassName?: string
+}) {
   return (
     <DialogPortal data-slot="dialog-portal">
-      <DialogOverlay>
+      <DialogOverlay className={overlayClassName}>
         <DialogPrimitive.Content
           data-slot="dialog-content"
           className={cn(
@@ -94,8 +98,8 @@ function DialogTitle({
   className,
   showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Title> & { 
-  showCloseButton?: boolean 
+}: React.ComponentProps<typeof DialogPrimitive.Title> & {
+  showCloseButton?: boolean
 }) {
   return (
     <div className='flex justify-between'>

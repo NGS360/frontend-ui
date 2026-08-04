@@ -7,6 +7,7 @@ import type {
   PluginConfig,
   UrlTransform,
 } from 'streamdown'
+import { AiChatLinkDialog } from '@/components/ai-chat/link-dialog'
 
 /**
  * Assistant markdown for the AI chat sidebar.
@@ -40,11 +41,16 @@ const urlTransform: UrlTransform = (url) => {
   }
 }
 
-// Internal links open directly; off-origin keeps Streamdown's confirm modal,
-// because the href came from the model and a plausible link is a phishing lure.
+// Internal links open directly; off-origin gets a confirm step, because the
+// href came from the model and a plausible link is a phishing lure.
+//
+// renderModal replaces Streamdown's own modal, which renders inline and so
+// lands its overlay inside the sidebar's z-10 stacking context — under the
+// z-30 header, which stayed unblurred. Ours portals to <body>.
 const linkSafety: LinkSafetyConfig = {
   enabled: true,
   onLinkCheck: (url) => sameOrigin(url),
+  renderModal: (props) => <AiChatLinkDialog {...props} />,
 }
 
 // Model output never causes a network fetch. rehype-harden allows any image
