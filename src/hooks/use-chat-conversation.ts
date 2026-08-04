@@ -54,7 +54,7 @@ export function useChatConversation() {
       if (assigned) assignedThreadRef.current = assigned
       handleChatDataPart(part, navigate)
     },
-    onFinish: () => {
+    onFinish: ({ isAbort }) => {
       const assigned = assignedThreadRef.current
       assignedThreadRef.current = null
       // The thread exists server-side now, so list it and make it the open one.
@@ -71,11 +71,16 @@ export function useChatConversation() {
           }),
         })
         // The pane is authoritative for this thread now: it holds the turn that
-        // just streamed, tool steps and all, and a transcript is only the
-        // text-only projection of that. Latch so no refetch replays over it.
-        hydratedIdRef.current = turnThreadId
+        // just streamed, and a transcript is only the text-only projection of
+        // that. Latch so no refetch replays over it — unless the user walked
+        // away mid-stream, in which case the pane holds their new chat and
+        // latching it to the abandoned thread would block that one hydrating.
+        if (!isAbort) hydratedIdRef.current = turnThreadId
       }
-      if (assigned && assigned !== history.threadId) {
+      // Opening the assigned thread is for the case this turn CREATED it. If
+      // the user started a new chat while it was still streaming, they have
+      // already chosen where to be, and this would drag them back.
+      if (!isAbort && assigned && assigned !== history.threadId) {
         history.openThread(assigned)
       }
     },
@@ -118,6 +123,10 @@ export function useChatConversation() {
     // Re-picking the open conversation would clear the pane without
     // re-running the hydration effect, since nothing it depends on changes.
     if (id !== undefined && id === history.threadId) return
+    // A stream in flight belongs to the thread being left, not the one being
+    // opened. Without this it keeps running against a cleared pane, and its
+    // reply lands wherever the user has since navigated.
+    if (status === 'submitted' || status === 'streaming') void stop()
     hydratedIdRef.current = null
     setMessages([])
     history.openThread(id)
