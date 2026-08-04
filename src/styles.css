@@ -240,6 +240,7 @@ code {
 @media (prefers-reduced-motion: reduce) {
   :root {
     --animate-fade-in-up: none;
+    --animate-gradient-text-sweep: none;
   }
 }
 
@@ -249,6 +250,82 @@ code {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Animated sibling of gradient-text, for a working state whose label is its own
+   progress indicator — no spinner glyph beside it. A highlight travels across
+   the glyphs, the way a terminal agent shimmers its status line.
+
+   Horizontal (90deg), not the 135deg brand axis the other gradients use: on one
+   short line of text a diagonal reads as an uneven wash rather than a pass of
+   light, and the motion is left-to-right so the slant would fight it.
+
+   Keep it a plain @theme: the reduced-motion override above blanks this token,
+   which needs a real custom property that `@theme inline` would not emit. */
+@theme {
+  --animate-gradient-text-sweep: gradient-text-sweep 2.4s linear infinite;
+
+  /* Background-position percentages align image edge to box edge, so at 100% the
+     visible third is the image's right end — all resting colour, highlight still
+     off to the left — and walking to 0% slides the image right, carrying the
+     highlight in from the left edge and out through the right.
+
+     The 300% width is what buys the rest between passes: the highlight is clear
+     of the glyphs at both 100% and 0%, so the loop wraps on a flat frame and
+     there is no jump. At 200% it would be mid-sweep at the wrap and visibly
+     snap back. */
+  @keyframes gradient-text-sweep {
+    from {
+      background-position: 100% 0%;
+    }
+    to {
+      background-position: 0% 0%;
+    }
+  }
+}
+
+/* The resting fill is currentColor, so the call site's own text color sets the
+   tone (muted, for a quiet working state) and one definition serves both themes.
+   The highlight is --foreground, i.e. the *high-contrast* direction rather than
+   a fixed colour, which is what makes it survive a theme flip: on dark it is
+   near-white (oklch .985) over grey — the shine this is modelled on — and on
+   light it is near-black (oklch .145) over grey. Literal white would be wrong
+   here, and not for pedantry: this app only ever renders the light theme (no
+   .dark class is set anywhere), so a white highlight over grey glyphs on a white
+   page would punch a moving hole through the word instead of lighting it up.
+
+   Soft and wide on purpose: currentColor -> foreground -> currentColor across
+   40%-60% of an image three times the box width, so the peak is ~60% of the
+   visible width with a gradual falloff. A tight band reads as a stripe wiping
+   over the text; this reads as a pass of light. No color-mix() — an invalid
+   background-image under a transparent text fill would render nothing at all. */
+@utility gradient-text-sweep {
+  background-image: linear-gradient(
+    90deg,
+    currentColor 0%,
+    currentColor 40%,
+    var(--foreground) 50%,
+    currentColor 60%,
+    currentColor 100%
+  );
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: var(--animate-gradient-text-sweep);
+
+  /* Reduced motion means no movement, not no colour. Park the band across the
+     glyphs instead of blanking the gradient: at the default 0% the band sits
+     off-view and the label renders as flat currentColor, which is
+     indistinguishable from the utility not having applied at all — an
+     invisible failure mode that costs real debugging time. 50% centres it, and
+     the glyphs outside the band stay currentColor, so the label cannot vanish
+     the way a fully transparent fill over a blanked background would. */
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    background-position: 50% 0%;
+  }
 }
 
 /* Decorative brand wash behind the chat content; expects an isolated parent.

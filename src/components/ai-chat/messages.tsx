@@ -1,11 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ChatStatus, UIMessage } from 'ai'
+import type { ChatStatus } from 'ai'
+import type { Ngs360UIMessage } from '@/lib/chat-protocol'
 import { AiChatEmptyState } from '@/components/ai-chat/empty-state'
 import { AiChatMarkdown } from '@/components/ai-chat/markdown'
-import { ContainedSpinner, Spinner } from '@/components/spinner'
+import { AiChatThinkingIndicator } from '@/components/ai-chat/thinking-indicator'
+import { toolLabel } from '@/components/ai-chat/tool-label'
+import { ContainedSpinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
+
+/**
+ * The answer text of a turn, if it has said anything yet. An assistant message
+ * can exist with no text: `useChat` creates it and attaches data parts before
+ * the agent has done any work.
+ */
+function answerText(message: Ngs360UIMessage): string {
+  return message.parts
+    .map((part) => (part.type === 'text' ? part.text : ''))
+    .join('')
+}
+
+/**
+ * The step the agent is on, from the last `data-status` part of the newest turn.
+ * There should only be one, but the scan takes the last rather than assume it.
+ */
+function currentToolLabel(
+  messages: Array<Ngs360UIMessage>,
+): string | undefined {
+  const last = messages.at(-1)
+  if (last?.role !== 'assistant') return undefined
+  let name: string | undefined
+  for (const part of last.parts) {
+    if (part.type === 'data-status') name = part.data.tool_name
+  }
+  return toolLabel(name)
+}
 
 /**
  * The scrolling transcript: the turns themselves plus the states around them
@@ -21,7 +51,7 @@ export function AiChatMessages({
   onSuggestion,
   centered,
 }: {
-  messages: Array<UIMessage>
+  messages: Array<Ngs360UIMessage>
   status: ChatStatus
   error: Error | undefined
   isLoadingTranscript: boolean
@@ -32,6 +62,15 @@ export function AiChatMessages({
 }) {
   const centeredClass = centered ? 'mx-auto w-full max-w-3xl' : ''
   const isBusy = status === 'submitted' || status === 'streaming'
+
+  // A text-less assistant turn is the agent working, and the indicator stands in
+  // for it — dropping it is what makes the indicator swap in place.
+  const rows = messages.filter(
+    (message) => message.role !== 'assistant' || answerText(message).trim(),
+  )
+  // Deliberately NOT `status === 'submitted'`: useChat flips to 'streaming' on
+  // the first frame, so that is a single-frame window and would flash.
+  const isWorking = isBusy && rows.at(-1)?.role !== 'assistant'
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   // Edge fades, shown only where there's scrolled-past content.
@@ -96,20 +135,25 @@ export function AiChatMessages({
             />
           ) : (
             <div className={cn('flex flex-col gap-3', centeredClass)}>
-              {messages.map((message, messageIndex) => {
+              {rows.map((message, messageIndex) => {
                 // Only the trailing assistant message can be mid-stream. The rest
                 // are final, so Streamdown's memo bails on content identity.
                 const isStreaming =
                   status === 'streaming' &&
                   message.role === 'assistant' &&
-                  messageIndex === messages.length - 1
+                  messageIndex === rows.length - 1
                 return (
                   <div
                     key={message.id}
                     data-role={message.role}
-                    // Assistant bubbles are full-column: a shrink-to-fit box
+                    // Assistant turns are flat text in the column — no fill, no
+                    // rounding, no padding, so they left-align with the error
+                    // row and inherit the transcript's own p-4 gutter. The
+                    // bubble (and everything that only makes sense inside one)
+                    // is a user-only variant; that contrast carries the role.
+                    // Assistant rows are full-column: a shrink-to-fit box
                     // around an overflow-x:auto table collapses to a sliver.
-                    className="min-w-0 rounded-lg px-3 py-2 text-sm data-[role=assistant]:w-full data-[role=assistant]:self-start data-[role=assistant]:bg-muted data-[role=user]:max-w-[85%] data-[role=user]:self-end data-[role=user]:bg-primary data-[role=user]:whitespace-pre-wrap data-[role=user]:text-primary-foreground"
+                    className="min-w-0 text-sm data-[role=assistant]:w-full data-[role=assistant]:self-start data-[role=user]:max-w-[85%] data-[role=user]:self-end data-[role=user]:rounded-lg data-[role=user]:bg-primary data-[role=user]:px-3 data-[role=user]:py-2 data-[role=user]:whitespace-pre-wrap data-[role=user]:text-primary-foreground"
                   >
                     {message.parts.map((part, index) => {
                       if (part.type !== 'text') return null
@@ -127,11 +171,13 @@ export function AiChatMessages({
                   </div>
                 )
               })}
-              {status === 'submitted' && (
-                <div className="flex max-w-[85%] items-center gap-2 self-start rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-                  <Spinner variant="circle" size={14} />
-                  Thinking…
-                </div>
+              {/* One indicator for the whole working phase; only the running
+                  step's name shows, until the first token replaces it. */}
+              {isWorking && (
+                <AiChatThinkingIndicator
+                  className="self-start"
+                  detail={currentToolLabel(messages)}
+                />
               )}
               {error && (
                 <div className="flex items-center gap-2 self-start text-sm text-destructive">
