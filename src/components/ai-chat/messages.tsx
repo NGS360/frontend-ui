@@ -22,19 +22,15 @@ function answerText(message: Ngs360UIMessage): string {
 }
 
 /**
- * The step the agent is on, from the last `data-status` part of the newest turn.
- * There should only be one, but the scan takes the last rather than assume it.
+ * The step a turn is on, from its last `data-status` part. There should only be
+ * one, but the scan takes the last rather than assume it.
  */
-function currentToolLabel(
-  messages: Array<Ngs360UIMessage>,
-): string | undefined {
-  const last = messages.at(-1)
-  if (last?.role !== 'assistant') return undefined
+function statusToolName(message: Ngs360UIMessage): string | undefined {
   let name: string | undefined
-  for (const part of last.parts) {
+  for (const part of message.parts) {
     if (part.type === 'data-status') name = part.data.tool_name
   }
-  return toolLabel(name)
+  return name
 }
 
 /**
@@ -65,12 +61,16 @@ export function AiChatMessages({
 
   // A text-less assistant turn is the agent working, and the indicator stands in
   // for it — dropping it is what makes the indicator swap in place.
-  const rows = messages.filter(
-    (message) => message.role !== 'assistant' || answerText(message).trim(),
-  )
+  const trailing = messages.at(-1)
+  const pending =
+    trailing?.role === 'assistant' && !answerText(trailing).trim()
+      ? trailing
+      : undefined
+  const rows = pending ? messages.slice(0, -1) : messages
   // Deliberately NOT `status === 'submitted'`: useChat flips to 'streaming' on
   // the first frame, so that is a single-frame window and would flash.
-  const isWorking = isBusy && rows.at(-1)?.role !== 'assistant'
+  const isWorking = isBusy && (!!pending || trailing?.role === 'user')
+  const workingDetail = pending ? toolLabel(statusToolName(pending)) : undefined
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   // Edge fades, shown only where there's scrolled-past content.
@@ -176,7 +176,7 @@ export function AiChatMessages({
               {isWorking && (
                 <AiChatThinkingIndicator
                   className="self-start"
-                  detail={currentToolLabel(messages)}
+                  detail={workingDetail}
                 />
               )}
               {error && (
