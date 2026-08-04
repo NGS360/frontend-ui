@@ -162,6 +162,7 @@ import type {
   ChatError,
   ChatStreamData,
   ChatStreamError,
+  ChatStreamResponse,
   ClearSamplesForRunData,
   ClearSamplesForRunError,
   ClearSamplesForRunResponse,
@@ -1912,7 +1913,10 @@ export const chatStreamQueryKey = (options: Options<ChatStreamData>) =>
 
 /**
  * Chat Stream
- * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ * Streaming chat for the chat UI.
+ *
+ * The frames are this API's own; the client's chat transport maps them onto
+ * the AI SDK protocol that useChat consumes.
  */
 export const chatStreamOptions = (options: Options<ChatStreamData>) => {
   return queryOptions({
@@ -1931,13 +1935,20 @@ export const chatStreamOptions = (options: Options<ChatStreamData>) => {
 
 /**
  * Chat Stream
- * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ * Streaming chat for the chat UI.
+ *
+ * The frames are this API's own; the client's chat transport maps them onto
+ * the AI SDK protocol that useChat consumes.
  */
 export const chatStreamMutation = (
   options?: Partial<Options<ChatStreamData>>,
-): UseMutationOptions<unknown, ChatStreamError, Options<ChatStreamData>> => {
+): UseMutationOptions<
+  ChatStreamResponse,
+  ChatStreamError,
+  Options<ChatStreamData>
+> => {
   const mutationOptions: UseMutationOptions<
-    unknown,
+    ChatStreamResponse,
     ChatStreamError,
     Options<ChatStreamData>
   > = {
@@ -2068,6 +2079,9 @@ export const getThreadQueryKey = (options: Options<GetThreadData>) =>
 /**
  * Get Thread
  * Fetch a thread's full checkpointed state, tool calls and executed SQL included.
+ *
+ * Raw state includes tool output and executed SQL, i.e. more than the owner ever
+ * saw in the UI — OwnedThreadDep is what keeps it from being served to anyone else.
  */
 export const getThreadOptions = (options: Options<GetThreadData>) => {
   return queryOptions({

@@ -1,6 +1,9 @@
 import { useChat } from '@ai-sdk/react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
+import type { Ngs360UIMessage } from '@/lib/chat-protocol'
+import { getChatThreadMessagesQueryKey } from '@/client/@tanstack/react-query.gen'
 import { useChatHistory } from '@/hooks/use-chat-history'
 import { ApiError } from '@/lib/api-error'
 import { handleChatDataPart, threadIdFromDataPart } from '@/lib/chat-directives'
@@ -21,6 +24,7 @@ const STREAM_RENDER_INTERVAL_MS = 50
 export function useChatConversation() {
   const navigate = useNavigate()
   const history = useChatHistory()
+  const queryClient = useQueryClient()
 
   // The thread id assigned this turn, captured mid-stream and applied on finish
   // so navigation doesn't churn during the stream.
@@ -39,10 +43,12 @@ export function useChatConversation() {
     stop,
     error,
     regenerate,
-  } = useChat({
+  } = useChat<Ngs360UIMessage>({
     transport: chatTransport,
     experimental_throttle: STREAM_RENDER_INTERVAL_MS,
     // Data parts carry the assistant's UI directives and the assigned thread id.
+    // Parameterising useChat types `part` as one of this app's own data parts
+    // (lib/chat-protocol.ts) rather than an open `data-${string}`.
     onData: (part) => {
       const assigned = threadIdFromDataPart(part)
       if (assigned) assignedThreadRef.current = assigned
@@ -53,9 +59,23 @@ export function useChatConversation() {
       assignedThreadRef.current = null
       // The thread exists server-side now, so list it and make it the open one.
       void history.threadsQuery.refetch()
+      const turnThreadId = assigned ?? history.threadId
+      if (turnThreadId) {
+        // Any cached transcript for this thread predates the turn that just
+        // finished. Drop the entry outright: invalidating would only mark it
+        // stale and leave the data in place, and that data is exactly what
+        // react-query hands back on the next open, one turn short.
+        queryClient.removeQueries({
+          queryKey: getChatThreadMessagesQueryKey({
+            path: { thread_id: turnThreadId },
+          }),
+        })
+        // The pane is authoritative for this thread now: it holds the turn that
+        // just streamed, tool steps and all, and a transcript is only the
+        // text-only projection of that. Latch so no refetch replays over it.
+        hydratedIdRef.current = turnThreadId
+      }
       if (assigned && assigned !== history.threadId) {
-        // Already on screen — don't let the transcript query replace it.
-        hydratedIdRef.current = assigned
         history.openThread(assigned)
       }
     },
@@ -67,11 +87,31 @@ export function useChatConversation() {
     const transcript = history.transcriptQuery.data
     // A response can land after the user has moved on.
     if (!transcript || transcript.thread_id !== history.threadId) return
-    // Once per thread, or this would wipe turns added since it loaded.
+    // Once the pane holds this thread's own copy, leave it alone: replaying the
+    // transcript over it would wipe turns added since it loaded.
     if (hydratedIdRef.current === transcript.thread_id) return
-    hydratedIdRef.current = transcript.thread_id
+    // A stream owns the pane while it runs, and no transcript can know about the
+    // turn being written. Latch rather than just skipping, so a payload landing
+    // later in the same turn can't replay over the reply either.
+    if (status === 'submitted' || status === 'streaming') {
+      hydratedIdRef.current = transcript.thread_id
+      return
+    }
+    // Reopening a thread is served from cache in the same render that starts the
+    // refetch. Show that copy — it's the whole conversation bar at most the last
+    // turn — but don't latch on it: latching on a read with a fetch still behind
+    // it is what discarded the complete transcript that followed.
+    if (!history.transcriptQuery.isFetching) {
+      hydratedIdRef.current = transcript.thread_id
+    }
     setMessages(toUIMessages(transcript.messages))
-  }, [history.transcriptQuery.data, history.threadId, setMessages])
+  }, [
+    history.transcriptQuery.data,
+    history.transcriptQuery.isFetching,
+    history.threadId,
+    setMessages,
+    status,
+  ])
 
   // The chat instance is never re-keyed, so the pane is cleared explicitly.
   const showThread = (id: string | undefined) => {

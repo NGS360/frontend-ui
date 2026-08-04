@@ -37,6 +37,11 @@ export function useChatHistory() {
   const transcriptQuery = useQuery({
     ...getChatThreadMessagesOptions({ path: { thread_id: threadId ?? '' } }),
     enabled: Boolean(threadId),
+    // Explicit, though it is the default: a transcript grows server-side with
+    // every turn, so a cached one is never assumed current. Opening a thread
+    // always re-reads it, and callers must expect a cached copy to be replaced
+    // by the payload of the refetch that reading it starts.
+    staleTime: 0,
   })
 
   // refetch, not invalidateQueries: this hook is the list's only observer.

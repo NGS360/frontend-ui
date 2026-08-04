@@ -1173,7 +1173,10 @@ export const chat = <ThrowOnError extends boolean = false>(
 
 /**
  * Chat Stream
- * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ * Streaming chat for the chat UI.
+ *
+ * The frames are this API's own; the client's chat transport maps them onto
+ * the AI SDK protocol that useChat consumes.
  */
 export const chatStream = <ThrowOnError extends boolean = false>(
   options: Options<ChatStreamData, ThrowOnError>,
@@ -1296,6 +1299,9 @@ export const deleteChatThread = <ThrowOnError extends boolean = false>(
 /**
  * Get Thread
  * Fetch a thread's full checkpointed state, tool calls and executed SQL included.
+ *
+ * Raw state includes tool output and executed SQL, i.e. more than the owner ever
+ * saw in the UI — OwnedThreadDep is what keeps it from being served to anyone else.
  */
 export const getThread = <ThrowOnError extends boolean = false>(
   options: Options<GetThreadData, ThrowOnError>,

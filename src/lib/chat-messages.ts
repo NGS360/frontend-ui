@@ -1,5 +1,5 @@
-import type { UIMessage } from 'ai'
 import type { UiMessage } from '@/client'
+import type { Ngs360UIMessage } from '@/lib/chat-protocol'
 
 /**
  * Adapt an API transcript into AI SDK messages so a stored conversation can be
@@ -8,7 +8,7 @@ import type { UiMessage } from '@/client'
  */
 export function toUIMessages(
   messages: Array<UiMessage> | undefined,
-): Array<UIMessage> {
+): Array<Ngs360UIMessage> {
   return (messages ?? []).map((message, index) => ({
     // Keep the agent's ids; the index is a fallback for stable React keys.
     id: message.id ?? `restored-${index}`,

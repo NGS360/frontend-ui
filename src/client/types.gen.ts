@@ -612,11 +612,108 @@ export type ChatContextEntity = {
 }
 
 /**
+ * ChatFrameDone
+ * The run finished cleanly, as opposed to the connection dropping.
+ */
+export type ChatFrameDone = {
+  /**
+   * Type
+   */
+  type?: 'done'
+}
+
+/**
+ * ChatFrameEnvelope
+ * The union as a referenceable schema, for OpenAPI only. No route returns
+ * it; it exists so the stream route can put the frames in /docs.
+ */
+export type ChatFrameEnvelope =
+  | ({
+      type: 'thread'
+    } & ChatFrameThread)
+  | ({
+      type: 'status'
+    } & ChatFrameStatus)
+  | ({
+      type: 'text'
+    } & ChatFrameText)
+  | ({
+      type: 'done'
+    } & ChatFrameDone)
+  | ({
+      type: 'error'
+    } & ChatFrameError)
+
+/**
+ * ChatFrameError
+ * The run failed. Replaces ``done`` rather than preceding it.
+ */
+export type ChatFrameError = {
+  /**
+   * Type
+   */
+  type?: 'error'
+  /**
+   * Message
+   */
+  message: string
+}
+
+/**
+ * ChatFrameStatus
+ * The running tool's name, never its args or output. Opaque — the client
+ * derives a label, so an unknown tool still renders.
+ */
+export type ChatFrameStatus = {
+  /**
+   * Type
+   */
+  type?: 'status'
+  /**
+   * Tool
+   */
+  tool: string
+}
+
+/**
+ * ChatFrameText
+ * One token of the answer.
+ */
+export type ChatFrameText = {
+  /**
+   * Type
+   */
+  type?: 'text'
+  /**
+   * Delta
+   */
+  delta: string
+}
+
+/**
+ * ChatFrameThread
+ * The thread this turn belongs to. Sent first, so a new thread's id
+ * survives a run that then fails.
+ */
+export type ChatFrameThread = {
+  /**
+   * Type
+   */
+  type?: 'thread'
+  /**
+   * Thread Id
+   */
+  thread_id: string
+}
+
+/**
  * ChatRequest
- * The default request body sent by the frontend's useChat hook (Vercel AI
- * SDK). The stable chat ``id`` doubles as the LangGraph thread id, so
- * multi-turn continuity needs no extra round-trip. ``context`` is merged in by
- * the SDK from ``sendMessage(text, {body: {context}})``.
+ * The request body sent by the frontend's useChat hook (Vercel AI SDK).
+ *
+ * ``id`` is the SDK's own conversation id — opaque to us, and deliberately not
+ * the thread id. ``thread_id`` and ``context`` are merged in by the SDK from
+ * ``sendMessage(text, {body: {...}})``: absent ``thread_id`` starts a new
+ * thread, which the server creates and announces in the stream.
  */
 export type ChatRequest = {
   /**
@@ -631,6 +728,10 @@ export type ChatRequest = {
    * Trigger
    */
   trigger?: string | null
+  /**
+   * Thread Id
+   */
+  thread_id?: string | null
   context?: ChatContext | null
 }
 
@@ -4078,10 +4179,12 @@ export type ChatStreamError = ChatStreamErrors[keyof ChatStreamErrors]
 
 export type ChatStreamResponses = {
   /**
-   * Successful Response
+   * Server-sent events. Each `data:` line is one frame (see the schema); the run ends with a `done` or an `error` frame. The declared media type is inaccurate: the body is text/event-stream, not application/json.
    */
-  200: unknown
+  200: ChatFrameEnvelope
 }
+
+export type ChatStreamResponse = ChatStreamResponses[keyof ChatStreamResponses]
 
 export type DeleteAllChatThreadsData = {
   body?: never
