@@ -6,7 +6,13 @@ import { useParams } from '@tanstack/react-router'
  * assistant knows what the user is looking at.
  */
 export interface PageContext {
-  type: 'project' | 'run' | 'sample' | 'job'
+  /**
+   * Only the kinds a route can actually produce. Narrower than the chat API's
+   * entity union on purpose: that also accepts `sample`, which arrives as an
+   * "@/#" reference rather than as a page — there is no sample detail route to
+   * be on. Widen this when one exists.
+   */
+  type: 'project' | 'run' | 'job'
   id: string
   /** Human label for the entity type, e.g. "Project". */
   label: string
@@ -18,7 +24,6 @@ export function usePageContext(): PageContext | null {
 
   if (params.project_id) return { type: 'project', id: params.project_id, label: 'Project' }
   if (params.run_id) return { type: 'run', id: params.run_id, label: 'Run' }
-  if (params.sample_id) return { type: 'sample', id: params.sample_id, label: 'Sample' }
   if (params.job_id) return { type: 'job', id: params.job_id, label: 'Job' }
   return null
 }

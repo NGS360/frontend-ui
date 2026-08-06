@@ -27,6 +27,8 @@ interface SearchItem {
   type: "project" | "run" | "sample" | "user"
   details: Record<string, string | null>
   attributes?: Array<Attribute> | null
+  /** Carried through for samples, whose id alone is ambiguous. */
+  projectId?: string
 }
 
 /** Bindings the combobox supplies for whichever control (input/textarea) it wraps. */
@@ -41,6 +43,8 @@ interface ControlBindings {
 export interface TriggerReference {
   type: "project" | "run" | "sample" | "user"
   id: string
+  /** The sample's project — its id is unique only within one. Samples only. */
+  projectId?: string
 }
 
 interface TriggerComboboxProps {
@@ -136,6 +140,7 @@ export const TriggerCombobox: React.FC<TriggerComboboxProps> = ({
         "Run ID": s.run_id ?? null,
       },
       attributes: s.attributes,
+      projectId: s.project_id,
     }))
     return [...projectItems, ...runItems, ...sampleItems]
   }, [searchResults, userResults, activeTrigger])
@@ -276,7 +281,11 @@ export const TriggerCombobox: React.FC<TriggerComboboxProps> = ({
                         value={item.id}
                         onSelect={() => {
                           selectItem(item.id)
-                          onReference?.({ type: item.type, id: item.id })
+                          onReference?.({
+                            type: item.type,
+                            id: item.id,
+                            projectId: item.projectId,
+                          })
                         }}
                         onMouseEnter={() => setHighlightedId(item.id)}
                       >

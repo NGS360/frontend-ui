@@ -586,6 +586,11 @@ export type BulkSampleItemResponse = {
  * Context the user attached when sending a message: the page they're on
  * and any entities they referenced via "@/#", so the assistant can scope its
  * answer.
+ *
+ * Everything here is user-controlled — it comes from the request body. Who is
+ * asking is *not* part of it and is never read from the body; the server adds
+ * the caller from the authenticated session on the way out (see
+ * ``services.build_run_context``).
  */
 export type ChatContext = {
   page?: ChatContextEntity | null
@@ -597,18 +602,30 @@ export type ChatContext = {
 
 /**
  * ChatContextEntity
- * An entity attached to a chat message: type ("project", "run", "sample",
- * "user", ...) and its id.
+ * An entity attached to a chat message: its kind and its id.
+ *
+ * Ids are business keys, the same ones that appear in URLs and in the public
+ * API — ``project.project_id`` (P-20230314-0004), ``sequencing_run.run_id``,
+ * ``sample.sample_id``, ``job.id``, ``users.username`` — never the database's
+ * uuid primary keys, which the public API does not expose at all.
+ *
+ * ``project_id`` scopes a sample: sample ids are unique only within a project
+ * (``UniqueConstraint('sample_id', 'project_id')``), so a bare one does not
+ * identify a row. It is ignored for every other kind.
  */
 export type ChatContextEntity = {
   /**
    * Type
    */
-  type: string
+  type: 'project' | 'run' | 'sample' | 'job' | 'user'
   /**
    * Id
    */
   id: string
+  /**
+   * Project Id
+   */
+  project_id?: string | null
 }
 
 /**

@@ -5,6 +5,12 @@ export type ContextEntity = {
   type: 'project' | 'run' | 'sample' | 'job' | 'user'
   id: string
   label: string
+  /**
+   * The project a sample belongs to. Sample ids are unique only within a
+   * project, so a sample reference without this does not identify a row.
+   * Unset for every other type.
+   */
+  projectId?: string
 }
 
 export const TYPE_LABELS: Record<ContextEntity['type'], string> = {
