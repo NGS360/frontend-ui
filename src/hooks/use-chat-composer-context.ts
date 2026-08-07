@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react'
+import { toast } from 'sonner'
 import type { TriggerReference } from '@/components/trigger-input'
 import type { Attachment, ContextEntity } from '@/lib/chat-context'
 import { usePageContext } from '@/hooks/use-page-context'
+import { ATTACHMENTS_DISABLED_NOTICE } from '@/lib/chat-attachments'
 import { TYPE_LABELS } from '@/lib/chat-context'
 
 /**
@@ -17,9 +19,11 @@ function isSameEntity(
 }
 
 /**
- * What the composer stages: the entity the user is looking at, the entities
- * they typed with "@/#", and any files they attached. Page and reference
- * context is sent with each message; attachments only show as chips.
+ * What the composer stages: the entity the user is looking at and the entities
+ * they typed with "@/#", both sent with each message.
+ *
+ * Files are a third thing the composer accepts and, for now, does not stage —
+ * see `addFiles`.
  */
 export function useChatComposerContext() {
   // Dismissal is keyed to the entity id, so navigating elsewhere re-attaches.
@@ -42,15 +46,23 @@ export function useChatComposerContext() {
   const removeReference = (entity: ContextEntity) =>
     setReferences((prev) => prev.filter((r) => !isSameEntity(r, entity)))
 
-  // Files from the paperclip picker or drag-and-drop; any type is allowed.
+  // Files from the paperclip picker or drag-and-drop.
+  //
+  // Nothing is staged and nothing is read: the assistant cannot reach a file
+  // yet, and a chip sitting beside the send button would read as "this is going
+  // with my message". Someone would attach a manifest and believe the agent got
+  // it. So the list stays empty and the user is told once, at the moment they
+  // try — the state and the chip wiring below are kept unexercised, to be
+  // reconnected when uploads go to S3 (ngs360-f2w.11).
   const [attachments, setAttachments] = useState<Array<Attachment>>([])
+
   const addFiles = useCallback((files: Array<File>) => {
     if (files.length === 0) return
-    setAttachments((prev) => [
-      ...prev,
-      ...files.map((file) => ({ id: crypto.randomUUID(), file })),
-    ])
+    // One toast however many files arrived: the reason is the same for each,
+    // and a stack of identical toasts is noise, not information.
+    toast.info(ATTACHMENTS_DISABLED_NOTICE)
   }, [])
+
   const removeAttachment = (id: string) =>
     setAttachments((prev) => prev.filter((a) => a.id !== id))
 
@@ -67,12 +79,19 @@ export function useChatComposerContext() {
     attachments,
     addFiles,
     removeAttachment,
-    /** Whether the chip row has anything to show. */
+    /** Whether the chip row has anything to show. Attachments count here and
+     * not in `hasSendableContext`: they are display state, and nothing about
+     * them travels in the request body. */
     hasContext: hasSendableContext || attachments.length > 0,
     /**
      * The `context` field of the send request, or nothing to send. Only the
      * typed identifiers travel; the label is display-only and the server adds
      * who is asking. `project_id` is snake_case: this is the wire shape.
+     *
+     * Attachments are absent by design, not oversight. The server has no field
+     * for them — the API contract for uploads is being redesigned and the old
+     * one was withdrawn rather than shipped, since `text` is the part of it
+     * that does not survive (ngs360-f2w.11).
      */
     contextBody: hasSendableContext
       ? {

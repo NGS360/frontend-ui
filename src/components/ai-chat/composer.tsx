@@ -5,6 +5,15 @@ import { AttachmentChip, ContextChip } from '@/components/ai-chat/context-chips'
 import { TriggerTextarea } from '@/components/trigger-input'
 import { Button } from '@/components/ui/button'
 import { SidebarFooter } from '@/components/ui/sidebar'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
+  ACCEPTED_ATTACHMENTS_LABEL,
+  ATTACHMENT_ACCEPT,
+} from '@/lib/chat-attachments'
 import { cn } from '@/lib/utils'
 
 /** The input, its context chip row, and the send/stop control. */
@@ -81,19 +90,31 @@ export function AiChatComposer({
           {/* Paperclip floats inside the input on the left (like the search
               bar's icon); pl-9 keeps the text clear of it. */}
           <div className="relative flex-1">
-            <button
-              id="ai-chat-attach"
-              type="button"
-              aria-label="Attach files"
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-2 left-2 z-10 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            >
-              <Paperclip className="size-4" />
-            </button>
+            {/* Says up front that a file will not get through, rather than
+                letting the user pick one and find out from a toast. The formats
+                stay listed: the affordance is being kept, not withdrawn. */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  id="ai-chat-attach"
+                  type="button"
+                  aria-label={`Attach files (${ACCEPTED_ATTACHMENTS_LABEL}) — not read by the assistant yet`}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-2 left-2 z-10 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  <Paperclip className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Attach a text file ({ACCEPTED_ATTACHMENTS_LABEL}) — not read by
+                the assistant yet
+              </TooltipContent>
+            </Tooltip>
             <input
               ref={fileInputRef}
               type="file"
               multiple
+              accept={ATTACHMENT_ACCEPT}
               className="hidden"
               onChange={(e) => {
                 context.addFiles(Array.from(e.target.files ?? []))
