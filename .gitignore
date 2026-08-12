@@ -10,3 +10,5 @@ public/data/*
 .vscode
 
 .DS_Store
+# openapi-ts writes one of these next to the config when generation fails
+openapi-ts-error-*.log
