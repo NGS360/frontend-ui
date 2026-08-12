@@ -1,5 +1,4 @@
-import { ApiError } from './api-error'
-import { fetchWithAuth } from './auth-fetch'
+import { getDownloadUrl } from '../client/sdk.gen'
 
 /**
  * Send the browser to a presigned URL for a file in object storage.
@@ -12,12 +11,10 @@ import { fetchWithAuth } from './auth-fetch'
  * request carrying the token is one fetchWithAuth can sign. The bytes still come
  * straight from object storage, exactly as before.
  *
- * Not on the generated client yet: the committed OpenAPI spec predates the
- * endpoint. Move this onto the generated `getDownloadUrl` at the next
- * `npm run generate-client`.
- *
  * Throws ApiError on a non-2xx response and NetworkError if the API is
- * unreachable, so callers can hand either to toastApiError.
+ * unreachable, so callers can hand either to toastApiError. Both come from the
+ * generated client: every SDK request goes out through fetchWithAuth and its
+ * error interceptor builds the ApiError (see lib/interceptors.ts).
  */
 export async function downloadStorageFile(path: string): Promise<void> {
   // Opened synchronously, before the first await, and therefore still inside the
@@ -27,35 +24,17 @@ export async function downloadStorageFile(path: string): Promise<void> {
   const downloadWindow = window.open('', '_blank')
 
   try {
-    const baseUrl = import.meta.env.VITE_API_URL || ''
-    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-    const endpoint = `${cleanBaseUrl}/api/v1/files/download-url?path=${encodeURIComponent(path)}`
-
-    const response = await fetchWithAuth(endpoint)
-    if (!response.ok) {
-      let body: unknown
-      try {
-        body = await response.json()
-      } catch {
-        body = undefined
-      }
-      throw new ApiError(
-        response.status,
-        response.statusText,
-        body,
-        'GET',
-        endpoint,
-      )
-    }
-
-    const { url } = (await response.json()) as { url: string }
+    const { data } = await getDownloadUrl({
+      query: { path },
+      throwOnError: true,
+    })
 
     if (downloadWindow) {
-      downloadWindow.location.href = url
+      downloadWindow.location.href = data.url
     } else {
       // The pre-opened tab was blocked anyway. Fall back to this one: the
       // response is a file, so the browser downloads it and stays put.
-      window.location.href = url
+      window.location.href = data.url
     }
   } catch (error) {
     // Leaving a blank tab open after a failure looks like the app hung.

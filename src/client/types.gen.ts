@@ -215,6 +215,7 @@ export type ActionSubmitRequest = {
 
 /**
  * Attribute
+ * Reusable key-value pair for request/response payloads.
  */
 export type Attribute = {
   /**
@@ -420,7 +421,7 @@ export type BodyPostRunSamplesheet = {
    * File
    * File to upload
    */
-  file: Blob | File
+  file: string
 }
 
 /**
@@ -478,7 +479,7 @@ export type BodyUploadFile = {
   /**
    * Content
    */
-  content?: (Blob | File) | null
+  content?: string | null
 }
 
 /**
@@ -489,7 +490,7 @@ export type BodyUploadManifest = {
    * File
    * Manifest CSV file to upload
    */
-  file: Blob | File
+  file: string
 }
 
 /**
@@ -499,7 +500,7 @@ export type BodyUploadSamplesFile = {
   /**
    * File
    */
-  file: Blob | File
+  file: string
 }
 
 /**
@@ -596,16 +597,56 @@ export type BulkSampleItemResponse = {
 }
 
 /**
+ * ChatContext
+ * Context the user attached when sending a message: the page they're on
+ * and any entities they referenced via "@/#", so the assistant can scope its
+ * answer.
+ */
+export type ChatContext = {
+  page?: ChatContextEntity | null
+  /**
+   * References
+   */
+  references?: Array<ChatContextEntity>
+}
+
+/**
+ * ChatContextEntity
+ * An entity attached to a chat message: type ("project", "run", "sample",
+ * "user", ...) and its id.
+ */
+export type ChatContextEntity = {
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Id
+   */
+  id: string
+}
+
+/**
  * ChatRequest
- * Request body sent by useChat: the full UIMessage history.
+ * The default request body sent by the frontend's useChat hook (Vercel AI
+ * SDK). The stable chat ``id`` doubles as the LangGraph thread id, so
+ * multi-turn continuity needs no extra round-trip. ``context`` is merged in by
+ * the SDK from ``sendMessage(text, {body: {context}})``.
  */
 export type ChatRequest = {
   /**
+   * Id
+   */
+  id: string
+  /**
    * Messages
    */
-  messages: Array<{
-    [key: string]: unknown
-  }>
+  messages: Array<UiMessage>
+  /**
+   * Trigger
+   */
+  trigger?: string | null
+  context?: ChatContext | null
 }
 
 /**
@@ -1085,6 +1126,17 @@ export type FilesPublic = {
 }
 
 /**
+ * GrantRoleRequest
+ * Grant a global role to a user.
+ */
+export type GrantRoleRequest = {
+  /**
+   * Role
+   */
+  role: string
+}
+
+/**
  * HTTPErrorResponse
  * Schema matching FastAPI's HTTPException response body.
  */
@@ -1509,6 +1561,33 @@ export type PasswordResetRequest = {
 }
 
 /**
+ * PermissionPublic
+ * One catalog entry, as returned by GET /rbac/permissions.
+ */
+export type PermissionPublic = {
+  /**
+   * Permission
+   */
+  permission: string
+  /**
+   * Resource
+   */
+  resource: string
+  /**
+   * Description
+   */
+  description: string
+  /**
+   * Project Scopable
+   */
+  project_scopable: boolean
+  /**
+   * Risk
+   */
+  risk: string
+}
+
+/**
  * PipelineCreate
  */
 export type PipelineCreate = {
@@ -1523,7 +1602,7 @@ export type PipelineCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflow Ids
    */
@@ -1557,7 +1636,7 @@ export type PipelinePublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Workflows
    */
@@ -1649,6 +1728,31 @@ export type PlatformPublic = {
 }
 
 /**
+ * PresignedDownload
+ * A time-limited URL the caller can fetch the bytes from directly.
+ *
+ * Exists so that authorization can be checked on a request a *browser* is able
+ * to authenticate. GET /files/download answers with a 307 to S3, which means
+ * the UI uses it as a plain link -- and a browser following a link cannot
+ * attach an Authorization header, so that endpoint cannot be closed without
+ * breaking every download in the product. Here the caller fetches the URL with
+ * its token and then navigates to S3 itself.
+ *
+ * No new exposure: the bytes already bypass the API today, because the redirect
+ * sends the browser straight to the same presigned URL.
+ */
+export type PresignedDownload = {
+  /**
+   * Url
+   */
+  url: string
+  /**
+   * Expires In
+   */
+  expires_in: number
+}
+
+/**
  * ProjectCreate
  */
 export type ProjectCreate = {
@@ -1660,6 +1764,44 @@ export type ProjectCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+}
+
+/**
+ * ProjectMemberPublic
+ * A project membership, as returned by the members endpoints.
+ */
+export type ProjectMemberPublic = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Role
+   */
+  role: string
+  /**
+   * Granted At
+   */
+  granted_at: string
+  /**
+   * Source
+   */
+  source: string
+}
+
+/**
+ * ProjectMemberRequest
+ * Add or change a project member.
+ */
+export type ProjectMemberRequest = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Role
+   */
+  role: string
 }
 
 /**
@@ -1681,11 +1823,11 @@ export type ProjectPublic = {
   /**
    * Created At
    */
-  created_at: string
+  created_at: string | null
   /**
    * Last Modified
    */
-  last_modified: string
+  last_modified: string | null
   /**
    * Data Folder Uri
    */
@@ -2003,6 +2145,79 @@ export type ResendVerificationRequest = {
 }
 
 /**
+ * RoleCreate
+ * Request body for creating a custom role.
+ */
+export type RoleCreate = {
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Display Name
+   */
+  display_name: string
+  /**
+   * Description
+   */
+  description?: string | null
+  scope: RoleScope
+  /**
+   * Permissions
+   */
+  permissions?: Array<string>
+}
+
+/**
+ * RolePermissionsUpdate
+ * Replace a role's permission set.
+ */
+export type RolePermissionsUpdate = {
+  /**
+   * Permissions
+   */
+  permissions: Array<string>
+}
+
+/**
+ * RolePublic
+ * A role and the permissions it holds.
+ */
+export type RolePublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Name
+   */
+  name: string
+  /**
+   * Display Name
+   */
+  display_name: string
+  /**
+   * Description
+   */
+  description: string | null
+  scope: RoleScope
+  /**
+   * Is Builtin
+   */
+  is_builtin: boolean
+  /**
+   * Permissions
+   */
+  permissions: Array<string>
+}
+
+/**
+ * RoleScope
+ * Which plane a role may be granted in.
+ */
+export type RoleScope = 'global' | 'project'
+
+/**
  * RunSampleCleanupResponse
  * Response model for bulk sample/file cleanup on a run (re-demux scenario).
  */
@@ -2050,7 +2265,7 @@ export type SampleCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiSamplesModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2155,7 +2370,7 @@ export type SamplePublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiSamplesModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2239,7 +2454,7 @@ export type SampleWithFilesPublic = {
   /**
    * Attributes
    */
-  attributes: Array<ApiSamplesModelsAttribute> | null
+  attributes: Array<Attribute> | null
   /**
    * Run Id
    */
@@ -2613,6 +2828,41 @@ export type TokenResponse = {
 }
 
 /**
+ * UIMessage
+ * A Vercel AI SDK UIMessage: a role plus an ordered list of typed parts.
+ */
+export type UiMessage = {
+  /**
+   * Id
+   */
+  id?: string | null
+  /**
+   * Role
+   */
+  role: string
+  /**
+   * Parts
+   */
+  parts?: Array<UiMessagePart>
+}
+
+/**
+ * UIMessagePart
+ * One part of a Vercel AI SDK UIMessage. Text parts carry ``text``; other
+ * part types (tool calls, files, ...) are tolerated and ignored.
+ */
+export type UiMessagePart = {
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Text
+   */
+  text?: string | null
+}
+
+/**
  * UndeterminedType
  */
 export type UndeterminedType = {
@@ -2920,7 +3170,7 @@ export type WorkflowCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -2934,7 +3184,7 @@ export type WorkflowDeploymentCreate = {
   /**
    * External Id
    */
-  external_id: string
+  external_id?: string | null
 }
 
 /**
@@ -2990,7 +3240,7 @@ export type WorkflowPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
   /**
    * Versions
    */
@@ -3072,7 +3322,7 @@ export type WorkflowVersionCreate = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -3110,7 +3360,7 @@ export type WorkflowVersionPublic = {
   /**
    * Attributes
    */
-  attributes?: Array<ApiWorkflowModelsAttribute> | null
+  attributes?: Array<Attribute> | null
 }
 
 /**
@@ -3138,35 +3388,6 @@ export type WorkflowVersionSummary = {
    * Deployments
    */
   deployments?: Array<WorkflowDeploymentPublic> | null
-}
-
-/**
- * Attribute
- */
-export type ApiSamplesModelsAttribute = {
-  /**
-   * Key
-   */
-  key: string | null
-  /**
-   * Value
-   */
-  value: string | null
-}
-
-/**
- * Attribute
- * Reusable key-value pair for request/response payloads.
- */
-export type ApiWorkflowModelsAttribute = {
-  /**
-   * Key
-   */
-  key: string | null
-  /**
-   * Value
-   */
-  value: string | null
 }
 
 export type RootData = {
@@ -3903,6 +4124,57 @@ export type ChatResponses = {
   200: unknown
 }
 
+export type ChatStreamData = {
+  body: ChatRequest
+  path?: never
+  query?: never
+  url: '/api/v1/chat/stream'
+}
+
+export type ChatStreamErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ChatStreamError = ChatStreamErrors[keyof ChatStreamErrors]
+
+export type ChatStreamResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
+export type GetThreadData = {
+  body?: never
+  path: {
+    /**
+     * Thread Id
+     */
+    thread_id: string
+  }
+  query?: never
+  url: '/api/v1/chat/threads/{thread_id}'
+}
+
+export type GetThreadErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetThreadError = GetThreadErrors[keyof GetThreadErrors]
+
+export type GetThreadResponses = {
+  /**
+   * Successful Response
+   */
+  200: unknown
+}
+
 export type ListFilesData = {
   body?: never
   path?: never
@@ -4068,6 +4340,39 @@ export type DownloadFileResponses = {
    */
   200: unknown
 }
+
+export type GetDownloadUrlData = {
+  body?: never
+  path?: never
+  query: {
+    /**
+     * Path
+     * S3 URI of the file (e.g., s3://bucket/path/file.txt)
+     */
+    path: string
+  }
+  url: '/api/v1/files/download-url'
+}
+
+export type GetDownloadUrlErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetDownloadUrlError =
+  GetDownloadUrlErrors[keyof GetDownloadUrlErrors]
+
+export type GetDownloadUrlResponses = {
+  /**
+   * Successful Response
+   */
+  200: PresignedDownload
+}
+
+export type GetDownloadUrlResponse =
+  GetDownloadUrlResponses[keyof GetDownloadUrlResponses]
 
 export type DeleteFileData = {
   body?: never
@@ -4989,7 +5294,7 @@ export type DeleteSampleFromProjectResponse =
   DeleteSampleFromProjectResponses[keyof DeleteSampleFromProjectResponses]
 
 export type UpdateSampleInProjectData = {
-  body: ApiSamplesModelsAttribute
+  body: Attribute
   path: {
     /**
      * Sample Id
@@ -5098,6 +5403,121 @@ export type IngestVendorDataResponses = {
 
 export type IngestVendorDataResponse =
   IngestVendorDataResponses[keyof IngestVendorDataResponses]
+
+export type ListProjectMembersData = {
+  body?: never
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/members'
+}
+
+export type ListProjectMembersErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ListProjectMembersError =
+  ListProjectMembersErrors[keyof ListProjectMembersErrors]
+
+export type ListProjectMembersResponses = {
+  /**
+   * Response List Project Members
+   * Successful Response
+   */
+  200: Array<ProjectMemberPublic>
+}
+
+export type ListProjectMembersResponse =
+  ListProjectMembersResponses[keyof ListProjectMembersResponses]
+
+export type AddProjectMemberData = {
+  body: ProjectMemberRequest
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/members'
+}
+
+export type AddProjectMemberErrors = {
+  /**
+   * That role is global, not project-scoped
+   */
+  400: unknown
+  /**
+   * Would leave the project without an owner
+   */
+  409: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type AddProjectMemberError =
+  AddProjectMemberErrors[keyof AddProjectMemberErrors]
+
+export type AddProjectMemberResponses = {
+  /**
+   * Response Add Project Member
+   * Successful Response
+   */
+  200: Array<ProjectMemberPublic>
+}
+
+export type AddProjectMemberResponse =
+  AddProjectMemberResponses[keyof AddProjectMemberResponses]
+
+export type RemoveProjectMemberData = {
+  body?: never
+  path: {
+    /**
+     * Username
+     */
+    username: string
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/members/{username}'
+}
+
+export type RemoveProjectMemberErrors = {
+  /**
+   * Would leave the project without an owner
+   */
+  409: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type RemoveProjectMemberError =
+  RemoveProjectMemberErrors[keyof RemoveProjectMemberErrors]
+
+export type RemoveProjectMemberResponses = {
+  /**
+   * Response Remove Project Member
+   * Successful Response
+   */
+  200: Array<ProjectMemberPublic>
+}
+
+export type RemoveProjectMemberResponse =
+  RemoveProjectMemberResponses[keyof RemoveProjectMemberResponses]
 
 export type CreateQcrecordData = {
   body: QcRecordCreate
@@ -6945,6 +7365,307 @@ export type SearchUsersResponses = {
 export type SearchUsersResponse =
   SearchUsersResponses[keyof SearchUsersResponses]
 
+export type ListPermissionsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/rbac/permissions'
+}
+
+export type ListPermissionsResponses = {
+  /**
+   * Response List Permissions
+   * Successful Response
+   */
+  200: Array<PermissionPublic>
+}
+
+export type ListPermissionsResponse =
+  ListPermissionsResponses[keyof ListPermissionsResponses]
+
+export type ListRolesData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/rbac/roles'
+}
+
+export type ListRolesResponses = {
+  /**
+   * Response List Roles
+   * Successful Response
+   */
+  200: Array<RolePublic>
+}
+
+export type ListRolesResponse = ListRolesResponses[keyof ListRolesResponses]
+
+export type CreateRoleData = {
+  body: RoleCreate
+  path?: never
+  query?: never
+  url: '/api/v1/rbac/roles'
+}
+
+export type CreateRoleErrors = {
+  /**
+   * A role with that name exists
+   */
+  409: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type CreateRoleError = CreateRoleErrors[keyof CreateRoleErrors]
+
+export type CreateRoleResponses = {
+  /**
+   * Successful Response
+   */
+  201: RolePublic
+}
+
+export type CreateRoleResponse = CreateRoleResponses[keyof CreateRoleResponses]
+
+export type DeleteRoleData = {
+  body?: never
+  path: {
+    /**
+     * Name
+     */
+    name: string
+  }
+  query?: never
+  url: '/api/v1/rbac/roles/{name}'
+}
+
+export type DeleteRoleErrors = {
+  /**
+   * Builtin, or still granted
+   */
+  409: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteRoleError = DeleteRoleErrors[keyof DeleteRoleErrors]
+
+export type DeleteRoleResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteRoleResponse = DeleteRoleResponses[keyof DeleteRoleResponses]
+
+export type GetRoleData = {
+  body?: never
+  path: {
+    /**
+     * Name
+     */
+    name: string
+  }
+  query?: never
+  url: '/api/v1/rbac/roles/{name}'
+}
+
+export type GetRoleErrors = {
+  /**
+   * Role not found
+   */
+  404: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetRoleError = GetRoleErrors[keyof GetRoleErrors]
+
+export type GetRoleResponses = {
+  /**
+   * Successful Response
+   */
+  200: RolePublic
+}
+
+export type GetRoleResponse = GetRoleResponses[keyof GetRoleResponses]
+
+export type UpdateRolePermissionsData = {
+  body: RolePermissionsUpdate
+  path: {
+    /**
+     * Name
+     */
+    name: string
+  }
+  query?: never
+  url: '/api/v1/rbac/roles/{name}'
+}
+
+export type UpdateRolePermissionsErrors = {
+  /**
+   * Role not found
+   */
+  404: unknown
+  /**
+   * Builtin roles are code-defined
+   */
+  409: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateRolePermissionsError =
+  UpdateRolePermissionsErrors[keyof UpdateRolePermissionsErrors]
+
+export type UpdateRolePermissionsResponses = {
+  /**
+   * Successful Response
+   */
+  200: RolePublic
+}
+
+export type UpdateRolePermissionsResponse =
+  UpdateRolePermissionsResponses[keyof UpdateRolePermissionsResponses]
+
+export type GetMyAccessData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/rbac/me'
+}
+
+export type GetMyAccessResponses = {
+  /**
+   * Response Get My Access
+   * Successful Response
+   */
+  200: {
+    [key: string]: unknown
+  }
+}
+
+export type GetMyAccessResponse =
+  GetMyAccessResponses[keyof GetMyAccessResponses]
+
+export type ListUserRolesData = {
+  body?: never
+  path: {
+    /**
+     * Username
+     */
+    username: string
+  }
+  query?: never
+  url: '/api/v1/rbac/users/{username}/roles'
+}
+
+export type ListUserRolesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ListUserRolesError = ListUserRolesErrors[keyof ListUserRolesErrors]
+
+export type ListUserRolesResponses = {
+  /**
+   * Response List User Roles
+   * Successful Response
+   */
+  200: Array<string>
+}
+
+export type ListUserRolesResponse =
+  ListUserRolesResponses[keyof ListUserRolesResponses]
+
+export type GrantUserRoleData = {
+  body: GrantRoleRequest
+  path: {
+    /**
+     * Username
+     */
+    username: string
+  }
+  query?: never
+  url: '/api/v1/rbac/users/{username}/roles'
+}
+
+export type GrantUserRoleErrors = {
+  /**
+   * That role is project-scoped
+   */
+  400: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GrantUserRoleError = GrantUserRoleErrors[keyof GrantUserRoleErrors]
+
+export type GrantUserRoleResponses = {
+  /**
+   * Response Grant User Role
+   * Successful Response
+   */
+  200: Array<string>
+}
+
+export type GrantUserRoleResponse =
+  GrantUserRoleResponses[keyof GrantUserRoleResponses]
+
+export type RevokeUserRoleData = {
+  body?: never
+  path: {
+    /**
+     * Username
+     */
+    username: string
+    /**
+     * Role Name
+     */
+    role_name: string
+  }
+  query?: never
+  url: '/api/v1/rbac/users/{username}/roles/{role_name}'
+}
+
+export type RevokeUserRoleErrors = {
+  /**
+   * Would remove the last role manager
+   */
+  409: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type RevokeUserRoleError =
+  RevokeUserRoleErrors[keyof RevokeUserRoleErrors]
+
+export type RevokeUserRoleResponses = {
+  /**
+   * Response Revoke User Role
+   * Successful Response
+   */
+  200: Array<string>
+}
+
+export type RevokeUserRoleResponse =
+  RevokeUserRoleResponses[keyof RevokeUserRoleResponses]
+
 export type ClientOptions = {
-  baseUrl: 'http://localhost:3000' | (string & {})
+  baseUrl: 'http://apiserver:3000' | (string & {})
 }

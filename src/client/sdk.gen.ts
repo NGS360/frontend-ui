@@ -10,6 +10,9 @@ import {
 import { client as _heyApiClient } from './client.gen'
 import type {Client, Options as ClientOptions, TDataShape} from './client';
 import type {
+  AddProjectMemberData,
+  AddProjectMemberErrors,
+  AddProjectMemberResponses,
   AddRunData,
   AddRunErrors,
   AddRunResponses,
@@ -37,6 +40,9 @@ import type {
   ChatData,
   ChatErrors,
   ChatResponses,
+  ChatStreamData,
+  ChatStreamErrors,
+  ChatStreamResponses,
   ClearSamplesForRunData,
   ClearSamplesForRunErrors,
   ClearSamplesForRunResponses,
@@ -61,6 +67,9 @@ import type {
   CreateQcrecordData,
   CreateQcrecordErrors,
   CreateQcrecordResponses,
+  CreateRoleData,
+  CreateRoleErrors,
+  CreateRoleResponses,
   CreateWorkflowData,
   CreateWorkflowDeploymentData,
   CreateWorkflowDeploymentErrors,
@@ -79,6 +88,9 @@ import type {
   DeleteQcrecordData,
   DeleteQcrecordErrors,
   DeleteQcrecordResponses,
+  DeleteRoleData,
+  DeleteRoleErrors,
+  DeleteRoleResponses,
   DeleteSampleFromProjectData,
   DeleteSampleFromProjectErrors,
   DeleteSampleFromProjectResponses,
@@ -110,6 +122,9 @@ import type {
   GetDemultiplexWorkflowConfigData,
   GetDemultiplexWorkflowConfigErrors,
   GetDemultiplexWorkflowConfigResponses,
+  GetDownloadUrlData,
+  GetDownloadUrlErrors,
+  GetDownloadUrlResponses,
   GetFileData,
   GetFileErrors,
   GetFileResponses,
@@ -131,6 +146,8 @@ import type {
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
+  GetMyAccessData,
+  GetMyAccessResponses,
   GetPipelineByIdData,
   GetPipelineByIdErrors,
   GetPipelineByIdResponses,
@@ -156,6 +173,9 @@ import type {
   GetQcrecordData,
   GetQcrecordErrors,
   GetQcrecordResponses,
+  GetRoleData,
+  GetRoleErrors,
+  GetRoleResponses,
   GetRunData,
   GetRunErrors,
   GetRunMetricsData,
@@ -177,6 +197,9 @@ import type {
   GetSettingsByTagData,
   GetSettingsByTagErrors,
   GetSettingsByTagResponses,
+  GetThreadData,
+  GetThreadErrors,
+  GetThreadResponses,
   GetVendorData,
   GetVendorErrors,
   GetVendorResponses,
@@ -204,6 +227,9 @@ import type {
   GetWorkflowsData,
   GetWorkflowsErrors,
   GetWorkflowsResponses,
+  GrantUserRoleData,
+  GrantUserRoleErrors,
+  GrantUserRoleResponses,
   HealthCheckData,
   HealthCheckResponses,
   IngestVendorDataData,
@@ -220,6 +246,16 @@ import type {
   ListFilesData,
   ListFilesErrors,
   ListFilesResponses,
+  ListPermissionsData,
+  ListPermissionsResponses,
+  ListProjectMembersData,
+  ListProjectMembersErrors,
+  ListProjectMembersResponses,
+  ListRolesData,
+  ListRolesResponses,
+  ListUserRolesData,
+  ListUserRolesErrors,
+  ListUserRolesResponses,
   LoginData,
   LoginErrors,
   LoginResponses,
@@ -250,6 +286,9 @@ import type {
   ReindexRunsResponses,
   ReindexSamplesData,
   ReindexSamplesResponses,
+  RemoveProjectMemberData,
+  RemoveProjectMemberErrors,
+  RemoveProjectMemberResponses,
   RemoveSampleFromRunData,
   RemoveSampleFromRunErrors,
   RemoveSampleFromRunResponses,
@@ -265,6 +304,9 @@ import type {
   RevokeApiKeyData,
   RevokeApiKeyErrors,
   RevokeApiKeyResponses,
+  RevokeUserRoleData,
+  RevokeUserRoleErrors,
+  RevokeUserRoleResponses,
   RootData,
   RootResponses,
   SearchData,
@@ -315,6 +357,9 @@ import type {
   UpdateProjectData,
   UpdateProjectErrors,
   UpdateProjectResponses,
+  UpdateRolePermissionsData,
+  UpdateRolePermissionsErrors,
+  UpdateRolePermissionsResponses,
   UpdateRunData,
   UpdateRunErrors,
   UpdateRunResponses,
@@ -382,6 +427,19 @@ export const root = <ThrowOnError extends boolean = false>(
 
 /**
  * Health Check
+ * Health check that also probes database connectivity.
+ *
+ * Returns 503 when the database is unreachable so the load balancer marks the
+ * target unhealthy instead of routing traffic to an instance that can't serve
+ * DB-backed requests (e.g. new instances that lack RDS security-group access).
+ *
+ * Takes the session through the normal dependency rather than opening one on
+ * the module-level engine. In production the two are the same object, so the
+ * probe is unchanged; in tests they are not, and building the engine at import
+ * time meant this endpoint dialled whichever deployed database .env happened
+ * to name. `get_db` only constructs the Session -- the connection is made by
+ * the execute below -- so an unreachable database still surfaces here as a
+ * clean 503 rather than a 500 from dependency resolution.
  */
 export const healthCheck = <ThrowOnError extends boolean = false>(
   options?: Options<HealthCheckData, ThrowOnError>,
@@ -1124,7 +1182,7 @@ export const getActionTypes = <ThrowOnError extends boolean = false>(
 
 /**
  * Chat
- * Stream an assistant reply for the given message history.
+ * Non-streaming JSON chat for simple clients and tests.
  */
 export const chat = <ThrowOnError extends boolean = false>(
   options: Options<ChatData, ThrowOnError>,
@@ -1146,6 +1204,56 @@ export const chat = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  })
+}
+
+/**
+ * Chat Stream
+ * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ */
+export const chatStream = <ThrowOnError extends boolean = false>(
+  options: Options<ChatStreamData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ChatStreamResponses,
+    ChatStreamErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat/stream',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Thread
+ * Fetch a LangGraph thread's state for transcript reload / reconnect.
+ */
+export const getThread = <ThrowOnError extends boolean = false>(
+  options: Options<GetThreadData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetThreadResponses,
+    GetThreadErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/chat/threads/{thread_id}',
+    ...options,
   })
 }
 
@@ -1278,6 +1386,12 @@ export const browseS3 = <ThrowOnError extends boolean = false>(
  * Returns a 307 redirect to a time-limited presigned S3 URL.
  * The client follows the redirect to download directly from S3,
  * offloading bandwidth from the API server.
+ *
+ * Deprecated in favour of GET /files/download-url, which returns the same URL
+ * as JSON. This route cannot be given a permission guard: it is used by the UI
+ * as a plain link, and a browser following a link cannot send an Authorization
+ * header, so guarding it would 401 every download in the product. It closes
+ * once browser traffic here reaches zero.
  */
 export const downloadFile = <ThrowOnError extends boolean = false>(
   options: Options<DownloadFileData, ThrowOnError>,
@@ -1288,6 +1402,40 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     url: '/api/v1/files/download',
+    ...options,
+  })
+}
+
+/**
+ * Get a presigned URL for a file
+ * Return a time-limited URL for downloading a file directly from S3.
+ *
+ * The authenticated counterpart to GET /files/download. A browser cannot put a
+ * token on a link it navigates to, so the UI calls this with its token, reads
+ * the URL from the response, and then navigates to S3 -- which is what the old
+ * endpoint's redirect did anyway, minus the ability to check anything first.
+ *
+ * Guarded on the global plane rather than per project, because the parameter is
+ * an arbitrary S3 URI and nothing maps a URI back to a project. That is the
+ * same reason file:browse is global-only; it is a known limitation recorded in
+ * docs/RBAC.md, not an oversight. `member` holds file:download, so every
+ * authenticated caller can use this today.
+ */
+export const getDownloadUrl = <ThrowOnError extends boolean = false>(
+  options: Options<GetDownloadUrlData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetDownloadUrlResponses,
+    GetDownloadUrlErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/files/download-url',
     ...options,
   })
 }
@@ -2069,6 +2217,78 @@ export const ingestVendorData = <ThrowOnError extends boolean = false>(
 }
 
 /**
+ * List Project Members
+ * Who has a role on this project, and which.
+ */
+export const listProjectMembers = <ThrowOnError extends boolean = false>(
+  options: Options<ListProjectMembersData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    ListProjectMembersResponses,
+    ListProjectMembersErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/projects/{project_id}/members',
+    ...options,
+  })
+}
+
+/**
+ * Add Project Member
+ * Add a member, or change an existing member's role.
+ */
+export const addProjectMember = <ThrowOnError extends boolean = false>(
+  options: Options<AddProjectMemberData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    AddProjectMemberResponses,
+    AddProjectMemberErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/projects/{project_id}/members',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Remove Project Member
+ */
+export const removeProjectMember = <ThrowOnError extends boolean = false>(
+  options: Options<RemoveProjectMemberData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    RemoveProjectMemberResponses,
+    RemoveProjectMemberErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/projects/{project_id}/members/{username}',
+    ...options,
+  })
+}
+
+/**
  * Create a new QC record
  * Create a new QC record with metrics and output files.
  *
@@ -2751,9 +2971,13 @@ export const getSetting = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Update Setting
+ * Update a setting (superuser only)
  * Update a specific setting. Only the value, name, description, and tags can be updated.
  * The key cannot be changed as it's the primary identifier.
+ *
+ * Settings control platform-wide behaviour — including the data and results bucket
+ * URIs and the manifest validation Lambda ARN — so writes require superuser
+ * privileges.
  */
 export const updateSetting = <ThrowOnError extends boolean = false>(
   options: Options<UpdateSettingData, ThrowOnError>,
@@ -2763,6 +2987,12 @@ export const updateSetting = <ThrowOnError extends boolean = false>(
     UpdateSettingErrors,
     ThrowOnError
   >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
     url: '/api/v1/settings/{key}',
     ...options,
     headers: {
@@ -3320,6 +3550,251 @@ export const searchUsers = <ThrowOnError extends boolean = false>(
       },
     ],
     url: '/api/v1/users/search',
+    ...options,
+  })
+}
+
+/**
+ * The permission catalog (superuser only)
+ * Every permission the API recognises, with its risk and scopability.
+ *
+ * Served from the code-level catalog rather than the database: a permission
+ * only means something if a route checks it, so this is the authoritative list
+ * of what can actually be granted.
+ */
+export const listPermissions = <ThrowOnError extends boolean = false>(
+  options?: Options<ListPermissionsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListPermissionsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/permissions',
+    ...options,
+  })
+}
+
+/**
+ * List roles (superuser only)
+ */
+export const listRoles = <ThrowOnError extends boolean = false>(
+  options?: Options<ListRolesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListRolesResponses,
+    unknown,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/roles',
+    ...options,
+  })
+}
+
+/**
+ * Create a custom role (superuser only)
+ * Custom roles are how "contributor without delete" and similar variants are
+ * served, which is the reason roles are rows rather than code.
+ */
+export const createRole = <ThrowOnError extends boolean = false>(
+  options: Options<CreateRoleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    CreateRoleResponses,
+    CreateRoleErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/roles',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Delete a custom role (superuser only)
+ */
+export const deleteRole = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteRoleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteRoleResponses,
+    DeleteRoleErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/roles/{name}',
+    ...options,
+  })
+}
+
+/**
+ * Get one role (superuser only)
+ */
+export const getRole = <ThrowOnError extends boolean = false>(
+  options: Options<GetRoleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetRoleResponses,
+    GetRoleErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/roles/{name}',
+    ...options,
+  })
+}
+
+/**
+ * Replace a custom role's permissions (superuser only)
+ */
+export const updateRolePermissions = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateRolePermissionsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    UpdateRolePermissionsResponses,
+    UpdateRolePermissionsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/roles/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * The calling user's own effective access
+ * What the caller can do, so a UI can decide which controls to render rather
+ * than rendering everything and absorbing 403s.
+ *
+ * Global permissions only. Project-scoped permissions are deliberately not
+ * inlined -- with a five-figure project count the payload would be unbounded --
+ * they belong on the project detail response instead.
+ */
+export const getMyAccess = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyAccessData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetMyAccessResponses,
+    unknown,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/me',
+    ...options,
+  })
+}
+
+/**
+ * A user's global roles (superuser only)
+ */
+export const listUserRoles = <ThrowOnError extends boolean = false>(
+  options: Options<ListUserRolesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    ListUserRolesResponses,
+    ListUserRolesErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/users/{username}/roles',
+    ...options,
+  })
+}
+
+/**
+ * Grant a global role (superuser only)
+ */
+export const grantUserRole = <ThrowOnError extends boolean = false>(
+  options: Options<GrantUserRoleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    GrantUserRoleResponses,
+    GrantUserRoleErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/users/{username}/roles',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Revoke a global role (superuser only)
+ */
+export const revokeUserRole = <ThrowOnError extends boolean = false>(
+  options: Options<RevokeUserRoleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    RevokeUserRoleResponses,
+    RevokeUserRoleErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: 'bearer',
+        type: 'http',
+      },
+    ],
+    url: '/api/v1/rbac/users/{username}/roles/{role_name}',
     ...options,
   })
 }

@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-query'
 import {
   
+  addProjectMember,
   addRun,
   addSampleToProject,
   addVendor,
@@ -18,6 +19,7 @@ import {
   bulkCreateSamples,
   changePassword,
   chat,
+  chatStream,
   clearSamplesForRun,
   confirmPasswordReset,
   createApiKey,
@@ -26,12 +28,14 @@ import {
   createPlatform,
   createProject,
   createQcrecord,
+  createRole,
   createWorkflow,
   createWorkflowDeployment,
   createWorkflowVersion,
   deleteApiKey,
   deleteFile,
   deleteQcrecord,
+  deleteRole,
   deleteSampleFromProject,
   deleteVendor,
   deleteWorkflowDeployment,
@@ -44,6 +48,7 @@ import {
   getAvailableOauthProviders,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
+  getDownloadUrl,
   getFile,
   getFileVersions,
   getJob,
@@ -51,6 +56,7 @@ import {
   getJobLogPaginated,
   getJobs,
   getLatestManifest,
+  getMyAccess,
   getPipelineById,
   getPipelines,
   getPlatformByName,
@@ -60,6 +66,7 @@ import {
   getProjectSamples,
   getProjects,
   getQcrecord,
+  getRole,
   getRun,
   getRunMetrics,
   getRunSamplesheet,
@@ -67,6 +74,7 @@ import {
   getSamplesForRun,
   getSetting,
   getSettingsByTag,
+  getThread,
   getVendor,
   getVendors,
   getWorkflowById,
@@ -76,12 +84,17 @@ import {
   getWorkflowVersionAliases,
   getWorkflowVersions,
   getWorkflows,
+  grantUserRole,
   healthCheck,
   ingestVendorData,
   linkOauthProvider,
   listApiKeys,
   listDemultiplexWorkflows,
   listFiles,
+  listPermissions,
+  listProjectMembers,
+  listRoles,
+  listUserRoles,
   login,
   logout,
   oauthAuthorize,
@@ -93,11 +106,13 @@ import {
   reindexProjects,
   reindexRuns,
   reindexSamples,
+  removeProjectMember,
   removeSampleFromRun,
   removeWorkflowFromPipeline,
   requestPasswordReset,
   resendVerification,
   revokeApiKey,
+  revokeUserRole,
   root,
   search,
   searchProjects,
@@ -115,6 +130,7 @@ import {
   updateFile,
   updateJob,
   updateProject,
+  updateRolePermissions,
   updateRun,
   updateSampleInProject,
   updateSetting,
@@ -130,6 +146,9 @@ import { client as _heyApiClient } from '../client.gen'
 import type {DefaultError, InfiniteData, UseMutationOptions} from '@tanstack/react-query';
 import type {Options} from '../sdk.gen';
 import type {
+  AddProjectMemberData,
+  AddProjectMemberError,
+  AddProjectMemberResponse,
   AddRunData,
   AddRunError,
   AddRunResponse,
@@ -154,6 +173,8 @@ import type {
   ChangePasswordResponse,
   ChatData,
   ChatError,
+  ChatStreamData,
+  ChatStreamError,
   ClearSamplesForRunData,
   ClearSamplesForRunError,
   ClearSamplesForRunResponse,
@@ -178,6 +199,9 @@ import type {
   CreateQcrecordData,
   CreateQcrecordError,
   CreateQcrecordResponse,
+  CreateRoleData,
+  CreateRoleError,
+  CreateRoleResponse,
   CreateWorkflowData,
   CreateWorkflowDeploymentData,
   CreateWorkflowDeploymentError,
@@ -196,6 +220,9 @@ import type {
   DeleteQcrecordData,
   DeleteQcrecordError,
   DeleteQcrecordResponse,
+  DeleteRoleData,
+  DeleteRoleError,
+  DeleteRoleResponse,
   DeleteSampleFromProjectData,
   DeleteSampleFromProjectError,
   DeleteSampleFromProjectResponse,
@@ -216,6 +243,7 @@ import type {
   GetAvailableOauthProvidersData,
   GetCurrentUserInfoData,
   GetDemultiplexWorkflowConfigData,
+  GetDownloadUrlData,
   GetFileData,
   GetFileVersionsData,
   GetJobData,
@@ -223,6 +251,7 @@ import type {
   GetJobLogPaginatedData,
   GetJobsData,
   GetLatestManifestData,
+  GetMyAccessData,
   GetPipelineByIdData,
   GetPipelinesData,
   GetPipelinesError,
@@ -236,6 +265,7 @@ import type {
   GetProjectsError,
   GetProjectsResponse,
   GetQcrecordData,
+  GetRoleData,
   GetRunData,
   GetRunMetricsData,
   GetRunSamplesheetData,
@@ -245,6 +275,7 @@ import type {
   GetSamplesForRunData,
   GetSettingData,
   GetSettingsByTagData,
+  GetThreadData,
   GetVendorData,
   GetVendorsData,
   GetWorkflowByIdData,
@@ -256,6 +287,9 @@ import type {
   GetWorkflowsData,
   GetWorkflowsError,
   GetWorkflowsResponse,
+  GrantUserRoleData,
+  GrantUserRoleError,
+  GrantUserRoleResponse,
   HealthCheckData,
   IngestVendorDataData,
   IngestVendorDataError,
@@ -270,6 +304,10 @@ import type {
   ListFilesData,
   ListFilesError,
   ListFilesResponse,
+  ListPermissionsData,
+  ListProjectMembersData,
+  ListRolesData,
+  ListUserRolesData,
   LoginData,
   LoginError,
   LoginResponse,
@@ -293,6 +331,9 @@ import type {
   ReindexProjectsData,
   ReindexRunsData,
   ReindexSamplesData,
+  RemoveProjectMemberData,
+  RemoveProjectMemberError,
+  RemoveProjectMemberResponse,
   RemoveSampleFromRunData,
   RemoveSampleFromRunError,
   RemoveSampleFromRunResponse,
@@ -308,6 +349,9 @@ import type {
   RevokeApiKeyData,
   RevokeApiKeyError,
   RevokeApiKeyResponse,
+  RevokeUserRoleData,
+  RevokeUserRoleError,
+  RevokeUserRoleResponse,
   RootData,
   SearchData,
   SearchProjectsData,
@@ -353,6 +397,9 @@ import type {
   UpdateProjectData,
   UpdateProjectError,
   UpdateProjectResponse,
+  UpdateRolePermissionsData,
+  UpdateRolePermissionsError,
+  UpdateRolePermissionsResponse,
   UpdateRunData,
   UpdateRunError,
   UpdateRunResponse,
@@ -445,6 +492,19 @@ export const healthCheckQueryKey = (options?: Options<HealthCheckData>) =>
 
 /**
  * Health Check
+ * Health check that also probes database connectivity.
+ *
+ * Returns 503 when the database is unreachable so the load balancer marks the
+ * target unhealthy instead of routing traffic to an instance that can't serve
+ * DB-backed requests (e.g. new instances that lack RDS security-group access).
+ *
+ * Takes the session through the normal dependency rather than opening one on
+ * the module-level engine. In production the two are the same object, so the
+ * probe is unchanged; in tests they are not, and building the engine at import
+ * time meant this endpoint dialled whichever deployed database .env happened
+ * to name. `get_db` only constructs the Session -- the connection is made by
+ * the execute below -- so an unreachable database still surfaces here as a
+ * clean 503 rather than a 500 from dependency resolution.
  */
 export const healthCheckOptions = (options?: Options<HealthCheckData>) => {
   return queryOptions({
@@ -1845,7 +1905,7 @@ export const chatQueryKey = (options: Options<ChatData>) =>
 
 /**
  * Chat
- * Stream an assistant reply for the given message history.
+ * Non-streaming JSON chat for simple clients and tests.
  */
 export const chatOptions = (options: Options<ChatData>) => {
   return queryOptions({
@@ -1864,7 +1924,7 @@ export const chatOptions = (options: Options<ChatData>) => {
 
 /**
  * Chat
- * Stream an assistant reply for the given message history.
+ * Non-streaming JSON chat for simple clients and tests.
  */
 export const chatMutation = (
   options?: Partial<Options<ChatData>>,
@@ -1884,6 +1944,74 @@ export const chatMutation = (
     },
   }
   return mutationOptions
+}
+
+export const chatStreamQueryKey = (options: Options<ChatStreamData>) =>
+  createQueryKey('chatStream', options)
+
+/**
+ * Chat Stream
+ * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ */
+export const chatStreamOptions = (options: Options<ChatStreamData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await chatStream({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: chatStreamQueryKey(options),
+  })
+}
+
+/**
+ * Chat Stream
+ * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ */
+export const chatStreamMutation = (
+  options?: Partial<Options<ChatStreamData>>,
+): UseMutationOptions<unknown, ChatStreamError, Options<ChatStreamData>> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    ChatStreamError,
+    Options<ChatStreamData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await chatStream({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getThreadQueryKey = (options: Options<GetThreadData>) =>
+  createQueryKey('getThread', options)
+
+/**
+ * Get Thread
+ * Fetch a LangGraph thread's state for transcript reload / reconnect.
+ */
+export const getThreadOptions = (options: Options<GetThreadData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getThread({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getThreadQueryKey(options),
+  })
 }
 
 export const listFilesQueryKey = (options?: Options<ListFilesData>) =>
@@ -2177,6 +2305,12 @@ export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
  * Returns a 307 redirect to a time-limited presigned S3 URL.
  * The client follows the redirect to download directly from S3,
  * offloading bandwidth from the API server.
+ *
+ * Deprecated in favour of GET /files/download-url, which returns the same URL
+ * as JSON. This route cannot be given a permission guard: it is used by the UI
+ * as a plain link, and a browser following a link cannot send an Authorization
+ * header, so guarding it would 401 every download in the product. It closes
+ * once browser traffic here reaches zero.
  */
 export const downloadFileOptions = (options: Options<DownloadFileData>) => {
   return queryOptions({
@@ -2190,6 +2324,39 @@ export const downloadFileOptions = (options: Options<DownloadFileData>) => {
       return data
     },
     queryKey: downloadFileQueryKey(options),
+  })
+}
+
+export const getDownloadUrlQueryKey = (options: Options<GetDownloadUrlData>) =>
+  createQueryKey('getDownloadUrl', options)
+
+/**
+ * Get a presigned URL for a file
+ * Return a time-limited URL for downloading a file directly from S3.
+ *
+ * The authenticated counterpart to GET /files/download. A browser cannot put a
+ * token on a link it navigates to, so the UI calls this with its token, reads
+ * the URL from the response, and then navigates to S3 -- which is what the old
+ * endpoint's redirect did anyway, minus the ability to check anything first.
+ *
+ * Guarded on the global plane rather than per project, because the parameter is
+ * an arbitrary S3 URI and nothing maps a URI back to a project. That is the
+ * same reason file:browse is global-only; it is a known limitation recorded in
+ * docs/RBAC.md, not an oversight. `member` holds file:download, so every
+ * authenticated caller can use this today.
+ */
+export const getDownloadUrlOptions = (options: Options<GetDownloadUrlData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDownloadUrl({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getDownloadUrlQueryKey(options),
   })
 }
 
@@ -3532,6 +3699,111 @@ export const ingestVendorDataMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await ingestVendorData({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const listProjectMembersQueryKey = (
+  options: Options<ListProjectMembersData>,
+) => createQueryKey('listProjectMembers', options)
+
+/**
+ * List Project Members
+ * Who has a role on this project, and which.
+ */
+export const listProjectMembersOptions = (
+  options: Options<ListProjectMembersData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listProjectMembers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listProjectMembersQueryKey(options),
+  })
+}
+
+export const addProjectMemberQueryKey = (
+  options: Options<AddProjectMemberData>,
+) => createQueryKey('addProjectMember', options)
+
+/**
+ * Add Project Member
+ * Add a member, or change an existing member's role.
+ */
+export const addProjectMemberOptions = (
+  options: Options<AddProjectMemberData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await addProjectMember({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: addProjectMemberQueryKey(options),
+  })
+}
+
+/**
+ * Add Project Member
+ * Add a member, or change an existing member's role.
+ */
+export const addProjectMemberMutation = (
+  options?: Partial<Options<AddProjectMemberData>>,
+): UseMutationOptions<
+  AddProjectMemberResponse,
+  AddProjectMemberError,
+  Options<AddProjectMemberData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    AddProjectMemberResponse,
+    AddProjectMemberError,
+    Options<AddProjectMemberData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await addProjectMember({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Remove Project Member
+ */
+export const removeProjectMemberMutation = (
+  options?: Partial<Options<RemoveProjectMemberData>>,
+): UseMutationOptions<
+  RemoveProjectMemberResponse,
+  RemoveProjectMemberError,
+  Options<RemoveProjectMemberData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    RemoveProjectMemberResponse,
+    RemoveProjectMemberError,
+    Options<RemoveProjectMemberData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await removeProjectMember({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -5095,9 +5367,13 @@ export const getSettingOptions = (options: Options<GetSettingData>) => {
 }
 
 /**
- * Update Setting
+ * Update a setting (superuser only)
  * Update a specific setting. Only the value, name, description, and tags can be updated.
  * The key cannot be changed as it's the primary identifier.
+ *
+ * Settings control platform-wide behaviour — including the data and results bucket
+ * URIs and the manifest validation Lambda ARN — so writes require superuser
+ * privileges.
  */
 export const updateSettingMutation = (
   options?: Partial<Options<UpdateSettingData>>,
@@ -6097,4 +6373,304 @@ export const searchUsersOptions = (options: Options<SearchUsersData>) => {
     },
     queryKey: searchUsersQueryKey(options),
   })
+}
+
+export const listPermissionsQueryKey = (
+  options?: Options<ListPermissionsData>,
+) => createQueryKey('listPermissions', options)
+
+/**
+ * The permission catalog (superuser only)
+ * Every permission the API recognises, with its risk and scopability.
+ *
+ * Served from the code-level catalog rather than the database: a permission
+ * only means something if a route checks it, so this is the authoritative list
+ * of what can actually be granted.
+ */
+export const listPermissionsOptions = (
+  options?: Options<ListPermissionsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listPermissions({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listPermissionsQueryKey(options),
+  })
+}
+
+export const listRolesQueryKey = (options?: Options<ListRolesData>) =>
+  createQueryKey('listRoles', options)
+
+/**
+ * List roles (superuser only)
+ */
+export const listRolesOptions = (options?: Options<ListRolesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listRoles({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listRolesQueryKey(options),
+  })
+}
+
+export const createRoleQueryKey = (options: Options<CreateRoleData>) =>
+  createQueryKey('createRole', options)
+
+/**
+ * Create a custom role (superuser only)
+ * Custom roles are how "contributor without delete" and similar variants are
+ * served, which is the reason roles are rows rather than code.
+ */
+export const createRoleOptions = (options: Options<CreateRoleData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await createRole({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: createRoleQueryKey(options),
+  })
+}
+
+/**
+ * Create a custom role (superuser only)
+ * Custom roles are how "contributor without delete" and similar variants are
+ * served, which is the reason roles are rows rather than code.
+ */
+export const createRoleMutation = (
+  options?: Partial<Options<CreateRoleData>>,
+): UseMutationOptions<
+  CreateRoleResponse,
+  CreateRoleError,
+  Options<CreateRoleData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    CreateRoleResponse,
+    CreateRoleError,
+    Options<CreateRoleData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await createRole({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete a custom role (superuser only)
+ */
+export const deleteRoleMutation = (
+  options?: Partial<Options<DeleteRoleData>>,
+): UseMutationOptions<
+  DeleteRoleResponse,
+  DeleteRoleError,
+  Options<DeleteRoleData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteRoleResponse,
+    DeleteRoleError,
+    Options<DeleteRoleData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteRole({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getRoleQueryKey = (options: Options<GetRoleData>) =>
+  createQueryKey('getRole', options)
+
+/**
+ * Get one role (superuser only)
+ */
+export const getRoleOptions = (options: Options<GetRoleData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getRole({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getRoleQueryKey(options),
+  })
+}
+
+/**
+ * Replace a custom role's permissions (superuser only)
+ */
+export const updateRolePermissionsMutation = (
+  options?: Partial<Options<UpdateRolePermissionsData>>,
+): UseMutationOptions<
+  UpdateRolePermissionsResponse,
+  UpdateRolePermissionsError,
+  Options<UpdateRolePermissionsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateRolePermissionsResponse,
+    UpdateRolePermissionsError,
+    Options<UpdateRolePermissionsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await updateRolePermissions({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const getMyAccessQueryKey = (options?: Options<GetMyAccessData>) =>
+  createQueryKey('getMyAccess', options)
+
+/**
+ * The calling user's own effective access
+ * What the caller can do, so a UI can decide which controls to render rather
+ * than rendering everything and absorbing 403s.
+ *
+ * Global permissions only. Project-scoped permissions are deliberately not
+ * inlined -- with a five-figure project count the payload would be unbounded --
+ * they belong on the project detail response instead.
+ */
+export const getMyAccessOptions = (options?: Options<GetMyAccessData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getMyAccess({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getMyAccessQueryKey(options),
+  })
+}
+
+export const listUserRolesQueryKey = (options: Options<ListUserRolesData>) =>
+  createQueryKey('listUserRoles', options)
+
+/**
+ * A user's global roles (superuser only)
+ */
+export const listUserRolesOptions = (options: Options<ListUserRolesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listUserRoles({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listUserRolesQueryKey(options),
+  })
+}
+
+export const grantUserRoleQueryKey = (options: Options<GrantUserRoleData>) =>
+  createQueryKey('grantUserRole', options)
+
+/**
+ * Grant a global role (superuser only)
+ */
+export const grantUserRoleOptions = (options: Options<GrantUserRoleData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await grantUserRole({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: grantUserRoleQueryKey(options),
+  })
+}
+
+/**
+ * Grant a global role (superuser only)
+ */
+export const grantUserRoleMutation = (
+  options?: Partial<Options<GrantUserRoleData>>,
+): UseMutationOptions<
+  GrantUserRoleResponse,
+  GrantUserRoleError,
+  Options<GrantUserRoleData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    GrantUserRoleResponse,
+    GrantUserRoleError,
+    Options<GrantUserRoleData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await grantUserRole({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Revoke a global role (superuser only)
+ */
+export const revokeUserRoleMutation = (
+  options?: Partial<Options<RevokeUserRoleData>>,
+): UseMutationOptions<
+  RevokeUserRoleResponse,
+  RevokeUserRoleError,
+  Options<RevokeUserRoleData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    RevokeUserRoleResponse,
+    RevokeUserRoleError,
+    Options<RevokeUserRoleData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await revokeUserRole({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
 }
