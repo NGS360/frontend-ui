@@ -51,7 +51,10 @@ function RouteComponent() {
   }
 
   
-  if (error) return <div className='text-destructive'>Error loading settings: {error.message}</div>
+  // The generated react-query options type `error` as the endpoint's error
+  // *body*, but what react-query holds is the value that was thrown — an
+  // ApiError built in lib/interceptors.ts. Narrow instead of trusting the type.
+  if (error) return <div className='text-destructive'>Error loading settings: {error instanceof Error ? error.message : String(error)}</div>
   if (!settings || settings.length === 0) {
     return (
       <div className='flex flex-col gap-6'>
