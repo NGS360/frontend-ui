@@ -35,19 +35,23 @@ function RouteComponent() {
     })
   )
 
-  const isEpoch = (dateStr: string) => dateStr.startsWith('1970-01-01')
+  // Two shapes mean "no usable date" and both must be treated the same. The API
+  // sends null when MySQL handed it a zero-date it could not parse (see
+  // ProjectPublic._nullify_invalid_datetime), and 1970-01-01 when a row carries
+  // the epoch as a placeholder. Format only what is real, and let the absence of
+  // a formatted string drive the rendering.
+  const formatDate = (dateStr: string | null) =>
+    dateStr && !dateStr.startsWith('1970-01-01')
+      ? new Date(dateStr).toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric'
+        })
+      : null
+
   const hasCreator = project.created_by && project.created_by !== 'unknown'
-  const hasCreatedAt = !isEpoch(project.created_at)
-  const hasLastModified = !isEpoch(project.last_modified)
+  const createdAt = formatDate(project.created_at)
+  const lastModified = formatDate(project.last_modified)
 
-  const createdAt = hasCreatedAt ? new Date(project.created_at).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric'
-  }) : null
-  const lastModified = hasLastModified ? new Date(project.last_modified).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric'
-  }) : null
-
-  const showMetadata = hasCreator || hasCreatedAt || hasLastModified
+  const showMetadata = hasCreator || createdAt || lastModified
 
   return (
     <>
@@ -58,8 +62,8 @@ function RouteComponent() {
           {showMetadata && (
             <div className='flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-3 mt-1 text-sm text-muted-foreground'>
               {hasCreator && <span className='inline-flex items-center gap-1'><User size={14} />Created by <span className='font-semibold'>{project.created_by}</span></span>}
-              {hasCreatedAt && <span className='inline-flex items-center gap-1'><Calendar size={14} />Created on <span className='font-semibold'>{createdAt}</span></span>}
-              {hasLastModified && <span className='inline-flex items-center gap-1'><Clock size={14} />Modified <span className='font-semibold'>{lastModified}</span></span>}
+              {createdAt && <span className='inline-flex items-center gap-1'><Calendar size={14} />Created on <span className='font-semibold'>{createdAt}</span></span>}
+              {lastModified && <span className='inline-flex items-center gap-1'><Clock size={14} />Modified <span className='font-semibold'>{lastModified}</span></span>}
             </div>
           )}
         </div>

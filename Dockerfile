@@ -1,5 +1,6 @@
-# Use the official Node.js image
-FROM node:22.16.0-alpine3.22
+# Use the official Node.js image.
+# Held at >=22.18.0: @hey-api/openapi-ts declares that as its minimum engine.
+FROM node:22.22.3-alpine3.22
 
 # Set the working directory
 WORKDIR /app
