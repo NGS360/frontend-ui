@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { LoaderCircle, Plus, X } from 'lucide-react'
 import type { UserAccessPublic } from '@/client'
 import {
+  getMyAccessQueryKey,
   getUserAccessQueryKey,
   grantUserRoleMutation,
   listRolesOptions,
@@ -40,7 +41,7 @@ interface UserGlobalRolesCardProps {
  */
 export const UserGlobalRolesCard = ({ user }: UserGlobalRolesCardProps) => {
   const queryClient = useQueryClient()
-  const { can } = useMyAccess()
+  const { can, access } = useMyAccess()
   const mayManage = can(PERMISSIONS.ROLE_MANAGE)
   const [chosen, setChosen] = useState<string>('')
 
@@ -54,6 +55,11 @@ export const UserGlobalRolesCard = ({ user }: UserGlobalRolesCardProps) => {
       queryKey: getUserAccessQueryKey({ path: { username: user.username } }),
     })
     void queryClient.invalidateQueries({ queryKey: listUsersQueryKey() })
+    // Changing your own roles changes what this session may render, and the
+    // gating cache is held for five minutes, so it has to be dropped here.
+    if (access?.username === user.username) {
+      void queryClient.invalidateQueries({ queryKey: getMyAccessQueryKey() })
+    }
   }
 
   const { mutate: grant, isPending: isGranting } = useMutation({

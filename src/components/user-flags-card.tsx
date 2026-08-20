@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { LoaderCircle } from 'lucide-react'
 import type { UserAccessPublic } from '@/client'
 import {
+  getMyAccessQueryKey,
   getUserAccessQueryKey,
   listUsersQueryKey,
   updateUserFlagsMutation,
@@ -51,7 +52,9 @@ export const UserFlagsCard = ({ user }: UserFlagsCardProps) => {
       })
       void queryClient.invalidateQueries({ queryKey: listUsersQueryKey() })
       // Own flags changed means own access changed, so the gating cache is stale.
-      if (isSelf) void queryClient.invalidateQueries({ queryKey: ['getMyAccess'] })
+      // The generated key is [{ _id, baseUrl }], not a bare string, so this has
+      // to come from the generated builder to match anything.
+      if (isSelf) void queryClient.invalidateQueries({ queryKey: getMyAccessQueryKey() })
       const [[flag, value]] = Object.entries(variables.body) as Array<[Flag, boolean]>
       toast.success(`${LABELS[flag].title} ${value ? 'enabled' : 'disabled'} for ${user.username}`)
     },
