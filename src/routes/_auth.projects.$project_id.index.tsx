@@ -15,6 +15,7 @@ import { ExecuteActionForm } from '@/components/execute-action-form'
 import { FileBrowserDialog } from '@/components/file-browser'
 import { ContainerDropzone, FileUpload } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
+import { ProjectMembersCard } from '@/components/project-members-card'
 import { UpdateProjectForm } from '@/components/update-project-form'
 import { ErrorState } from '@/components/error-state'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -451,6 +452,10 @@ function RouteComponent() {
           </AccordionItem>
         </Accordion>
       </div>
+
+      {/* Project membership. Renders itself away when the caller cannot manage
+          it, which is most viewers. */}
+      <ProjectMembersCard projectId={project.project_id} />
 
       {/* Samples table */}
       <Accordion
