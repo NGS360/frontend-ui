@@ -201,6 +201,9 @@ import type {
   GetThreadData,
   GetThreadErrors,
   GetThreadResponses,
+  GetUserAccessData,
+  GetUserAccessErrors,
+  GetUserAccessResponses,
   GetVendorData,
   GetVendorErrors,
   GetVendorResponses,
@@ -257,6 +260,9 @@ import type {
   ListUserRolesData,
   ListUserRolesErrors,
   ListUserRolesResponses,
+  ListUsersData,
+  ListUsersErrors,
+  ListUsersResponses,
   LoginData,
   LoginErrors,
   LoginResponses,
@@ -370,6 +376,9 @@ import type {
   UpdateSettingData,
   UpdateSettingErrors,
   UpdateSettingResponses,
+  UpdateUserFlagsData,
+  UpdateUserFlagsErrors,
+  UpdateUserFlagsResponses,
   UpdateVendorData,
   UpdateVendorErrors,
   UpdateVendorResponses,
@@ -3374,6 +3383,46 @@ export const searchUsers = <ThrowOnError extends boolean = false>(
   })
 
 /**
+ * Set a user's status flags (superuser only)
+ *
+ * Activate, verify, or set the superuser flag. Omitted fields are unchanged.
+ *
+ * This is the route user:manage describes -- the permission has been in the
+ * catalog and in the admin role since RBAC landed, with nothing implementing
+ * it, so it granted nothing.
+ *
+ * is_active and is_verified are both required to authenticate, so clearing
+ * either one is an account lockout; the guardrails in api/rbac/services.py
+ * refuse the two lockouts that cannot be undone through the API, namely the
+ * last usable superuser and the last non-superuser role manager.
+ *
+ * CurrentSuperuser is required in addition to user:manage, which is what
+ * docs/RBAC.md asks for on the break-glass flag, and is also what actually
+ * enforces this route while RBAC_MODE is dry_run -- user:manage is `high` risk
+ * rather than `critical`, so it is not in the always-enforced set.
+ */
+export const updateUserFlags = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateUserFlagsData, ThrowOnError>,
+): RequestResult<
+  UpdateUserFlagsResponses,
+  UpdateUserFlagsErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    UpdateUserFlagsResponses,
+    UpdateUserFlagsErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/{username}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+
+/**
  * The permission catalog (superuser only)
  *
  * Every permission the API recognises, with its risk and scopability.
@@ -3552,5 +3601,53 @@ export const revokeUserRole = <ThrowOnError extends boolean = false>(
   >({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/rbac/users/{username}/roles/{role_name}',
+    ...options,
+  })
+
+/**
+ * The user roster (superuser only)
+ *
+ * Every local user account, with status flags and global roles.
+ *
+ * GET /users/search is the wrong endpoint for an administrator: it is the
+ * picker behind "grant a role to somebody", so it can answer from LDAP, it
+ * demands a query string, and it hides deactivated accounts -- which are
+ * exactly the accounts an administrator is looking for.
+ *
+ * `q` is an optional filter here rather than a required query, because the
+ * first thing this page has to do is show who exists.
+ */
+export const listUsers = <ThrowOnError extends boolean = false>(
+  options?: Options<ListUsersData, ThrowOnError>,
+): RequestResult<ListUsersResponses, ListUsersErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ListUsersResponses,
+    ListUsersErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/rbac/users',
+    ...options,
+  })
+
+/**
+ * One user's effective access (superuser only)
+ *
+ * Both grant planes and the break-glass flag for one user.
+ *
+ * The project memberships are the part that cannot be assembled from anything
+ * else: membership is otherwise only listable per project, so "which projects
+ * is this person on" has no answer without scanning every project.
+ */
+export const getUserAccess = <ThrowOnError extends boolean = false>(
+  options: Options<GetUserAccessData, ThrowOnError>,
+): RequestResult<GetUserAccessResponses, GetUserAccessErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetUserAccessResponses,
+    GetUserAccessErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/rbac/users/{username}/access',
     ...options,
   })

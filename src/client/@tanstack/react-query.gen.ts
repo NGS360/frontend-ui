@@ -76,6 +76,7 @@ import {
   getSetting,
   getSettingsByTag,
   getThread,
+  getUserAccess,
   getVendor,
   getVendors,
   getWorkflowById,
@@ -96,6 +97,7 @@ import {
   listProjectMembers,
   listRoles,
   listUserRoles,
+  listUsers,
   login,
   logout,
   oauthAuthorize,
@@ -136,6 +138,7 @@ import {
   updateRun,
   updateSampleInProject,
   updateSetting,
+  updateUserFlags,
   updateVendor,
   uploadFile,
   uploadManifest,
@@ -331,6 +334,9 @@ import type {
   GetSettingsByTagResponse,
   GetThreadData,
   GetThreadError,
+  GetUserAccessData,
+  GetUserAccessError,
+  GetUserAccessResponse,
   GetVendorData,
   GetVendorError,
   GetVendorResponse,
@@ -386,6 +392,9 @@ import type {
   ListUserRolesData,
   ListUserRolesError,
   ListUserRolesResponse,
+  ListUsersData,
+  ListUsersError,
+  ListUsersResponse,
   LoginData,
   LoginError,
   LoginResponse,
@@ -494,6 +503,9 @@ import type {
   UpdateSettingData,
   UpdateSettingError,
   UpdateSettingResponse,
+  UpdateUserFlagsData,
+  UpdateUserFlagsError,
+  UpdateUserFlagsResponse,
   UpdateVendorData,
   UpdateVendorError,
   UpdateVendorResponse,
@@ -5273,6 +5285,49 @@ export const searchUsersOptions = (options: Options<SearchUsersData>) =>
     queryKey: searchUsersQueryKey(options),
   })
 
+/**
+ * Set a user's status flags (superuser only)
+ *
+ * Activate, verify, or set the superuser flag. Omitted fields are unchanged.
+ *
+ * This is the route user:manage describes -- the permission has been in the
+ * catalog and in the admin role since RBAC landed, with nothing implementing
+ * it, so it granted nothing.
+ *
+ * is_active and is_verified are both required to authenticate, so clearing
+ * either one is an account lockout; the guardrails in api/rbac/services.py
+ * refuse the two lockouts that cannot be undone through the API, namely the
+ * last usable superuser and the last non-superuser role manager.
+ *
+ * CurrentSuperuser is required in addition to user:manage, which is what
+ * docs/RBAC.md asks for on the break-glass flag, and is also what actually
+ * enforces this route while RBAC_MODE is dry_run -- user:manage is `high` risk
+ * rather than `critical`, so it is not in the always-enforced set.
+ */
+export const updateUserFlagsMutation = (
+  options?: Partial<Options<UpdateUserFlagsData>>,
+): UseMutationOptions<
+  UpdateUserFlagsResponse,
+  UpdateUserFlagsError,
+  Options<UpdateUserFlagsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateUserFlagsResponse,
+    UpdateUserFlagsError,
+    Options<UpdateUserFlagsData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateUserFlags({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const listPermissionsQueryKey = (
   options?: Options<ListPermissionsData>,
 ) => createQueryKey('listPermissions', options)
@@ -5551,3 +5606,69 @@ export const revokeUserRoleMutation = (
   }
   return mutationOptions
 }
+
+export const listUsersQueryKey = (options?: Options<ListUsersData>) =>
+  createQueryKey('listUsers', options)
+
+/**
+ * The user roster (superuser only)
+ *
+ * Every local user account, with status flags and global roles.
+ *
+ * GET /users/search is the wrong endpoint for an administrator: it is the
+ * picker behind "grant a role to somebody", so it can answer from LDAP, it
+ * demands a query string, and it hides deactivated accounts -- which are
+ * exactly the accounts an administrator is looking for.
+ *
+ * `q` is an optional filter here rather than a required query, because the
+ * first thing this page has to do is show who exists.
+ */
+export const listUsersOptions = (options?: Options<ListUsersData>) =>
+  queryOptions<
+    ListUsersResponse,
+    ListUsersError,
+    ListUsersResponse,
+    ReturnType<typeof listUsersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listUsers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listUsersQueryKey(options),
+  })
+
+export const getUserAccessQueryKey = (options: Options<GetUserAccessData>) =>
+  createQueryKey('getUserAccess', options)
+
+/**
+ * One user's effective access (superuser only)
+ *
+ * Both grant planes and the break-glass flag for one user.
+ *
+ * The project memberships are the part that cannot be assembled from anything
+ * else: membership is otherwise only listable per project, so "which projects
+ * is this person on" has no answer without scanning every project.
+ */
+export const getUserAccessOptions = (options: Options<GetUserAccessData>) =>
+  queryOptions<
+    GetUserAccessResponse,
+    GetUserAccessError,
+    GetUserAccessResponse,
+    ReturnType<typeof getUserAccessQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getUserAccess({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getUserAccessQueryKey(options),
+  })
