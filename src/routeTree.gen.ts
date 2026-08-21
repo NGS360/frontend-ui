@@ -53,10 +53,12 @@ import { Route as AuthAdminJobsIndexImport } from './routes/_auth.admin.jobs.ind
 import { Route as UserOauthProviderCallbackImport } from './routes/_user.oauth.$provider.callback'
 import { Route as AuthRunsRunidSamplesheetRouteImport } from './routes/_auth.runs.$run_id.samplesheet.route'
 import { Route as AuthRunsRunidIndexqcRouteImport } from './routes/_auth.runs.$run_id.indexqc.route'
+import { Route as AuthProjectsProjectidSettingsRouteImport } from './routes/_auth.projects.$project_id.settings.route'
 import { Route as AuthAdminUsersUsernameRouteImport } from './routes/_auth.admin.users.$username.route'
 import { Route as AuthAdminRolesNameRouteImport } from './routes/_auth.admin.roles.$name.route'
 import { Route as AuthRunsRunidSamplesheetIndexImport } from './routes/_auth.runs.$run_id.samplesheet.index'
 import { Route as AuthRunsRunidIndexqcIndexImport } from './routes/_auth.runs.$run_id.indexqc.index'
+import { Route as AuthProjectsProjectidSettingsIndexImport } from './routes/_auth.projects.$project_id.settings.index'
 import { Route as AuthAdminUsersUsernameIndexImport } from './routes/_auth.admin.users.$username.index'
 import { Route as AuthAdminRolesNameIndexImport } from './routes/_auth.admin.roles.$name.index'
 
@@ -319,6 +321,13 @@ const AuthRunsRunidIndexqcRouteRoute = AuthRunsRunidIndexqcRouteImport.update({
   getParentRoute: () => AuthRunsRunidRouteRoute,
 } as any)
 
+const AuthProjectsProjectidSettingsRouteRoute =
+  AuthProjectsProjectidSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthProjectsProjectidRouteRoute,
+  } as any)
+
 const AuthAdminUsersUsernameRouteRoute =
   AuthAdminUsersUsernameRouteImport.update({
     id: '/$username',
@@ -344,6 +353,13 @@ const AuthRunsRunidIndexqcIndexRoute = AuthRunsRunidIndexqcIndexImport.update({
   path: '/',
   getParentRoute: () => AuthRunsRunidIndexqcRouteRoute,
 } as any)
+
+const AuthProjectsProjectidSettingsIndexRoute =
+  AuthProjectsProjectidSettingsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthProjectsProjectidSettingsRouteRoute,
+  } as any)
 
 const AuthAdminUsersUsernameIndexRoute =
   AuthAdminUsersUsernameIndexImport.update({
@@ -579,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAdminUsersUsernameRouteImport
       parentRoute: typeof AuthAdminUsersRouteImport
     }
+    '/_auth/projects/$project_id/settings': {
+      id: '/_auth/projects/$project_id/settings'
+      path: '/settings'
+      fullPath: '/projects/$project_id/settings'
+      preLoaderRoute: typeof AuthProjectsProjectidSettingsRouteImport
+      parentRoute: typeof AuthProjectsProjectidRouteImport
+    }
     '/_auth/runs/$run_id/indexqc': {
       id: '/_auth/runs/$run_id/indexqc'
       path: '/indexqc'
@@ -683,6 +706,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/users/$username/'
       preLoaderRoute: typeof AuthAdminUsersUsernameIndexImport
       parentRoute: typeof AuthAdminUsersUsernameRouteImport
+    }
+    '/_auth/projects/$project_id/settings/': {
+      id: '/_auth/projects/$project_id/settings/'
+      path: '/'
+      fullPath: '/projects/$project_id/settings/'
+      preLoaderRoute: typeof AuthProjectsProjectidSettingsIndexImport
+      parentRoute: typeof AuthProjectsProjectidSettingsRouteImport
     }
     '/_auth/runs/$run_id/indexqc/': {
       id: '/_auth/runs/$run_id/indexqc/'
@@ -911,12 +941,30 @@ const AuthProfileRouteRouteChildren: AuthProfileRouteRouteChildren = {
 const AuthProfileRouteRouteWithChildren =
   AuthProfileRouteRoute._addFileChildren(AuthProfileRouteRouteChildren)
 
+interface AuthProjectsProjectidSettingsRouteRouteChildren {
+  AuthProjectsProjectidSettingsIndexRoute: typeof AuthProjectsProjectidSettingsIndexRoute
+}
+
+const AuthProjectsProjectidSettingsRouteRouteChildren: AuthProjectsProjectidSettingsRouteRouteChildren =
+  {
+    AuthProjectsProjectidSettingsIndexRoute:
+      AuthProjectsProjectidSettingsIndexRoute,
+  }
+
+const AuthProjectsProjectidSettingsRouteRouteWithChildren =
+  AuthProjectsProjectidSettingsRouteRoute._addFileChildren(
+    AuthProjectsProjectidSettingsRouteRouteChildren,
+  )
+
 interface AuthProjectsProjectidRouteRouteChildren {
+  AuthProjectsProjectidSettingsRouteRoute: typeof AuthProjectsProjectidSettingsRouteRouteWithChildren
   AuthProjectsProjectidIndexRoute: typeof AuthProjectsProjectidIndexRoute
 }
 
 const AuthProjectsProjectidRouteRouteChildren: AuthProjectsProjectidRouteRouteChildren =
   {
+    AuthProjectsProjectidSettingsRouteRoute:
+      AuthProjectsProjectidSettingsRouteRouteWithChildren,
     AuthProjectsProjectidIndexRoute: AuthProjectsProjectidIndexRoute,
   }
 
@@ -1047,6 +1095,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof UserRegisterIndexRoute
   '/admin/roles/$name': typeof AuthAdminRolesNameRouteRouteWithChildren
   '/admin/users/$username': typeof AuthAdminUsersUsernameRouteRouteWithChildren
+  '/projects/$project_id/settings': typeof AuthProjectsProjectidSettingsRouteRouteWithChildren
   '/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcRouteRouteWithChildren
   '/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
   '/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
@@ -1062,6 +1111,7 @@ export interface FileRoutesByFullPath {
   '/runs/$run_id/': typeof AuthRunsRunidIndexRoute
   '/admin/roles/$name/': typeof AuthAdminRolesNameIndexRoute
   '/admin/users/$username/': typeof AuthAdminUsersUsernameIndexRoute
+  '/projects/$project_id/settings/': typeof AuthProjectsProjectidSettingsIndexRoute
   '/runs/$run_id/indexqc/': typeof AuthRunsRunidIndexqcIndexRoute
   '/runs/$run_id/samplesheet/': typeof AuthRunsRunidSamplesheetIndexRoute
 }
@@ -1093,6 +1143,7 @@ export interface FileRoutesByTo {
   '/runs/$run_id': typeof AuthRunsRunidIndexRoute
   '/admin/roles/$name': typeof AuthAdminRolesNameIndexRoute
   '/admin/users/$username': typeof AuthAdminUsersUsernameIndexRoute
+  '/projects/$project_id/settings': typeof AuthProjectsProjectidSettingsIndexRoute
   '/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcIndexRoute
   '/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetIndexRoute
 }
@@ -1130,6 +1181,7 @@ export interface FileRoutesById {
   '/_user/register/': typeof UserRegisterIndexRoute
   '/_auth/admin/roles/$name': typeof AuthAdminRolesNameRouteRouteWithChildren
   '/_auth/admin/users/$username': typeof AuthAdminUsersUsernameRouteRouteWithChildren
+  '/_auth/projects/$project_id/settings': typeof AuthProjectsProjectidSettingsRouteRouteWithChildren
   '/_auth/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcRouteRouteWithChildren
   '/_auth/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
   '/_user/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
@@ -1145,6 +1197,7 @@ export interface FileRoutesById {
   '/_auth/runs/$run_id/': typeof AuthRunsRunidIndexRoute
   '/_auth/admin/roles/$name/': typeof AuthAdminRolesNameIndexRoute
   '/_auth/admin/users/$username/': typeof AuthAdminUsersUsernameIndexRoute
+  '/_auth/projects/$project_id/settings/': typeof AuthProjectsProjectidSettingsIndexRoute
   '/_auth/runs/$run_id/indexqc/': typeof AuthRunsRunidIndexqcIndexRoute
   '/_auth/runs/$run_id/samplesheet/': typeof AuthRunsRunidSamplesheetIndexRoute
 }
@@ -1182,6 +1235,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/admin/roles/$name'
     | '/admin/users/$username'
+    | '/projects/$project_id/settings'
     | '/runs/$run_id/indexqc'
     | '/runs/$run_id/samplesheet'
     | '/oauth/$provider/callback'
@@ -1197,6 +1251,7 @@ export interface FileRouteTypes {
     | '/runs/$run_id/'
     | '/admin/roles/$name/'
     | '/admin/users/$username/'
+    | '/projects/$project_id/settings/'
     | '/runs/$run_id/indexqc/'
     | '/runs/$run_id/samplesheet/'
   fileRoutesByTo: FileRoutesByTo
@@ -1227,6 +1282,7 @@ export interface FileRouteTypes {
     | '/runs/$run_id'
     | '/admin/roles/$name'
     | '/admin/users/$username'
+    | '/projects/$project_id/settings'
     | '/runs/$run_id/indexqc'
     | '/runs/$run_id/samplesheet'
   id:
@@ -1262,6 +1318,7 @@ export interface FileRouteTypes {
     | '/_user/register/'
     | '/_auth/admin/roles/$name'
     | '/_auth/admin/users/$username'
+    | '/_auth/projects/$project_id/settings'
     | '/_auth/runs/$run_id/indexqc'
     | '/_auth/runs/$run_id/samplesheet'
     | '/_user/oauth/$provider/callback'
@@ -1277,6 +1334,7 @@ export interface FileRouteTypes {
     | '/_auth/runs/$run_id/'
     | '/_auth/admin/roles/$name/'
     | '/_auth/admin/users/$username/'
+    | '/_auth/projects/$project_id/settings/'
     | '/_auth/runs/$run_id/indexqc/'
     | '/_auth/runs/$run_id/samplesheet/'
   fileRoutesById: FileRoutesById
@@ -1448,6 +1506,7 @@ export const routeTree = rootRoute
       "filePath": "_auth.projects.$project_id.route.tsx",
       "parent": "/_auth/projects",
       "children": [
+        "/_auth/projects/$project_id/settings",
         "/_auth/projects/$project_id/"
       ]
     },
@@ -1508,6 +1567,13 @@ export const routeTree = rootRoute
       "parent": "/_auth/admin/users",
       "children": [
         "/_auth/admin/users/$username/"
+      ]
+    },
+    "/_auth/projects/$project_id/settings": {
+      "filePath": "_auth.projects.$project_id.settings.route.tsx",
+      "parent": "/_auth/projects/$project_id",
+      "children": [
+        "/_auth/projects/$project_id/settings/"
       ]
     },
     "/_auth/runs/$run_id/indexqc": {
@@ -1575,6 +1641,10 @@ export const routeTree = rootRoute
     "/_auth/admin/users/$username/": {
       "filePath": "_auth.admin.users.$username.index.tsx",
       "parent": "/_auth/admin/users/$username"
+    },
+    "/_auth/projects/$project_id/settings/": {
+      "filePath": "_auth.projects.$project_id.settings.index.tsx",
+      "parent": "/_auth/projects/$project_id/settings"
     },
     "/_auth/runs/$run_id/indexqc/": {
       "filePath": "_auth.runs.$run_id.indexqc.index.tsx",

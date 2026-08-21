@@ -29,7 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { toastApiError } from '@/lib/error-utils'
+import { classifyError, toastApiError } from '@/lib/error-utils'
 
 interface ProjectMembersCardProps {
   projectId: string
@@ -38,23 +38,28 @@ interface ProjectMembersCardProps {
 /**
  * Who has a role on this project, and the controls to change it.
  *
- * Lives on the project page rather than in the admin panel because project
+ * Lives under the project rather than in the admin panel because project
  * membership is self-serve: an owner adds their own collaborators without
  * needing an administrator, which is the whole point of the project plane.
  *
- * Rendered only when the listing succeeds. The API guards the listing with the
- * same permission as the mutations — project:manage_members — so a successful
- * response is itself the evidence that this caller may change membership, and
- * no separate check is needed. Project-scoped permissions are not on
- * GET /rbac/me (with a five-figure project count that payload would be
- * unbounded), so this probe is currently the only way to know.
+ * On the project settings page rather than the project page itself, so that the
+ * space and the request are spent only when somebody goes looking. A refusal is
+ * shown here rather than hidden: on a page the user navigated to deliberately,
+ * an empty panel reads as a bug, whereas on the project overview it would have
+ * been noise about a control they never asked for.
+ *
+ * The API guards the listing with the same project:manage_members the mutations
+ * need, so a successful response is itself the evidence that this caller may
+ * change membership, and no separate check is needed. Project-scoped
+ * permissions are not on GET /rbac/me (with a five-figure project count that
+ * payload would be unbounded), so this is currently the only way to know.
  */
 export const ProjectMembersCard = ({ projectId }: ProjectMembersCardProps) => {
   const queryClient = useQueryClient()
   const [username, setUsername] = useState('')
   const [roleName, setRoleName] = useState('project_viewer')
 
-  const { data: members, error } = useQuery({
+  const { data: members, error, isLoading } = useQuery({
     ...listProjectMembersOptions({ path: { project_id: projectId } }),
     // A 403 here is the ordinary case for a non-owner, not a fault to retry.
     retry: false,
@@ -89,10 +94,27 @@ export const ProjectMembersCard = ({ projectId }: ProjectMembersCardProps) => {
     onError: (mutationError) => toastApiError(mutationError, 'Could not remove that member'),
   })
 
-  // Hidden rather than shown as an error: for most viewers this section simply
-  // does not apply, and an access-denied panel on every project page would be
-  // noise about a control they never asked for.
-  if (error || !members) return null
+  if (error || isLoading || !members) {
+    const friendly = error ? classifyError(error) : undefined
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Members</CardTitle>
+          <CardDescription>
+            {friendly
+              ? friendly.description
+              : 'Who can see and change this project.'}
+          </CardDescription>
+        </CardHeader>
+        {!error && (
+          <CardContent className="flex items-center gap-2 text-sm text-muted-foreground">
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            Loading members...
+          </CardContent>
+        )}
+      </Card>
+    )
+  }
 
   return (
     <Card>

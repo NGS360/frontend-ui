@@ -1,8 +1,9 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Calendar, Clock, User } from 'lucide-react'
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { Calendar, Clock, SlidersHorizontal, User } from 'lucide-react'
+import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import { getProjectByProjectId } from '@/client'
 import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/_auth/projects/$project_id')({
   component: RouteComponent,
@@ -27,6 +28,14 @@ export const Route = createFileRoute('/_auth/projects/$project_id')({
 
 function RouteComponent() {
   const { project_id } = Route.useParams()
+  // Matched against the route id rather than the pathname: a trailing slash or
+  // a future /settings/<subpage> must not change the answer.
+  const onSettings = useRouterState({
+    select: (state) =>
+      state.matches.some((match) =>
+        match.routeId.startsWith('/_auth/projects/$project_id/settings'),
+      ),
+  })
   
   // Use React Query hook instead of loader data for automatic refetching
   const { data: project } = useSuspenseQuery(
@@ -56,15 +65,35 @@ function RouteComponent() {
   return (
     <>
       <div className='flex flex-col gap-4'>
-        {/* Header */}
-        <div>
-          <h1 className='text-3xl font-extralight'>{project.name}</h1>
-          {showMetadata && (
-            <div className='flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-3 mt-1 text-sm text-muted-foreground'>
-              {hasCreator && <span className='inline-flex items-center gap-1'><User size={14} />Created by <span className='font-semibold'>{project.created_by}</span></span>}
-              {createdAt && <span className='inline-flex items-center gap-1'><Calendar size={14} />Created on <span className='font-semibold'>{createdAt}</span></span>}
-              {lastModified && <span className='inline-flex items-center gap-1'><Clock size={14} />Modified <span className='font-semibold'>{lastModified}</span></span>}
-            </div>
+        {/* Header. items-end so the settings control sits level with the
+            metadata line rather than floating beside the title. */}
+        <div className='flex items-end justify-between gap-4'>
+          <div className='min-w-0'>
+            <h1 className='text-3xl font-extralight'>{project.name}</h1>
+            {showMetadata && (
+              <div className='flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-3 mt-1 text-sm text-muted-foreground'>
+                {hasCreator && <span className='inline-flex items-center gap-1'><User size={14} />Created by <span className='font-semibold'>{project.created_by}</span></span>}
+                {createdAt && <span className='inline-flex items-center gap-1'><Calendar size={14} />Created on <span className='font-semibold'>{createdAt}</span></span>}
+                {lastModified && <span className='inline-flex items-center gap-1'><Clock size={14} />Modified <span className='font-semibold'>{lastModified}</span></span>}
+              </div>
+            )}
+          </div>
+          {/* Suppressed on the settings page, which carries its own way back. */}
+          {!onSettings && (
+            <Button
+              id='project-settings-link'
+              variant='outline'
+              className='shrink-0'
+              asChild
+            >
+              <Link to='/projects/$project_id/settings' params={{ project_id }}>
+                <SlidersHorizontal className='h-4 w-4' />
+                {/* Icon-only below sm: the label is the first thing worth
+                    dropping when the title needs the width. */}
+                <span className='hidden sm:inline'>Project Settings</span>
+                <span className='sr-only sm:hidden'>Project Settings</span>
+              </Link>
+            </Button>
           )}
         </div>
         {/* Outlet */}
