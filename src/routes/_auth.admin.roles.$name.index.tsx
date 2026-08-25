@@ -84,7 +84,7 @@ function RouteComponent() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-sm text-muted-foreground">{role.name}</span>
             <RoleScopeBadge scope={role.scope} />
-            <RoleBuiltinBadge is_builtin={role.is_builtin} />
+            <RoleBuiltinBadge isBuiltin={role.is_builtin} />
           </div>
           {role.description && (
             <p className="text-muted-foreground">{role.description}</p>

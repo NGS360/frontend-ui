@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import z from 'zod'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import type { UserAdminPublic } from '@/client'
@@ -78,7 +78,17 @@ function RouteComponent() {
 
   // A new filter has to reset to the first page: page 3 of a narrower result
   // set is usually empty, which reads as "no matches".
+  //
+  // Skipped on mount, which is not a new filter. Without the guard this fired
+  // once against the values the URL arrived with and rewrote skip to 0, so a
+  // pasted link to any page but the first silently landed on the first --
+  // defeating the point of keeping the whole page state in the URL.
+  const filtersSettled = useRef(false)
   useEffect(() => {
+    if (!filtersSettled.current) {
+      filtersSettled.current = true
+      return
+    }
     setPagination((current) => ({ ...current, pageIndex: 0 }))
   }, [debouncedFilter, search.role, search.status])
 
@@ -149,9 +159,9 @@ function RouteComponent() {
       header: 'Status',
       cell: ({ row }) => (
         <UserStatusBadges
-          is_active={row.original.is_active}
-          is_verified={row.original.is_verified}
-          is_superuser={row.original.is_superuser}
+          isActive={row.original.is_active}
+          isVerified={row.original.is_verified}
+          isSuperuser={row.original.is_superuser}
           verbose
         />
       ),

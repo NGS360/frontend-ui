@@ -1,5 +1,6 @@
 import { Database, Folder, Handshake, KeyRound, LayoutDashboard, ListChecks, ShieldCheck, Users } from "lucide-react"
 import { Link, useRouterState } from "@tanstack/react-router"
+import type { PermissionName } from "@/lib/permissions"
 import {
   Sidebar,
   SidebarContent,
@@ -20,7 +21,7 @@ interface MenuItem {
   icon: typeof LayoutDashboard
   url: string
   /** Hidden unless the caller holds this. Omitted means always shown. */
-  permission?: string
+  permission?: PermissionName
 }
 
 interface MenuGroup {

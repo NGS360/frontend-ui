@@ -3,9 +3,9 @@ import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface UserStatusBadgesProps {
-  is_active: boolean
-  is_verified: boolean
-  is_superuser: boolean
+  isActive: boolean
+  isVerified: boolean
+  isSuperuser: boolean
   /** Show a badge for the ordinary case too. Default: only exceptions. */
   verbose?: boolean
 }
@@ -23,13 +23,13 @@ interface UserStatusBadgesProps {
  * a decision somebody made.
  */
 export const UserStatusBadges = ({
-  is_active,
-  is_verified,
-  is_superuser,
+  isActive,
+  isVerified,
+  isSuperuser,
   verbose = false,
 }: UserStatusBadgesProps) => (
   <div className="flex flex-wrap items-center gap-1.5">
-    {is_superuser && (
+    {isSuperuser && (
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge variant="destructive">
@@ -42,7 +42,7 @@ export const UserStatusBadges = ({
         </TooltipContent>
       </Tooltip>
     )}
-    {!is_active && (
+    {!isActive && (
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge variant="outline" className="text-muted-foreground">
@@ -55,7 +55,7 @@ export const UserStatusBadges = ({
         </TooltipContent>
       </Tooltip>
     )}
-    {!is_verified && (
+    {!isVerified && (
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge variant="outline">
@@ -68,7 +68,7 @@ export const UserStatusBadges = ({
         </TooltipContent>
       </Tooltip>
     )}
-    {verbose && is_active && is_verified && (
+    {verbose && isActive && isVerified && (
       <Badge variant="secondary">
         <BadgeCheck />
         Active

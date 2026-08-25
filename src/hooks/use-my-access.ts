@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { MyAccessPublic } from '@/client'
+import type { PermissionName } from '@/lib/permissions'
 import { getMyAccessOptions } from '@/client/@tanstack/react-query.gen'
 
 /**
@@ -20,10 +21,18 @@ export const myAccessQueryOptions = () => ({
   staleTime: 5 * 60 * 1000,
 })
 
-/** Whether an access payload carries a permission. Superuser holds everything. */
+/**
+ * Whether an access payload carries a permission. Superuser holds everything.
+ *
+ * Takes PermissionName rather than string so that a literal is not an option:
+ * `hasPermission(access, 'role:raed')` has to be a compile error, or naming the
+ * permissions in one place buys nothing. Renaming an entry in PERMISSIONS then
+ * fails the build at every call site instead of silently matching nothing --
+ * which, because a missing permission hides a control, is otherwise invisible.
+ */
 export function hasPermission(
   access: MyAccessPublic | undefined,
-  ...permissions: Array<string>
+  ...permissions: Array<PermissionName>
 ): boolean {
   if (!access) return false
   if (access.is_superuser) return true
@@ -33,7 +42,7 @@ export function hasPermission(
 /** Whether it carries at least one of them. */
 export function hasAnyPermission(
   access: MyAccessPublic | undefined,
-  ...permissions: Array<string>
+  ...permissions: Array<PermissionName>
 ): boolean {
   if (!access) return false
   if (access.is_superuser) return true
@@ -49,8 +58,9 @@ export function useMyAccess() {
     access,
     isSuperuser: access?.is_superuser ?? false,
     /** True only when every named permission is held. */
-    can: (...permissions: Array<string>) => hasPermission(access, ...permissions),
+    can: (...permissions: Array<PermissionName>) => hasPermission(access, ...permissions),
     /** True when any one of them is. */
-    canAny: (...permissions: Array<string>) => hasAnyPermission(access, ...permissions),
+    canAny: (...permissions: Array<PermissionName>) =>
+      hasAnyPermission(access, ...permissions),
   }
 }

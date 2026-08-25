@@ -57,7 +57,11 @@ interface ProjectMembersCardProps {
 export const ProjectMembersCard = ({ projectId }: ProjectMembersCardProps) => {
   const queryClient = useQueryClient()
   const [username, setUsername] = useState('')
-  const [roleName, setRoleName] = useState('project_viewer')
+  // Empty until the roles load, rather than a hardcoded 'project_viewer': a
+  // controlled Select whose value matches no SelectItem renders a blank trigger
+  // (Radix only shows the placeholder for an empty value), so the old default
+  // gave a blank-looking control that would nonetheless have posted a role.
+  const [roleName, setRoleName] = useState('')
 
   const { data: members, error, isLoading } = useQuery({
     ...listProjectMembersOptions({ path: { project_id: projectId } }),
@@ -67,6 +71,14 @@ export const ProjectMembersCard = ({ projectId }: ProjectMembersCardProps) => {
 
   const { data: roles } = useQuery(listRolesOptions())
   const projectRoles = (roles ?? []).filter((role) => role.scope === 'project')
+
+  // Viewer is the least a member can be given, which is the right default for a
+  // control that adds one. Falls back to the first project role so that renaming
+  // the builtins cannot leave this empty.
+  const defaultRole =
+    projectRoles.find((role) => role.name === 'project_viewer')?.name ??
+    projectRoles.at(0)?.name ??
+    ''
 
   const invalidate = () =>
     queryClient.invalidateQueries({
@@ -226,9 +238,9 @@ export const ProjectMembersCard = ({ projectId }: ProjectMembersCardProps) => {
             onChange={setUsername}
             disabled={isSaving}
           />
-          <Select value={roleName} onValueChange={setRoleName}>
+          <Select value={roleName || defaultRole} onValueChange={setRoleName}>
             <SelectTrigger id="project-member-add-role" className="w-[190px]">
-              <SelectValue />
+              <SelectValue placeholder="Loading roles..." />
             </SelectTrigger>
             <SelectContent>
               {projectRoles.map((role) => (
@@ -241,11 +253,11 @@ export const ProjectMembersCard = ({ projectId }: ProjectMembersCardProps) => {
           <Button
             id="project-member-add-submit"
             variant="primary2"
-            disabled={!username || isSaving}
+            disabled={!username || !(roleName || defaultRole) || isSaving}
             onClick={() =>
               setMember({
                 path: { project_id: projectId },
-                body: { username, role: roleName },
+                body: { username, role: roleName || defaultRole },
               })
             }
           >

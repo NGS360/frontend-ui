@@ -58,9 +58,9 @@ function RouteComponent() {
             {user.email && <span className="text-sm">{user.email}</span>}
           </div>
           <UserStatusBadges
-            is_active={user.is_active}
-            is_verified={user.is_verified}
-            is_superuser={user.is_superuser}
+            isActive={user.is_active}
+            isVerified={user.is_verified}
+            isSuperuser={user.is_superuser}
             verbose
           />
         </div>

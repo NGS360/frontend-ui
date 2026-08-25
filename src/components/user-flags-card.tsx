@@ -38,11 +38,18 @@ type Flag = 'is_active' | 'is_verified' | 'is_superuser'
  */
 export const UserFlagsCard = ({ user }: UserFlagsCardProps) => {
   const queryClient = useQueryClient()
-  const { can, access } = useMyAccess()
+  const { can, access, isSuperuser } = useMyAccess()
   const [pendingFlag, setPendingFlag] = useState<Flag | null>(null)
 
   const mayManage = can(PERMISSIONS.USER_MANAGE)
   const isSelf = access?.username === user.username
+
+  // The break-glass flag takes user:manage AND being a superuser. That is the
+  // one condition the server checks beyond the route's permission, so it is
+  // also the one worth reproducing here -- the rest are refusals that depend on
+  // rows this page has not loaded.
+  const mayEdit = (flag: Flag) =>
+    mayManage && (flag !== 'is_superuser' || isSuperuser)
 
   const { mutate, isPending } = useMutation({
     ...updateUserFlagsMutation(),
@@ -94,7 +101,7 @@ export const UserFlagsCard = ({ user }: UserFlagsCardProps) => {
               <Switch
                 id={`user-flag-${flag}`}
                 checked={user[flag]}
-                disabled={!mayManage || isPending}
+                disabled={!mayEdit(flag) || isPending}
                 onCheckedChange={(checked) => set(flag, checked)}
               />
             </div>
@@ -104,6 +111,12 @@ export const UserFlagsCard = ({ user }: UserFlagsCardProps) => {
         {!mayManage && (
           <p className="text-xs text-muted-foreground">
             Changing these requires {PERMISSIONS.USER_MANAGE}.
+          </p>
+        )}
+        {mayManage && !isSuperuser && (
+          <p className="text-xs text-muted-foreground">
+            Setting the superuser flag additionally requires being a superuser,
+            so that break-glass access is never granted by permission alone.
           </p>
         )}
         {isSelf && (

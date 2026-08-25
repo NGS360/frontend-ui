@@ -60,8 +60,8 @@ export const RoleScopeBadge = ({ scope }: { scope: RoleScope }) => (
  * deploy, so an edit here would be silently undone — which is why the API
  * refuses it, and why the UI says so before anyone tries.
  */
-export const RoleBuiltinBadge = ({ is_builtin }: { is_builtin: boolean }) =>
-  is_builtin ? (
+export const RoleBuiltinBadge = ({ isBuiltin }: { isBuiltin: boolean }) =>
+  isBuiltin ? (
     <Badge variant="outline" className="text-muted-foreground">
       Built-in
     </Badge>

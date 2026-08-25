@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { LoaderCircle } from 'lucide-react'
 import type { JSX } from 'react'
 import type React from 'react'
+import type { SubmitHandler } from 'react-hook-form'
 import type { RoleScope } from '@/client'
 import {
   createRoleMutation,
@@ -34,14 +38,43 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { getFormApiErrorMessage } from '@/lib/error-utils'
 
+// Define Schema w/Validation
+//
+// The lengths are the server's own, from RoleCreate in api/rbac/models.py, so a
+// name one character too long is a message rather than a 422.
+//
+// The name pattern is not the server's: RoleCreate constrains length only. It is
+// a UI convention, and it matches all nine builtins, because the name is a
+// permanent identifier that ends up in a URL — /admin/roles/$name — while
+// display_name is the field meant to be readable. Keeping it means a custom role
+// cannot look unlike the built-in it is a variant of.
+const CreateRoleSchema = z.object({
+  name: z
+    .string()
+    .nonempty('Name is required')
+    .max(64, 'Name must be 64 characters or fewer')
+    .regex(
+      /^[a-z][a-z0-9_]*$/,
+      'Use lowercase letters, digits and underscores, starting with a letter',
+    ),
+  display_name: z
+    .string()
+    .nonempty('Display name is required')
+    .max(128, 'Display name must be 128 characters or fewer'),
+  description: z
+    .string()
+    .max(512, 'Description must be 512 characters or fewer')
+    .optional(),
+})
+
+type FormFields = z.infer<typeof CreateRoleSchema>
+
 interface CreateRoleFormProps {
+  /** Trigger for the Sheet component */
   trigger: JSX.Element
+  /** Optional DOM id prefix for this form instance */
   idPrefix?: string
 }
-
-// The server's own constraint on role.name, mirrored so the message arrives
-// before the round trip rather than as a 422 afterwards.
-const NAME_PATTERN = /^[a-z][a-z0-9_]*$/
 
 /**
  * Create a custom role.
@@ -50,6 +83,10 @@ const NAME_PATTERN = /^[a-z][a-z0-9_]*$/
  * are how "contributor without delete" and every similar variant gets served
  * without a deploy. Builtin roles cannot be edited at all, so this is the only
  * way to get a permission set that is not one of the nine shipped.
+ *
+ * Scope and the permission set are held outside the form rather than registered
+ * as fields: neither is an input, and the two are coupled — changing scope has
+ * to filter the selection — which react-hook-form would only get in the way of.
  */
 export const CreateRoleForm: React.FC<CreateRoleFormProps> = ({ trigger, idPrefix }) => {
   const generatedId = useId()
@@ -58,35 +95,51 @@ export const CreateRoleForm: React.FC<CreateRoleFormProps> = ({ trigger, idPrefi
     '-',
   )
 
+  // Control sheet open/close state
   const [isOpen, setIsOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [displayName, setDisplayName] = useState('')
-  const [description, setDescription] = useState('')
   const [scope, setScope] = useState<RoleScope>('global')
   const [permissions, setPermissions] = useState<Array<string>>([])
-  const [formError, setFormError] = useState<string | null>(null)
 
   const { data: catalog } = useQuery(listPermissionsOptions())
-  const queryClient = useQueryClient()
 
-  const reset = () => {
-    setName('')
-    setDisplayName('')
-    setDescription('')
+  // Configure form
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<FormFields>({
+    defaultValues: {
+      name: '',
+      display_name: '',
+      description: '',
+    },
+    resolver: zodResolver(CreateRoleSchema),
+  })
+
+  const resetAll = () => {
+    reset()
     setScope('global')
     setPermissions([])
-    setFormError(null)
   }
 
+  const handleOnOpenChange = (willOpen: boolean) => {
+    if (!willOpen) resetAll()
+    setIsOpen(willOpen)
+  }
+
+  // Mutation
+  const queryClient = useQueryClient()
   const { mutate, isPending } = useMutation({
     ...createRoleMutation(),
     onError: (error) => {
-      setFormError(getFormApiErrorMessage(error, 'An unknown error occurred.'))
+      setError('root', { message: getFormApiErrorMessage(error, 'An unknown error occurred.') })
     },
     onSuccess: (role) => {
       void queryClient.invalidateQueries({ queryKey: listRolesQueryKey() })
       toast.success(`Created role ${role.display_name}`)
-      reset()
+      resetAll()
       setIsOpen(false)
     },
   })
@@ -104,21 +157,13 @@ export const CreateRoleForm: React.FC<CreateRoleFormProps> = ({ trigger, idPrefi
     }
   }
 
-  const submit = () => {
-    if (!NAME_PATTERN.test(name)) {
-      setFormError('Name must be lowercase letters, digits and underscores, starting with a letter.')
-      return
-    }
-    if (!displayName.trim()) {
-      setFormError('A display name is required.')
-      return
-    }
-    setFormError(null)
+  // Form submission
+  const onSubmit: SubmitHandler<FormFields> = (data) => {
     mutate({
       body: {
-        name,
-        display_name: displayName,
-        description: description || null,
+        name: data.name,
+        display_name: data.display_name,
+        description: data.description || null,
         scope,
         permissions,
       },
@@ -126,13 +171,7 @@ export const CreateRoleForm: React.FC<CreateRoleFormProps> = ({ trigger, idPrefi
   }
 
   return (
-    <Sheet
-      open={isOpen}
-      onOpenChange={(willOpen) => {
-        if (!willOpen) reset()
-        setIsOpen(willOpen)
-      }}
-    >
+    <Sheet open={isOpen} onOpenChange={handleOnOpenChange}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent id={`${baseId}-sheet`} srTitle="Create role" className="sm:max-w-2xl">
         <SheetHeader>
@@ -145,84 +184,118 @@ export const CreateRoleForm: React.FC<CreateRoleFormProps> = ({ trigger, idPrefi
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4">
-          <div className="grid gap-6 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor={`${baseId}-name`}>Name</Label>
-              <Input
-                id={`${baseId}-name`}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="contributor_no_delete"
-              />
-              <p className="text-xs text-muted-foreground">
-                Permanent identifier. Lowercase, no spaces.
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor={`${baseId}-display-name`}>Display name</Label>
-              <Input
-                id={`${baseId}-display-name`}
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                placeholder="Contributor without delete"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor={`${baseId}-description`}>Description</Label>
-              <Textarea
-                id={`${baseId}-description`}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Who this is for, and why it differs from the built-in role."
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor={`${baseId}-scope`}>Scope</Label>
-              <Select value={scope} onValueChange={(value) => onScopeChange(value as RoleScope)}>
-                <SelectTrigger id={`${baseId}-scope`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="global">Global — granted platform-wide</SelectItem>
-                  <SelectItem value="project">Project — granted per project</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {scope === 'global'
-                  ? 'Applies everywhere, to every project.'
-                  : 'Only project-scopable permissions can be granted this way.'}
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Permissions ({permissions.length})</Label>
-              {catalog ? (
-                <PermissionMatrix
-                  catalog={catalog}
-                  selected={permissions}
-                  onChange={setPermissions}
-                  projectScopableOnly={scope === 'project'}
-                  idPrefix={`${baseId}-permissions`}
+          <form id={`${baseId}-form`} onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid gap-6 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor={`${baseId}-name`}>Name</Label>
+                <Input
+                  {...register('name')}
+                  id={`${baseId}-name`}
+                  type="text"
+                  placeholder="contributor_no_delete"
+                  required
                 />
-              ) : (
-                <LoaderCircle className="h-4 w-4 animate-spin text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">
+                  Permanent identifier. Lowercase, no spaces.
+                </p>
+                {errors.name && (
+                  <div className="text-xs text-red-500 text-left">
+                    {errors.name.message}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor={`${baseId}-display-name`}>Display name</Label>
+                <Input
+                  {...register('display_name')}
+                  id={`${baseId}-display-name`}
+                  type="text"
+                  placeholder="Contributor without delete"
+                  required
+                />
+                {errors.display_name && (
+                  <div className="text-xs text-red-500 text-left">
+                    {errors.display_name.message}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor={`${baseId}-description`}>Description</Label>
+                <Textarea
+                  {...register('description')}
+                  id={`${baseId}-description`}
+                  placeholder="Who this is for, and why it differs from the built-in role."
+                />
+                {errors.description && (
+                  <div className="text-xs text-red-500 text-left">
+                    {errors.description.message}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor={`${baseId}-scope`}>Scope</Label>
+                <Select value={scope} onValueChange={(value) => onScopeChange(value as RoleScope)}>
+                  <SelectTrigger id={`${baseId}-scope`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="global">Global — granted platform-wide</SelectItem>
+                    <SelectItem value="project">Project — granted per project</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {scope === 'global'
+                    ? 'Applies everywhere, to every project.'
+                    : 'Only project-scopable permissions can be granted this way.'}
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Permissions ({permissions.length})</Label>
+                {catalog ? (
+                  <PermissionMatrix
+                    catalog={catalog}
+                    selected={permissions}
+                    onChange={setPermissions}
+                    projectScopableOnly={scope === 'project'}
+                    idPrefix={`${baseId}-permissions`}
+                  />
+                ) : (
+                  <LoaderCircle className="h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+
+              {errors.root && (
+                <div className="text-red-500 text-sm text-center">
+                  {errors.root.message}
+                </div>
               )}
             </div>
-
-            {formError && <p className="text-sm text-red-500">{formError}</p>}
-          </div>
+          </form>
         </div>
 
         <SheetFooter className="mt-auto">
-          <Button id={`${baseId}-submit`} disabled={isPending} onClick={submit}>
-            {isPending && <LoaderCircle className="h-4 w-4 animate-spin" />}
-            {isPending ? 'Creating role...' : 'Create role'}
+          <Button
+            id={`${baseId}-submit`}
+            disabled={isSubmitting || isPending}
+            type="submit"
+            onClick={handleSubmit(onSubmit)}
+          >
+            {isSubmitting || isPending ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : null}
+            {isSubmitting || isPending ? 'Creating role...' : 'Create role'}
           </Button>
           <SheetClose asChild>
-            <Button id={`${baseId}-cancel`} type="button" variant="secondary" onClick={reset}>
+            <Button
+              id={`${baseId}-cancel`}
+              type="button"
+              variant='secondary'
+              onClick={() => { resetAll() }}
+            >
               Cancel
             </Button>
           </SheetClose>

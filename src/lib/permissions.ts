@@ -9,6 +9,15 @@
  * Gating in this app is advisory. The server is the enforcement point, and
  * deploy.sh ships the SPA and the API in one artifact, so a stale UI must never
  * be the thing standing between a caller and an action.
+ *
+ * Project-scoped permissions are deliberately absent. GET /rbac/me carries the
+ * global plane only -- with a five-figure project count the payload would be
+ * unbounded -- so `project:manage_members` cannot be answered here for the
+ * project that matters. A global grant of it would say yes for every project
+ * and a project grant would not appear at all, which makes it worse than no
+ * check: the project owner it exists for is exactly who it would hide the
+ * control from. Those surfaces let the request decide instead, and render the
+ * 403 as an explanation. See components/project-members-card.tsx.
  */
 
 export const PERMISSIONS = {
@@ -16,12 +25,8 @@ export const PERMISSIONS = {
   ROLE_READ: 'role:read',
   /** Create and edit roles, grant and revoke them. */
   ROLE_MANAGE: 'role:manage',
-  /** Search the user directory. */
-  USER_READ: 'user:read',
   /** Activate, verify and set superuser on users. */
   USER_MANAGE: 'user:manage',
-  /** Add, change and remove project members. Project-scoped. */
-  PROJECT_MANAGE_MEMBERS: 'project:manage_members',
   /** Create a vendor. Stands in for the vendors admin page as a whole. */
   VENDOR_CREATE: 'vendor:create',
   /** Change platform settings. Gates both settings pages. */
@@ -37,10 +42,14 @@ export const PERMISSIONS = {
  * checks its own. Listed here so the shell's guard cannot drift out of step
  * with the sidebar: a section added to one and not the other would either be
  * unreachable or reachable by someone with nothing to do there.
+ *
+ * One entry per sidebar section, so `user:manage` is deliberately absent: it
+ * gates the switches on a user's detail page, not a section, and listing it
+ * here let a caller holding only that permission through to a panel whose every
+ * section then filtered itself out.
  */
 export const ADMIN_SECTION_PERMISSIONS = [
   PERMISSIONS.ROLE_READ,
-  PERMISSIONS.USER_MANAGE,
   PERMISSIONS.VENDOR_CREATE,
   PERMISSIONS.SETTING_UPDATE,
   PERMISSIONS.JOB_READ_ALL,

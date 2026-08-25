@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Plus, Users } from 'lucide-react'
+import type { RolePublic } from '@/client'
 import { listRolesOptions } from '@/client/@tanstack/react-query.gen'
 import { CreateRoleForm } from '@/components/create-role-form'
 import { ErrorState } from '@/components/error-state'
@@ -22,6 +23,74 @@ export const Route = createFileRoute('/_auth/admin/roles/')({
   component: RouteComponent,
 })
 
+interface RoleSectionProps {
+  title: string
+  description: string
+  roles: Array<RolePublic>
+}
+
+const RoleSection = ({ title, description, roles }: RoleSectionProps) => (
+  <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
+      <h2 className="text-xl">{title}</h2>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Role</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead>Kind</TableHead>
+          <TableHead className="text-right">Permissions</TableHead>
+          <TableHead />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {roles.map((role) => (
+          <TableRow key={role.name}>
+            <TableCell>
+              <Link
+                to="/admin/roles/$name"
+                params={{ name: role.name }}
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                {role.display_name}
+              </Link>
+              {role.description && (
+                <p className="text-xs text-muted-foreground">{role.description}</p>
+              )}
+            </TableCell>
+            <TableCell className="font-mono text-xs text-muted-foreground">
+              {role.name}
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-1.5">
+                <RoleScopeBadge scope={role.scope} />
+                <RoleBuiltinBadge isBuiltin={role.is_builtin} />
+              </div>
+            </TableCell>
+            <TableCell className="text-right text-sm">{role.permissions.length}</TableCell>
+            <TableCell className="text-right">
+              {/* Holder counts have no endpoint, and one request per role to
+                  fake them would be worse than a link that answers exactly
+                  the question with a real filtered list. Project roles are
+                  excluded: the roster filters on global grants only. */}
+              {role.scope === 'global' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin/users" search={{ role: role.name }}>
+                    <Users className="h-4 w-4" />
+                    Holders
+                  </Link>
+                </Button>
+              )}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </div>
+)
+
 function RouteComponent() {
   const { can } = useMyAccess()
   const { data: roles, error, refetch } = useQuery(listRolesOptions())
@@ -34,68 +103,6 @@ function RouteComponent() {
   // bury the distinction that matters most on this page.
   const globalRoles = roles.filter((role) => role.scope === 'global')
   const projectRoles = roles.filter((role) => role.scope === 'project')
-
-  const section = (title: string, description: string, rows: typeof roles) => (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-xl">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Role</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Kind</TableHead>
-            <TableHead className="text-right">Permissions</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((role) => (
-            <TableRow key={role.name}>
-              <TableCell>
-                <Link
-                  to="/admin/roles/$name"
-                  params={{ name: role.name }}
-                  className="text-sm font-medium text-primary hover:underline"
-                >
-                  {role.display_name}
-                </Link>
-                {role.description && (
-                  <p className="text-xs text-muted-foreground">{role.description}</p>
-                )}
-              </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">
-                {role.name}
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1.5">
-                  <RoleScopeBadge scope={role.scope} />
-                  <RoleBuiltinBadge is_builtin={role.is_builtin} />
-                </div>
-              </TableCell>
-              <TableCell className="text-right text-sm">{role.permissions.length}</TableCell>
-              <TableCell className="text-right">
-                {/* Holder counts have no endpoint, and one request per role to
-                    fake them would be worse than a link that answers exactly
-                    the question with a real filtered list. Project roles are
-                    excluded: the roster filters on global grants only. */}
-                {role.scope === 'global' && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/admin/users" search={{ role: role.name }}>
-                      <Users className="h-4 w-4" />
-                      Holders
-                    </Link>
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
 
   return (
     <div className="flex flex-col gap-8">
@@ -120,16 +127,16 @@ function RouteComponent() {
         )}
       </div>
 
-      {section(
-        'Global roles',
-        'Granted platform-wide, and additive: a user may hold several.',
-        globalRoles,
-      )}
-      {section(
-        'Project roles',
-        'Granted per project from the project page, one per user per project. Viewer, contributor and owner form a total order.',
-        projectRoles,
-      )}
+      <RoleSection
+        title="Global roles"
+        description="Granted platform-wide, and additive: a user may hold several."
+        roles={globalRoles}
+      />
+      <RoleSection
+        title="Project roles"
+        description="Granted per project from the project page, one per user per project. Viewer, contributor and owner form a total order."
+        roles={projectRoles}
+      />
     </div>
   )
 }
