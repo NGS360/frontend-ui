@@ -201,6 +201,9 @@ import type {
   GetThreadData,
   GetThreadErrors,
   GetThreadResponses,
+  GetUserAccessData,
+  GetUserAccessErrors,
+  GetUserAccessResponses,
   GetVendorData,
   GetVendorErrors,
   GetVendorResponses,
@@ -257,6 +260,9 @@ import type {
   ListUserRolesData,
   ListUserRolesErrors,
   ListUserRolesResponses,
+  ListUsersData,
+  ListUsersErrors,
+  ListUsersResponses,
   LoginData,
   LoginErrors,
   LoginResponses,
@@ -370,6 +376,9 @@ import type {
   UpdateSettingData,
   UpdateSettingErrors,
   UpdateSettingResponses,
+  UpdateUserFlagsData,
+  UpdateUserFlagsErrors,
+  UpdateUserFlagsResponses,
   UpdateVendorData,
   UpdateVendorErrors,
   UpdateVendorResponses,
@@ -1783,6 +1792,11 @@ export const reindexProjects = <ThrowOnError extends boolean = false>(
  *
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
+ *
+ * Carries `permissions`: what the calling user may do in this project. The
+ * project plane is the only place that answer exists -- /rbac/me reports global
+ * grants only -- so without it a UI has no way to gate a project control
+ * except by making the request and handling the refusal.
  */
 export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
   options: Options<GetProjectByProjectIdData, ThrowOnError>,
@@ -1795,7 +1809,11 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
     GetProjectByProjectIdResponses,
     GetProjectByProjectIdErrors,
     ThrowOnError
-  >({ url: '/api/v1/projects/{project_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects/{project_id}',
+    ...options,
+  })
 
 /**
  * Patch Project
@@ -2811,14 +2829,16 @@ export const getSetting = <ThrowOnError extends boolean = false>(
   >({ url: '/api/v1/settings/{key}', ...options })
 
 /**
- * Update a setting (superuser only)
+ * Update a setting
  *
  * Update a specific setting. Only the value, name, description, and tags can be updated.
  * The key cannot be changed as it's the primary identifier.
  *
  * Settings control platform-wide behaviour — including the data and results bucket
- * URIs and the manifest validation Lambda ARN — so writes require superuser
- * privileges.
+ * URIs and the manifest validation Lambda ARN — so writes require
+ * setting:update. That permission is the whole guard; there is no
+ * CurrentSuperuser dependency on top, which is what lets a platform_admin use
+ * the settings pages their role is for.
  */
 export const updateSetting = <ThrowOnError extends boolean = false>(
   options: Options<UpdateSettingData, ThrowOnError>,
@@ -3374,7 +3394,51 @@ export const searchUsers = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * The permission catalog (superuser only)
+ * Set a user's status flags
+ *
+ * Activate, verify, or set the superuser flag. Omitted fields are unchanged.
+ *
+ * This is the route user:manage describes -- the permission has been in the
+ * catalog and in the admin role since RBAC landed, with nothing implementing
+ * it, so it granted nothing.
+ *
+ * is_active and is_verified are both required to authenticate, so clearing
+ * either one is an account lockout; the guardrails in api/rbac/services.py
+ * refuse the two lockouts that cannot be undone through the API, namely the
+ * last usable superuser and the last non-superuser role manager.
+ *
+ * user:manage is the only route guard, rather than that plus CurrentSuperuser,
+ * so the permission means what it says: an account holding it can deactivate a
+ * departed colleague without also being break-glass.
+ *
+ * Setting is_superuser is the exception, and it is checked in the service
+ * rather than here -- docs/RBAC.md asks for user:manage AND superuser on the
+ * break-glass flag, and that rule belongs to the mutation rather than to one
+ * way of reaching it. current_user is the acting user for those guardrails.
+ */
+export const updateUserFlags = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateUserFlagsData, ThrowOnError>,
+): RequestResult<
+  UpdateUserFlagsResponses,
+  UpdateUserFlagsErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    UpdateUserFlagsResponses,
+    UpdateUserFlagsErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/{username}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+
+/**
+ * The permission catalog
  *
  * Every permission the API recognises, with its risk and scopability.
  *
@@ -3396,7 +3460,7 @@ export const listPermissions = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * List roles (superuser only)
+ * List roles
  */
 export const listRoles = <ThrowOnError extends boolean = false>(
   options?: Options<ListRolesData, ThrowOnError>,
@@ -3408,7 +3472,7 @@ export const listRoles = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Create a custom role (superuser only)
+ * Create a custom role
  *
  * Custom roles are how "contributor without delete" and similar variants are
  * served, which is the reason roles are rows rather than code.
@@ -3431,7 +3495,7 @@ export const createRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Delete a custom role (superuser only)
+ * Delete a custom role
  */
 export const deleteRole = <ThrowOnError extends boolean = false>(
   options: Options<DeleteRoleData, ThrowOnError>,
@@ -3447,7 +3511,7 @@ export const deleteRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Get one role (superuser only)
+ * Get one role
  */
 export const getRole = <ThrowOnError extends boolean = false>(
   options: Options<GetRoleData, ThrowOnError>,
@@ -3461,7 +3525,7 @@ export const getRole = <ThrowOnError extends boolean = false>(
   )
 
 /**
- * Replace a custom role's permissions (superuser only)
+ * Replace a custom role's permissions
  */
 export const updateRolePermissions = <ThrowOnError extends boolean = false>(
   options: Options<UpdateRolePermissionsData, ThrowOnError>,
@@ -3504,7 +3568,7 @@ export const getMyAccess = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * A user's global roles (superuser only)
+ * A user's global roles
  */
 export const listUserRoles = <ThrowOnError extends boolean = false>(
   options: Options<ListUserRolesData, ThrowOnError>,
@@ -3520,7 +3584,7 @@ export const listUserRoles = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Grant a global role (superuser only)
+ * Grant a global role
  */
 export const grantUserRole = <ThrowOnError extends boolean = false>(
   options: Options<GrantUserRoleData, ThrowOnError>,
@@ -3540,7 +3604,7 @@ export const grantUserRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Revoke a global role (superuser only)
+ * Revoke a global role
  */
 export const revokeUserRole = <ThrowOnError extends boolean = false>(
   options: Options<RevokeUserRoleData, ThrowOnError>,
@@ -3552,5 +3616,53 @@ export const revokeUserRole = <ThrowOnError extends boolean = false>(
   >({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/rbac/users/{username}/roles/{role_name}',
+    ...options,
+  })
+
+/**
+ * The user roster
+ *
+ * Every local user account, with status flags and global roles.
+ *
+ * GET /users/search is the wrong endpoint for an administrator: it is the
+ * picker behind "grant a role to somebody", so it can answer from LDAP, it
+ * demands a query string, and it hides deactivated accounts -- which are
+ * exactly the accounts an administrator is looking for.
+ *
+ * `q` is an optional filter here rather than a required query, because the
+ * first thing this page has to do is show who exists.
+ */
+export const listUsers = <ThrowOnError extends boolean = false>(
+  options?: Options<ListUsersData, ThrowOnError>,
+): RequestResult<ListUsersResponses, ListUsersErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ListUsersResponses,
+    ListUsersErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/rbac/users',
+    ...options,
+  })
+
+/**
+ * One user's effective access
+ *
+ * Both grant planes and the break-glass flag for one user.
+ *
+ * The project memberships are the part that cannot be assembled from anything
+ * else: membership is otherwise only listable per project, so "which projects
+ * is this person on" has no answer without scanning every project.
+ */
+export const getUserAccess = <ThrowOnError extends boolean = false>(
+  options: Options<GetUserAccessData, ThrowOnError>,
+): RequestResult<GetUserAccessResponses, GetUserAccessErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetUserAccessResponses,
+    GetUserAccessErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/rbac/users/{username}/access',
     ...options,
   })

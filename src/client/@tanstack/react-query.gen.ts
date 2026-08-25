@@ -76,6 +76,7 @@ import {
   getSetting,
   getSettingsByTag,
   getThread,
+  getUserAccess,
   getVendor,
   getVendors,
   getWorkflowById,
@@ -96,6 +97,7 @@ import {
   listProjectMembers,
   listRoles,
   listUserRoles,
+  listUsers,
   login,
   logout,
   oauthAuthorize,
@@ -136,6 +138,7 @@ import {
   updateRun,
   updateSampleInProject,
   updateSetting,
+  updateUserFlags,
   updateVendor,
   uploadFile,
   uploadManifest,
@@ -331,6 +334,9 @@ import type {
   GetSettingsByTagResponse,
   GetThreadData,
   GetThreadError,
+  GetUserAccessData,
+  GetUserAccessError,
+  GetUserAccessResponse,
   GetVendorData,
   GetVendorError,
   GetVendorResponse,
@@ -386,6 +392,9 @@ import type {
   ListUserRolesData,
   ListUserRolesError,
   ListUserRolesResponse,
+  ListUsersData,
+  ListUsersError,
+  ListUsersResponse,
   LoginData,
   LoginError,
   LoginResponse,
@@ -494,6 +503,9 @@ import type {
   UpdateSettingData,
   UpdateSettingError,
   UpdateSettingResponse,
+  UpdateUserFlagsData,
+  UpdateUserFlagsError,
+  UpdateUserFlagsResponse,
   UpdateVendorData,
   UpdateVendorError,
   UpdateVendorResponse,
@@ -2722,6 +2734,11 @@ export const getProjectByProjectIdQueryKey = (
  *
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
+ *
+ * Carries `permissions`: what the calling user may do in this project. The
+ * project plane is the only place that answer exists -- /rbac/me reports global
+ * grants only -- so without it a UI has no way to gate a project control
+ * except by making the request and handling the refusal.
  */
 export const getProjectByProjectIdOptions = (
   options: Options<GetProjectByProjectIdData>,
@@ -4344,14 +4361,16 @@ export const getSettingOptions = (options: Options<GetSettingData>) =>
   })
 
 /**
- * Update a setting (superuser only)
+ * Update a setting
  *
  * Update a specific setting. Only the value, name, description, and tags can be updated.
  * The key cannot be changed as it's the primary identifier.
  *
  * Settings control platform-wide behaviour — including the data and results bucket
- * URIs and the manifest validation Lambda ARN — so writes require superuser
- * privileges.
+ * URIs and the manifest validation Lambda ARN — so writes require
+ * setting:update. That permission is the whole guard; there is no
+ * CurrentSuperuser dependency on top, which is what lets a platform_admin use
+ * the settings pages their role is for.
  */
 export const updateSettingMutation = (
   options?: Partial<Options<UpdateSettingData>>,
@@ -5273,12 +5292,59 @@ export const searchUsersOptions = (options: Options<SearchUsersData>) =>
     queryKey: searchUsersQueryKey(options),
   })
 
+/**
+ * Set a user's status flags
+ *
+ * Activate, verify, or set the superuser flag. Omitted fields are unchanged.
+ *
+ * This is the route user:manage describes -- the permission has been in the
+ * catalog and in the admin role since RBAC landed, with nothing implementing
+ * it, so it granted nothing.
+ *
+ * is_active and is_verified are both required to authenticate, so clearing
+ * either one is an account lockout; the guardrails in api/rbac/services.py
+ * refuse the two lockouts that cannot be undone through the API, namely the
+ * last usable superuser and the last non-superuser role manager.
+ *
+ * user:manage is the only route guard, rather than that plus CurrentSuperuser,
+ * so the permission means what it says: an account holding it can deactivate a
+ * departed colleague without also being break-glass.
+ *
+ * Setting is_superuser is the exception, and it is checked in the service
+ * rather than here -- docs/RBAC.md asks for user:manage AND superuser on the
+ * break-glass flag, and that rule belongs to the mutation rather than to one
+ * way of reaching it. current_user is the acting user for those guardrails.
+ */
+export const updateUserFlagsMutation = (
+  options?: Partial<Options<UpdateUserFlagsData>>,
+): UseMutationOptions<
+  UpdateUserFlagsResponse,
+  UpdateUserFlagsError,
+  Options<UpdateUserFlagsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    UpdateUserFlagsResponse,
+    UpdateUserFlagsError,
+    Options<UpdateUserFlagsData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await updateUserFlags({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
 export const listPermissionsQueryKey = (
   options?: Options<ListPermissionsData>,
 ) => createQueryKey('listPermissions', options)
 
 /**
- * The permission catalog (superuser only)
+ * The permission catalog
  *
  * Every permission the API recognises, with its risk and scopability.
  *
@@ -5311,7 +5377,7 @@ export const listRolesQueryKey = (options?: Options<ListRolesData>) =>
   createQueryKey('listRoles', options)
 
 /**
- * List roles (superuser only)
+ * List roles
  */
 export const listRolesOptions = (options?: Options<ListRolesData>) =>
   queryOptions<
@@ -5333,7 +5399,7 @@ export const listRolesOptions = (options?: Options<ListRolesData>) =>
   })
 
 /**
- * Create a custom role (superuser only)
+ * Create a custom role
  *
  * Custom roles are how "contributor without delete" and similar variants are
  * served, which is the reason roles are rows rather than code.
@@ -5363,7 +5429,7 @@ export const createRoleMutation = (
 }
 
 /**
- * Delete a custom role (superuser only)
+ * Delete a custom role
  */
 export const deleteRoleMutation = (
   options?: Partial<Options<DeleteRoleData>>,
@@ -5393,7 +5459,7 @@ export const getRoleQueryKey = (options: Options<GetRoleData>) =>
   createQueryKey('getRole', options)
 
 /**
- * Get one role (superuser only)
+ * Get one role
  */
 export const getRoleOptions = (options: Options<GetRoleData>) =>
   queryOptions<
@@ -5415,7 +5481,7 @@ export const getRoleOptions = (options: Options<GetRoleData>) =>
   })
 
 /**
- * Replace a custom role's permissions (superuser only)
+ * Replace a custom role's permissions
  */
 export const updateRolePermissionsMutation = (
   options?: Partial<Options<UpdateRolePermissionsData>>,
@@ -5477,7 +5543,7 @@ export const listUserRolesQueryKey = (options: Options<ListUserRolesData>) =>
   createQueryKey('listUserRoles', options)
 
 /**
- * A user's global roles (superuser only)
+ * A user's global roles
  */
 export const listUserRolesOptions = (options: Options<ListUserRolesData>) =>
   queryOptions<
@@ -5499,7 +5565,7 @@ export const listUserRolesOptions = (options: Options<ListUserRolesData>) =>
   })
 
 /**
- * Grant a global role (superuser only)
+ * Grant a global role
  */
 export const grantUserRoleMutation = (
   options?: Partial<Options<GrantUserRoleData>>,
@@ -5526,7 +5592,7 @@ export const grantUserRoleMutation = (
 }
 
 /**
- * Revoke a global role (superuser only)
+ * Revoke a global role
  */
 export const revokeUserRoleMutation = (
   options?: Partial<Options<RevokeUserRoleData>>,
@@ -5551,3 +5617,69 @@ export const revokeUserRoleMutation = (
   }
   return mutationOptions
 }
+
+export const listUsersQueryKey = (options?: Options<ListUsersData>) =>
+  createQueryKey('listUsers', options)
+
+/**
+ * The user roster
+ *
+ * Every local user account, with status flags and global roles.
+ *
+ * GET /users/search is the wrong endpoint for an administrator: it is the
+ * picker behind "grant a role to somebody", so it can answer from LDAP, it
+ * demands a query string, and it hides deactivated accounts -- which are
+ * exactly the accounts an administrator is looking for.
+ *
+ * `q` is an optional filter here rather than a required query, because the
+ * first thing this page has to do is show who exists.
+ */
+export const listUsersOptions = (options?: Options<ListUsersData>) =>
+  queryOptions<
+    ListUsersResponse,
+    ListUsersError,
+    ListUsersResponse,
+    ReturnType<typeof listUsersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listUsers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listUsersQueryKey(options),
+  })
+
+export const getUserAccessQueryKey = (options: Options<GetUserAccessData>) =>
+  createQueryKey('getUserAccess', options)
+
+/**
+ * One user's effective access
+ *
+ * Both grant planes and the break-glass flag for one user.
+ *
+ * The project memberships are the part that cannot be assembled from anything
+ * else: membership is otherwise only listable per project, so "which projects
+ * is this person on" has no answer without scanning every project.
+ */
+export const getUserAccessOptions = (options: Options<GetUserAccessData>) =>
+  queryOptions<
+    GetUserAccessResponse,
+    GetUserAccessError,
+    GetUserAccessResponse,
+    ReturnType<typeof getUserAccessQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getUserAccess({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getUserAccessQueryKey(options),
+  })

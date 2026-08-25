@@ -1,7 +1,8 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { AdminSidebar } from '@/components/admin-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { currentUserQueryOptions } from '@/hooks/use-current-user'
+import { hasAnyPermission, myAccessQueryOptions } from '@/hooks/use-my-access'
+import { ADMIN_SECTION_PERMISSIONS } from '@/lib/permissions'
 
 export const RouteComponent = () => (
   <SidebarProvider>
@@ -18,9 +19,16 @@ export const RouteComponent = () => (
 
 export const Route = createFileRoute('/_auth/admin')({
   beforeLoad: async ({ context }) => {
-    // Parent _auth loader already cached the user — read from query cache
-    const user = await context.queryClient.ensureQueryData(currentUserQueryOptions())
-    if (!user.is_superuser) {
+    // Permission-based rather than is_superuser-only: the RBAC model has real
+    // administrative roles now, and an `admin` or `auditor` role holder who is
+    // not flagged as a superuser was previously bounced from a panel they are
+    // entitled to. Superuser still passes, implicitly, because it
+    // short-circuits every check on the server too.
+    //
+    // Any one admin-section permission gets you through the door; each section
+    // checks its own, and the sidebar only lists the ones you hold.
+    const access = await context.queryClient.ensureQueryData(myAccessQueryOptions())
+    if (!hasAnyPermission(access, ...ADMIN_SECTION_PERMISSIONS)) {
       throw redirect({
         to: '/access-denied',
       })
