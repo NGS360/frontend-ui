@@ -28,9 +28,28 @@ import { TableProgressBanner } from '@/components/data-table/table-progress-bann
 import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
 import { entityIcons } from '@/lib/entity-icons'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
+import { useProjectAccess } from '@/hooks/use-project-access'
+import { PERMISSIONS } from '@/lib/permissions'
 import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
 
 const RESERVED_SAMPLE_COLUMN_IDS = new Set(['sample_id'])
+
+interface MaybeDropzoneProps {
+  enabled: boolean
+  onDrop: (files: Array<File>) => void
+  subject: string
+  children: React.ReactNode
+}
+
+/** ContainerDropzone when `enabled`, otherwise the children unwrapped. */
+const MaybeDropzone = ({ enabled, onDrop, subject, children }: MaybeDropzoneProps) =>
+  enabled ? (
+    <ContainerDropzone onDrop={onDrop} subject={subject}>
+      {children}
+    </ContainerDropzone>
+  ) : (
+    <>{children}</>
+  )
 
 export const Route = createFileRoute('/_auth/projects/$project_id/')({
   component: RouteComponent,
@@ -45,6 +64,17 @@ function RouteComponent() {
       path: { project_id }
     })
   )
+
+  // Project-scoped, so the answers come from the project rather than from
+  // useMyAccess: a global grant of these applies to every project and a project
+  // grant never reaches /rbac/me, so asking the global check gets it wrong in
+  // both directions. Update Project is deliberately not gated -- PUT
+  // /projects/{project_id} carries no guard yet, so hiding the control would
+  // hide something that works.
+  const { can } = useProjectAccess(project)
+  const canSubmitAction = can(PERMISSIONS.PROJECT_SUBMIT_ACTION)
+  const canIngest = can(PERMISSIONS.PROJECT_INGEST)
+  const canCreateSamples = can(PERMISSIONS.SAMPLE_CREATE)
 
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
@@ -157,14 +187,16 @@ function RouteComponent() {
           e.target.value = ''
         }}
       />
-      <Button
-        variant='outline'
-        disabled={isUploadingSamples}
-        onClick={() => samplesFileInputRef.current?.click()}
-      >
-        <Upload />
-        {isUploadingSamples ? 'Uploading…' : 'Upload metadata'}
-      </Button>
+      {canCreateSamples && (
+        <Button
+          variant='outline'
+          disabled={isUploadingSamples}
+          onClick={() => samplesFileInputRef.current?.click()}
+        >
+          <Upload />
+          {isUploadingSamples ? 'Uploading…' : 'Upload metadata'}
+        </Button>
+      )}
       <Button
         variant='outline'
         disabled={isFetchingMore}
@@ -409,43 +441,47 @@ function RouteComponent() {
                   rootPath={`${project.results_folder_uri}`}
                 />
 
-                {/* Vendor Data */}
-                <ValidateManifestForm
-                  idPrefix={`project-${project.project_id}-validate-manifest`}
-                  projectId={project.project_id}
-                  trigger={(
-                    <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
-                      <CardHeader>
-                        <CardTitle className='flex items-center gap-2 text-lg'>
-                          <Building2 className='size-5 text-primary' />
-                          Vendor Data
-                        </CardTitle>
-                        <CardDescription className='text-sm'>
-                          Validate vendor manifest files and ingest vendor data into this project
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  )}
-                />
+                {/* Vendor Data. Ends in POST /projects/{id}/ingest. */}
+                {canIngest && (
+                  <ValidateManifestForm
+                    idPrefix={`project-${project.project_id}-validate-manifest`}
+                    projectId={project.project_id}
+                    trigger={(
+                      <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
+                        <CardHeader>
+                          <CardTitle className='flex items-center gap-2 text-lg'>
+                            <Building2 className='size-5 text-primary' />
+                            Vendor Data
+                          </CardTitle>
+                          <CardDescription className='text-sm'>
+                            Validate vendor manifest files and ingest vendor data into this project
+                          </CardDescription>
+                        </CardHeader>
+                      </Card>
+                    )}
+                  />
+                )}
 
-                {/* Execute Action */}
-                <ExecuteActionForm
-                  idPrefix={`project-${project_id}-execute-action`}
-                  projectId={project_id}
-                  trigger={(
-                    <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
-                      <CardHeader>
-                        <CardTitle className='flex items-center gap-2 text-lg'>
-                          <Cog className='size-5 text-primary' />
-                          Execute Action
-                        </CardTitle>
-                        <CardDescription className='text-sm'>
-                          Execute pipelines and actions on this project
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  )}
-                />
+                {/* Execute Action. POST /projects/{id}/actions/submit. */}
+                {canSubmitAction && (
+                  <ExecuteActionForm
+                    idPrefix={`project-${project_id}-execute-action`}
+                    projectId={project_id}
+                    trigger={(
+                      <Card className='cursor-pointer transition-colors hover:bg-accent/50'>
+                        <CardHeader>
+                          <CardTitle className='flex items-center gap-2 text-lg'>
+                            <Cog className='size-5 text-primary' />
+                            Execute Action
+                          </CardTitle>
+                          <CardDescription className='text-sm'>
+                            Execute pipelines and actions on this project
+                          </CardDescription>
+                        </CardHeader>
+                      </Card>
+                    )}
+                  />
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -467,7 +503,12 @@ function RouteComponent() {
           </AccordionTrigger>
           <AccordionContent className='pt-2'>
             {allSamples.length > 0 ? (
-              <ContainerDropzone
+              // The dropzone wrapper is dropped rather than disabled for a
+              // caller who cannot register samples: it exists only to accept a
+              // file, and offering the overlay to someone the server will
+              // refuse is the misleading half of the control.
+              <MaybeDropzone
+                enabled={canCreateSamples}
                 onDrop={onSamplesDrop}
                 subject={isUploadingSamples ? 'sample metadata (upload in progress)' : 'sample metadata'}
               >
@@ -485,18 +526,24 @@ function RouteComponent() {
                   rowDecoration={samplesRowDecoration}
                   enableRowSelectionColumn
                 />
-              </ContainerDropzone>
+              </MaybeDropzone>
             ) : (
-                <FileUpload
-                  onDrop={onSamplesDrop}
-                  displayComponent={(
-                    <span className="text-primary hover:underline mx-2">
-                      {isUploadingSamples
-                        ? 'Uploading sample metadata…'
-                        : 'No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file'}
-                    </span>
-                  )}
-                />
+                canCreateSamples ? (
+                  <FileUpload
+                    onDrop={onSamplesDrop}
+                    displayComponent={(
+                      <span className="text-primary hover:underline mx-2">
+                        {isUploadingSamples
+                          ? 'Uploading sample metadata…'
+                          : 'No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file'}
+                      </span>
+                    )}
+                  />
+                ) : (
+                  <p className='mx-2 text-sm text-muted-foreground'>
+                    No sample metadata available.
+                  </p>
+                )
             )}
 
           </AccordionContent>

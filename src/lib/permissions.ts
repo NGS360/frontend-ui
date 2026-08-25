@@ -10,14 +10,14 @@
  * deploy.sh ships the SPA and the API in one artifact, so a stale UI must never
  * be the thing standing between a caller and an action.
  *
- * Project-scoped permissions are deliberately absent. GET /rbac/me carries the
- * global plane only -- with a five-figure project count the payload would be
- * unbounded -- so `project:manage_members` cannot be answered here for the
- * project that matters. A global grant of it would say yes for every project
- * and a project grant would not appear at all, which makes it worse than no
- * check: the project owner it exists for is exactly who it would hide the
- * control from. Those surfaces let the request decide instead, and render the
- * 403 as an explanation. See components/project-members-card.tsx.
+ * Project-scoped permissions are answered by the project, not by GET /rbac/me.
+ * That endpoint carries the global plane only -- with a five-figure project
+ * count the payload would be unbounded -- so the project detail response
+ * carries a `permissions` list for the project in hand instead. Check those
+ * with useProjectAccess, never with useMyAccess: a global grant of
+ * `project:manage_members` would say yes for every project, and a project
+ * grant would not appear on /rbac/me at all, so asking the wrong one hides
+ * the control from exactly the project owner it exists for.
  */
 
 export const PERMISSIONS = {
@@ -33,6 +33,17 @@ export const PERMISSIONS = {
   SETTING_UPDATE: 'setting:update',
   /** View all users' jobs rather than only your own. */
   JOB_READ_ALL: 'job:read_all',
+
+  // Project-scoped. Held per project, so these are only meaningful against a
+  // project's own `permissions` list -- see useProjectAccess.
+  /** Add, change and remove project members. */
+  PROJECT_MANAGE_MEMBERS: 'project:manage_members',
+  /** Submit a pipeline job for a project. Spends compute. */
+  PROJECT_SUBMIT_ACTION: 'project:submit_action',
+  /** Ingest vendor data into a project. Spends compute, writes S3. */
+  PROJECT_INGEST: 'project:ingest',
+  /** Register samples on a project, including by manifest upload. */
+  SAMPLE_CREATE: 'sample:create',
 } as const
 
 /**
@@ -66,8 +77,7 @@ export type Risk = (typeof RISK_ORDER)[number]
  * Badge styling per risk level.
  *
  * `critical` is the destructive variant because those permissions are the ones
- * the API refuses to let through even in dry-run mode: they rewrite platform
- * settings, or they are the grant plane itself.
+ * that rewrite platform settings, or that are the grant plane itself.
  */
 export const RISK_BADGE_VARIANT: Record<string, 'secondary' | 'outline' | 'default' | 'destructive'> = {
   low: 'secondary',
