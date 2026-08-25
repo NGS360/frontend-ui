@@ -37,6 +37,15 @@ export const AdminSidebar = () => {
   // Access management is its own group rather than more entries under
   // Navigation: it is the one part of this panel that changes what other people
   // can do, which is worth separating visually from configuration.
+  //
+  // Two of these gates are anticipatory. vendor:create and job:read_all guard
+  // no route yet -- every /vendors and /jobs endpoint is still reachable
+  // anonymously, pending the authentication closure those routes are queued
+  // for -- so today they hide links to pages that would in fact work. That is
+  // deliberate: nobody loses anything, because this panel was superuser-only
+  // before permission gating, and the gates are already right for when those
+  // routes close. Worth re-checking the mapping at that point, since it is an
+  // assumption about endpoints rather than something the API confirms.
   const groups: Array<MenuGroup> = [
     {
       label: "Navigation",
