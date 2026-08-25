@@ -2820,14 +2820,16 @@ export const getSetting = <ThrowOnError extends boolean = false>(
   >({ url: '/api/v1/settings/{key}', ...options })
 
 /**
- * Update a setting (superuser only)
+ * Update a setting
  *
  * Update a specific setting. Only the value, name, description, and tags can be updated.
  * The key cannot be changed as it's the primary identifier.
  *
  * Settings control platform-wide behaviour — including the data and results bucket
- * URIs and the manifest validation Lambda ARN — so writes require superuser
- * privileges.
+ * URIs and the manifest validation Lambda ARN — so writes require
+ * setting:update. That permission is the whole guard; there is no
+ * CurrentSuperuser dependency on top, which is what lets a platform_admin use
+ * the settings pages their role is for.
  */
 export const updateSetting = <ThrowOnError extends boolean = false>(
   options: Options<UpdateSettingData, ThrowOnError>,
@@ -3383,7 +3385,7 @@ export const searchUsers = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Set a user's status flags (superuser only)
+ * Set a user's status flags
  *
  * Activate, verify, or set the superuser flag. Omitted fields are unchanged.
  *
@@ -3396,10 +3398,14 @@ export const searchUsers = <ThrowOnError extends boolean = false>(
  * refuse the two lockouts that cannot be undone through the API, namely the
  * last usable superuser and the last non-superuser role manager.
  *
- * CurrentSuperuser is required in addition to user:manage, which is what
- * docs/RBAC.md asks for on the break-glass flag, and is also what actually
- * enforces this route while RBAC_MODE is dry_run -- user:manage is `high` risk
- * rather than `critical`, so it is not in the always-enforced set.
+ * user:manage is the only route guard, rather than that plus CurrentSuperuser,
+ * so the permission means what it says: an account holding it can deactivate a
+ * departed colleague without also being break-glass.
+ *
+ * Setting is_superuser is the exception, and it is checked in the service
+ * rather than here -- docs/RBAC.md asks for user:manage AND superuser on the
+ * break-glass flag, and that rule belongs to the mutation rather than to one
+ * way of reaching it. current_user is the acting user for those guardrails.
  */
 export const updateUserFlags = <ThrowOnError extends boolean = false>(
   options: Options<UpdateUserFlagsData, ThrowOnError>,
@@ -3423,7 +3429,7 @@ export const updateUserFlags = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * The permission catalog (superuser only)
+ * The permission catalog
  *
  * Every permission the API recognises, with its risk and scopability.
  *
@@ -3445,7 +3451,7 @@ export const listPermissions = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * List roles (superuser only)
+ * List roles
  */
 export const listRoles = <ThrowOnError extends boolean = false>(
   options?: Options<ListRolesData, ThrowOnError>,
@@ -3457,7 +3463,7 @@ export const listRoles = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Create a custom role (superuser only)
+ * Create a custom role
  *
  * Custom roles are how "contributor without delete" and similar variants are
  * served, which is the reason roles are rows rather than code.
@@ -3480,7 +3486,7 @@ export const createRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Delete a custom role (superuser only)
+ * Delete a custom role
  */
 export const deleteRole = <ThrowOnError extends boolean = false>(
   options: Options<DeleteRoleData, ThrowOnError>,
@@ -3496,7 +3502,7 @@ export const deleteRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Get one role (superuser only)
+ * Get one role
  */
 export const getRole = <ThrowOnError extends boolean = false>(
   options: Options<GetRoleData, ThrowOnError>,
@@ -3510,7 +3516,7 @@ export const getRole = <ThrowOnError extends boolean = false>(
   )
 
 /**
- * Replace a custom role's permissions (superuser only)
+ * Replace a custom role's permissions
  */
 export const updateRolePermissions = <ThrowOnError extends boolean = false>(
   options: Options<UpdateRolePermissionsData, ThrowOnError>,
@@ -3553,7 +3559,7 @@ export const getMyAccess = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * A user's global roles (superuser only)
+ * A user's global roles
  */
 export const listUserRoles = <ThrowOnError extends boolean = false>(
   options: Options<ListUserRolesData, ThrowOnError>,
@@ -3569,7 +3575,7 @@ export const listUserRoles = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Grant a global role (superuser only)
+ * Grant a global role
  */
 export const grantUserRole = <ThrowOnError extends boolean = false>(
   options: Options<GrantUserRoleData, ThrowOnError>,
@@ -3589,7 +3595,7 @@ export const grantUserRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Revoke a global role (superuser only)
+ * Revoke a global role
  */
 export const revokeUserRole = <ThrowOnError extends boolean = false>(
   options: Options<RevokeUserRoleData, ThrowOnError>,
@@ -3605,7 +3611,7 @@ export const revokeUserRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * The user roster (superuser only)
+ * The user roster
  *
  * Every local user account, with status flags and global roles.
  *
@@ -3631,7 +3637,7 @@ export const listUsers = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * One user's effective access (superuser only)
+ * One user's effective access
  *
  * Both grant planes and the break-glass flag for one user.
  *

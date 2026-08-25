@@ -4356,14 +4356,16 @@ export const getSettingOptions = (options: Options<GetSettingData>) =>
   })
 
 /**
- * Update a setting (superuser only)
+ * Update a setting
  *
  * Update a specific setting. Only the value, name, description, and tags can be updated.
  * The key cannot be changed as it's the primary identifier.
  *
  * Settings control platform-wide behaviour — including the data and results bucket
- * URIs and the manifest validation Lambda ARN — so writes require superuser
- * privileges.
+ * URIs and the manifest validation Lambda ARN — so writes require
+ * setting:update. That permission is the whole guard; there is no
+ * CurrentSuperuser dependency on top, which is what lets a platform_admin use
+ * the settings pages their role is for.
  */
 export const updateSettingMutation = (
   options?: Partial<Options<UpdateSettingData>>,
@@ -5286,7 +5288,7 @@ export const searchUsersOptions = (options: Options<SearchUsersData>) =>
   })
 
 /**
- * Set a user's status flags (superuser only)
+ * Set a user's status flags
  *
  * Activate, verify, or set the superuser flag. Omitted fields are unchanged.
  *
@@ -5299,10 +5301,14 @@ export const searchUsersOptions = (options: Options<SearchUsersData>) =>
  * refuse the two lockouts that cannot be undone through the API, namely the
  * last usable superuser and the last non-superuser role manager.
  *
- * CurrentSuperuser is required in addition to user:manage, which is what
- * docs/RBAC.md asks for on the break-glass flag, and is also what actually
- * enforces this route while RBAC_MODE is dry_run -- user:manage is `high` risk
- * rather than `critical`, so it is not in the always-enforced set.
+ * user:manage is the only route guard, rather than that plus CurrentSuperuser,
+ * so the permission means what it says: an account holding it can deactivate a
+ * departed colleague without also being break-glass.
+ *
+ * Setting is_superuser is the exception, and it is checked in the service
+ * rather than here -- docs/RBAC.md asks for user:manage AND superuser on the
+ * break-glass flag, and that rule belongs to the mutation rather than to one
+ * way of reaching it. current_user is the acting user for those guardrails.
  */
 export const updateUserFlagsMutation = (
   options?: Partial<Options<UpdateUserFlagsData>>,
@@ -5333,7 +5339,7 @@ export const listPermissionsQueryKey = (
 ) => createQueryKey('listPermissions', options)
 
 /**
- * The permission catalog (superuser only)
+ * The permission catalog
  *
  * Every permission the API recognises, with its risk and scopability.
  *
@@ -5366,7 +5372,7 @@ export const listRolesQueryKey = (options?: Options<ListRolesData>) =>
   createQueryKey('listRoles', options)
 
 /**
- * List roles (superuser only)
+ * List roles
  */
 export const listRolesOptions = (options?: Options<ListRolesData>) =>
   queryOptions<
@@ -5388,7 +5394,7 @@ export const listRolesOptions = (options?: Options<ListRolesData>) =>
   })
 
 /**
- * Create a custom role (superuser only)
+ * Create a custom role
  *
  * Custom roles are how "contributor without delete" and similar variants are
  * served, which is the reason roles are rows rather than code.
@@ -5418,7 +5424,7 @@ export const createRoleMutation = (
 }
 
 /**
- * Delete a custom role (superuser only)
+ * Delete a custom role
  */
 export const deleteRoleMutation = (
   options?: Partial<Options<DeleteRoleData>>,
@@ -5448,7 +5454,7 @@ export const getRoleQueryKey = (options: Options<GetRoleData>) =>
   createQueryKey('getRole', options)
 
 /**
- * Get one role (superuser only)
+ * Get one role
  */
 export const getRoleOptions = (options: Options<GetRoleData>) =>
   queryOptions<
@@ -5470,7 +5476,7 @@ export const getRoleOptions = (options: Options<GetRoleData>) =>
   })
 
 /**
- * Replace a custom role's permissions (superuser only)
+ * Replace a custom role's permissions
  */
 export const updateRolePermissionsMutation = (
   options?: Partial<Options<UpdateRolePermissionsData>>,
@@ -5532,7 +5538,7 @@ export const listUserRolesQueryKey = (options: Options<ListUserRolesData>) =>
   createQueryKey('listUserRoles', options)
 
 /**
- * A user's global roles (superuser only)
+ * A user's global roles
  */
 export const listUserRolesOptions = (options: Options<ListUserRolesData>) =>
   queryOptions<
@@ -5554,7 +5560,7 @@ export const listUserRolesOptions = (options: Options<ListUserRolesData>) =>
   })
 
 /**
- * Grant a global role (superuser only)
+ * Grant a global role
  */
 export const grantUserRoleMutation = (
   options?: Partial<Options<GrantUserRoleData>>,
@@ -5581,7 +5587,7 @@ export const grantUserRoleMutation = (
 }
 
 /**
- * Revoke a global role (superuser only)
+ * Revoke a global role
  */
 export const revokeUserRoleMutation = (
   options?: Partial<Options<RevokeUserRoleData>>,
@@ -5611,7 +5617,7 @@ export const listUsersQueryKey = (options?: Options<ListUsersData>) =>
   createQueryKey('listUsers', options)
 
 /**
- * The user roster (superuser only)
+ * The user roster
  *
  * Every local user account, with status flags and global roles.
  *
@@ -5646,7 +5652,7 @@ export const getUserAccessQueryKey = (options: Options<GetUserAccessData>) =>
   createQueryKey('getUserAccess', options)
 
 /**
- * One user's effective access (superuser only)
+ * One user's effective access
  *
  * Both grant planes and the break-glass flag for one user.
  *
