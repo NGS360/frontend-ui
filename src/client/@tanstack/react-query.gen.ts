@@ -2734,6 +2734,11 @@ export const getProjectByProjectIdQueryKey = (
  *
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
+ *
+ * Carries `permissions`: what the calling user may do in this project. The
+ * project plane is the only place that answer exists -- /rbac/me reports global
+ * grants only -- so without it a UI has no way to gate a project control
+ * except by making the request and handling the refusal.
  */
 export const getProjectByProjectIdOptions = (
   options: Options<GetProjectByProjectIdData>,

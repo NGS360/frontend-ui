@@ -1985,6 +1985,10 @@ export type ProjectPublic = {
    * Sequencing Runs
    */
   sequencing_runs?: Array<SequencingRunPublic> | null
+  /**
+   * Permissions
+   */
+  permissions?: Array<string> | null
 }
 
 /**

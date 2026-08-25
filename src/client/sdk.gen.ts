@@ -1792,6 +1792,11 @@ export const reindexProjects = <ThrowOnError extends boolean = false>(
  *
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
+ *
+ * Carries `permissions`: what the calling user may do in this project. The
+ * project plane is the only place that answer exists -- /rbac/me reports global
+ * grants only -- so without it a UI has no way to gate a project control
+ * except by making the request and handling the refusal.
  */
 export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
   options: Options<GetProjectByProjectIdData, ThrowOnError>,
@@ -1804,7 +1809,11 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
     GetProjectByProjectIdResponses,
     GetProjectByProjectIdErrors,
     ThrowOnError
-  >({ url: '/api/v1/projects/{project_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects/{project_id}',
+    ...options,
+  })
 
 /**
  * Patch Project
