@@ -58,7 +58,7 @@ function RouteComponent() {
               <CardDescription>Your NGS360 account details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid @3xl:grid-cols-2 @5xl:grid-cols-3 gap-4">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Full Name</p>
                   <p className="text-sm">{user?.full_name || 'Not set'}</p>

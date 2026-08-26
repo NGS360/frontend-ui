@@ -80,9 +80,14 @@ import type {
   CreateWorkflowVersionData,
   CreateWorkflowVersionErrors,
   CreateWorkflowVersionResponses,
+  DeleteAllChatThreadsData,
+  DeleteAllChatThreadsResponses,
   DeleteApiKeyData,
   DeleteApiKeyErrors,
   DeleteApiKeyResponses,
+  DeleteChatThreadData,
+  DeleteChatThreadErrors,
+  DeleteChatThreadResponses,
   DeleteFileData,
   DeleteFileErrors,
   DeleteFileResponses,
@@ -118,6 +123,9 @@ import type {
   GetAllConfigsResponses,
   GetAvailableOauthProvidersData,
   GetAvailableOauthProvidersResponses,
+  GetChatThreadMessagesData,
+  GetChatThreadMessagesErrors,
+  GetChatThreadMessagesResponses,
   GetCurrentUserInfoData,
   GetCurrentUserInfoResponses,
   GetDemultiplexWorkflowConfigData,
@@ -242,6 +250,9 @@ import type {
   ListApiKeysData,
   ListApiKeysErrors,
   ListApiKeysResponses,
+  ListChatThreadsData,
+  ListChatThreadsErrors,
+  ListChatThreadsResponses,
   ListDemultiplexWorkflowsData,
   ListDemultiplexWorkflowsResponses,
   ListFilesData,
@@ -1146,7 +1157,10 @@ export const chat = <ThrowOnError extends boolean = false>(
 /**
  * Chat Stream
  *
- * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ * Streaming chat for the chat UI.
+ *
+ * The frames are this API's own; the client's chat transport maps them onto
+ * the AI SDK protocol that useChat consumes.
  */
 export const chatStream = <ThrowOnError extends boolean = false>(
   options: Options<ChatStreamData, ThrowOnError>,
@@ -1166,9 +1180,99 @@ export const chatStream = <ThrowOnError extends boolean = false>(
   })
 
 /**
+ * Delete All Chat Threads
+ *
+ * Delete all of the caller's chat threads.
+ */
+export const deleteAllChatThreads = <ThrowOnError extends boolean = false>(
+  options?: Options<DeleteAllChatThreadsData, ThrowOnError>,
+): RequestResult<DeleteAllChatThreadsResponses, unknown, ThrowOnError> =>
+  (options?.client ?? client).delete<
+    DeleteAllChatThreadsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/chat/threads',
+    ...options,
+  })
+
+/**
+ * List Chat Threads
+ *
+ * List the caller's chat threads, most recently active first.
+ */
+export const listChatThreads = <ThrowOnError extends boolean = false>(
+  options?: Options<ListChatThreadsData, ThrowOnError>,
+): RequestResult<
+  ListChatThreadsResponses,
+  ListChatThreadsErrors,
+  ThrowOnError
+> =>
+  (options?.client ?? client).get<
+    ListChatThreadsResponses,
+    ListChatThreadsErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/chat/threads',
+    ...options,
+  })
+
+/**
+ * Get Chat Thread Messages
+ *
+ * A thread's transcript as the user saw it, for reloading it into the chat.
+ *
+ * The thread itself carries the agent's full working state; this is the subset
+ * that was on screen. See GET /chat/threads/{thread_id} for everything.
+ */
+export const getChatThreadMessages = <ThrowOnError extends boolean = false>(
+  options: Options<GetChatThreadMessagesData, ThrowOnError>,
+): RequestResult<
+  GetChatThreadMessagesResponses,
+  GetChatThreadMessagesErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    GetChatThreadMessagesResponses,
+    GetChatThreadMessagesErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/chat/threads/{thread_id}/messages',
+    ...options,
+  })
+
+/**
+ * Delete Chat Thread
+ *
+ * Delete one thread, including the agent's memory of it.
+ */
+export const deleteChatThread = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteChatThreadData, ThrowOnError>,
+): RequestResult<
+  DeleteChatThreadResponses,
+  DeleteChatThreadErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).delete<
+    DeleteChatThreadResponses,
+    DeleteChatThreadErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/chat/threads/{thread_id}',
+    ...options,
+  })
+
+/**
  * Get Thread
  *
- * Fetch a LangGraph thread's state for transcript reload / reconnect.
+ * Fetch a thread's full checkpointed state, tool calls and executed SQL included.
+ *
+ * Raw state includes tool output and executed SQL, i.e. more than the owner ever
+ * saw in the UI — OwnedThreadDep is what keeps it from being served to anyone else.
  */
 export const getThread = <ThrowOnError extends boolean = false>(
   options: Options<GetThreadData, ThrowOnError>,
@@ -1540,6 +1644,7 @@ export const updateJob = <ThrowOnError extends boolean = false>(
     UpdateJobErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/jobs/{job_id}',
     ...options,
     headers: {
@@ -1708,7 +1813,11 @@ export const getProjects = <ThrowOnError extends boolean = false>(
     GetProjectsResponses,
     GetProjectsErrors,
     ThrowOnError
-  >({ url: '/api/v1/projects', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects',
+    ...options,
+  })
 
 /**
  * Create Project
@@ -1748,7 +1857,11 @@ export const getProjectAttributes = <ThrowOnError extends boolean = false>(
     GetProjectAttributesResponses,
     unknown,
     ThrowOnError
-  >({ url: '/api/v1/projects/attributes', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects/attributes',
+    ...options,
+  })
 
 /**
  * Search Projects
@@ -2701,7 +2814,11 @@ export const searchSamplesGet = <ThrowOnError extends boolean = false>(
     SearchSamplesGetResponses,
     SearchSamplesGetErrors,
     ThrowOnError
-  >({ url: '/api/v1/samples/search', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/samples/search',
+    ...options,
+  })
 
 /**
  * Search Samples Post

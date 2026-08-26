@@ -11,7 +11,7 @@ type TabNavProps = {
 export const TabNav: React.FC<TabNavProps> = ({ children, className }) => (
   <nav 
     className={cn(
-      "w-full flex flex-col gap-2 md:flex-row md:gap-0 md:border-b-2 md:border-muted",
+      "w-full flex flex-col gap-2 @3xl:flex-row @3xl:gap-0 @3xl:border-b-2 @3xl:border-muted",
       className
       )}
   >
@@ -48,14 +48,14 @@ export const TabLink: React.FC<TabLinkProps> = ({
         data-[active=true]:border-primary
         data-[active=true]:text-primary
 
-        md:pb-1
-        md:px-2
-        md:rounded-none
-        md:border-t-0
-        md:border-x-0
-        md:border-b-2
-        md:border-transparent
-        md:data-[active=true]:border-primary
+        @3xl:pb-1
+        @3xl:px-2
+        @3xl:rounded-none
+        @3xl:border-t-0
+        @3xl:border-x-0
+        @3xl:border-b-2
+        @3xl:border-transparent
+        @3xl:data-[active=true]:border-primary
       `}
     >
       <Button

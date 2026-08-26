@@ -103,7 +103,7 @@ export function ErrorState({
           <h1
             className={cn(
               'font-bold tracking-tight',
-              fullscreen ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl',
+              fullscreen ? 'text-4xl @3xl:text-5xl' : 'text-2xl @3xl:text-3xl',
             )}
           >
             {info.title}
@@ -119,9 +119,9 @@ export function ErrorState({
           </p>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 max-w-sm mx-auto">
+        <div className="flex flex-col @2xl:flex-row gap-3 justify-center pt-2 max-w-sm mx-auto">
           {onRetry && (
-            <Button onClick={onRetry} className="sm:flex-1">
+            <Button onClick={onRetry} className="@2xl:flex-1">
               <RotateCcw className="h-4 w-4" />
               Try Again
             </Button>
@@ -129,7 +129,7 @@ export function ErrorState({
           <Button
             asChild
             variant={onRetry ? 'outline' : 'default'}
-            className="sm:flex-1"
+            className="@2xl:flex-1"
           >
             <Link to="/">
               <Home className="h-4 w-4" />

@@ -33,7 +33,9 @@ import {
   createWorkflow,
   createWorkflowDeployment,
   createWorkflowVersion,
+  deleteAllChatThreads,
   deleteApiKey,
+  deleteChatThread,
   deleteFile,
   deleteQcrecord,
   deleteRole,
@@ -47,6 +49,7 @@ import {
   getActionTypes,
   getAllConfigs,
   getAvailableOauthProviders,
+  getChatThreadMessages,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
   getDownloadUrl,
@@ -90,6 +93,7 @@ import {
   ingestVendorData,
   linkOauthProvider,
   listApiKeys,
+  listChatThreads,
   listDemultiplexWorkflows,
   listFiles,
   listPermissions,
@@ -176,6 +180,7 @@ import type {
   ChatError,
   ChatStreamData,
   ChatStreamError,
+  ChatStreamResponse,
   ClearSamplesForRunData,
   ClearSamplesForRunError,
   ClearSamplesForRunResponse,
@@ -212,9 +217,14 @@ import type {
   CreateWorkflowVersionData,
   CreateWorkflowVersionError,
   CreateWorkflowVersionResponse,
+  DeleteAllChatThreadsData,
+  DeleteAllChatThreadsResponse,
   DeleteApiKeyData,
   DeleteApiKeyError,
   DeleteApiKeyResponse,
+  DeleteChatThreadData,
+  DeleteChatThreadError,
+  DeleteChatThreadResponse,
   DeleteFileData,
   DeleteFileError,
   DeleteFileResponse,
@@ -249,6 +259,9 @@ import type {
   GetAllConfigsResponse,
   GetAvailableOauthProvidersData,
   GetAvailableOauthProvidersResponse,
+  GetChatThreadMessagesData,
+  GetChatThreadMessagesError,
+  GetChatThreadMessagesResponse,
   GetCurrentUserInfoData,
   GetCurrentUserInfoResponse,
   GetDemultiplexWorkflowConfigData,
@@ -371,6 +384,9 @@ import type {
   ListApiKeysData,
   ListApiKeysError,
   ListApiKeysResponse,
+  ListChatThreadsData,
+  ListChatThreadsError,
+  ListChatThreadsResponse,
   ListDemultiplexWorkflowsData,
   ListDemultiplexWorkflowsResponse,
   ListFilesData,
@@ -1639,18 +1655,146 @@ export const chatMutation = (
 /**
  * Chat Stream
  *
- * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ * Streaming chat for the chat UI.
+ *
+ * The frames are this API's own; the client's chat transport maps them onto
+ * the AI SDK protocol that useChat consumes.
  */
 export const chatStreamMutation = (
   options?: Partial<Options<ChatStreamData>>,
-): UseMutationOptions<unknown, ChatStreamError, Options<ChatStreamData>> => {
+): UseMutationOptions<
+  ChatStreamResponse,
+  ChatStreamError,
+  Options<ChatStreamData>
+> => {
   const mutationOptions: UseMutationOptions<
-    unknown,
+    ChatStreamResponse,
     ChatStreamError,
     Options<ChatStreamData>
   > = {
     mutationFn: async (fnOptions) => {
       const { data } = await chatStream({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete All Chat Threads
+ *
+ * Delete all of the caller's chat threads.
+ */
+export const deleteAllChatThreadsMutation = (
+  options?: Partial<Options<DeleteAllChatThreadsData>>,
+): UseMutationOptions<
+  DeleteAllChatThreadsResponse,
+  DefaultError,
+  Options<DeleteAllChatThreadsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAllChatThreadsResponse,
+    DefaultError,
+    Options<DeleteAllChatThreadsData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await deleteAllChatThreads({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const listChatThreadsQueryKey = (
+  options?: Options<ListChatThreadsData>,
+) => createQueryKey('listChatThreads', options)
+
+/**
+ * List Chat Threads
+ *
+ * List the caller's chat threads, most recently active first.
+ */
+export const listChatThreadsOptions = (
+  options?: Options<ListChatThreadsData>,
+) =>
+  queryOptions<
+    ListChatThreadsResponse,
+    ListChatThreadsError,
+    ListChatThreadsResponse,
+    ReturnType<typeof listChatThreadsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listChatThreads({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listChatThreadsQueryKey(options),
+  })
+
+export const getChatThreadMessagesQueryKey = (
+  options: Options<GetChatThreadMessagesData>,
+) => createQueryKey('getChatThreadMessages', options)
+
+/**
+ * Get Chat Thread Messages
+ *
+ * A thread's transcript as the user saw it, for reloading it into the chat.
+ *
+ * The thread itself carries the agent's full working state; this is the subset
+ * that was on screen. See GET /chat/threads/{thread_id} for everything.
+ */
+export const getChatThreadMessagesOptions = (
+  options: Options<GetChatThreadMessagesData>,
+) =>
+  queryOptions<
+    GetChatThreadMessagesResponse,
+    GetChatThreadMessagesError,
+    GetChatThreadMessagesResponse,
+    ReturnType<typeof getChatThreadMessagesQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getChatThreadMessages({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getChatThreadMessagesQueryKey(options),
+  })
+
+/**
+ * Delete Chat Thread
+ *
+ * Delete one thread, including the agent's memory of it.
+ */
+export const deleteChatThreadMutation = (
+  options?: Partial<Options<DeleteChatThreadData>>,
+): UseMutationOptions<
+  DeleteChatThreadResponse,
+  DeleteChatThreadError,
+  Options<DeleteChatThreadData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteChatThreadResponse,
+    DeleteChatThreadError,
+    Options<DeleteChatThreadData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await deleteChatThread({
         ...options,
         ...fnOptions,
         throwOnError: true,
@@ -1667,7 +1811,10 @@ export const getThreadQueryKey = (options: Options<GetThreadData>) =>
 /**
  * Get Thread
  *
- * Fetch a LangGraph thread's state for transcript reload / reconnect.
+ * Fetch a thread's full checkpointed state, tool calls and executed SQL included.
+ *
+ * Raw state includes tool output and executed SQL, i.e. more than the owner ever
+ * saw in the UI — OwnedThreadDep is what keeps it from being served to anyone else.
  */
 export const getThreadOptions = (options: Options<GetThreadData>) =>
   queryOptions<

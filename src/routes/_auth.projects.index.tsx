@@ -3,7 +3,10 @@ import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import z from 'zod';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
-import type { Attribute, ProjectPublic } from '@/client';
+import type {
+  Attribute,
+  ProjectPublic,
+} from '@/client';
 import { searchProjectsOptions } from '@/client/@tanstack/react-query.gen'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
@@ -119,12 +122,6 @@ function RouteComponent() {
               <Link
                 to='/projects/$project_id'
                 params={{ project_id: project_id }}
-                search={{ 
-                  page: 1,
-                  per_page: 5,
-                  sort_by: undefined, 
-                  sort_order: undefined 
-                }}
               >
                 {highlightMatch(project_id, debouncedInput)}
               </Link>
