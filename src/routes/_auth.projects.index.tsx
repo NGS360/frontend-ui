@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import z from 'zod';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import type {
-  ApiProjectModelsAttribute as Attribute,
+  Attribute,
   ProjectPublic,
 } from '@/client';
 import { searchProjectsOptions } from '@/client/@tanstack/react-query.gen'

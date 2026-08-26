@@ -5,10 +5,11 @@ on:
     branches:
       - main
       - develop
+  # No branches: filter. With one, a pull request targeting anything other than
+  # main or develop gets no CI at all -- which is how a 30-file diff carrying a
+  # generator major-version bump and a Node image change (#89, based on a feature
+  # branch) reached main having been checked by nothing.
   pull_request:
-    branches:
-      - main
-      - develop
   workflow_dispatch:
 
 jobs:
@@ -31,6 +32,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # Ahead of the build: a failing unit test should be reported as a failing
+      # test, not as whatever the build happens to do next.
+      - name: Run tests
+        run: npm test
 
       - name: Build application
         run: npm run build

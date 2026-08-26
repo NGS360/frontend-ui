@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import type { FC, ReactNode } from 'react'
 import type {
-  ApiProjectModelsAttribute,
+  Attribute,
   ProjectPublic,
   SamplePublic,
   SequencingRunPublic,
@@ -19,9 +19,6 @@ import { highlightMatch } from '@/lib/utils'
 import { ErrorBanner } from '@/components/error-banner'
 import { entityMeta } from '@/lib/entity-icons'
 
-// The API declares an Attribute per module (project/samples/workflow) and they
-// are structurally identical; these views span several entity types.
-type Attribute = ApiProjectModelsAttribute
 
 
 // Search item component

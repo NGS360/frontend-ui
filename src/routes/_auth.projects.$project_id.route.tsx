@@ -35,11 +35,13 @@ function RouteComponent() {
     })
   )
 
-  // These timestamps are nullable, and an unset one arrives as the epoch —
-  // neither is worth showing.
-  const isEpoch = (dateStr: string) => dateStr.startsWith('1970-01-01')
-  const formatDate = (dateStr: string | null | undefined) =>
-    dateStr && !isEpoch(dateStr)
+  // Two shapes mean "no usable date" and both must be treated the same. The API
+  // sends null when MySQL handed it a zero-date it could not parse (see
+  // ProjectPublic._nullify_invalid_datetime), and 1970-01-01 when a row carries
+  // the epoch as a placeholder. Format only what is real, and let the absence of
+  // a formatted string drive the rendering.
+  const formatDate = (dateStr: string | null) =>
+    dateStr && !dateStr.startsWith('1970-01-01')
       ? new Date(dateStr).toLocaleDateString('en-US', {
           month: 'short', day: 'numeric', year: 'numeric'
         })

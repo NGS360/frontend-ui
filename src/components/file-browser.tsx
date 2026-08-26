@@ -9,6 +9,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Button } from "@/components/ui/button";
 import { ErrorBanner } from "@/components/error-banner";
 import { toastApiError } from "@/lib/error-utils";
+import { downloadStorageFile } from "@/lib/download";
 import { SortableHeader } from "@/components/data-table/sortable-header";
 import { formatBytes, formatDateTime } from "@/lib/utils";
 
@@ -118,20 +119,13 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   };
 
   // File download handler
-  const handleFileDownload = (fileName: string) => {
-    try {
-      // Construct the full S3 path from currentDirectoryPath + fileName
-      const fullPath = currentDirectoryPath.endsWith('/') 
-        ? `${currentDirectoryPath}${fileName}`
-        : `${currentDirectoryPath}/${fileName}`;
+  const handleFileDownload = async (fileName: string) => {
+    const fullPath = currentDirectoryPath.endsWith('/')
+      ? `${currentDirectoryPath}${fileName}`
+      : `${currentDirectoryPath}/${fileName}`;
 
-      // Build the download URL
-      const baseUrl = import.meta.env.VITE_API_URL || '';
-      const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-      const url = `${cleanBaseUrl}/api/v1/files/download?path=${encodeURIComponent(fullPath)}`;
-      
-      // Open in new tab to trigger download
-      window.open(url, '_blank');
+    try {
+      await downloadStorageFile(fullPath);
     } catch (downloadError) {
       toastApiError(downloadError, 'Failed to download file');
     }
