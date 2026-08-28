@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, CheckCircle2, Cog, Download, FolderCheck, FolderSearch, Pencil, Plus, Tag, Upload, Zap } from 'lucide-react'
+import { Building2, CheckCircle2, Cog, Download, FolderCheck, FolderSearch, ListChecks, Pencil, Plus, Tag, Upload, Zap } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import type { SamplePublic } from '@/client/types.gen'
@@ -16,6 +16,7 @@ import { FileBrowserDialog } from '@/components/file-browser'
 import { ContainerDropzone, FileUpload, SAMPLESHEET_ACCEPT } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { UpdateProjectForm } from '@/components/update-project-form'
+import { ProjectJobsTable } from '@/components/project-jobs-table'
 import { ErrorState } from '@/components/error-state'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
@@ -45,6 +46,9 @@ function RouteComponent() {
       path: { project_id }
     })
   )
+
+  // Server-side job total, surfaced in the Jobs accordion label
+  const [jobCount, setJobCount] = useState<number | undefined>(undefined)
 
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
@@ -500,6 +504,25 @@ function RouteComponent() {
                 />
             )}
 
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      {/* Jobs table */}
+      <Accordion
+        type='single'
+        collapsible
+        className='w-full'
+        defaultValue='jobs-table'
+      >
+        <AccordionItem value='jobs-table'>
+          <AccordionTrigger className='uppercase font-light text-primary'>
+            <span className='flex gap-2 items-center'>
+              <ListChecks size={14} /> Jobs{jobCount === undefined ? '' : ` (${jobCount})`}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className='pt-2'>
+            <ProjectJobsTable projectId={project_id} onCountChange={setJobCount} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
