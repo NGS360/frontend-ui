@@ -13,6 +13,9 @@ services:
       - /app/node_modules
     environment:
       - VITE_API_URL=http://localhost:3000/
+      # Set to false to hide the AI Assistant; read when the dev server boots,
+      # so a change needs a container restart.
+      - VITE_AI_CHAT_ENABLED=${VITE_AI_CHAT_ENABLED:-true}
 
 networks:
   ngs360-network:

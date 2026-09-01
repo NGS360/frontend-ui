@@ -10,6 +10,7 @@ import { UserAvatar } from './user-avatar'
 import { NGS360Logo } from '@/components/ngs360-logo'
 import { useAuth } from '@/context/auth-context'
 import { entityIcons } from '@/lib/entity-icons'
+import { AI_CHAT_ENABLED } from '@/lib/feature-flags'
 import { NGS360_LETTER_COLORS } from '@/lib/ngs360-brand'
 import {
   NavigationMenu,
@@ -60,7 +61,7 @@ export default function Header() {
   // sidebar is closed (button unclicked). Pauses when active.
   const [aiColorIndex, setAiColorIndex] = useState(0)
   useEffect(() => {
-    if (aiActive) return
+    if (aiActive || !AI_CHAT_ENABLED) return
     const id = setInterval(() => {
       setAiColorIndex((i) => (i + 1) % NGS360_LETTER_COLORS.length)
     }, 1000)
@@ -222,15 +223,17 @@ export default function Header() {
             tooltip: it portals to <body> at z-50 and, flipped below the
             button, would cover the tip's dismiss button and swallow its
             clicks. */}
-        <div id="header-ai" className="relative">
-          {aiChatTip.visible ? aiButton : (
-            <Tooltip>
-              <TooltipTrigger asChild>{aiButton}</TooltipTrigger>
-              <TooltipContent>{aiActive ? 'Close AI Assistant' : 'Open AI Assistant'}</TooltipContent>
-            </Tooltip>
-          )}
-          <AiChatTip visible={aiChatTip.visible} onDismiss={aiChatTip.dismiss} />
-        </div>
+        {AI_CHAT_ENABLED && (
+          <div id="header-ai" className="relative">
+            {aiChatTip.visible ? aiButton : (
+              <Tooltip>
+                <TooltipTrigger asChild>{aiButton}</TooltipTrigger>
+                <TooltipContent>{aiActive ? 'Close AI Assistant' : 'Open AI Assistant'}</TooltipContent>
+              </Tooltip>
+            )}
+            <AiChatTip visible={aiChatTip.visible} onDismiss={aiChatTip.dismiss} />
+          </div>
+        )}
 
         {/* Avatar or Sign In */}
         <div id="header-user-actions">
