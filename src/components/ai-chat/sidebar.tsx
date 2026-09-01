@@ -12,17 +12,49 @@ import { Sidebar, SidebarProvider } from '@/components/ui/sidebar'
 import { useChatComposerContext } from '@/hooks/use-chat-composer-context'
 import { useChatConversation } from '@/hooks/use-chat-conversation'
 import { MOBILE_WIDTH, useChatPanelLayout } from '@/hooks/use-chat-panel-layout'
+import { AI_CHAT_ENABLED } from '@/lib/feature-flags'
+
+/** Pinned closed: with the chat off, nothing should be able to open it. */
+const noop = () => {}
 
 /**
- * Hosts the AI chat alongside the page. Owns the state both presentations share
- * — docked sidebar and fullscreen portal — because switching between them
- * remounts the pane, losing anything held further down.
+ * Hosts the AI chat alongside the page, or gets out of the way when the feature
+ * is switched off at build time.
+ *
+ * The layout below the header still needs the sidebar context — the header reads
+ * it — and the `@container` wrapper, so the disabled path keeps both and drops
+ * only the chat. Branching on a build-time constant means the shell never mounts
+ * and none of its hooks (chat history, transports, layout listeners) ever run.
  */
 export function AiChatSidebarProvider({
   children,
 }: {
   children: React.ReactNode
 }) {
+  if (!AI_CHAT_ENABLED) {
+    return (
+      <SidebarProvider
+        open={false}
+        onOpenChange={noop}
+        openMobile={false}
+        onOpenMobileChange={noop}
+      >
+        <div className="@container flex min-h-svh min-w-0 flex-1 flex-col">
+          {children}
+        </div>
+      </SidebarProvider>
+    )
+  }
+
+  return <AiChatSidebarShell>{children}</AiChatSidebarShell>
+}
+
+/**
+ * Owns the state both presentations share — docked sidebar and fullscreen portal
+ * — because switching between them remounts the pane, losing anything held
+ * further down.
+ */
+function AiChatSidebarShell({ children }: { children: React.ReactNode }) {
   const conversation = useChatConversation()
   const context = useChatComposerContext()
   const [input, setInput] = useState('')
