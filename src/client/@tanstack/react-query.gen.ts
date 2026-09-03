@@ -2271,6 +2271,7 @@ export const getJobsQueryKey = (options?: Options<GetJobsData>) =>
  * limit: Maximum number of records to return
  * user: Optional user filter
  * status_filter: Optional status filter
+ * project_id: Optional project filter
  * sort_by: Field to sort by (defaults to 'submitted_on')
  * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
  *
