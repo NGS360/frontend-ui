@@ -2272,6 +2272,7 @@ export const getJobsQueryKey = (options?: Options<GetJobsData>) =>
  * user: Optional user filter
  * status_filter: Optional status filter
  * project_id: Optional project filter
+ * sequencing_run_id: Optional sequencing run filter
  * sort_by: Field to sort by (defaults to 'submitted_on')
  * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
  *

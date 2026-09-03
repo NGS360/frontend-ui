@@ -46,8 +46,10 @@ import { Route as AuthAdminProjectSettingsIndexImport } from './routes/_auth.adm
 import { Route as AuthAdminJobsIndexImport } from './routes/_auth.admin.jobs.index'
 import { Route as UserOauthProviderCallbackImport } from './routes/_user.oauth.$provider.callback'
 import { Route as AuthRunsRunidSamplesheetRouteImport } from './routes/_auth.runs.$run_id.samplesheet.route'
+import { Route as AuthRunsRunidJobsRouteImport } from './routes/_auth.runs.$run_id.jobs.route'
 import { Route as AuthRunsRunidIndexqcRouteImport } from './routes/_auth.runs.$run_id.indexqc.route'
 import { Route as AuthRunsRunidSamplesheetIndexImport } from './routes/_auth.runs.$run_id.samplesheet.index'
+import { Route as AuthRunsRunidJobsIndexImport } from './routes/_auth.runs.$run_id.jobs.index'
 import { Route as AuthRunsRunidIndexqcIndexImport } from './routes/_auth.runs.$run_id.indexqc.index'
 
 // Create/Update Routes
@@ -267,6 +269,12 @@ const AuthRunsRunidSamplesheetRouteRoute =
     getParentRoute: () => AuthRunsRunidRouteRoute,
   } as any)
 
+const AuthRunsRunidJobsRouteRoute = AuthRunsRunidJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AuthRunsRunidRouteRoute,
+} as any)
+
 const AuthRunsRunidIndexqcRouteRoute = AuthRunsRunidIndexqcRouteImport.update({
   id: '/indexqc',
   path: '/indexqc',
@@ -279,6 +287,12 @@ const AuthRunsRunidSamplesheetIndexRoute =
     path: '/',
     getParentRoute: () => AuthRunsRunidSamplesheetRouteRoute,
   } as any)
+
+const AuthRunsRunidJobsIndexRoute = AuthRunsRunidJobsIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthRunsRunidJobsRouteRoute,
+} as any)
 
 const AuthRunsRunidIndexqcIndexRoute = AuthRunsRunidIndexqcIndexImport.update({
   id: '/',
@@ -479,6 +493,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRunsRunidIndexqcRouteImport
       parentRoute: typeof AuthRunsRunidRouteImport
     }
+    '/_auth/runs/$run_id/jobs': {
+      id: '/_auth/runs/$run_id/jobs'
+      path: '/jobs'
+      fullPath: '/runs/$run_id/jobs'
+      preLoaderRoute: typeof AuthRunsRunidJobsRouteImport
+      parentRoute: typeof AuthRunsRunidRouteImport
+    }
     '/_auth/runs/$run_id/samplesheet': {
       id: '/_auth/runs/$run_id/samplesheet'
       path: '/samplesheet'
@@ -548,6 +569,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs/$run_id/indexqc/'
       preLoaderRoute: typeof AuthRunsRunidIndexqcIndexImport
       parentRoute: typeof AuthRunsRunidIndexqcRouteImport
+    }
+    '/_auth/runs/$run_id/jobs/': {
+      id: '/_auth/runs/$run_id/jobs/'
+      path: '/'
+      fullPath: '/runs/$run_id/jobs/'
+      preLoaderRoute: typeof AuthRunsRunidJobsIndexImport
+      parentRoute: typeof AuthRunsRunidJobsRouteImport
     }
     '/_auth/runs/$run_id/samplesheet/': {
       id: '/_auth/runs/$run_id/samplesheet/'
@@ -735,6 +763,20 @@ const AuthRunsRunidIndexqcRouteRouteWithChildren =
     AuthRunsRunidIndexqcRouteRouteChildren,
   )
 
+interface AuthRunsRunidJobsRouteRouteChildren {
+  AuthRunsRunidJobsIndexRoute: typeof AuthRunsRunidJobsIndexRoute
+}
+
+const AuthRunsRunidJobsRouteRouteChildren: AuthRunsRunidJobsRouteRouteChildren =
+  {
+    AuthRunsRunidJobsIndexRoute: AuthRunsRunidJobsIndexRoute,
+  }
+
+const AuthRunsRunidJobsRouteRouteWithChildren =
+  AuthRunsRunidJobsRouteRoute._addFileChildren(
+    AuthRunsRunidJobsRouteRouteChildren,
+  )
+
 interface AuthRunsRunidSamplesheetRouteRouteChildren {
   AuthRunsRunidSamplesheetIndexRoute: typeof AuthRunsRunidSamplesheetIndexRoute
 }
@@ -751,12 +793,14 @@ const AuthRunsRunidSamplesheetRouteRouteWithChildren =
 
 interface AuthRunsRunidRouteRouteChildren {
   AuthRunsRunidIndexqcRouteRoute: typeof AuthRunsRunidIndexqcRouteRouteWithChildren
+  AuthRunsRunidJobsRouteRoute: typeof AuthRunsRunidJobsRouteRouteWithChildren
   AuthRunsRunidSamplesheetRouteRoute: typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
   AuthRunsRunidIndexRoute: typeof AuthRunsRunidIndexRoute
 }
 
 const AuthRunsRunidRouteRouteChildren: AuthRunsRunidRouteRouteChildren = {
   AuthRunsRunidIndexqcRouteRoute: AuthRunsRunidIndexqcRouteRouteWithChildren,
+  AuthRunsRunidJobsRouteRoute: AuthRunsRunidJobsRouteRouteWithChildren,
   AuthRunsRunidSamplesheetRouteRoute:
     AuthRunsRunidSamplesheetRouteRouteWithChildren,
   AuthRunsRunidIndexRoute: AuthRunsRunidIndexRoute,
@@ -826,6 +870,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof UserLoginIndexRoute
   '/register': typeof UserRegisterIndexRoute
   '/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcRouteRouteWithChildren
+  '/runs/$run_id/jobs': typeof AuthRunsRunidJobsRouteRouteWithChildren
   '/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
   '/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
   '/admin/jobs/': typeof AuthAdminJobsIndexRoute
@@ -836,6 +881,7 @@ export interface FileRoutesByFullPath {
   '/projects/$project_id/': typeof AuthProjectsProjectidIndexRoute
   '/runs/$run_id/': typeof AuthRunsRunidIndexRoute
   '/runs/$run_id/indexqc/': typeof AuthRunsRunidIndexqcIndexRoute
+  '/runs/$run_id/jobs/': typeof AuthRunsRunidJobsIndexRoute
   '/runs/$run_id/samplesheet/': typeof AuthRunsRunidSamplesheetIndexRoute
 }
 
@@ -862,6 +908,7 @@ export interface FileRoutesByTo {
   '/projects/$project_id': typeof AuthProjectsProjectidIndexRoute
   '/runs/$run_id': typeof AuthRunsRunidIndexRoute
   '/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcIndexRoute
+  '/runs/$run_id/jobs': typeof AuthRunsRunidJobsIndexRoute
   '/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetIndexRoute
 }
 
@@ -894,6 +941,7 @@ export interface FileRoutesById {
   '/_user/login/': typeof UserLoginIndexRoute
   '/_user/register/': typeof UserRegisterIndexRoute
   '/_auth/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcRouteRouteWithChildren
+  '/_auth/runs/$run_id/jobs': typeof AuthRunsRunidJobsRouteRouteWithChildren
   '/_auth/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
   '/_user/oauth/$provider/callback': typeof UserOauthProviderCallbackRoute
   '/_auth/admin/jobs/': typeof AuthAdminJobsIndexRoute
@@ -904,6 +952,7 @@ export interface FileRoutesById {
   '/_auth/projects/$project_id/': typeof AuthProjectsProjectidIndexRoute
   '/_auth/runs/$run_id/': typeof AuthRunsRunidIndexRoute
   '/_auth/runs/$run_id/indexqc/': typeof AuthRunsRunidIndexqcIndexRoute
+  '/_auth/runs/$run_id/jobs/': typeof AuthRunsRunidJobsIndexRoute
   '/_auth/runs/$run_id/samplesheet/': typeof AuthRunsRunidSamplesheetIndexRoute
 }
 
@@ -936,6 +985,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/runs/$run_id/indexqc'
+    | '/runs/$run_id/jobs'
     | '/runs/$run_id/samplesheet'
     | '/oauth/$provider/callback'
     | '/admin/jobs/'
@@ -946,6 +996,7 @@ export interface FileRouteTypes {
     | '/projects/$project_id/'
     | '/runs/$run_id/'
     | '/runs/$run_id/indexqc/'
+    | '/runs/$run_id/jobs/'
     | '/runs/$run_id/samplesheet/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -971,6 +1022,7 @@ export interface FileRouteTypes {
     | '/projects/$project_id'
     | '/runs/$run_id'
     | '/runs/$run_id/indexqc'
+    | '/runs/$run_id/jobs'
     | '/runs/$run_id/samplesheet'
   id:
     | '__root__'
@@ -1001,6 +1053,7 @@ export interface FileRouteTypes {
     | '/_user/login/'
     | '/_user/register/'
     | '/_auth/runs/$run_id/indexqc'
+    | '/_auth/runs/$run_id/jobs'
     | '/_auth/runs/$run_id/samplesheet'
     | '/_user/oauth/$provider/callback'
     | '/_auth/admin/jobs/'
@@ -1011,6 +1064,7 @@ export interface FileRouteTypes {
     | '/_auth/projects/$project_id/'
     | '/_auth/runs/$run_id/'
     | '/_auth/runs/$run_id/indexqc/'
+    | '/_auth/runs/$run_id/jobs/'
     | '/_auth/runs/$run_id/samplesheet/'
   fileRoutesById: FileRoutesById
 }
@@ -1163,6 +1217,7 @@ export const routeTree = rootRoute
       "parent": "/_auth/runs",
       "children": [
         "/_auth/runs/$run_id/indexqc",
+        "/_auth/runs/$run_id/jobs",
         "/_auth/runs/$run_id/samplesheet",
         "/_auth/runs/$run_id/"
       ]
@@ -1210,6 +1265,13 @@ export const routeTree = rootRoute
         "/_auth/runs/$run_id/indexqc/"
       ]
     },
+    "/_auth/runs/$run_id/jobs": {
+      "filePath": "_auth.runs.$run_id.jobs.route.tsx",
+      "parent": "/_auth/runs/$run_id",
+      "children": [
+        "/_auth/runs/$run_id/jobs/"
+      ]
+    },
     "/_auth/runs/$run_id/samplesheet": {
       "filePath": "_auth.runs.$run_id.samplesheet.route.tsx",
       "parent": "/_auth/runs/$run_id",
@@ -1252,6 +1314,10 @@ export const routeTree = rootRoute
     "/_auth/runs/$run_id/indexqc/": {
       "filePath": "_auth.runs.$run_id.indexqc.index.tsx",
       "parent": "/_auth/runs/$run_id/indexqc"
+    },
+    "/_auth/runs/$run_id/jobs/": {
+      "filePath": "_auth.runs.$run_id.jobs.index.tsx",
+      "parent": "/_auth/runs/$run_id/jobs"
     },
     "/_auth/runs/$run_id/samplesheet/": {
       "filePath": "_auth.runs.$run_id.samplesheet.index.tsx",
