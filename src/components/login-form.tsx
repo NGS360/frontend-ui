@@ -3,13 +3,14 @@ import { getAvailableOauthProvidersOptions } from '@/client/@tanstack/react-quer
 import { LoginFormCorporate } from '@/components/login-form-corporate'
 import { LoginFormDefault } from '@/components/login-form-default'
 import { storePostLoginRedirect } from '@/lib/post-login-redirect'
+import { API_BASE_URL } from '@/lib/api-base'
 
 interface LoginFormProps {
   redirectTo?: string
 }
 
 export function LoginForm({ redirectTo }: LoginFormProps) {
-  const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, '')
+  const apiUrl = API_BASE_URL
   const { data: oauthProviders } = useQuery(getAvailableOauthProvidersOptions())
 
   const handleOAuthLogin = (provider: string, authorizeUrl: string) => {
