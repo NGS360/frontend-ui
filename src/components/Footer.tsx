@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '@/lib/api-base'
+
 export default function Footer() {
   return (
     <footer id="app-footer" className="mt-auto border-t w-full h-24">
@@ -6,7 +8,7 @@ export default function Footer() {
           <div id="app-footer-links" className="flex items-center justify-center gap-4 mb-2">
             <a 
               id="app-footer-docs-link"
-              href={`${import.meta.env.VITE_API_URL}docs`} 
+              href={`${API_BASE_URL}/docs`}
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:text-primary transition-colors font-medium"

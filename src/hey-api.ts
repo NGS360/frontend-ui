@@ -1,11 +1,10 @@
 import type { CreateClientConfig } from './client/client.gen'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { API_BASE_URL } from '@/lib/api-base'
 
 export const createClientConfig: CreateClientConfig = (config) => {
   const clientConfig = {
     ...config,
-    baseUrl: API_URL,
+    baseUrl: API_BASE_URL,
   }
   return clientConfig
 }

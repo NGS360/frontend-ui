@@ -11,6 +11,7 @@ import { NGS360Logo } from '@/components/ngs360-logo'
 import { useAuth } from '@/context/auth-context'
 import { entityIcons } from '@/lib/entity-icons'
 import { AI_CHAT_ENABLED } from '@/lib/feature-flags'
+import { API_BASE_URL } from '@/lib/api-base'
 import { NGS360_LETTER_COLORS } from '@/lib/ngs360-brand'
 import {
   NavigationMenu,
@@ -70,7 +71,7 @@ export default function Header() {
 
   const aiChatTip = useAiChatTip(aiActive)
 
-  const apiDocsUrl = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/docs`
+  const apiDocsUrl = `${API_BASE_URL}/docs`
 
   const navItems: Array<NavItemType> = [
     { to: '/runs', label: 'Sequencing Runs', icon: <entityIcons.run className="inline mr-1" /> },

@@ -27,6 +27,22 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
+    // The app addresses the API with relative URLs, because in every deployed
+    // environment nginx serves the bundle and the API from one origin. Dev is
+    // the exception -- Vite here, FastAPI on another port -- so forward the
+    // same paths nginx does and relative URLs work identically in both.
+    //
+    // Point VITE_DEV_API_PROXY at a deployed environment to develop the UI
+    // against it instead of a local API.
+    proxy: Object.fromEntries(
+      ['/api', '/docs', '/redoc', '/openapi.json'].map((path) => [
+        path,
+        {
+          target: process.env.VITE_DEV_API_PROXY || 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+      ]),
+    ),
   },
   build: {
     sourcemap: true
