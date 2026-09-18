@@ -338,6 +338,14 @@ export type BatchJobPublic = {
    * Viewed
    */
   viewed: boolean
+  /**
+   * Project Id
+   */
+  project_id?: string | null
+  /**
+   * Sequencing Run Id
+   */
+  sequencing_run_id?: string | null
 }
 
 /**
@@ -370,6 +378,14 @@ export type BatchJobSubmit = {
    * User
    */
   user: string
+  /**
+   * Project Id
+   */
+  project_id?: string | null
+  /**
+   * Sequencing Run Id
+   */
+  sequencing_run_id?: string | null
 }
 
 /**
@@ -4988,6 +5004,18 @@ export type GetJobsData = {
      * Filter by status
      */
     status_filter?: JobStatus | null
+    /**
+     * Project Id
+     *
+     * Filter by owning project (Project.project_id, e.g. P-19900109-0001)
+     */
+    project_id?: string | null
+    /**
+     * Sequencing Run Id
+     *
+     * Filter by sequencing run (SequencingRun.run_id, e.g. 260506_VH01208_93_222FCGLNX)
+     */
+    sequencing_run_id?: string | null
     /**
      * Sort By
      *

@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute, getRouteApi } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChartBar, ChevronDown, FileSpreadsheet, FolderOpen, Loader2, PlayCircle, RotateCw, Upload } from 'lucide-react'
+import { ChartBar, ChevronDown, FileSpreadsheet, FolderOpen, ListChecks, Loader2, PlayCircle, RotateCw, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { ChangeEvent } from 'react';
@@ -194,6 +194,12 @@ function RouteComponent() {
                 params={{ run_id: run.run_id }}
               >
                 <ChartBar /><span>IndexQC</span>
+              </TabLink>
+              <TabLink
+                to='/runs/$run_id/jobs'
+                params={{ run_id: run.run_id }}
+              >
+                <ListChecks /><span>Jobs</span>
               </TabLink>
             </div>
             <div className='@3xl:flex @3xl:gap-2'>
