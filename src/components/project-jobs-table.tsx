@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw } from 'lucide-react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
@@ -19,8 +19,6 @@ type JobSortField = 'id' | 'name' | 'user' | 'status' | 'submitted_on'
 type ProjectJobsTableProps = {
   /** Project business key, e.g. P-19900109-0001 */
   projectId: string
-  /** Reports the server-side total so the caller can label the section */
-  onCountChange?: (count: number) => void
 }
 
 /**
@@ -33,7 +31,7 @@ type ProjectJobsTableProps = {
  * demultiplexing spans many projects and is deliberately unattributed; those
  * jobs remain visible on /jobs and /admin/jobs.
  */
-export function ProjectJobsTable({ projectId, onCountChange }: ProjectJobsTableProps) {
+export function ProjectJobsTable({ projectId }: ProjectJobsTableProps) {
   const { viewJob } = useViewJob()
   const queryClient = useQueryClient()
 
@@ -62,18 +60,6 @@ export function ProjectJobsTable({ projectId, onCountChange }: ProjectJobsTableP
     // through does not collapse the accordion's height on every click.
     placeholderData: keepPreviousData,
   })
-
-  // Reported via an effect rather than during render: calling back into the
-  // parent's setState mid-render would warn about updating another component.
-  // The callback is held in a ref so an inline arrow from the caller cannot
-  // re-trigger the effect and loop through the parent's re-render.
-  const onCountChangeRef = useRef(onCountChange)
-  onCountChangeRef.current = onCountChange
-
-  const jobCount = jobsData?.count
-  useEffect(() => {
-    if (jobCount !== undefined) onCountChangeRef.current?.(jobCount)
-  }, [jobCount])
 
   const columns: Array<ColumnDef<BatchJobPublic>> = [
     {
