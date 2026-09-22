@@ -19,6 +19,7 @@ import { UpdateProjectForm } from '@/components/update-project-form'
 import { ProjectJobsTable } from '@/components/project-jobs-table'
 import { ErrorState } from '@/components/error-state'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { TabButton, TabNav } from '@/components/tab-nav'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { TableSelectionBanner } from '@/components/data-table/table-selection-banner'
@@ -47,8 +48,10 @@ function RouteComponent() {
     })
   )
 
-  // Server-side job total, surfaced in the Jobs accordion label
+  // Server-side job total, surfaced in the Jobs tab label
   const [jobCount, setJobCount] = useState<number | undefined>(undefined)
+
+  const [tableTab, setTableTab] = useState<'samples' | 'jobs'>('samples')
 
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
@@ -456,76 +459,65 @@ function RouteComponent() {
         </Accordion>
       </div>
 
-      {/* Samples table */}
-      <Accordion
-        type='single'
-        collapsible
-        className='w-full'
-        defaultValue='samples-table'
-      >
-        <AccordionItem value='samples-table'>
-          <AccordionTrigger className='uppercase font-light text-primary'>
-            <span className='flex gap-2 items-center'>
-              <entityIcons.sample size={14} /> Sample table
-            </span>
-          </AccordionTrigger>
-          <AccordionContent className='pt-2'>
-            {allSamples.length > 0 ? (
-              <ContainerDropzone
-                onDrop={onSamplesDrop}
-                accept={SAMPLESHEET_ACCEPT}
-                subject={isUploadingSamples ? 'sample metadata (upload in progress)' : 'sample metadata'}
-              >
-                <ClientDataTable
-                  data={allSamples}
-                  columns={columns}
-                  columnVisibility={columnVisibility}
-                  onColumnVisibilityChange={setColumnVisibility}
-                  globalFilter={globalFilter}
-                  onFilterChange={setGlobalFilter}
-                  pageSize={5}
-                  isLoading={isLoading}
-                  tableTools={samplesToolbar}
-                  tableBanner={samplesTableBanner}
-                  rowDecoration={samplesRowDecoration}
-                  enableRowSelectionColumn
-                />
-              </ContainerDropzone>
-            ) : (
-                <FileUpload
-                  onDrop={onSamplesDrop}
-                  displayComponent={(
-                    <span className="text-primary hover:underline mx-2">
-                      {isUploadingSamples
-                        ? 'Uploading sample metadata…'
-                        : 'No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file'}
-                    </span>
-                  )}
-                />
+      {/* Samples and jobs share one tabbed region, so reaching the jobs
+          table no longer means scrolling past a full page of samples. */}
+      <TabNav className='mt-4'>
+        <div className='flex gap-2 flex-col @3xl:flex-row @3xl:items-center'>
+          <TabButton isActive={tableTab === 'samples'} onSelect={() => setTableTab('samples')}>
+            <entityIcons.sample /><span>Samples</span>
+            <span className='font-normal text-muted-foreground'>{allSamples.length}</span>
+          </TabButton>
+          <TabButton isActive={tableTab === 'jobs'} onSelect={() => setTableTab('jobs')}>
+            <ListChecks /><span>Jobs</span>
+            {jobCount !== undefined && (
+              <span className='font-normal text-muted-foreground'>{jobCount}</span>
             )}
+          </TabButton>
+        </div>
+      </TabNav>
 
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      {/* Hidden rather than unmounted: the jobs table's server-side total has
+          to reach the tab label before the tab is first opened, and a switch
+          should not discard either table's filter, sort or selection state. */}
+      <div className={`pt-4 ${tableTab === 'samples' ? '' : 'hidden'}`}>
+        {allSamples.length > 0 ? (
+          <ContainerDropzone
+            onDrop={onSamplesDrop}
+            accept={SAMPLESHEET_ACCEPT}
+            subject={isUploadingSamples ? 'sample metadata (upload in progress)' : 'sample metadata'}
+          >
+            <ClientDataTable
+              data={allSamples}
+              columns={columns}
+              columnVisibility={columnVisibility}
+              onColumnVisibilityChange={setColumnVisibility}
+              globalFilter={globalFilter}
+              onFilterChange={setGlobalFilter}
+              pageSize={10}
+              isLoading={isLoading}
+              tableTools={samplesToolbar}
+              tableBanner={samplesTableBanner}
+              rowDecoration={samplesRowDecoration}
+              enableRowSelectionColumn
+            />
+          </ContainerDropzone>
+        ) : (
+          <FileUpload
+            onDrop={onSamplesDrop}
+            displayComponent={(
+              <span className="text-primary hover:underline mx-2">
+                {isUploadingSamples
+                  ? 'Uploading sample metadata…'
+                  : 'No sample metadata available. Drag and drop your sample metadata (TSV) here or click to select a file'}
+              </span>
+            )}
+          />
+        )}
+      </div>
 
-      {/* Jobs table */}
-      <Accordion
-        type='single'
-        collapsible
-        className='w-full'
-        defaultValue='jobs-table'
-      >
-        <AccordionItem value='jobs-table'>
-          <AccordionTrigger className='uppercase font-light text-primary'>
-            <span className='flex gap-2 items-center'>
-              <ListChecks size={14} /> Jobs{jobCount === undefined ? '' : ` (${jobCount})`}
-            </span>
-          </AccordionTrigger>
-          <AccordionContent className='pt-2'>
-            <ProjectJobsTable projectId={project_id} onCountChange={setJobCount} />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <div className={`pt-4 ${tableTab === 'jobs' ? '' : 'hidden'}`}>
+        <ProjectJobsTable projectId={project_id} onCountChange={setJobCount} />
+      </div>
     </div>
   )
 }
