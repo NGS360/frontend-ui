@@ -299,7 +299,7 @@ function RouteComponent() {
             <AccordionContent
               className='flex flex-col gap-4'
             >
-              <div className='grid grid-flow-row gap-2 @3xl:grid-cols-2 @5xl:grid-cols-3'>
+              <div className='grid grid-flow-row gap-2 @xl:grid-cols-2 @5xl:grid-cols-2 @7xl:grid-cols-3'>
                 <Card
                   key={project.project_id}
                   className='border-0 shadow-none py-2 px-0 bg-transparent'
@@ -379,7 +379,7 @@ function RouteComponent() {
               </span>
             </AccordionTrigger>
             <AccordionContent className='flex flex-col gap-4'>
-              <div className='grid grid-cols-1 @3xl:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 @xl:grid-cols-2 @5xl:grid-cols-1 @7xl:grid-cols-2 gap-4'>
                 {/* Data Bucket */}
                 <FileBrowserDialog
                   trigger={(

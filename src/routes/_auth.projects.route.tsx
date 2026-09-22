@@ -2,7 +2,7 @@ import { Outlet, createFileRoute } from '@tanstack/react-router'
 
 export const RouteComponent = () => (
   <>
-    <div className="flex flex-col ml-8 mr-8 mt-8">
+    <div className="flex flex-col mx-4 @3xl:mx-8 mt-6 @3xl:mt-8">
       <Outlet />
     </div>
   </>

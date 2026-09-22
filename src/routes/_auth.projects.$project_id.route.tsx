@@ -57,8 +57,13 @@ function RouteComponent() {
     <>
       <div className='flex flex-col gap-4'>
         {/* Header */}
-        <div>
-          <h1 className='text-3xl font-extralight'>{project.name}</h1>
+        <div className='min-w-0'>
+          <h1
+            className='text-2xl @3xl:text-3xl font-extralight break-words'
+            title={project.name ?? undefined}
+          >
+            {project.name}
+          </h1>
           {showMetadata && (
             <div className='flex flex-col @2xl:flex-row @2xl:flex-wrap gap-1 @2xl:gap-3 mt-1 text-sm text-muted-foreground'>
               {hasCreator && <span className='inline-flex items-center gap-1'><User size={14} />Created by <span className='font-semibold'>{project.created_by}</span></span>}
