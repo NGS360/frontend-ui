@@ -12,6 +12,7 @@ import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useProjectJobCount, useProjectSampleCount } from '@/hooks/use-project-counts'
 import { entityIcons } from '@/lib/entity-icons'
 import { isValidHttpURL } from '@/lib/utils'
 
@@ -63,6 +64,9 @@ function RouteComponent() {
   const lastModified = formatDate(project.last_modified)
 
   const showMetadata = hasCreator || createdAt || lastModified
+
+  const sampleCount = useProjectSampleCount(project_id)
+  const jobCount = useProjectJobCount(project_id)
 
   return (
     <>
@@ -272,12 +276,18 @@ function RouteComponent() {
               params={{ project_id }}
             >
               <entityIcons.sample /><span>Samples</span>
+              {sampleCount !== undefined && (
+                <span className='font-normal text-muted-foreground'>{sampleCount}</span>
+              )}
             </TabLink>
             <TabLink
               to='/projects/$project_id/jobs'
               params={{ project_id }}
             >
               <ListChecks /><span>Jobs</span>
+              {jobCount !== undefined && (
+                <span className='font-normal text-muted-foreground'>{jobCount}</span>
+              )}
             </TabLink>
           </div>
         </TabNav>

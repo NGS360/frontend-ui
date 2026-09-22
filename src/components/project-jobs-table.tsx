@@ -11,6 +11,7 @@ import { CopyableText } from '@/components/copyable-text'
 import { JobStatusBadge } from '@/components/job-status-badge'
 import { ErrorState } from '@/components/error-state'
 import { ErrorBanner } from '@/components/error-banner'
+import { projectJobCountQueryKey } from '@/hooks/use-project-counts'
 import { Button } from '@/components/ui/button'
 
 /** Sortable columns the jobs endpoint accepts. */
@@ -130,6 +131,8 @@ export function ProjectJobsTable({ projectId }: ProjectJobsTableProps) {
       size='default'
       onClick={() => {
         queryClient.invalidateQueries({ queryKey: jobsQueryKey, refetchType: 'all' })
+        // Keeps the Jobs tab label in step with the rows it counts.
+        queryClient.invalidateQueries({ queryKey: projectJobCountQueryKey(projectId) })
       }}
       disabled={isFetching}
     >
