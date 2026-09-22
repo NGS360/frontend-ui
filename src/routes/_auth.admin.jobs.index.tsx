@@ -1,21 +1,12 @@
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import z from 'zod'
-import { ListChecks, RefreshCw, User } from 'lucide-react'
-import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
-import type { BatchJobPublic, JobStatus } from '@/client'
-import { getJobsOptions, getJobsQueryKey } from '@/client/@tanstack/react-query.gen'
-import { ServerDataTable } from '@/components/data-table/data-table'
-import { SortableHeader } from '@/components/data-table/sortable-header'
-import { CopyableText } from '@/components/copyable-text'
-import { FullscreenSpinner } from '@/components/spinner'
-import { ErrorState } from '@/components/error-state'
-import { ErrorBanner } from '@/components/error-banner'
-import { JobStatusBadge } from '@/components/job-status-badge'
+import { ListChecks, User } from 'lucide-react'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
+import type { JobStatus } from '@/client'
+import { JobsTable } from '@/components/jobs-table'
 import { SelectFilter } from '@/components/data-table/select-filter'
 import { TextFilter } from '@/components/data-table/text-filter'
-import { Button } from '@/components/ui/button'
 
 // Define the search schema for jobs
 const jobsSearchSchema = z.object({
@@ -34,6 +25,7 @@ const jobsSearchSchema = z.object({
   ]).optional().default('desc'),
   status_filter: z.string().optional().nullable(),
   user_filter: z.string().optional().nullable(),
+  query: z.string().optional().default(''),
 })
 
 export const Route = createFileRoute('/_auth/admin/jobs/')({
@@ -48,7 +40,6 @@ function RouteComponent() {
   // Manage the state of search params
   const search = Route.useSearch()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   // Local table state
   // Pagination (0-based for Tanstack Table)
@@ -101,127 +92,21 @@ function RouteComponent() {
     })
   }
 
-  const jobsQueryKey = getJobsQueryKey({
-    query: {
-      skip: (search.page - 1) * search.per_page,
-      limit: search.per_page,
-      sort_by: search.sort_by,
-      sort_order: search.sort_order,
-      status_filter: search.status_filter as JobStatus | null,
-      user: search.user_filter,
-    },
-  })
-
-  // Query jobs
-  const { data, error, isFetching, refetch } = useQuery({
-    ...getJobsOptions({
-      query: {
-        skip: (search.page - 1) * search.per_page,
-        limit: search.per_page,
-        sort_by: search.sort_by,
-        sort_order: search.sort_order,
-        status_filter: search.status_filter as JobStatus | null,
-        user: search.user_filter,
-      },
-    }),
-    placeholderData: keepPreviousData
-  })
-
-  const handleRefreshJobs = () => {
-    queryClient.invalidateQueries({ queryKey: jobsQueryKey, refetchType: 'all' })
-  }
-
-  // Handle job row click - navigate without updating view status (admin only)
-  const handleJobClick = (jobId: string) => {
-    navigate({ to: '/jobs/$job_id', params: { job_id: jobId } })
-  }
-
-  if (error && !data) return <ErrorState error={error} onRetry={() => { void refetch() }} />
-  if (!data) return <FullscreenSpinner variant='ellipsis' />
-
-
-  // Status options for filter
-  const statuses: Array<JobStatus> = [
-    'SUBMITTED',
-    'PENDING',
-    'RUNNABLE',
-    'STARTING',
-    'RUNNING',
-    'SUCCEEDED',
-    'FAILED',
-  ]
-
-  const statusOptions = statuses.map((status) => ({
-    label: <JobStatusBadge status={status} size='compact' />,
-    selectedLabel: <JobStatusBadge status={status} size='compact' />,
-    value: status,
-  }))
-  // Calculate total pages from count and per_page
-  const totalPages = Math.ceil(data.count / search.per_page)
-
-  // Define columns
-  const columns: Array<ColumnDef<BatchJobPublic>> = [
-    {
-      accessorKey: 'id',
-      meta: { alias: 'Job ID' },
-      header: ({ column }) => <SortableHeader column={column} name="Job ID" />,
-      cell: ({ cell }) => {
-        const id = cell.getValue() as string
-        return (
-          <CopyableText
-            text={id}
-            variant='primary'
-          />
-        )
-      }
-    },
-    {
-      accessorKey: 'name',
-      meta: { alias: 'Job Name' },
-      header: ({ column }) => <SortableHeader column={column} name="Job Name" />,
-      cell: ({ cell }) => {
-        const name = cell.getValue() as string
-        return <span className='text-sm'>{name}</span>
-      }
-    },
-    {
-      accessorKey: 'user',
-      meta: { alias: 'User' },
-      header: ({ column }) => <SortableHeader column={column} name="User" />,
-      cell: ({ cell }) => {
-        const user = cell.getValue() as string
-        return <span className='text-sm'>{user}</span>
-      }
-    },
-    {
-      accessorKey: 'status',
-      meta: { alias: 'Status' },
-      header: ({ column }) => <SortableHeader column={column} name="Status" />,
-      cell: ({ cell }) => {
-        const status = cell.getValue() as BatchJobPublic['status']
-        return <JobStatusBadge status={status} size='compact' />
-      }
-    },
-    {
-      accessorKey: 'submitted_on',
-      meta: { alias: 'Submitted' },
-      header: ({ column }) => <SortableHeader column={column} name="Submitted" />,
-      cell: ({ cell }) => {
-        const submitted = cell.getValue() as string
-        const date = new Date(submitted.replace(' ', 'T') + 'Z')
-        return <span className='text-sm text-muted-foreground'>{date.toLocaleString(undefined, { timeZoneName: 'short' })}</span>
-      }
-    },
-  ]
-
-  // Define table tools
-  const toolbar = (
+  const filters = (
     <>
       <SelectFilter
         label="Status"
         icon={ListChecks}
-        options={statusOptions}
         value={search.status_filter || null}
+        options={[
+          { label: 'Submitted', value: 'SUBMITTED' },
+          { label: 'Pending', value: 'PENDING' },
+          { label: 'Runnable', value: 'RUNNABLE' },
+          { label: 'Starting', value: 'STARTING' },
+          { label: 'Running', value: 'RUNNING' },
+          { label: 'Succeeded', value: 'SUCCEEDED' },
+          { label: 'Failed', value: 'FAILED' },
+        ]}
         onChange={handleStatusChange}
       />
       <TextFilter
@@ -231,16 +116,6 @@ function RouteComponent() {
         onChange={handleUserChange}
         placeholder="Filter by user..."
       />
-      <Button
-        type="button"
-        variant="outline"
-        size="default"
-        onClick={handleRefreshJobs}
-        disabled={isFetching}
-      >
-        <RefreshCw className={`${isFetching ? 'animate-spin' : ''}`} />
-        Refresh
-      </Button>
     </>
   )
 
@@ -254,18 +129,25 @@ function RouteComponent() {
           </p>
         </div>
       </div>
-      {error && <ErrorBanner error={error} onRetry={() => { void refetch() }} />}
-      <ServerDataTable
-        data={data.data}
-        columns={columns}
+
+      <JobsTable
+        user={search.user_filter}
+        statusFilter={search.status_filter as JobStatus | null}
+        userColumn='User'
+        // Admin reads the whole estate, so the job id is worth a column here.
+        columnVisibility={{}}
+        fullscreenLoading
+        toolbarExtra={filters}
         pagination={pagination}
         onPaginationChange={setPagination}
-        pageCount={totalPages}
-        totalItems={data.count}
         sorting={sorting}
         onSortingChange={setSorting}
-        tableTools={toolbar}
-        rowClickCallback={(row) => handleJobClick(row.original.id)}
+        initialSearch={search.query}
+        onSearchCommit={(query) => {
+          navigate({ to: '/admin/jobs', search: { ...search, query, page: 1 } })
+        }}
+        // Admin browses without marking anyone's job as read.
+        onRowClick={(jobId) => navigate({ to: '/jobs/$job_id', params: { job_id: jobId } })}
       />
     </div>
   )

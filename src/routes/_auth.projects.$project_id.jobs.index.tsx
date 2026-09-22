@@ -1,5 +1,5 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
-import { ProjectJobsTable } from '@/components/project-jobs-table'
+import { JobsTable } from '@/components/jobs-table'
 
 export const Route = createFileRoute('/_auth/projects/$project_id/jobs/')({
   component: RouteComponent,
@@ -13,7 +13,10 @@ function RouteComponent() {
   // reports its own total in the pagination footer.
   return (
     <div className='animate-fade-in-up pt-4'>
-      <ProjectJobsTable projectId={project_id} />
+      <JobsTable
+        projectId={project_id}
+        notFoundComponent='No jobs have been submitted for this project.'
+      />
     </div>
   )
 }

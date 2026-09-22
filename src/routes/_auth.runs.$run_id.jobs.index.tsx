@@ -1,5 +1,5 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
-import { RunJobsTable } from '@/components/run-jobs-table'
+import { JobsTable } from '@/components/jobs-table'
 
 export const Route = createFileRoute('/_auth/runs/$run_id/jobs/')({
   component: RouteComponent,
@@ -13,7 +13,10 @@ function RouteComponent() {
   // reports its own total in the pagination footer.
   return (
     <div className='pt-4'>
-      <RunJobsTable runId={run_id} />
+      <JobsTable
+        runId={run_id}
+        notFoundComponent='No jobs have been submitted for this run.'
+      />
     </div>
   )
 }

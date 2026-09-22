@@ -1248,6 +1248,10 @@ export type FilePublic = {
    */
   created_by: string | null
   /**
+   * Submitted By
+   */
+  submitted_by: string | null
+  /**
    * Source
    */
   source: string | null
@@ -1356,10 +1360,6 @@ export type FileUpdate = {
    * Source
    */
   source?: string | null
-  /**
-   * Created By
-   */
-  created_by?: string | null
   /**
    * Storage Backend
    */
@@ -2136,6 +2136,10 @@ export type ProjectPublic = {
    */
   results_folder_uri: string | null
   /**
+   * Download Restricted
+   */
+  download_restricted?: boolean
+  /**
    * Attributes
    */
   attributes: Array<Attribute> | null
@@ -2159,6 +2163,10 @@ export type ProjectUpdate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Download Restricted
+   */
+  download_restricted?: boolean | null
 }
 
 /**
@@ -4801,7 +4809,7 @@ export type DownloadFileData = {
     /**
      * Path
      *
-     * S3 URI of file to download (e.g., s3://bucket/path/file.txt)
+     * S3 URI of the file
      */
     path: string
   }
@@ -5016,6 +5024,12 @@ export type GetJobsData = {
      * Filter by sequencing run (SequencingRun.run_id, e.g. 260506_VH01208_93_222FCGLNX)
      */
     sequencing_run_id?: string | null
+    /**
+     * Search
+     *
+     * Free-text match across job id, name and user
+     */
+    search?: string | null
     /**
      * Sort By
      *
