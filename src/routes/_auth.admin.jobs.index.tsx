@@ -53,18 +53,22 @@ function RouteComponent() {
     { id: search.sort_by, desc: search.sort_order === 'desc' ? true : false }
   ])
 
+  // Merges onto the live params rather than spreading the `search` this
+  // render read. JobsTable sends the table back to page one when the search
+  // term changes, so this effect fires in the same tick as the term's own
+  // write, and the router applies that write after the render that triggers
+  // this. Spreading the stale snapshot -- and carrying the filters over from
+  // it explicitly -- then silently undid the term that had just been set.
   useEffect(() => {
     navigate({
       to: '/admin/jobs',
-      search: {
-        ...search,
+      search: (previous) => ({
+        ...previous,
         page: pagination.pageIndex + 1,
         per_page: pagination.pageSize,
         sort_by: sorting[0]?.id as 'id' | 'name' | 'user' | 'status' | 'submitted_on',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc',
-        status_filter: search.status_filter,
-        user_filter: search.user_filter,
-      },
+      }),
       replace: true
     })
   }, [pagination, sorting])
