@@ -1,21 +1,21 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 import { JobsTable } from '@/components/jobs-table'
 
-export const Route = createFileRoute('/_auth/runs/$run_id/jobs/')({
+export const Route = createFileRoute('/_auth/projects/$project_id/jobs/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const routeApi = getRouteApi('/_auth/runs/$run_id/jobs/')
-  const { run_id } = routeApi.useParams()
+  const routeApi = getRouteApi('/_auth/projects/$project_id/jobs/')
+  const { project_id } = routeApi.useParams()
 
   // No count in a heading here: the tab is the label, and the table already
   // reports its own total in the pagination footer.
   return (
-    <div className='pt-4'>
+    <div className='animate-fade-in-up pt-4'>
       <JobsTable
-        runId={run_id}
-        notFoundComponent='No jobs have been submitted for this run.'
+        projectId={project_id}
+        notFoundComponent='No jobs have been submitted for this project.'
       />
     </div>
   )

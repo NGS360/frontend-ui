@@ -59,6 +59,7 @@ import {
   getJobLog,
   getJobLogPaginated,
   getJobs,
+  getJobSubmitters,
   getLatestManifest,
   getMyAccess,
   getPipelineById,
@@ -288,6 +289,9 @@ import type {
   GetJobsData,
   GetJobsError,
   GetJobsResponse,
+  GetJobSubmittersData,
+  GetJobSubmittersError,
+  GetJobSubmittersResponse,
   GetLatestManifestData,
   GetLatestManifestError,
   GetLatestManifestResponse,
@@ -1188,9 +1192,16 @@ export const createApiKeyMutation = (
 }
 
 /**
- * Delete Api Key
+ * Retire an API key
  *
- * Delete an API key.
+ * Retire an API key. Equivalent to `POST /api-keys/{key_id}/revoke`.
+ *
+ * The key stops authenticating immediately. The record is kept, with
+ * `is_active = false` and `revoked_at` set, so that the retirement stays
+ * auditable -- it is not erased. It continues to appear in `GET /api-keys`.
+ *
+ * Idempotent: retiring an already-retired key succeeds and preserves the
+ * original `revoked_at`.
  */
 export const deleteApiKeyMutation = (
   options?: Partial<Options<DeleteApiKeyData>>,
@@ -1944,6 +1955,12 @@ export const listFilesInfiniteOptions = (options?: Options<ListFilesData>) => {
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
  * - **tags**: Key-value metadata (type, format, description, etc.)
+ * - **created_by**: Optional. The person the file belongs to, which for
+ * pipeline registrations is the scientist the work was done for rather
+ * than the caller. Must name a known NGS360 account.
+ *
+ * The authenticated caller is recorded separately as **submitted_by** and
+ * cannot be set by the client.
  *
  * Note: Same URI can be registered multiple times with different timestamps,
  * enabling versioning. Each POST creates a new version.
@@ -1986,7 +2003,9 @@ export const createFileMutation = (
  * - **overwrite**: If True, creates a new version if file exists
  * - **description**: Optional file description
  * - **is_public**: Whether file is publicly accessible
- * - **created_by**: User who uploaded the file
+ * - **created_by**: Optional. The person the file belongs to, which need not
+ * be the caller. Must name a known NGS360 account. The authenticated
+ * caller is recorded separately as **submitted_by**.
  * - **role**: Optional role (e.g., samplesheet)
  * - **content**: Optional file content
  *
@@ -2062,11 +2081,24 @@ export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
  * The client follows the redirect to download directly from S3,
  * offloading bandwidth from the API server.
  *
- * Deprecated in favour of GET /files/download-url, which returns the same URL
- * as JSON. This route cannot be given a permission guard: it is used by the UI
- * as a plain link, and a browser following a link cannot send an Authorization
- * header, so guarding it would 401 every download in the product. It closes
- * once browser traffic here reaches zero.
+ * Guarded, as of 2026-09-09, by the same check as GET /files/download-url. The
+ * response is unchanged -- still a 307 to S3 -- so every client that already
+ * sends credentials is unaffected. What changes is that anonymous callers now
+ * get 401, and a file in a restricted project gets 403.
+ *
+ * An earlier version of this docstring said the route *could not* be guarded,
+ * because the UI used it as a plain link and a browser following a link cannot
+ * send an Authorization header. That was true when written and is no longer:
+ * the frontend fetches GET /files/download-url with its token and navigates to
+ * the returned URL itself (src/lib/download.ts), and the built bundle contains
+ * no reference to this route at all. Measured browser traffic over the 30 days
+ * to 2026-09-09 was 41 requests -- 39 of them one bulk download on 08-15, most
+ * likely from a tab holding a pre-fix bundle, then 2 on 09-04 and none since.
+ *
+ * Still deprecated in favour of GET /files/download-url, which returns the URL
+ * as JSON rather than as a redirect. This route stays because ~1.1M requests a
+ * day arrive on it from htslib, and it now enforces the same policy, so there
+ * is no longer any urgency to move them.
  */
 export const downloadFileOptions = (options: Options<DownloadFileData>) =>
   queryOptions<
@@ -2269,10 +2301,11 @@ export const getJobsQueryKey = (options?: Options<GetJobsData>) =>
  * session: Database session
  * skip: Number of records to skip
  * limit: Maximum number of records to return
- * user: Optional user filter
+ * user: Optional submitters to match; any one of them, not all
  * status_filter: Optional status filter
  * project_id: Optional project filter
  * sequencing_run_id: Optional sequencing run filter
+ * search: Optional free-text match across job id, name and user
  * sort_by: Field to sort by (defaults to 'submitted_on')
  * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
  *
@@ -2337,6 +2370,57 @@ export const submitJobMutation = (
   }
   return mutationOptions
 }
+
+export const getJobSubmittersQueryKey = (
+  options?: Options<GetJobSubmittersData>,
+) => createQueryKey('getJobSubmitters', options)
+
+/**
+ * Get Job Submitters
+ *
+ * Retrieve a page of the submitters of the jobs in a scope.
+ *
+ * Supports the Submitted By filter on the jobs tables. GET /jobs matches `user`
+ * exactly and usernames are opaque ids, so the filter offers the submitters
+ * rather than asking for one to be typed. Scoped by the same project and run
+ * arguments as GET /jobs, so every option offered returns rows.
+ *
+ * Paged and ranked by job count, because the set only ever grows -- a
+ * submitter stays one forever. The filter offers the busiest few and narrows
+ * by `q` as the caller types.
+ *
+ * Args:
+ * session: Database session
+ * project_id: Optional project filter
+ * sequencing_run_id: Optional sequencing run filter
+ * q: Optional substring match on the username
+ * skip: Number of submitters to skip
+ * limit: Maximum number of submitters to return
+ *
+ * Returns:
+ * A page of submitters, busiest first, and the total matching in the
+ * scope -- which is how a caller knows whether more remain
+ */
+export const getJobSubmittersOptions = (
+  options?: Options<GetJobSubmittersData>,
+) =>
+  queryOptions<
+    GetJobSubmittersResponse,
+    GetJobSubmittersError,
+    GetJobSubmittersResponse,
+    ReturnType<typeof getJobSubmittersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getJobSubmitters({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getJobSubmittersQueryKey(options),
+  })
 
 export const getJobQueryKey = (options: Options<GetJobData>) =>
   createQueryKey('getJob', options)

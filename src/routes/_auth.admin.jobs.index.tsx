@@ -1,21 +1,9 @@
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import z from 'zod'
-import { ListChecks, RefreshCw, User } from 'lucide-react'
-import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
-import type { BatchJobPublic, JobStatus } from '@/client'
-import { getJobsOptions, getJobsQueryKey } from '@/client/@tanstack/react-query.gen'
-import { ServerDataTable } from '@/components/data-table/data-table'
-import { SortableHeader } from '@/components/data-table/sortable-header'
-import { CopyableText } from '@/components/copyable-text'
-import { FullscreenSpinner } from '@/components/spinner'
-import { ErrorState } from '@/components/error-state'
-import { ErrorBanner } from '@/components/error-banner'
-import { JobStatusBadge } from '@/components/job-status-badge'
-import { SelectFilter } from '@/components/data-table/select-filter'
-import { TextFilter } from '@/components/data-table/text-filter'
-import { Button } from '@/components/ui/button'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
+import type { JobStatus } from '@/client'
+import { JobsTable } from '@/components/jobs-table'
 
 // Define the search schema for jobs
 const jobsSearchSchema = z.object({
@@ -34,6 +22,7 @@ const jobsSearchSchema = z.object({
   ]).optional().default('desc'),
   status_filter: z.string().optional().nullable(),
   user_filter: z.string().optional().nullable(),
+  query: z.string().optional().default(''),
 })
 
 export const Route = createFileRoute('/_auth/admin/jobs/')({
@@ -48,7 +37,6 @@ function RouteComponent() {
   // Manage the state of search params
   const search = Route.useSearch()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   // Local table state
   // Pagination (0-based for Tanstack Table)
@@ -62,187 +50,45 @@ function RouteComponent() {
     { id: search.sort_by, desc: search.sort_order === 'desc' ? true : false }
   ])
 
+  // Merges onto the live params rather than spreading `search`, which is the
+  // snapshot this render read. JobsTable sends the table back to page one
+  // whenever a filter or the search term changes, so this effect fires in the
+  // same tick as those writes -- and the router applies them after the render
+  // that triggers this. Spreading the stale snapshot and replacing the entry
+  // silently undid the filter that had just been set.
   useEffect(() => {
     navigate({
       to: '/admin/jobs',
-      search: {
-        ...search,
+      search: (previous) => ({
+        ...previous,
         page: pagination.pageIndex + 1,
         per_page: pagination.pageSize,
         sort_by: sorting[0]?.id as 'id' | 'name' | 'user' | 'status' | 'submitted_on',
         sort_order: sorting[0]?.desc ? 'desc' : 'asc',
-        status_filter: search.status_filter,
-        user_filter: search.user_filter,
-      },
+      }),
       replace: true
     })
   }, [pagination, sorting])
 
-  // Handle filter changes
-  const handleStatusChange = (status: string | null) => {
+  // JobsTable owns the filter controls and sends the table back to page one
+  // on every change, which the effect above then writes to the URL.
+  const handleStatusChange = (status: JobStatus | null) => {
     navigate({
       to: '/admin/jobs',
-      search: {
-        ...search,
-        status_filter: status,
-        page: 1, // Reset to first page when filtering
-      },
+      search: { ...search, status_filter: status },
     })
   }
 
-  const handleUserChange = (user: string | null) => {
+  // Several submitters ride in the one param, comma-joined: usernames cannot
+  // contain a comma, and it keeps a shared URL readable.
+  const userFilters = search.user_filter ? search.user_filter.split(',').filter(Boolean) : []
+
+  const handleUsersChange = (users: Array<string>) => {
     navigate({
       to: '/admin/jobs',
-      search: {
-        ...search,
-        user_filter: user,
-        page: 1, // Reset to first page when filtering
-      },
+      search: { ...search, user_filter: users.length > 0 ? users.join(',') : null },
     })
   }
-
-  const jobsQueryKey = getJobsQueryKey({
-    query: {
-      skip: (search.page - 1) * search.per_page,
-      limit: search.per_page,
-      sort_by: search.sort_by,
-      sort_order: search.sort_order,
-      status_filter: search.status_filter as JobStatus | null,
-      user: search.user_filter,
-    },
-  })
-
-  // Query jobs
-  const { data, error, isFetching, refetch } = useQuery({
-    ...getJobsOptions({
-      query: {
-        skip: (search.page - 1) * search.per_page,
-        limit: search.per_page,
-        sort_by: search.sort_by,
-        sort_order: search.sort_order,
-        status_filter: search.status_filter as JobStatus | null,
-        user: search.user_filter,
-      },
-    }),
-    placeholderData: keepPreviousData
-  })
-
-  const handleRefreshJobs = () => {
-    queryClient.invalidateQueries({ queryKey: jobsQueryKey, refetchType: 'all' })
-  }
-
-  // Handle job row click - navigate without updating view status (admin only)
-  const handleJobClick = (jobId: string) => {
-    navigate({ to: '/jobs/$job_id', params: { job_id: jobId } })
-  }
-
-  if (error && !data) return <ErrorState error={error} onRetry={() => { void refetch() }} />
-  if (!data) return <FullscreenSpinner variant='ellipsis' />
-
-
-  // Status options for filter
-  const statuses: Array<JobStatus> = [
-    'SUBMITTED',
-    'PENDING',
-    'RUNNABLE',
-    'STARTING',
-    'RUNNING',
-    'SUCCEEDED',
-    'FAILED',
-  ]
-
-  const statusOptions = statuses.map((status) => ({
-    label: <JobStatusBadge status={status} size='compact' />,
-    selectedLabel: <JobStatusBadge status={status} size='compact' />,
-    value: status,
-  }))
-  // Calculate total pages from count and per_page
-  const totalPages = Math.ceil(data.count / search.per_page)
-
-  // Define columns
-  const columns: Array<ColumnDef<BatchJobPublic>> = [
-    {
-      accessorKey: 'id',
-      meta: { alias: 'Job ID' },
-      header: ({ column }) => <SortableHeader column={column} name="Job ID" />,
-      cell: ({ cell }) => {
-        const id = cell.getValue() as string
-        return (
-          <CopyableText
-            text={id}
-            variant='primary'
-          />
-        )
-      }
-    },
-    {
-      accessorKey: 'name',
-      meta: { alias: 'Job Name' },
-      header: ({ column }) => <SortableHeader column={column} name="Job Name" />,
-      cell: ({ cell }) => {
-        const name = cell.getValue() as string
-        return <span className='text-sm'>{name}</span>
-      }
-    },
-    {
-      accessorKey: 'user',
-      meta: { alias: 'User' },
-      header: ({ column }) => <SortableHeader column={column} name="User" />,
-      cell: ({ cell }) => {
-        const user = cell.getValue() as string
-        return <span className='text-sm'>{user}</span>
-      }
-    },
-    {
-      accessorKey: 'status',
-      meta: { alias: 'Status' },
-      header: ({ column }) => <SortableHeader column={column} name="Status" />,
-      cell: ({ cell }) => {
-        const status = cell.getValue() as BatchJobPublic['status']
-        return <JobStatusBadge status={status} size='compact' />
-      }
-    },
-    {
-      accessorKey: 'submitted_on',
-      meta: { alias: 'Submitted' },
-      header: ({ column }) => <SortableHeader column={column} name="Submitted" />,
-      cell: ({ cell }) => {
-        const submitted = cell.getValue() as string
-        const date = new Date(submitted.replace(' ', 'T') + 'Z')
-        return <span className='text-sm text-muted-foreground'>{date.toLocaleString(undefined, { timeZoneName: 'short' })}</span>
-      }
-    },
-  ]
-
-  // Define table tools
-  const toolbar = (
-    <>
-      <SelectFilter
-        label="Status"
-        icon={ListChecks}
-        options={statusOptions}
-        value={search.status_filter || null}
-        onChange={handleStatusChange}
-      />
-      <TextFilter
-        label="User"
-        icon={User}
-        value={search.user_filter || null}
-        onChange={handleUserChange}
-        placeholder="Filter by user..."
-      />
-      <Button
-        type="button"
-        variant="outline"
-        size="default"
-        onClick={handleRefreshJobs}
-        disabled={isFetching}
-      >
-        <RefreshCw className={`${isFetching ? 'animate-spin' : ''}`} />
-        Refresh
-      </Button>
-    </>
-  )
 
   return (
     <div className='flex flex-col gap-6'>
@@ -254,18 +100,26 @@ function RouteComponent() {
           </p>
         </div>
       </div>
-      {error && <ErrorBanner error={error} onRetry={() => { void refetch() }} />}
-      <ServerDataTable
-        data={data.data}
-        columns={columns}
+
+      <JobsTable
+        statusFilter={search.status_filter as JobStatus | null}
+        onStatusFilterChange={handleStatusChange}
+        userFilters={userFilters}
+        onUserFilterChange={handleUsersChange}
+        userColumn='User'
+        // Admin reads the whole estate, so the job id is worth a column here.
+        columnVisibility={{}}
+        fullscreenLoading
         pagination={pagination}
         onPaginationChange={setPagination}
-        pageCount={totalPages}
-        totalItems={data.count}
         sorting={sorting}
         onSortingChange={setSorting}
-        tableTools={toolbar}
-        rowClickCallback={(row) => handleJobClick(row.original.id)}
+        initialSearch={search.query}
+        onSearchCommit={(query) => {
+          navigate({ to: '/admin/jobs', search: { ...search, query, page: 1 } })
+        }}
+        // Admin browses without marking anyone's job as read.
+        onRowClick={(jobId) => navigate({ to: '/jobs/$job_id', params: { job_id: jobId } })}
       />
     </div>
   )

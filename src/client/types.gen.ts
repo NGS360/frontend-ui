@@ -1248,6 +1248,10 @@ export type FilePublic = {
    */
   created_by: string | null
   /**
+   * Submitted By
+   */
+  submitted_by: string | null
+  /**
    * Source
    */
   source: string | null
@@ -1356,10 +1360,6 @@ export type FileUpdate = {
    * Source
    */
   source?: string | null
-  /**
-   * Created By
-   */
-  created_by?: string | null
   /**
    * Storage Backend
    */
@@ -1542,6 +1542,38 @@ export type JobStatus =
   | 'RUNNING'
   | 'SUCCEEDED'
   | 'FAILED'
+
+/**
+ * JobSubmitter
+ *
+ * Schema for one submitter of a set of jobs
+ */
+export type JobSubmitter = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Job Count
+   */
+  job_count: number
+}
+
+/**
+ * JobSubmittersPublic
+ *
+ * Schema for returning a page of the submitters of a set of jobs
+ */
+export type JobSubmittersPublic = {
+  /**
+   * Data
+   */
+  data: Array<JobSubmitter>
+  /**
+   * Count
+   */
+  count: number
+}
 
 /**
  * LogResponse
@@ -2136,6 +2168,10 @@ export type ProjectPublic = {
    */
   results_folder_uri: string | null
   /**
+   * Download Restricted
+   */
+  download_restricted?: boolean
+  /**
    * Attributes
    */
   attributes: Array<Attribute> | null
@@ -2159,6 +2195,10 @@ export type ProjectUpdate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Download Restricted
+   */
+  download_restricted?: boolean | null
 }
 
 /**
@@ -4801,7 +4841,7 @@ export type DownloadFileData = {
     /**
      * Path
      *
-     * S3 URI of file to download (e.g., s3://bucket/path/file.txt)
+     * S3 URI of the file
      */
     path: string
   }
@@ -4995,9 +5035,9 @@ export type GetJobsData = {
     /**
      * User
      *
-     * Filter by user
+     * Filter by submitter. Repeat the parameter to match any of several, e.g. ?user=alice&user=bob
      */
-    user?: string | null
+    user?: Array<string> | null
     /**
      * Status Filter
      *
@@ -5013,9 +5053,15 @@ export type GetJobsData = {
     /**
      * Sequencing Run Id
      *
-     * Filter by sequencing run (SequencingRun.run_id, e.g. 260506_VH01208_93_222FCGLNX)
+     * Filter by sequencing run (SequencingRun.run_id, e.g. 240101_VH00000_1_EXAMPLE01)
      */
     sequencing_run_id?: string | null
+    /**
+     * Search
+     *
+     * Free-text match across job id, name and user
+     */
+    search?: string | null
     /**
      * Sort By
      *
@@ -5074,6 +5120,60 @@ export type SubmitJobResponses = {
 }
 
 export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses]
+
+export type GetJobSubmittersData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Project Id
+     *
+     * Restrict to one project (Project.project_id, e.g. P-19900109-0001)
+     */
+    project_id?: string | null
+    /**
+     * Sequencing Run Id
+     *
+     * Restrict to one sequencing run (SequencingRun.run_id, e.g. 240101_VH00000_1_EXAMPLE01)
+     */
+    sequencing_run_id?: string | null
+    /**
+     * Q
+     *
+     * Substring match on the username
+     */
+    q?: string | null
+    /**
+     * Skip
+     */
+    skip?: number
+    /**
+     * Limit
+     */
+    limit?: number
+  }
+  url: '/api/v1/jobs/submitters'
+}
+
+export type GetJobSubmittersErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetJobSubmittersError =
+  GetJobSubmittersErrors[keyof GetJobSubmittersErrors]
+
+export type GetJobSubmittersResponses = {
+  /**
+   * Successful Response
+   */
+  200: JobSubmittersPublic
+}
+
+export type GetJobSubmittersResponse =
+  GetJobSubmittersResponses[keyof GetJobSubmittersResponses]
 
 export type GetJobData = {
   body?: never
