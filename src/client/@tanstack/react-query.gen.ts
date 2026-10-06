@@ -59,6 +59,7 @@ import {
   getJobLog,
   getJobLogPaginated,
   getJobs,
+  getJobSubmitters,
   getLatestManifest,
   getMyAccess,
   getPipelineById,
@@ -288,6 +289,9 @@ import type {
   GetJobsData,
   GetJobsError,
   GetJobsResponse,
+  GetJobSubmittersData,
+  GetJobSubmittersError,
+  GetJobSubmittersResponse,
   GetLatestManifestData,
   GetLatestManifestError,
   GetLatestManifestResponse,
@@ -2297,7 +2301,7 @@ export const getJobsQueryKey = (options?: Options<GetJobsData>) =>
  * session: Database session
  * skip: Number of records to skip
  * limit: Maximum number of records to return
- * user: Optional user filter
+ * user: Optional submitters to match; any one of them, not all
  * status_filter: Optional status filter
  * project_id: Optional project filter
  * sequencing_run_id: Optional sequencing run filter
@@ -2366,6 +2370,57 @@ export const submitJobMutation = (
   }
   return mutationOptions
 }
+
+export const getJobSubmittersQueryKey = (
+  options?: Options<GetJobSubmittersData>,
+) => createQueryKey('getJobSubmitters', options)
+
+/**
+ * Get Job Submitters
+ *
+ * Retrieve a page of the submitters of the jobs in a scope.
+ *
+ * Supports the Submitted By filter on the jobs tables. GET /jobs matches `user`
+ * exactly and usernames are opaque ids, so the filter offers the submitters
+ * rather than asking for one to be typed. Scoped by the same project and run
+ * arguments as GET /jobs, so every option offered returns rows.
+ *
+ * Paged and ranked by job count, because the set only ever grows -- a
+ * submitter stays one forever. The filter offers the busiest few and narrows
+ * by `q` as the caller types.
+ *
+ * Args:
+ * session: Database session
+ * project_id: Optional project filter
+ * sequencing_run_id: Optional sequencing run filter
+ * q: Optional substring match on the username
+ * skip: Number of submitters to skip
+ * limit: Maximum number of submitters to return
+ *
+ * Returns:
+ * A page of submitters, busiest first, and the total matching in the
+ * scope -- which is how a caller knows whether more remain
+ */
+export const getJobSubmittersOptions = (
+  options?: Options<GetJobSubmittersData>,
+) =>
+  queryOptions<
+    GetJobSubmittersResponse,
+    GetJobSubmittersError,
+    GetJobSubmittersResponse,
+    ReturnType<typeof getJobSubmittersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getJobSubmitters({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getJobSubmittersQueryKey(options),
+  })
 
 export const getJobQueryKey = (options: Options<GetJobData>) =>
   createQueryKey('getJob', options)
