@@ -263,7 +263,7 @@ function RouteComponent() {
 
   return (
     <div className='flex flex-col gap-6'>
-      <div className='flex flex-col gap-4 md:flex-row md:items-end md:justify-between'>
+      <div className='flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between'>
         <div className='flex flex-col gap-2'>
           <h1 className="text-3xl">Vendors</h1>
           <p className="text-muted-foreground">
@@ -275,7 +275,7 @@ function RouteComponent() {
           trigger={
             <Button
               variant='primary2'
-              className="w-full md:w-auto"
+              className="w-full @3xl:w-auto"
             >
               <Plus className="h-4 w-4" />
               Add Vendor

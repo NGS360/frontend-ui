@@ -5,5 +5,12 @@ export const Route = createFileRoute('/_user')({
 })
 
 function RouteComponent() {
-  return <Outlet />
+  // Container for @-variant queries; these pages have no sidebar, so the
+  // container tracks the viewport, but a container ancestor must exist for
+  // the variants to apply at all.
+  return (
+    <div className="@container">
+      <Outlet />
+    </div>
+  )
 }

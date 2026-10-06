@@ -118,7 +118,11 @@ export const PermissionMatrix = ({
               </span>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
+            {/* @xl rather than @2xl: this renders inside the create-role Sheet,
+                whose content box is narrower than the @2xl breakpoint, so @2xl
+                would never match there and the matrix would lose its second
+                column. */}
+            <div className="grid gap-2 @xl:grid-cols-2">
               {entries.map((entry) => {
                 const id = `${idPrefix}-${entry.permission.replace(/[^a-z0-9]+/gi, '-')}`
                 return (

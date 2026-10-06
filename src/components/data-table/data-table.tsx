@@ -196,7 +196,7 @@ export function DataTable<TData>({
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
+        <div className="flex flex-col gap-2 @3xl:flex-row @3xl:items-center @3xl:justify-end">
           {showSearch && (
             <Input
               autoFocus
@@ -206,10 +206,10 @@ export function DataTable<TData>({
                 table.setPageIndex(0)
               }}
               placeholder="Type to filter all columns..."
-              className="w-full md:w-full lg:w-1/3"
+              className="w-full @3xl:w-full @5xl:w-1/3"
             />
           )}
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:flex-nowrap md:shrink-0">
+          <div className="flex flex-col gap-2 @2xl:flex-row @2xl:flex-wrap @2xl:items-center @2xl:justify-end @3xl:flex-nowrap @3xl:shrink-0">
             {typeof tableTools === 'function' ? tableTools(table) : tableTools}
             <DataTableColumnToggle table={table} />
           </div>

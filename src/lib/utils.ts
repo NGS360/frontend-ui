@@ -9,6 +9,55 @@ export function cn(...inputs: Array<ClassValue>) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Formats a byte count as a human-readable size (e.g. "0 B", "1.5 KB",
+ * "3.4 MB"). Trailing zeros are trimmed; `decimals` caps the fraction digits.
+ */
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const dm = Math.max(0, decimals)
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const idx = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${parseFloat((bytes / Math.pow(k, idx)).toFixed(dm))} ${sizes[idx]}`
+}
+
+/**
+ * Safely formats a date string as a localized date + time (via toLocaleString).
+ * Returns "-" for empty, "-", or unparseable input.
+ */
+export function formatDateTime(dateString: string): string {
+  if (!dateString || dateString === '-') return '-'
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return '-'
+    return date.toLocaleString()
+  } catch {
+    return '-'
+  }
+}
+
+/**
+ * Formats a timestamp as a short relative time string (e.g. "5m ago", "3h ago",
+ * "2d ago"), falling back to a localized date for anything older than a week.
+ */
+export function relativeTime(timestamp: number): string {
+  const diff = Date.now() - timestamp
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+  if (diff < hour) {
+    const mins = Math.max(1, Math.round(diff / minute))
+    return `${mins}m ago`
+  }
+  if (diff < day) return `${Math.round(diff / hour)}h ago`
+  if (diff < 7 * day) return `${Math.round(diff / day)}d ago`
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export function isValidHttpURL(text: string | null) {
   if (!text) return false
   try {

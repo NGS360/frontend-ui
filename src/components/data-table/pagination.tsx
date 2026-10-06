@@ -46,7 +46,7 @@ export function DataTablePagination<TData>({
   const displayTotal = isServerSide ? totalItems : (isFiltered ? rowsFiltered : totalItems);
 
   return (
-    <div className="flex items-center justify-end md:justify-between">
+    <div className="flex items-center justify-end @3xl:justify-between">
       {!isMobile && (
         <div className="text-muted-foreground flex-1 text-sm">
           Showing {" "}
@@ -54,7 +54,7 @@ export function DataTablePagination<TData>({
           {displayTotal} row(s)
         </div>
       )}
-      <div className="flex items-center space-x-2 md:space-x-6 lg:space-x-8">
+      <div className="flex items-center space-x-2 @3xl:space-x-6 @5xl:space-x-8">
         <div className="flex items-center space-x-2">
           {!isMobile && <p className="text-sm font-medium">Rows per page</p>}
           <Select
@@ -84,7 +84,7 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center justify-center text-sm font-medium whitespace-nowrap md:w-[100px]">
+        <div className="flex items-center justify-center text-sm font-medium whitespace-nowrap @3xl:w-[100px]">
           Page {table.getState().pagination.pageIndex + 1} of{" "}
           {table.getPageCount()}
         </div>
@@ -92,7 +92,7 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             size="icon"
-            className="hidden size-8 lg:flex"
+            className="hidden size-8 @5xl:flex"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
@@ -122,7 +122,7 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             size="icon"
-            className="hidden size-8 lg:flex"
+            className="hidden size-8 @5xl:flex"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >

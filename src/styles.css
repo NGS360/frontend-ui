@@ -2,7 +2,49 @@
 
 @plugin "tailwindcss-animate";
 
+/* Streamdown's utility classes live inside its shipped JS, which Tailwind's
+   source detection skips — without these the assistant's markdown is unstyled. */
+@source "../node_modules/streamdown/dist/*.js";
+@source "../node_modules/@streamdown/code/dist/*.js";
+
 @custom-variant dark (&:is(.dark *));
+
+/* Reserve the scrollbar gutter so Radix overlays locking body scroll don't
+   shift the layout. overflow-y: scroll keeps the gutter reading as a
+   scrollbar rather than an empty gap on short pages. */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  /* Firefox; matches the shadcn ScrollArea look. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* WebKit equivalent. The inset transparent border keeps the thumb pill off
+   the track edges. */
+html::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}
+
+/* The gutter is already reserved, so react-remove-scroll's own compensation
+   would shift the layout. Doubled attribute outranks its injected rule. */
+body[data-scroll-locked][data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
 
 body {
   @apply m-0;
@@ -170,28 +212,303 @@ code {
   }
 }
 
-/* Custom animations */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+/* A theme token, so `animate-fade-in-up` is a real utility rather than a bare
+   class. Keep it a plain @theme — the override below needs a real custom
+   property, which `@theme inline` would not emit.
+
+   `backwards`, not `both`: it covers animation-delay so staggered elements
+   need no inline opacity:0, without persisting the final translateY(0).
+   A non-none transform would make the element a containing block and clip
+   FileUpload's full-screen drag overlay. */
+@theme {
+  --animate-fade-in-up: fade-in-up 0.5s ease-out backwards;
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out;
+/* Blanking the token guards every call site at once. The fill mode goes with
+   it, so elements land at their natural opacity rather than stranded invisible. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-fade-in-up: none;
+    --animate-gradient-text-sweep: none;
+  }
 }
 
 /* Gradient text */
-.gradient-text {
+@utility gradient-text {
   background: linear-gradient(135deg, var(--bms-primary-1) 0%, var(--bms-primary-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Animated sibling of gradient-text, for a working state whose label is its own
+   progress indicator — no spinner glyph beside it. A highlight travels across
+   the glyphs, the way a terminal agent shimmers its status line.
+
+   Horizontal (90deg), not the 135deg brand axis the other gradients use: on one
+   short line of text a diagonal reads as an uneven wash rather than a pass of
+   light, and the motion is left-to-right so the slant would fight it.
+
+   Keep it a plain @theme: the reduced-motion override above blanks this token,
+   which needs a real custom property that `@theme inline` would not emit. */
+@theme {
+  --animate-gradient-text-sweep: gradient-text-sweep 2.4s linear infinite;
+
+  /* Background-position percentages align image edge to box edge, so at 100% the
+     visible third is the image's right end — all resting colour, highlight still
+     off to the left — and walking to 0% slides the image right, carrying the
+     highlight in from the left edge and out through the right.
+
+     The 300% width is what buys the rest between passes: the highlight is clear
+     of the glyphs at both 100% and 0%, so the loop wraps on a flat frame and
+     there is no jump. At 200% it would be mid-sweep at the wrap and visibly
+     snap back. */
+  @keyframes gradient-text-sweep {
+    from {
+      background-position: 100% 0%;
+    }
+    to {
+      background-position: 0% 0%;
+    }
+  }
+}
+
+/* The resting fill is currentColor, so the call site's own text color sets the
+   tone (muted, for a quiet working state) and one definition serves both themes.
+   The highlight is --foreground, i.e. the *high-contrast* direction rather than
+   a fixed colour, which is what makes it survive a theme flip: on dark it is
+   near-white (oklch .985) over grey — the shine this is modelled on — and on
+   light it is near-black (oklch .145) over grey. Literal white would be wrong
+   here, and not for pedantry: this app only ever renders the light theme (no
+   .dark class is set anywhere), so a white highlight over grey glyphs on a white
+   page would punch a moving hole through the word instead of lighting it up.
+
+   Soft and wide on purpose: currentColor -> foreground -> currentColor across
+   40%-60% of an image three times the box width, so the peak is ~60% of the
+   visible width with a gradual falloff. A tight band reads as a stripe wiping
+   over the text; this reads as a pass of light. No color-mix() — an invalid
+   background-image under a transparent text fill would render nothing at all. */
+@utility gradient-text-sweep {
+  background-image: linear-gradient(
+    90deg,
+    currentColor 0%,
+    currentColor 40%,
+    var(--foreground) 50%,
+    currentColor 60%,
+    currentColor 100%
+  );
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: var(--animate-gradient-text-sweep);
+
+  /* Reduced motion means no movement, not no colour. Park the band across the
+     glyphs instead of blanking the gradient: at the default 0% the band sits
+     off-view and the label renders as flat currentColor, which is
+     indistinguishable from the utility not having applied at all — an
+     invisible failure mode that costs real debugging time. 50% centres it, and
+     the glyphs outside the band stay currentColor, so the label cannot vanish
+     the way a fully transparent fill over a blanked background would. */
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    background-position: 50% 0%;
+  }
+}
+
+/* Decorative brand wash behind the chat content; expects an isolated parent.
+   Light theme only for now. Both variants are a short top glow that fades out
+   before the message list — data-variant only controls how short. */
+@utility ai-chat-gradient {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: 150% 150%;
+  /* Brand hues kept high so the mask doesn't clip them. #ffc180 is the NGS360
+     peach; the rest are theme vars. */
+  background-image:
+    radial-gradient(55% 45% at 12% 14%, color-mix(in oklab, var(--bms-primary-1) 7%, transparent) 0%, transparent 62%),
+    radial-gradient(52% 44% at 40% 18%, color-mix(in oklab, var(--bms-primary-2) 6%, transparent) 0%, transparent 62%),
+    radial-gradient(52% 44% at 66% 13%, color-mix(in oklab, #ffc180 9%, transparent) 0%, transparent 62%),
+    radial-gradient(55% 45% at 90% 18%, color-mix(in oklab, var(--accent2) 6%, transparent) 0%, transparent 62%);
+  animation: ai-chat-gradient-flow 24s ease-in-out infinite alternate;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 8%, transparent 42%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 8%, transparent 42%);
+
+  /* Active conversation: shorter band, so the message list is clean sooner. */
+  &[data-variant='top'] {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 5%, transparent 26%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 5%, transparent 26%);
+  }
+
+  /* Keep the wash, drop the drift. */
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* Bottom-right companion to the top band, shown in the empty state. Separate
+   layer so the top band's mask doesn't clip it; retreats into the corner once
+   a conversation starts. */
+@utility ai-chat-corner-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-image:
+    radial-gradient(42% 40% at 100% 78%, color-mix(in oklab, var(--bms-primary-1) 6%, transparent) 0%, transparent 60%),
+    radial-gradient(46% 44% at 78% 100%, color-mix(in oklab, var(--bms-primary-2) 6%, transparent) 0%, transparent 60%),
+    radial-gradient(44% 42% at 100% 98%, color-mix(in oklab, #ffc180 9%, transparent) 0%, transparent 60%),
+    radial-gradient(46% 44% at 90% 88%, color-mix(in oklab, var(--accent2) 6%, transparent) 0%, transparent 60%);
+  transition: transform 600ms ease, opacity 600ms ease;
+
+  &[data-variant='top'] {
+    transform: translate(30%, 30%);
+    opacity: 0;
+  }
+
+  /* Still retreats, just without the slide. */
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@keyframes ai-chat-gradient-flow {
+  0%   { background-position: 0% 0%,     100% 0%,   100% 100%, 0% 100%; }
+  50%  { background-position: 40% 30%,   60% 25%,   55% 70%,   30% 60%; }
+  100% { background-position: 100% 100%, 0% 100%,   0% 0%,     100% 0%; }
+}
+
+/* Suggested-prompt pills. Each pill's brand hue arrives as --pill, set per
+   button; falls back to the neutral border color if unset. */
+@utility suggestion-pill {
+  --pill: var(--border);
+  color: var(--foreground);
+  border-color: color-mix(in oklab, var(--pill) 45%, var(--border));
+  background-color: color-mix(in oklab, var(--pill) 9%, var(--background));
+
+  &:hover {
+    color: color-mix(in oklab, var(--pill) 70%, var(--foreground));
+    border-color: color-mix(in oklab, var(--pill) 65%, transparent);
+    background-color: color-mix(in oklab, var(--pill) 16%, var(--background));
+  }
+}
+
+/* Assistant markdown in the AI chat. Streamdown ships shadcn-flavored defaults
+   scaled for a full-width page; this rescales them for a bubble that can be as
+   narrow as 240px, and repairs one token collision. Selectors key off
+   data-streamdown attributes rather than Streamdown's utility classes, which
+   are an implementation detail of its build. Every selector is doubled (&&) so
+   it outranks the single-class utilities it replaces — same trick as the
+   scroll-lock rule near the top of this file. */
+@utility ai-chat-markdown {
+  /* Streamdown paints code blocks, tables and their action bars with
+     bg-sidebar. --sidebar is `none` here so the app sidebar reads transparent,
+     and `background-color: none` is invalid at computed-value time — it falls
+     back to transparent while border-color falls back to currentColor, so light
+     mode would lose every code/table surface and gain a dark border. Give the
+     subtree a real surface; --sidebar is set directly because --color-sidebar is
+     declared in `@theme inline`. */
+  --sidebar: color-mix(in oklab, var(--foreground) 4%, var(--background));
+
+  /* Tighter rhythm than Streamdown's space-y-4 and the per-element mt-6/mb-2. */
+  && > * {
+    margin-block-end: 0;
+  }
+  && > * + * {
+    margin-block-start: 0.5rem;
+  }
+
+  /* An h1 at text-3xl in a 384px column is noise. */
+  && :is([data-streamdown^='heading-']) {
+    margin-block: 0.75rem 0.25rem;
+    font-size: inherit;
+    font-weight: 600;
+  }
+  && :is([data-streamdown='heading-1'], [data-streamdown='heading-2']) {
+    font-size: 0.9375rem;
+  }
+
+  /* Outside markers: list-inside reflows wrapped lines under the marker, which
+     is unreadable once lines wrap every few words. */
+  && :is([data-streamdown='unordered-list'], [data-streamdown='ordered-list']) {
+    margin-block: 0.25rem;
+    padding-left: 1.125rem;
+    list-style-position: outside;
+  }
+  /* Restores the nested indent that Streamdown's own [li_&]:pl-6 provided. */
+  &&
+    [data-streamdown='list-item']
+    :is([data-streamdown='unordered-list'], [data-streamdown='ordered-list']) {
+    padding-left: 1rem;
+  }
+  && [data-streamdown='list-item'] {
+    padding-block: 0.0625rem;
+  }
+
+  &&
+    :is(
+      [data-streamdown='code-block'],
+      [data-streamdown='table-wrapper'],
+      [data-streamdown='blockquote'],
+      [data-streamdown='horizontal-rule'],
+      [data-streamdown='mermaid-block']
+    ) {
+    margin-block: 0.5rem;
+  }
+
+  /* These scroll containers are the only escape hatch for content wider than
+     the sidebar — the chat ScrollArea renders no horizontal scrollbar — so they
+     have to be able to shrink below their content. */
+  &&
+    :is(
+      [data-streamdown='code-block'],
+      [data-streamdown='code-block-body'],
+      [data-streamdown='table-wrapper']
+    ) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* SQL is the common fence here; buy back horizontal room. */
+  && [data-streamdown='code-block-body'] {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+  && [data-streamdown='inline-code'] {
+    font-size: 0.8125em;
+  }
+  &&
+    :is([data-streamdown='table-cell'], [data-streamdown='table-header-cell']) {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  && [data-streamdown='link'] {
+    color: var(--bms-primary-1);
+    text-underline-offset: 2px;
+  }
+  /* Placeholder href on a half-streamed link — no affordance until it resolves. */
+  && [data-streamdown='link'][data-incomplete='true'] {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 /* Smooth scrolling */

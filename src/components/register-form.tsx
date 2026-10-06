@@ -62,7 +62,7 @@ export function RegisterForm({
     },
   })
 
-  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+  const onSubmit: SubmitHandler<FormFields> = (data) => {
     const body: UserRegister = {
       username: data.username,
       email: data.email,

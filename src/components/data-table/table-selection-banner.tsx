@@ -82,7 +82,7 @@ export function TableSelectionBanner<TData>({
 
   const switchId = 'table-selection-banner-show-selected'
   return (
-    <div className='flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 rounded-md border border-primary-2/10 bg-primary-2/10 px-3 py-2'>
+    <div className='flex flex-col gap-2 @2xl:flex-row @2xl:flex-wrap @2xl:items-center @2xl:gap-4 rounded-md border border-primary-2/10 bg-primary-2/10 px-3 py-2'>
       <div className='flex flex-wrap items-center gap-3'>
         <Tooltip>
           <TooltipTrigger asChild>

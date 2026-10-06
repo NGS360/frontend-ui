@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute, getRouteApi } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChartBar, ChevronDown, FileSpreadsheet, FolderOpen, Loader2, PlayCircle, RotateCw, Upload } from 'lucide-react'
+import { ChartBar, ChevronDown, FileSpreadsheet, FolderOpen, ListChecks, Loader2, PlayCircle, RotateCw, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { ChangeEvent } from 'react';
@@ -182,7 +182,7 @@ function RouteComponent() {
         <p className='text-muted-foreground'>{run.experiment_name}</p>
         <div className='flex gap-4'>
           <TabNav className="justify-between">
-            <div className='flex gap-2 flex-col md:flex-row md:items-center'>
+            <div className='flex gap-2 flex-col @3xl:flex-row @3xl:items-center'>
               <TabLink
                 to='/runs/$run_id/samplesheet'
                 params={{ run_id: run.run_id }}
@@ -195,8 +195,14 @@ function RouteComponent() {
               >
                 <ChartBar /><span>IndexQC</span>
               </TabLink>
+              <TabLink
+                to='/runs/$run_id/jobs'
+                params={{ run_id: run.run_id }}
+              >
+                <ListChecks /><span>Jobs</span>
+              </TabLink>
             </div>
-            <div className='md:flex md:gap-2'>
+            <div className='@3xl:flex @3xl:gap-2'>
               <div className='flex gap-2 items-center'>
                 <span>
                   Status: {runQuery.data.status}
@@ -258,7 +264,7 @@ function RouteComponent() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                       <Button
-                        className='flex-1 min-w-0 md:flex-none md:w-auto'
+                        className='flex-1 min-w-0 @3xl:flex-none @3xl:w-auto'
                         variant='primary2'
                         onClick={handleClick}
                       >
@@ -272,7 +278,7 @@ function RouteComponent() {
                 <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      className='flex-1 min-w-0 md:flex-none md:w-auto'
+                      className='flex-1 min-w-0 @3xl:flex-none @3xl:w-auto'
                       variant='primary2'
                       disabled={toolsQuery.isLoading}
                     >

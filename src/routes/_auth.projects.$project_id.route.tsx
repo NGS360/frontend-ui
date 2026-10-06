@@ -77,7 +77,7 @@ function RouteComponent() {
           <div className='min-w-0'>
             <h1 className='text-3xl font-extralight'>{project.name}</h1>
             {showMetadata && (
-              <div className='flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-3 mt-1 text-sm text-muted-foreground'>
+              <div className='flex flex-col @2xl:flex-row @2xl:flex-wrap gap-1 @2xl:gap-3 mt-1 text-sm text-muted-foreground'>
                 {hasCreator && <span className='inline-flex items-center gap-1'><User size={14} />Created by <span className='font-semibold'>{project.created_by}</span></span>}
                 {createdAt && <span className='inline-flex items-center gap-1'><Calendar size={14} />Created on <span className='font-semibold'>{createdAt}</span></span>}
                 {lastModified && <span className='inline-flex items-center gap-1'><Clock size={14} />Modified <span className='font-semibold'>{lastModified}</span></span>}
@@ -97,10 +97,10 @@ function RouteComponent() {
             >
               <Link to='/projects/$project_id/settings' params={{ project_id }}>
                 <SlidersHorizontal className='h-4 w-4' />
-                {/* Icon-only below sm: the label is the first thing worth
-                    dropping when the title needs the width. */}
-                <span className='hidden sm:inline'>Project Settings</span>
-                <span className='sr-only sm:hidden'>Project Settings</span>
+                {/* Icon-only on a narrow container: the label is the first thing
+                    worth dropping when the title needs the width. */}
+                <span className='hidden @2xl:inline'>Project Settings</span>
+                <span className='sr-only @2xl:hidden'>Project Settings</span>
               </Link>
             </Button>
           )}

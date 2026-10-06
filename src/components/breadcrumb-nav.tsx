@@ -36,7 +36,7 @@ export const BreadcrumbNav: React.FC = () => {
           }
           return (
             <React.Fragment key={index}>
-              <BreadcrumbItem className="hidden md:block max-w-[50vw] lg:max-w-[60vw]">
+              <BreadcrumbItem className="hidden @3xl:block max-w-[50vw] @5xl:max-w-[60vw]">
                 {isLast || !item.includeCrumbLink ? (
                   <BreadcrumbPage
                     className={`line-clamp-1 ${!item.includeCrumbLink ? "text-muted-foreground" : ""}`}
@@ -50,7 +50,7 @@ export const BreadcrumbNav: React.FC = () => {
                   </Link>
                 )}
               </BreadcrumbItem>
-              {!isLast && <BreadcrumbSeparator className="hidden md:block" />}
+              {!isLast && <BreadcrumbSeparator className="hidden @3xl:block" />}
             </React.Fragment>
           );
         })}

@@ -33,7 +33,9 @@ import {
   createWorkflow,
   createWorkflowDeployment,
   createWorkflowVersion,
+  deleteAllChatThreads,
   deleteApiKey,
+  deleteChatThread,
   deleteFile,
   deleteQcrecord,
   deleteRole,
@@ -47,6 +49,7 @@ import {
   getActionTypes,
   getAllConfigs,
   getAvailableOauthProviders,
+  getChatThreadMessages,
   getCurrentUserInfo,
   getDemultiplexWorkflowConfig,
   getDownloadUrl,
@@ -91,6 +94,7 @@ import {
   ingestVendorData,
   linkOauthProvider,
   listApiKeys,
+  listChatThreads,
   listDemultiplexWorkflows,
   listFiles,
   listPermissions,
@@ -179,6 +183,7 @@ import type {
   ChatError,
   ChatStreamData,
   ChatStreamError,
+  ChatStreamResponse,
   ClearSamplesForRunData,
   ClearSamplesForRunError,
   ClearSamplesForRunResponse,
@@ -215,9 +220,14 @@ import type {
   CreateWorkflowVersionData,
   CreateWorkflowVersionError,
   CreateWorkflowVersionResponse,
+  DeleteAllChatThreadsData,
+  DeleteAllChatThreadsResponse,
   DeleteApiKeyData,
   DeleteApiKeyError,
   DeleteApiKeyResponse,
+  DeleteChatThreadData,
+  DeleteChatThreadError,
+  DeleteChatThreadResponse,
   DeleteFileData,
   DeleteFileError,
   DeleteFileResponse,
@@ -252,6 +262,9 @@ import type {
   GetAllConfigsResponse,
   GetAvailableOauthProvidersData,
   GetAvailableOauthProvidersResponse,
+  GetChatThreadMessagesData,
+  GetChatThreadMessagesError,
+  GetChatThreadMessagesResponse,
   GetCurrentUserInfoData,
   GetCurrentUserInfoResponse,
   GetDemultiplexWorkflowConfigData,
@@ -377,6 +390,9 @@ import type {
   ListApiKeysData,
   ListApiKeysError,
   ListApiKeysResponse,
+  ListChatThreadsData,
+  ListChatThreadsError,
+  ListChatThreadsResponse,
   ListDemultiplexWorkflowsData,
   ListDemultiplexWorkflowsResponse,
   ListFilesData,
@@ -1184,9 +1200,16 @@ export const createApiKeyMutation = (
 }
 
 /**
- * Delete Api Key
+ * Retire an API key
  *
- * Delete an API key.
+ * Retire an API key. Equivalent to `POST /api-keys/{key_id}/revoke`.
+ *
+ * The key stops authenticating immediately. The record is kept, with
+ * `is_active = false` and `revoked_at` set, so that the retirement stays
+ * auditable -- it is not erased. It continues to appear in `GET /api-keys`.
+ *
+ * Idempotent: retiring an already-retired key succeeds and preserves the
+ * original `revoked_at`.
  */
 export const deleteApiKeyMutation = (
   options?: Partial<Options<DeleteApiKeyData>>,
@@ -1651,18 +1674,146 @@ export const chatMutation = (
 /**
  * Chat Stream
  *
- * Streaming chat for the chat UI (Vercel AI SDK UI Message Stream protocol).
+ * Streaming chat for the chat UI.
+ *
+ * The frames are this API's own; the client's chat transport maps them onto
+ * the AI SDK protocol that useChat consumes.
  */
 export const chatStreamMutation = (
   options?: Partial<Options<ChatStreamData>>,
-): UseMutationOptions<unknown, ChatStreamError, Options<ChatStreamData>> => {
+): UseMutationOptions<
+  ChatStreamResponse,
+  ChatStreamError,
+  Options<ChatStreamData>
+> => {
   const mutationOptions: UseMutationOptions<
-    unknown,
+    ChatStreamResponse,
     ChatStreamError,
     Options<ChatStreamData>
   > = {
     mutationFn: async (fnOptions) => {
       const { data } = await chatStream({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Delete All Chat Threads
+ *
+ * Delete all of the caller's chat threads.
+ */
+export const deleteAllChatThreadsMutation = (
+  options?: Partial<Options<DeleteAllChatThreadsData>>,
+): UseMutationOptions<
+  DeleteAllChatThreadsResponse,
+  DefaultError,
+  Options<DeleteAllChatThreadsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAllChatThreadsResponse,
+    DefaultError,
+    Options<DeleteAllChatThreadsData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await deleteAllChatThreads({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+export const listChatThreadsQueryKey = (
+  options?: Options<ListChatThreadsData>,
+) => createQueryKey('listChatThreads', options)
+
+/**
+ * List Chat Threads
+ *
+ * List the caller's chat threads, most recently active first.
+ */
+export const listChatThreadsOptions = (
+  options?: Options<ListChatThreadsData>,
+) =>
+  queryOptions<
+    ListChatThreadsResponse,
+    ListChatThreadsError,
+    ListChatThreadsResponse,
+    ReturnType<typeof listChatThreadsQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await listChatThreads({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: listChatThreadsQueryKey(options),
+  })
+
+export const getChatThreadMessagesQueryKey = (
+  options: Options<GetChatThreadMessagesData>,
+) => createQueryKey('getChatThreadMessages', options)
+
+/**
+ * Get Chat Thread Messages
+ *
+ * A thread's transcript as the user saw it, for reloading it into the chat.
+ *
+ * The thread itself carries the agent's full working state; this is the subset
+ * that was on screen. See GET /chat/threads/{thread_id} for everything.
+ */
+export const getChatThreadMessagesOptions = (
+  options: Options<GetChatThreadMessagesData>,
+) =>
+  queryOptions<
+    GetChatThreadMessagesResponse,
+    GetChatThreadMessagesError,
+    GetChatThreadMessagesResponse,
+    ReturnType<typeof getChatThreadMessagesQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getChatThreadMessages({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getChatThreadMessagesQueryKey(options),
+  })
+
+/**
+ * Delete Chat Thread
+ *
+ * Delete one thread, including the agent's memory of it.
+ */
+export const deleteChatThreadMutation = (
+  options?: Partial<Options<DeleteChatThreadData>>,
+): UseMutationOptions<
+  DeleteChatThreadResponse,
+  DeleteChatThreadError,
+  Options<DeleteChatThreadData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteChatThreadResponse,
+    DeleteChatThreadError,
+    Options<DeleteChatThreadData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await deleteChatThread({
         ...options,
         ...fnOptions,
         throwOnError: true,
@@ -1679,7 +1830,10 @@ export const getThreadQueryKey = (options: Options<GetThreadData>) =>
 /**
  * Get Thread
  *
- * Fetch a LangGraph thread's state for transcript reload / reconnect.
+ * Fetch a thread's full checkpointed state, tool calls and executed SQL included.
+ *
+ * Raw state includes tool output and executed SQL, i.e. more than the owner ever
+ * saw in the UI — OwnedThreadDep is what keeps it from being served to anyone else.
  */
 export const getThreadOptions = (options: Options<GetThreadData>) =>
   queryOptions<
@@ -1809,6 +1963,12 @@ export const listFilesInfiniteOptions = (options?: Options<ListFilesData>) => {
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
  * - **tags**: Key-value metadata (type, format, description, etc.)
+ * - **created_by**: Optional. The person the file belongs to, which for
+ * pipeline registrations is the scientist the work was done for rather
+ * than the caller. Must name a known NGS360 account.
+ *
+ * The authenticated caller is recorded separately as **submitted_by** and
+ * cannot be set by the client.
  *
  * Note: Same URI can be registered multiple times with different timestamps,
  * enabling versioning. Each POST creates a new version.
@@ -1851,7 +2011,9 @@ export const createFileMutation = (
  * - **overwrite**: If True, creates a new version if file exists
  * - **description**: Optional file description
  * - **is_public**: Whether file is publicly accessible
- * - **created_by**: User who uploaded the file
+ * - **created_by**: Optional. The person the file belongs to, which need not
+ * be the caller. Must name a known NGS360 account. The authenticated
+ * caller is recorded separately as **submitted_by**.
  * - **role**: Optional role (e.g., samplesheet)
  * - **content**: Optional file content
  *
@@ -1927,11 +2089,24 @@ export const downloadFileQueryKey = (options: Options<DownloadFileData>) =>
  * The client follows the redirect to download directly from S3,
  * offloading bandwidth from the API server.
  *
- * Deprecated in favour of GET /files/download-url, which returns the same URL
- * as JSON. This route cannot be given a permission guard: it is used by the UI
- * as a plain link, and a browser following a link cannot send an Authorization
- * header, so guarding it would 401 every download in the product. It closes
- * once browser traffic here reaches zero.
+ * Guarded, as of 2026-09-09, by the same check as GET /files/download-url. The
+ * response is unchanged -- still a 307 to S3 -- so every client that already
+ * sends credentials is unaffected. What changes is that anonymous callers now
+ * get 401, and a file in a restricted project gets 403.
+ *
+ * An earlier version of this docstring said the route *could not* be guarded,
+ * because the UI used it as a plain link and a browser following a link cannot
+ * send an Authorization header. That was true when written and is no longer:
+ * the frontend fetches GET /files/download-url with its token and navigates to
+ * the returned URL itself (src/lib/download.ts), and the built bundle contains
+ * no reference to this route at all. Measured browser traffic over the 30 days
+ * to 2026-09-09 was 41 requests -- 39 of them one bulk download on 08-15, most
+ * likely from a tab holding a pre-fix bundle, then 2 on 09-04 and none since.
+ *
+ * Still deprecated in favour of GET /files/download-url, which returns the URL
+ * as JSON rather than as a redirect. This route stays because ~1.1M requests a
+ * day arrive on it from htslib, and it now enforces the same policy, so there
+ * is no longer any urgency to move them.
  */
 export const downloadFileOptions = (options: Options<DownloadFileData>) =>
   queryOptions<
@@ -2136,6 +2311,8 @@ export const getJobsQueryKey = (options?: Options<GetJobsData>) =>
  * limit: Maximum number of records to return
  * user: Optional user filter
  * status_filter: Optional status filter
+ * project_id: Optional project filter
+ * sequencing_run_id: Optional sequencing run filter
  * sort_by: Field to sort by (defaults to 'submitted_on')
  * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
  *

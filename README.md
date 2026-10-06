@@ -47,6 +47,19 @@ For production or other remote environments, set the `VITE_API_URL` to the appro
 VITE_API_URL=https://ngs360.org
 ```
 
+### Hiding the AI Assistant
+
+The AI Assistant — the sparkle button in the header and the chat panel it opens —
+can be switched off per deployment:
+
+```bash
+VITE_AI_CHAT_ENABLED=false
+```
+
+Leaving it unset, or any value other than `false`, keeps the assistant enabled.
+Vite reads it at build time, so a change takes effect on the next `npm run build`
+(or dev-server restart), not on a page reload.
+
 ## Running the Development Server
 
 Start the development server:

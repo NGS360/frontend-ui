@@ -338,6 +338,14 @@ export type BatchJobPublic = {
    * Viewed
    */
   viewed: boolean
+  /**
+   * Project Id
+   */
+  project_id?: string | null
+  /**
+   * Sequencing Run Id
+   */
+  sequencing_run_id?: string | null
 }
 
 /**
@@ -370,6 +378,14 @@ export type BatchJobSubmit = {
    * User
    */
   user: string
+  /**
+   * Project Id
+   */
+  project_id?: string | null
+  /**
+   * Sequencing Run Id
+   */
+  sequencing_run_id?: string | null
 }
 
 /**
@@ -633,6 +649,9 @@ export type BulkSampleItemResponse = {
  * Context the user attached when sending a message: the page they're on
  * and any entities they referenced via "@/#", so the assistant can scope its
  * answer.
+ *
+ * All user-controlled: it comes from the request body. Who is asking is not
+ * part of it — ``services.build_run_context`` adds that from the session.
  */
 export type ChatContext = {
   page?: ChatContextEntity | null
@@ -645,27 +664,139 @@ export type ChatContext = {
 /**
  * ChatContextEntity
  *
- * An entity attached to a chat message: type ("project", "run", "sample",
- * "user", ...) and its id.
+ * An entity attached to a chat message: its kind and its id.
+ *
+ * Ids are business keys (``project.project_id``, ``users.username``, ...), not
+ * the uuid primary keys, which the public API does not expose.
+ *
+ * ``project_id`` scopes a sample, whose id is unique only within a project (i.e. sample).
+ * Ignored for every other kind.
  */
 export type ChatContextEntity = {
   /**
    * Type
    */
-  type: string
+  type: 'project' | 'run' | 'sample' | 'job' | 'user'
   /**
    * Id
    */
   id: string
+  /**
+   * Project Id
+   */
+  project_id?: string | null
+}
+
+/**
+ * ChatFrameDone
+ *
+ * The run finished cleanly, as opposed to the connection dropping.
+ */
+export type ChatFrameDone = {
+  /**
+   * Type
+   */
+  type?: 'done'
+}
+
+/**
+ * ChatFrameEnvelope
+ *
+ * The union as a referenceable schema, for OpenAPI only. No route returns
+ * it; it exists so the stream route can put the frames in /docs.
+ */
+export type ChatFrameEnvelope =
+  | ({
+      type: 'thread'
+    } & ChatFrameThread)
+  | ({
+      type: 'status'
+    } & ChatFrameStatus)
+  | ({
+      type: 'text'
+    } & ChatFrameText)
+  | ({
+      type: 'done'
+    } & ChatFrameDone)
+  | ({
+      type: 'error'
+    } & ChatFrameError)
+
+/**
+ * ChatFrameError
+ *
+ * The run failed. Replaces ``done`` rather than preceding it.
+ */
+export type ChatFrameError = {
+  /**
+   * Type
+   */
+  type?: 'error'
+  /**
+   * Message
+   */
+  message: string
+}
+
+/**
+ * ChatFrameStatus
+ *
+ * The running tool's name, never its args or output. Opaque — the client
+ * derives a label, so an unknown tool still renders.
+ */
+export type ChatFrameStatus = {
+  /**
+   * Type
+   */
+  type?: 'status'
+  /**
+   * Tool
+   */
+  tool: string
+}
+
+/**
+ * ChatFrameText
+ *
+ * One token of the answer.
+ */
+export type ChatFrameText = {
+  /**
+   * Type
+   */
+  type?: 'text'
+  /**
+   * Delta
+   */
+  delta: string
+}
+
+/**
+ * ChatFrameThread
+ *
+ * The thread this turn belongs to. Sent first, so a new thread's id
+ * survives a run that then fails.
+ */
+export type ChatFrameThread = {
+  /**
+   * Type
+   */
+  type?: 'thread'
+  /**
+   * Thread Id
+   */
+  thread_id: string
 }
 
 /**
  * ChatRequest
  *
- * The default request body sent by the frontend's useChat hook (Vercel AI
- * SDK). The stable chat ``id`` doubles as the LangGraph thread id, so
- * multi-turn continuity needs no extra round-trip. ``context`` is merged in by
- * the SDK from ``sendMessage(text, {body: {context}})``.
+ * The request body sent by the frontend's useChat hook (Vercel AI SDK).
+ *
+ * ``id`` is the SDK's own conversation id — opaque to us, and deliberately not
+ * the thread id. ``thread_id`` and ``context`` are merged in by the SDK from
+ * ``sendMessage(text, {body: {...}})``: absent ``thread_id`` starts a new
+ * thread, which the server creates and announces in the stream.
  */
 export type ChatRequest = {
   /**
@@ -680,7 +811,96 @@ export type ChatRequest = {
    * Trigger
    */
   trigger?: string | null
+  /**
+   * Thread Id
+   */
+  thread_id?: string | null
   context?: ChatContext | null
+}
+
+/**
+ * ChatThreadMessages
+ *
+ * A thread's messages as the user saw them, ready to replay in the chat UI.
+ *
+ * The agent's tool calls and raw query output are filtered out, and what's left
+ * is mapped to AI SDK UIMessages. Fetch the thread itself for the full
+ * checkpointed state, tool output included.
+ */
+export type ChatThreadMessages = {
+  /**
+   * Thread Id
+   */
+  thread_id: string
+  /**
+   * Messages
+   */
+  messages?: Array<UiMessage>
+}
+
+/**
+ * ChatThreadPublic
+ *
+ * One of the caller's chat threads.
+ *
+ * Threads aren't stored here — they belong to the agent deployment, and are
+ * listed by the owner recorded in each thread's metadata. ``id`` is the thread
+ * id, which is also the chat id the UI sends. ``title`` is derived from the
+ * thread's first message; the agent stores no title of its own.
+ */
+export type ChatThreadPublic = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Title
+   */
+  title: string
+  /**
+   * Created At
+   */
+  created_at?: string | null
+  /**
+   * Updated At
+   */
+  updated_at?: string | null
+}
+
+/**
+ * ChatThreadsPublic
+ *
+ * A page of chat threads, shaped like the other list endpoints.
+ */
+export type ChatThreadsPublic = {
+  /**
+   * Data
+   */
+  data: Array<ChatThreadPublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Total Pages
+   */
+  total_pages: number
+  /**
+   * Current Page
+   */
+  current_page: number
+  /**
+   * Per Page
+   */
+  per_page: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
 }
 
 /**
@@ -1028,6 +1248,10 @@ export type FilePublic = {
    */
   created_by: string | null
   /**
+   * Submitted By
+   */
+  submitted_by: string | null
+  /**
    * Source
    */
   source: string | null
@@ -1136,10 +1360,6 @@ export type FileUpdate = {
    * Source
    */
   source?: string | null
-  /**
-   * Created By
-   */
-  created_by?: string | null
   /**
    * Storage Backend
    */
@@ -1978,6 +2198,10 @@ export type ProjectPublic = {
    */
   results_folder_uri: string | null
   /**
+   * Download Restricted
+   */
+  download_restricted?: boolean
+  /**
    * Attributes
    */
   attributes: Array<Attribute> | null
@@ -2005,6 +2229,10 @@ export type ProjectUpdate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Download Restricted
+   */
+  download_restricted?: boolean | null
 }
 
 /**
@@ -3555,6 +3783,59 @@ export type WorkflowDeploymentPublic = {
 }
 
 /**
+ * WorkflowInput
+ *
+ * One input parameter descriptor on a WorkflowVersion.
+ *
+ * `type` is the CWL type string (e.g. "File", "string?", "File[]"). Callers
+ * derive `required` themselves — a `?` suffix, a `["null", T]` union, or a
+ * present `default` all imply required=false. Storing it as a boolean keeps
+ * consumers from having to re-parse the type string.
+ */
+export type WorkflowInput = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Required
+   */
+  required: boolean
+  /**
+   * Doc
+   */
+  doc?: string | null
+  /**
+   * Default
+   */
+  default?: unknown | null
+}
+
+/**
+ * WorkflowOutput
+ *
+ * One output parameter descriptor on a WorkflowVersion.
+ */
+export type WorkflowOutput = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Doc
+   */
+  doc?: string | null
+}
+
+/**
  * WorkflowPublic
  */
 export type WorkflowPublic = {
@@ -3662,6 +3943,14 @@ export type WorkflowVersionCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Inputs
+   */
+  inputs?: Array<WorkflowInput> | null
+  /**
+   * Outputs
+   */
+  outputs?: Array<WorkflowOutput> | null
 }
 
 /**
@@ -3700,6 +3989,14 @@ export type WorkflowVersionPublic = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Inputs
+   */
+  inputs?: Array<WorkflowInput> | null
+  /**
+   * Outputs
+   */
+  outputs?: Array<WorkflowOutput> | null
 }
 
 /**
@@ -4494,10 +4791,133 @@ export type ChatStreamError = ChatStreamErrors[keyof ChatStreamErrors]
 
 export type ChatStreamResponses = {
   /**
+   * Server-sent events. Each `data:` line is one frame (see the schema); the run ends with a `done` or an `error` frame. The declared media type is inaccurate: the body is text/event-stream, not application/json.
+   */
+  200: ChatFrameEnvelope
+}
+
+export type ChatStreamResponse = ChatStreamResponses[keyof ChatStreamResponses]
+
+export type DeleteAllChatThreadsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/v1/chat/threads'
+}
+
+export type DeleteAllChatThreadsResponses = {
+  /**
    * Successful Response
    */
-  200: unknown
+  204: void
 }
+
+export type DeleteAllChatThreadsResponse =
+  DeleteAllChatThreadsResponses[keyof DeleteAllChatThreadsResponses]
+
+export type ListChatThreadsData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Skip
+     *
+     * Number of threads to skip
+     */
+    skip?: number
+    /**
+     * Limit
+     *
+     * Maximum number of threads to return
+     */
+    limit?: number
+  }
+  url: '/api/v1/chat/threads'
+}
+
+export type ListChatThreadsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ListChatThreadsError =
+  ListChatThreadsErrors[keyof ListChatThreadsErrors]
+
+export type ListChatThreadsResponses = {
+  /**
+   * Successful Response
+   */
+  200: ChatThreadsPublic
+}
+
+export type ListChatThreadsResponse =
+  ListChatThreadsResponses[keyof ListChatThreadsResponses]
+
+export type GetChatThreadMessagesData = {
+  body?: never
+  path: {
+    /**
+     * Thread Id
+     */
+    thread_id: string
+  }
+  query?: never
+  url: '/api/v1/chat/threads/{thread_id}/messages'
+}
+
+export type GetChatThreadMessagesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetChatThreadMessagesError =
+  GetChatThreadMessagesErrors[keyof GetChatThreadMessagesErrors]
+
+export type GetChatThreadMessagesResponses = {
+  /**
+   * Successful Response
+   */
+  200: ChatThreadMessages
+}
+
+export type GetChatThreadMessagesResponse =
+  GetChatThreadMessagesResponses[keyof GetChatThreadMessagesResponses]
+
+export type DeleteChatThreadData = {
+  body?: never
+  path: {
+    /**
+     * Thread Id
+     */
+    thread_id: string
+  }
+  query?: never
+  url: '/api/v1/chat/threads/{thread_id}'
+}
+
+export type DeleteChatThreadErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type DeleteChatThreadError =
+  DeleteChatThreadErrors[keyof DeleteChatThreadErrors]
+
+export type DeleteChatThreadResponses = {
+  /**
+   * Successful Response
+   */
+  204: void
+}
+
+export type DeleteChatThreadResponse =
+  DeleteChatThreadResponses[keyof DeleteChatThreadResponses]
 
 export type GetThreadData = {
   body?: never
@@ -4678,7 +5098,7 @@ export type DownloadFileData = {
     /**
      * Path
      *
-     * S3 URI of file to download (e.g., s3://bucket/path/file.txt)
+     * S3 URI of the file
      */
     path: string
   }
@@ -4708,7 +5128,7 @@ export type GetDownloadUrlData = {
     /**
      * Path
      *
-     * S3 URI of the file (e.g., s3://bucket/path/file.txt)
+     * S3 URI of the file
      */
     path: string
   }
@@ -4881,6 +5301,18 @@ export type GetJobsData = {
      * Filter by status
      */
     status_filter?: JobStatus | null
+    /**
+     * Project Id
+     *
+     * Filter by owning project (Project.project_id, e.g. P-19900109-0001)
+     */
+    project_id?: string | null
+    /**
+     * Sequencing Run Id
+     *
+     * Filter by sequencing run (SequencingRun.run_id, e.g. 260506_VH01208_93_222FCGLNX)
+     */
+    sequencing_run_id?: string | null
     /**
      * Sort By
      *

@@ -50,7 +50,7 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="flex flex-col gap-4 @3xl:flex-row @3xl:items-start @3xl:justify-between">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl">{user.full_name ?? user.username}</h1>
           <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
@@ -72,7 +72,7 @@ function RouteComponent() {
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 @5xl:grid-cols-2">
         <UserGlobalRolesCard user={user} />
         <UserFlagsCard user={user} />
       </div>

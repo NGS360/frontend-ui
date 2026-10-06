@@ -46,16 +46,20 @@ function DialogOverlay({
 
 function DialogContent({
   className,
+  overlayClassName,
   children,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content>) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  /** Extra backdrop classes, e.g. a blur, without changing every dialog. */
+  overlayClassName?: string
+}) {
   return (
     <DialogPortal data-slot="dialog-portal">
-      <DialogOverlay>
+      <DialogOverlay className={overlayClassName}>
         <DialogPrimitive.Content
           data-slot="dialog-content"
           className={cn(
-            'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 z-50 grid w-full max-w-[calc(100%-2rem)] gap-2 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
+            '@container bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 z-50 grid w-full max-w-[calc(100%-2rem)] gap-2 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
             className,
           )}
           {...props}
@@ -94,8 +98,8 @@ function DialogTitle({
   className,
   showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Title> & { 
-  showCloseButton?: boolean 
+}: React.ComponentProps<typeof DialogPrimitive.Title> & {
+  showCloseButton?: boolean
 }) {
   return (
     <div className='flex justify-between'>

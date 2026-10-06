@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, CheckCircle2, Cog, Download, FolderCheck, FolderSearch, Pencil, Plus, Tag, Upload, Zap } from 'lucide-react'
+import { Building2, CheckCircle2, Cog, Download, FolderCheck, FolderSearch, ListChecks, Pencil, Plus, Tag, Upload, Zap } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import type { SamplePublic } from '@/client/types.gen'
 import type { ColumnDef, Table as ReactTable, Row } from '@tanstack/react-table'
+import type { Accept } from 'react-dropzone'
 import type { SampleDiffResult } from '@/lib/sample-diff'
 import { classifyBulkUploadItems } from '@/lib/sample-diff'
 import { TableDiffBanner } from '@/components/data-table/table-diff-banner'
@@ -13,9 +14,10 @@ import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ExecuteActionForm } from '@/components/execute-action-form'
 import { FileBrowserDialog } from '@/components/file-browser'
-import { ContainerDropzone, FileUpload } from '@/components/file-upload'
+import { ContainerDropzone, FileUpload, SAMPLESHEET_ACCEPT } from '@/components/file-upload'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { UpdateProjectForm } from '@/components/update-project-form'
+import { ProjectJobsTable } from '@/components/project-jobs-table'
 import { ErrorState } from '@/components/error-state'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
@@ -38,13 +40,15 @@ interface MaybeDropzoneProps {
   enabled: boolean
   onDrop: (files: Array<File>) => void
   subject: string
+  /** Accepted file types; forwarded to ContainerDropzone. */
+  accept?: Accept
   children: React.ReactNode
 }
 
 /** ContainerDropzone when `enabled`, otherwise the children unwrapped. */
-const MaybeDropzone = ({ enabled, onDrop, subject, children }: MaybeDropzoneProps) =>
+const MaybeDropzone = ({ enabled, onDrop, subject, accept, children }: MaybeDropzoneProps) =>
   enabled ? (
-    <ContainerDropzone onDrop={onDrop} subject={subject}>
+    <ContainerDropzone onDrop={onDrop} subject={subject} accept={accept}>
       {children}
     </ContainerDropzone>
   ) : (
@@ -64,6 +68,9 @@ function RouteComponent() {
       path: { project_id }
     })
   )
+
+  // Server-side job total, surfaced in the Jobs accordion label
+  const [jobCount, setJobCount] = useState<number | undefined>(undefined)
 
   // Project-scoped, so the answers come from the project rather than from
   // useMyAccess: a global grant of these applies to every project and a project
@@ -307,7 +314,7 @@ function RouteComponent() {
   return(
     <div className='animate-fade-in-up'>
       {/* Grid for attributes and new content */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 @5xl:grid-cols-2 gap-4'>
         {/* Attributes */}
         <Accordion
           type='single'
@@ -324,7 +331,7 @@ function RouteComponent() {
             <AccordionContent
               className='flex flex-col gap-4'
             >
-              <div className='grid grid-flow-row gap-2 md:grid-cols-2 lg:grid-cols-3'>
+              <div className='grid grid-flow-row gap-2 @3xl:grid-cols-2 @5xl:grid-cols-3'>
                 <Card
                   key={project.project_id}
                   className='border-0 shadow-none py-2 px-0 bg-transparent'
@@ -371,7 +378,7 @@ function RouteComponent() {
                 projectCreatedBy={project.created_by}
                 projectAttributes={project.attributes}
                 trigger={
-                  <Button variant='outline' className='w-full md:w-fit'>
+                  <Button variant='outline' className='w-full @3xl:w-fit'>
                     {!project.attributes || project.attributes.length === 0 ? (
                       <>
                         <Plus />
@@ -404,7 +411,7 @@ function RouteComponent() {
               </span>
             </AccordionTrigger>
             <AccordionContent className='flex flex-col gap-4'>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 @3xl:grid-cols-2 gap-4'>
                 {/* Data Bucket */}
                 <FileBrowserDialog
                   trigger={(
@@ -510,6 +517,7 @@ function RouteComponent() {
               <MaybeDropzone
                 enabled={canCreateSamples}
                 onDrop={onSamplesDrop}
+                accept={SAMPLESHEET_ACCEPT}
                 subject={isUploadingSamples ? 'sample metadata (upload in progress)' : 'sample metadata'}
               >
                 <ClientDataTable
@@ -546,6 +554,25 @@ function RouteComponent() {
                 )
             )}
 
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      {/* Jobs table */}
+      <Accordion
+        type='single'
+        collapsible
+        className='w-full'
+        defaultValue='jobs-table'
+      >
+        <AccordionItem value='jobs-table'>
+          <AccordionTrigger className='uppercase font-light text-primary'>
+            <span className='flex gap-2 items-center'>
+              <ListChecks size={14} /> Jobs{jobCount === undefined ? '' : ` (${jobCount})`}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className='pt-2'>
+            <ProjectJobsTable projectId={project_id} onCountChange={setJobCount} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

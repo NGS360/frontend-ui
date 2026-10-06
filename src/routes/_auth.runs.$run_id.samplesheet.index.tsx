@@ -145,10 +145,10 @@ function RouteComponent() {
         onDrop={onDrop}
       >
         <div className='flex flex-col gap-4'>
-          <div className='flex flex-col gap-4 md:grid md:grid-cols-2 '>
+          <div className='flex flex-col gap-4 @3xl:grid @3xl:grid-cols-2 '>
 
             {/* Samplesheet Header */}
-            <div className='flex flex-col gap-2 md:row-span-2'>
+            <div className='flex flex-col gap-2 @3xl:row-span-2'>
               <h2 className='text-lg uppercase font-light text-primary'>Header</h2>
               <table>
                 <tbody>

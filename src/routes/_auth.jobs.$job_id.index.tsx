@@ -56,8 +56,8 @@ function RouteComponent() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-extralight break-words">{job.name}</h1>
+      <div className="flex flex-col @3xl:flex-row @3xl:items-center @3xl:justify-between gap-4">
+        <h1 className="text-2xl @3xl:text-3xl font-extralight break-words">{job.name}</h1>
         <div className="flex items-center gap-4 flex-shrink-0">
           <span className="inline-flex items-center text-sm text-muted-foreground">
             <span className={`w-2 h-2 rounded-full mr-2 ${job.viewed ? 'bg-gray-400' : 'bg-blue-500'}`}></span>
@@ -73,12 +73,12 @@ function RouteComponent() {
           <CardTitle>Job Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4">
             {/* Left Column */}
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                <Server className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <Server className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Job ID</p>
                   <CopyableText text={job.id} className="text-sm text-muted-foreground font-mono" />
                 </div>
@@ -87,8 +87,8 @@ function RouteComponent() {
               <Separator />
 
               <div className="flex items-start gap-4">
-                <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <User className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Submitted By</p>
                   <p className="text-sm text-muted-foreground">{job.user}</p>
                 </div>
@@ -97,8 +97,8 @@ function RouteComponent() {
               <Separator />
 
               <div className="flex items-start gap-4">
-                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <Calendar className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Submitted On</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(job.submitted_on).toLocaleString()}
@@ -106,14 +106,14 @@ function RouteComponent() {
                 </div>
               </div>
 
-              <Separator className="md:hidden" />
+              <Separator className="@3xl:hidden" />
             </div>
 
             {/* Right Column */}
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <FileText className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Log Stream Name</p>
                   {job.log_stream_name ? (
                     <CopyableText text={job.log_stream_name} className="text-sm text-muted-foreground font-mono break-all" />
@@ -126,8 +126,8 @@ function RouteComponent() {
               <Separator />
 
               <div className="flex items-start gap-4">
-                <Terminal className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1 space-y-1">
+                <Terminal className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium">Command</p>
                   <code className="block text-sm text-muted-foreground bg-muted p-2 rounded break-all">
                     {job.command}

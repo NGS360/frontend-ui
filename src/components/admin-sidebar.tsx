@@ -68,7 +68,7 @@ export const AdminSidebar = () => {
   ]
 
   return (
-    <Sidebar id="admin-sidebar" variant="inset" collapsible="none" className="w-full md:w-auto">
+    <Sidebar id="admin-sidebar" variant="inset" collapsible="none" className="w-full @3xl:w-auto">
       <SidebarHeader id="admin-sidebar-header" className="p-4">
         <h2 id="admin-sidebar-title" className="text-lg">Admin Panel</h2>
       </SidebarHeader>
@@ -84,7 +84,7 @@ export const AdminSidebar = () => {
             <SidebarGroup key={group.label}>
               <SidebarGroupLabel id={`admin-sidebar-${groupId}-label`}>{group.label}</SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu id={`admin-sidebar-${groupId}-menu`} className="md:space-y-1">
+                <SidebarMenu id={`admin-sidebar-${groupId}-menu`} className="@3xl:space-y-1">
                   {visible.map((item) => {
                     const isActive = currentPath === item.url
                     const itemId = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')

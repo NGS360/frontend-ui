@@ -19,14 +19,14 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between">
         <div className="flex flex-col gap-1">
           <h2 className="text-2xl font-light">Settings</h2>
           <p className="text-sm text-muted-foreground">
             Who can see and change this project.
           </p>
         </div>
-        <Button variant="secondary" className="w-full md:w-auto" asChild>
+        <Button variant="secondary" className="w-full @3xl:w-auto" asChild>
           <Link to="/projects/$project_id" params={{ project_id }}>
             <ArrowLeft className="h-4 w-4" />
             Back to project

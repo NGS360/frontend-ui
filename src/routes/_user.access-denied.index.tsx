@@ -21,7 +21,7 @@ function RouteComponent() {
             <ShieldAlert className="w-10 h-10 text-destructive" strokeWidth={2} />
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Access Denied</h1>
+          <h1 className="text-4xl @3xl:text-5xl font-bold tracking-tight">Access Denied</h1>
           
           <p className="text-xl text-muted-foreground max-w-xl mx-auto">
             You do not have the required permissions to access this page.
@@ -36,11 +36,11 @@ function RouteComponent() {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4 max-w-md mx-auto">
-          <Button asChild size="lg" className="sm:flex-1">
+        <div className="flex flex-col @2xl:flex-row gap-3 justify-center pt-4 max-w-md mx-auto">
+          <Button asChild size="lg" className="@2xl:flex-1">
             <Link to="/">Return to Home</Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="sm:flex-1">
+          <Button asChild variant="outline" size="lg" className="@2xl:flex-1">
             <Link to="/profile">View Profile</Link>
           </Button>
         </div>
