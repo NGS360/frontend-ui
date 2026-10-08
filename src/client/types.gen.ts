@@ -1248,6 +1248,10 @@ export type FilePublic = {
    */
   created_by: string | null
   /**
+   * Submitted By
+   */
+  submitted_by: string | null
+  /**
    * Source
    */
   source: string | null
@@ -1356,10 +1360,6 @@ export type FileUpdate = {
    * Source
    */
   source?: string | null
-  /**
-   * Created By
-   */
-  created_by?: string | null
   /**
    * Storage Backend
    */
@@ -1774,6 +1774,40 @@ export type MetricValuePublic = {
 }
 
 /**
+ * MyAccessPublic
+ *
+ * The calling user's own effective access, as returned by GET /rbac/me.
+ *
+ * Declared as a schema rather than returned as a dict because this is the one
+ * RBAC endpoint the SPA calls on every page load: it decides which controls to
+ * render. Without a response model the generated client types it as an opaque
+ * map, and every permission check in the UI becomes a cast -- which is exactly
+ * the kind of place a silently renamed field should be a compile error.
+ *
+ * Global permissions only, deliberately. Project-scoped permissions belong on
+ * the project detail response: with a five-figure project count this payload
+ * would otherwise be unbounded.
+ */
+export type MyAccessPublic = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Is Superuser
+   */
+  is_superuser: boolean
+  /**
+   * Global Roles
+   */
+  global_roles: Array<string>
+  /**
+   * Global Permissions
+   */
+  global_permissions: Array<string>
+}
+
+/**
  * OAuthLinkRequest
  *
  * Link OAuth provider to account
@@ -2104,6 +2138,34 @@ export type ProjectMemberRequest = {
 }
 
 /**
+ * ProjectMembershipPublic
+ *
+ * One project-scoped grant, seen from the user's side.
+ */
+export type ProjectMembershipPublic = {
+  /**
+   * Project Id
+   */
+  project_id: string
+  /**
+   * Project Name
+   */
+  project_name: string | null
+  /**
+   * Role
+   */
+  role: string
+  /**
+   * Granted At
+   */
+  granted_at: string
+  /**
+   * Source
+   */
+  source: string
+}
+
+/**
  * ProjectPublic
  */
 export type ProjectPublic = {
@@ -2136,6 +2198,10 @@ export type ProjectPublic = {
    */
   results_folder_uri: string | null
   /**
+   * Restricted
+   */
+  restricted?: boolean
+  /**
    * Attributes
    */
   attributes: Array<Attribute> | null
@@ -2143,6 +2209,10 @@ export type ProjectPublic = {
    * Sequencing Runs
    */
   sequencing_runs?: Array<SequencingRunPublic> | null
+  /**
+   * Permissions
+   */
+  permissions?: Array<string> | null
 }
 
 /**
@@ -2159,6 +2229,10 @@ export type ProjectUpdate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Restricted
+   */
+  restricted?: boolean | null
 }
 
 /**
@@ -3225,6 +3299,128 @@ export type UnknownBarcode = {
 }
 
 /**
+ * UserAccessPublic
+ *
+ * Everything that decides what one user may do.
+ *
+ * Both planes plus the break-glass flag, in one response, because the question
+ * an administrator actually asks is "what can this person do", and answering it
+ * from parts is how the answer starts being wrong.
+ */
+export type UserAccessPublic = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Email
+   */
+  email: string | null
+  /**
+   * Full Name
+   */
+  full_name: string | null
+  /**
+   * Is Active
+   */
+  is_active: boolean
+  /**
+   * Is Verified
+   */
+  is_verified: boolean
+  /**
+   * Is Superuser
+   */
+  is_superuser: boolean
+  /**
+   * Global Roles
+   */
+  global_roles: Array<string>
+  /**
+   * Global Permissions
+   */
+  global_permissions: Array<string>
+  /**
+   * Project Memberships
+   */
+  project_memberships: Array<ProjectMembershipPublic>
+}
+
+/**
+ * UserAdminPublic
+ *
+ * One row of the administrative user roster.
+ *
+ * A superset of UserSearchResult, which exists for the user *picker*: that one
+ * is a directory lookup that may answer from LDAP and deliberately hides
+ * deactivated accounts. This one is the local users table only, including the
+ * deactivated, and carries the status flags and grants an administrator is
+ * looking at the page to see.
+ */
+export type UserAdminPublic = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Email
+   */
+  email: string | null
+  /**
+   * Full Name
+   */
+  full_name: string | null
+  /**
+   * Is Active
+   */
+  is_active: boolean
+  /**
+   * Is Verified
+   */
+  is_verified: boolean
+  /**
+   * Is Superuser
+   */
+  is_superuser: boolean
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Last Login
+   */
+  last_login: string | null
+  /**
+   * Global Roles
+   */
+  global_roles: Array<string>
+}
+
+/**
+ * UserFlagsUpdate
+ *
+ * Request body for PATCH /users/{username}.
+ *
+ * Every field optional and omission means "leave alone", so a client that only
+ * wants to verify an account cannot accidentally clear the other two by
+ * sending a partially populated object.
+ */
+export type UserFlagsUpdate = {
+  /**
+   * Is Active
+   */
+  is_active?: boolean | null
+  /**
+   * Is Verified
+   */
+  is_verified?: boolean | null
+  /**
+   * Is Superuser
+   */
+  is_superuser?: boolean | null
+}
+
+/**
  * UserPublic
  *
  * Public user information
@@ -3346,6 +3542,38 @@ export type UserSearchResult = {
    * Source
    */
   source: string
+}
+
+/**
+ * UsersAdminPublic
+ *
+ * A page of the user roster, in the shape the other list endpoints use.
+ */
+export type UsersAdminPublic = {
+  /**
+   * Data
+   */
+  data: Array<UserAdminPublic>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Skip
+   */
+  skip: number
+  /**
+   * Limit
+   */
+  limit: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
 }
 
 /**
@@ -3555,6 +3783,59 @@ export type WorkflowDeploymentPublic = {
 }
 
 /**
+ * WorkflowInput
+ *
+ * One input parameter descriptor on a WorkflowVersion.
+ *
+ * `type` is the CWL type string (e.g. "File", "string?", "File[]"). Callers
+ * derive `required` themselves — a `?` suffix, a `["null", T]` union, or a
+ * present `default` all imply required=false. Storing it as a boolean keeps
+ * consumers from having to re-parse the type string.
+ */
+export type WorkflowInput = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Required
+   */
+  required: boolean
+  /**
+   * Doc
+   */
+  doc?: string | null
+  /**
+   * Default
+   */
+  default?: unknown | null
+}
+
+/**
+ * WorkflowOutput
+ *
+ * One output parameter descriptor on a WorkflowVersion.
+ */
+export type WorkflowOutput = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Doc
+   */
+  doc?: string | null
+}
+
+/**
  * WorkflowPublic
  */
 export type WorkflowPublic = {
@@ -3662,6 +3943,14 @@ export type WorkflowVersionCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Inputs
+   */
+  inputs?: Array<WorkflowInput> | null
+  /**
+   * Outputs
+   */
+  outputs?: Array<WorkflowOutput> | null
 }
 
 /**
@@ -3700,6 +3989,14 @@ export type WorkflowVersionPublic = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Inputs
+   */
+  inputs?: Array<WorkflowInput> | null
+  /**
+   * Outputs
+   */
+  outputs?: Array<WorkflowOutput> | null
 }
 
 /**
@@ -4801,7 +5098,7 @@ export type DownloadFileData = {
     /**
      * Path
      *
-     * S3 URI of file to download (e.g., s3://bucket/path/file.txt)
+     * S3 URI of the file
      */
     path: string
   }
@@ -7950,6 +8247,46 @@ export type SearchUsersResponses = {
 export type SearchUsersResponse =
   SearchUsersResponses[keyof SearchUsersResponses]
 
+export type UpdateUserFlagsData = {
+  body: UserFlagsUpdate
+  path: {
+    /**
+     * Username
+     */
+    username: string
+  }
+  query?: never
+  url: '/api/v1/users/{username}'
+}
+
+export type UpdateUserFlagsErrors = {
+  /**
+   * User not found
+   */
+  404: unknown
+  /**
+   * Would lock out the last superuser or role manager
+   */
+  409: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type UpdateUserFlagsError =
+  UpdateUserFlagsErrors[keyof UpdateUserFlagsErrors]
+
+export type UpdateUserFlagsResponses = {
+  /**
+   * Successful Response
+   */
+  200: UserAdminPublic
+}
+
+export type UpdateUserFlagsResponse =
+  UpdateUserFlagsResponses[keyof UpdateUserFlagsResponses]
+
 export type ListPermissionsData = {
   body?: never
   path?: never
@@ -8133,13 +8470,9 @@ export type GetMyAccessData = {
 
 export type GetMyAccessResponses = {
   /**
-   * Response Get My Access
-   *
    * Successful Response
    */
-  200: {
-    [key: string]: unknown
-  }
+  200: MyAccessPublic
 }
 
 export type GetMyAccessResponse =
@@ -8256,3 +8589,102 @@ export type RevokeUserRoleResponses = {
 
 export type RevokeUserRoleResponse =
   RevokeUserRoleResponses[keyof RevokeUserRoleResponses]
+
+export type ListUsersData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Skip
+     *
+     * Number of records to skip
+     */
+    skip?: number
+    /**
+     * Limit
+     *
+     * Maximum records to return
+     */
+    limit?: number
+    /**
+     * Q
+     *
+     * Filter on username, email or full name
+     */
+    q?: string | null
+    /**
+     * Role
+     *
+     * Only users holding this global role
+     */
+    role?: string | null
+    /**
+     * Is Active
+     *
+     * Filter on account status; omit for both
+     */
+    is_active?: boolean | null
+    /**
+     * Sort By
+     */
+    sort_by?: 'username' | 'email' | 'full_name' | 'created_at' | 'last_login'
+    /**
+     * Sort Order
+     */
+    sort_order?: 'asc' | 'desc'
+  }
+  url: '/api/v1/rbac/users'
+}
+
+export type ListUsersErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type ListUsersError = ListUsersErrors[keyof ListUsersErrors]
+
+export type ListUsersResponses = {
+  /**
+   * Successful Response
+   */
+  200: UsersAdminPublic
+}
+
+export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses]
+
+export type GetUserAccessData = {
+  body?: never
+  path: {
+    /**
+     * Username
+     */
+    username: string
+  }
+  query?: never
+  url: '/api/v1/rbac/users/{username}/access'
+}
+
+export type GetUserAccessErrors = {
+  /**
+   * User not found
+   */
+  404: unknown
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetUserAccessError = GetUserAccessErrors[keyof GetUserAccessErrors]
+
+export type GetUserAccessResponses = {
+  /**
+   * Successful Response
+   */
+  200: UserAccessPublic
+}
+
+export type GetUserAccessResponse =
+  GetUserAccessResponses[keyof GetUserAccessResponses]

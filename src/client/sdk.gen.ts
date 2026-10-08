@@ -209,6 +209,9 @@ import type {
   GetThreadData,
   GetThreadErrors,
   GetThreadResponses,
+  GetUserAccessData,
+  GetUserAccessErrors,
+  GetUserAccessResponses,
   GetVendorData,
   GetVendorErrors,
   GetVendorResponses,
@@ -268,6 +271,9 @@ import type {
   ListUserRolesData,
   ListUserRolesErrors,
   ListUserRolesResponses,
+  ListUsersData,
+  ListUsersErrors,
+  ListUsersResponses,
   LoginData,
   LoginErrors,
   LoginResponses,
@@ -381,6 +387,9 @@ import type {
   UpdateSettingData,
   UpdateSettingErrors,
   UpdateSettingResponses,
+  UpdateUserFlagsData,
+  UpdateUserFlagsErrors,
+  UpdateUserFlagsResponses,
   UpdateVendorData,
   UpdateVendorErrors,
   UpdateVendorResponses,
@@ -838,9 +847,16 @@ export const createApiKey = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Delete Api Key
+ * Retire an API key
  *
- * Delete an API key.
+ * Retire an API key. Equivalent to `POST /api-keys/{key_id}/revoke`.
+ *
+ * The key stops authenticating immediately. The record is kept, with
+ * `is_active = false` and `revoked_at` set, so that the retirement stays
+ * auditable -- it is not erased. It continues to appear in `GET /api-keys`.
+ *
+ * Idempotent: retiring an already-retired key succeeds and preserves the
+ * original `revoked_at`.
  */
 export const deleteApiKey = <ThrowOnError extends boolean = false>(
   options: Options<DeleteApiKeyData, ThrowOnError>,
@@ -1078,7 +1094,11 @@ export const validateActionConfig = <ThrowOnError extends boolean = false>(
     ValidateActionConfigResponses,
     ValidateActionConfigErrors,
     ThrowOnError
-  >({ url: '/api/v1/actions/config/validate', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/actions/config/validate',
+    ...options,
+  })
 
 /**
  * Get Action Options
@@ -1325,6 +1345,12 @@ export const listFiles = <ThrowOnError extends boolean = false>(
  * - **samples**: Sample associations with optional roles (tumor/normal)
  * - **hashes**: Hash values by algorithm (md5, sha256, etc.)
  * - **tags**: Key-value metadata (type, format, description, etc.)
+ * - **created_by**: Optional. The person the file belongs to, which for
+ * pipeline registrations is the scientist the work was done for rather
+ * than the caller. Must name a known NGS360 account.
+ *
+ * The authenticated caller is recorded separately as **submitted_by** and
+ * cannot be set by the client.
  *
  * Note: Same URI can be registered multiple times with different timestamps,
  * enabling versioning. Each POST creates a new version.
@@ -1337,6 +1363,7 @@ export const createFile = <ThrowOnError extends boolean = false>(
     CreateFileErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/files',
     ...options,
     headers: {
@@ -1359,7 +1386,9 @@ export const createFile = <ThrowOnError extends boolean = false>(
  * - **overwrite**: If True, creates a new version if file exists
  * - **description**: Optional file description
  * - **is_public**: Whether file is publicly accessible
- * - **created_by**: User who uploaded the file
+ * - **created_by**: Optional. The person the file belongs to, which need not
+ * be the caller. Must name a known NGS360 account. The authenticated
+ * caller is recorded separately as **submitted_by**.
  * - **role**: Optional role (e.g., samplesheet)
  * - **content**: Optional file content
  *
@@ -1378,6 +1407,7 @@ export const uploadFile = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...formDataBodySerializer,
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/files/upload',
     ...options,
     headers: {
@@ -1412,11 +1442,24 @@ export const browseS3 = <ThrowOnError extends boolean = false>(
  * The client follows the redirect to download directly from S3,
  * offloading bandwidth from the API server.
  *
- * Deprecated in favour of GET /files/download-url, which returns the same URL
- * as JSON. This route cannot be given a permission guard: it is used by the UI
- * as a plain link, and a browser following a link cannot send an Authorization
- * header, so guarding it would 401 every download in the product. It closes
- * once browser traffic here reaches zero.
+ * Guarded, as of 2026-09-09, by the same check as GET /files/download-url. The
+ * response is unchanged -- still a 307 to S3 -- so every client that already
+ * sends credentials is unaffected. What changes is that anonymous callers now
+ * get 401, and a file in a restricted project gets 403.
+ *
+ * An earlier version of this docstring said the route *could not* be guarded,
+ * because the UI used it as a plain link and a browser following a link cannot
+ * send an Authorization header. That was true when written and is no longer:
+ * the frontend fetches GET /files/download-url with its token and navigates to
+ * the returned URL itself (src/lib/download.ts), and the built bundle contains
+ * no reference to this route at all. Measured browser traffic over the 30 days
+ * to 2026-09-09 was 41 requests -- 39 of them one bulk download on 08-15, most
+ * likely from a tab holding a pre-fix bundle, then 2 on 09-04 and none since.
+ *
+ * Still deprecated in favour of GET /files/download-url, which returns the URL
+ * as JSON rather than as a redirect. This route stays because ~1.1M requests a
+ * day arrive on it from htslib, and it now enforces the same policy, so there
+ * is no longer any urgency to move them.
  */
 export const downloadFile = <ThrowOnError extends boolean = false>(
   options: Options<DownloadFileData, ThrowOnError>,
@@ -1425,7 +1468,11 @@ export const downloadFile = <ThrowOnError extends boolean = false>(
     DownloadFileResponses,
     DownloadFileErrors,
     ThrowOnError
-  >({ url: '/api/v1/files/download', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/files/download',
+    ...options,
+  })
 
 /**
  * Get a presigned URL for a file
@@ -1543,7 +1590,11 @@ export const getFileVersions = <ThrowOnError extends boolean = false>(
     GetFileVersionsResponses,
     GetFileVersionsErrors,
     ThrowOnError
-  >({ url: '/api/v1/files/{file_id}/versions', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/files/{file_id}/versions',
+    ...options,
+  })
 
 /**
  * Get Jobs
@@ -1597,6 +1648,7 @@ export const submitJob = <ThrowOnError extends boolean = false>(
     SubmitJobErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/jobs',
     ...options,
     headers: {
@@ -1739,7 +1791,11 @@ export const getLatestManifest = <ThrowOnError extends boolean = false>(
     GetLatestManifestResponses,
     GetLatestManifestErrors,
     ThrowOnError
-  >({ url: '/api/v1/manifest', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/manifest',
+    ...options,
+  })
 
 /**
  * Upload Manifest
@@ -1763,6 +1819,7 @@ export const uploadManifest = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...formDataBodySerializer,
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/manifest',
     ...options,
     headers: {
@@ -1801,7 +1858,11 @@ export const validateManifest = <ThrowOnError extends boolean = false>(
     ValidateManifestResponses,
     ValidateManifestErrors,
     ThrowOnError
-  >({ url: '/api/v1/manifest/validate', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/manifest/validate',
+    ...options,
+  })
 
 /**
  * Get Projects
@@ -1891,13 +1952,22 @@ export const reindexProjects = <ThrowOnError extends boolean = false>(
     ReindexProjectsResponses,
     unknown,
     ThrowOnError
-  >({ url: '/api/v1/projects/search', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects/search',
+    ...options,
+  })
 
 /**
  * Get Project By Project Id
  *
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
+ *
+ * Carries `permissions`: what the calling user may do in this project. The
+ * project plane is the only place that answer exists -- /rbac/me reports global
+ * grants only -- so without it a UI has no way to gate a project control
+ * except by making the request and handling the refusal.
  */
 export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
   options: Options<GetProjectByProjectIdData, ThrowOnError>,
@@ -1910,7 +1980,11 @@ export const getProjectByProjectId = <ThrowOnError extends boolean = false>(
     GetProjectByProjectIdResponses,
     GetProjectByProjectIdErrors,
     ThrowOnError
-  >({ url: '/api/v1/projects/{project_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects/{project_id}',
+    ...options,
+  })
 
 /**
  * Patch Project
@@ -1930,6 +2004,7 @@ export const patchProject = <ThrowOnError extends boolean = false>(
     PatchProjectErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/projects/{project_id}',
     ...options,
     headers: {
@@ -1955,6 +2030,7 @@ export const updateProject = <ThrowOnError extends boolean = false>(
     UpdateProjectErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/projects/{project_id}',
     ...options,
     headers: {
@@ -2126,6 +2202,7 @@ export const updateSampleInProject = <ThrowOnError extends boolean = false>(
     UpdateSampleInProjectErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/projects/{project_id}/samples/{sample_id}',
     ...options,
     headers: {
@@ -2378,7 +2455,11 @@ export const searchQcrecordsGet = <ThrowOnError extends boolean = false>(
     SearchQcrecordsGetResponses,
     SearchQcrecordsGetErrors,
     ThrowOnError
-  >({ url: '/api/v1/qcmetrics/search', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/qcmetrics/search',
+    ...options,
+  })
 
 /**
  * Search QC records (POST)
@@ -2426,6 +2507,7 @@ export const searchQcrecordsPost = <ThrowOnError extends boolean = false>(
     SearchQcrecordsPostErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/qcmetrics/search',
     ...options,
     headers: {
@@ -2454,7 +2536,11 @@ export const deleteQcrecord = <ThrowOnError extends boolean = false>(
     DeleteQcrecordResponses,
     DeleteQcrecordErrors,
     ThrowOnError
-  >({ url: '/api/v1/qcmetrics/{qcrecord_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/qcmetrics/{qcrecord_id}',
+    ...options,
+  })
 
 /**
  * Get QC record by ID
@@ -2470,7 +2556,11 @@ export const getQcrecord = <ThrowOnError extends boolean = false>(
     GetQcrecordResponses,
     GetQcrecordErrors,
     ThrowOnError
-  >({ url: '/api/v1/qcmetrics/{qcrecord_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/qcmetrics/{qcrecord_id}',
+    ...options,
+  })
 
 /**
  * Get Runs
@@ -2495,6 +2585,7 @@ export const addRun = <ThrowOnError extends boolean = false>(
   options: Options<AddRunData, ThrowOnError>,
 ): RequestResult<AddRunResponses, AddRunErrors, ThrowOnError> =>
   (options.client ?? client).post<AddRunResponses, AddRunErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/runs',
     ...options,
     headers: {
@@ -2526,7 +2617,11 @@ export const reindexRuns = <ThrowOnError extends boolean = false>(
   options?: Options<ReindexRunsData, ThrowOnError>,
 ): RequestResult<ReindexRunsResponses, unknown, ThrowOnError> =>
   (options?.client ?? client).post<ReindexRunsResponses, unknown, ThrowOnError>(
-    { url: '/api/v1/runs/search', ...options },
+    {
+      security: [{ scheme: 'bearer', type: 'http' }],
+      url: '/api/v1/runs/search',
+      ...options,
+    },
   )
 
 /**
@@ -2605,7 +2700,11 @@ export const getDemultiplexWorkflowConfig = <
     GetDemultiplexWorkflowConfigResponses,
     GetDemultiplexWorkflowConfigErrors,
     ThrowOnError
-  >({ url: '/api/v1/runs/demultiplex/{workflow_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/runs/demultiplex/{workflow_id}',
+    ...options,
+  })
 
 /**
  * Get Run
@@ -2634,6 +2733,7 @@ export const updateRun = <ThrowOnError extends boolean = false>(
     UpdateRunErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/runs/{run_id}',
     ...options,
     headers: {
@@ -2678,6 +2778,7 @@ export const postRunSamplesheet = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...formDataBodySerializer,
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/runs/{run_id}/samplesheet',
     ...options,
     headers: {
@@ -2743,7 +2844,11 @@ export const getSamplesForRun = <ThrowOnError extends boolean = false>(
     GetSamplesForRunResponses,
     GetSamplesForRunErrors,
     ThrowOnError
-  >({ url: '/api/v1/runs/{run_id}/samples', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/runs/{run_id}/samples',
+    ...options,
+  })
 
 /**
  * Associate Sample With Run
@@ -2787,7 +2892,11 @@ export const removeSampleFromRun = <ThrowOnError extends boolean = false>(
     RemoveSampleFromRunResponses,
     RemoveSampleFromRunErrors,
     ThrowOnError
-  >({ url: '/api/v1/runs/{run_id}/samples/{sample_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/runs/{run_id}/samples/{sample_id}',
+    ...options,
+  })
 
 /**
  * Search Samples Get
@@ -2861,6 +2970,7 @@ export const searchSamplesPost = <ThrowOnError extends boolean = false>(
     SearchSamplesPostErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/samples/search',
     ...options,
     headers: {
@@ -2881,7 +2991,11 @@ export const reindexSamples = <ThrowOnError extends boolean = false>(
     ReindexSamplesResponses,
     unknown,
     ThrowOnError
-  >({ url: '/api/v1/samples/reindex', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/samples/reindex',
+    ...options,
+  })
 
 /**
  * Search
@@ -2913,7 +3027,11 @@ export const getSettingsByTag = <ThrowOnError extends boolean = false>(
     GetSettingsByTagResponses,
     GetSettingsByTagErrors,
     ThrowOnError
-  >({ url: '/api/v1/settings', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/settings',
+    ...options,
+  })
 
 /**
  * Get Setting
@@ -2927,17 +3045,23 @@ export const getSetting = <ThrowOnError extends boolean = false>(
     GetSettingResponses,
     GetSettingErrors,
     ThrowOnError
-  >({ url: '/api/v1/settings/{key}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/settings/{key}',
+    ...options,
+  })
 
 /**
- * Update a setting (superuser only)
+ * Update a setting
  *
  * Update a specific setting. Only the value, name, description, and tags can be updated.
  * The key cannot be changed as it's the primary identifier.
  *
  * Settings control platform-wide behaviour — including the data and results bucket
- * URIs and the manifest validation Lambda ARN — so writes require superuser
- * privileges.
+ * URIs and the manifest validation Lambda ARN — so writes require
+ * setting:update. That permission is the whole guard; there is no
+ * CurrentSuperuser dependency on top, which is what lets a platform_admin use
+ * the settings pages their role is for.
  */
 export const updateSetting = <ThrowOnError extends boolean = false>(
   options: Options<UpdateSettingData, ThrowOnError>,
@@ -2983,6 +3107,7 @@ export const addVendor = <ThrowOnError extends boolean = false>(
     AddVendorErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/vendors',
     ...options,
     headers: {
@@ -3003,7 +3128,11 @@ export const deleteVendor = <ThrowOnError extends boolean = false>(
     DeleteVendorResponses,
     DeleteVendorErrors,
     ThrowOnError
-  >({ url: '/api/v1/vendors/{vendor_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/vendors/{vendor_id}',
+    ...options,
+  })
 
 /**
  * Get Vendor
@@ -3017,7 +3146,11 @@ export const getVendor = <ThrowOnError extends boolean = false>(
     GetVendorResponses,
     GetVendorErrors,
     ThrowOnError
-  >({ url: '/api/v1/vendors/{vendor_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/vendors/{vendor_id}',
+    ...options,
+  })
 
 /**
  * Update Vendor
@@ -3032,6 +3165,7 @@ export const updateVendor = <ThrowOnError extends boolean = false>(
     UpdateVendorErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/vendors/{vendor_id}',
     ...options,
     headers: {
@@ -3177,7 +3311,11 @@ export const deleteWorkflowVersionAlias = <
     DeleteWorkflowVersionAliasResponses,
     DeleteWorkflowVersionAliasErrors,
     ThrowOnError
-  >({ url: '/api/v1/workflows/{workflow_id}/aliases/{alias}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/workflows/{workflow_id}/aliases/{alias}',
+    ...options,
+  })
 
 /**
  * Set Workflow Version Alias
@@ -3221,7 +3359,11 @@ export const getWorkflowVersionAliases = <ThrowOnError extends boolean = false>(
     GetWorkflowVersionAliasesResponses,
     GetWorkflowVersionAliasesErrors,
     ThrowOnError
-  >({ url: '/api/v1/workflows/{workflow_id}/aliases', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/workflows/{workflow_id}/aliases',
+    ...options,
+  })
 
 /**
  * Get Workflow Deployments For Workflow
@@ -3249,7 +3391,11 @@ export const getWorkflowDeploymentsForWorkflow = <
     GetWorkflowDeploymentsForWorkflowResponses,
     GetWorkflowDeploymentsForWorkflowErrors,
     ThrowOnError
-  >({ url: '/api/v1/workflows/{workflow_id}/deployments', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/workflows/{workflow_id}/deployments',
+    ...options,
+  })
 
 /**
  * Get Workflow Deployments
@@ -3268,6 +3414,7 @@ export const getWorkflowDeployments = <ThrowOnError extends boolean = false>(
     GetWorkflowDeploymentsErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments',
     ...options,
   })
@@ -3315,6 +3462,7 @@ export const deleteWorkflowDeployment = <ThrowOnError extends boolean = false>(
     DeleteWorkflowDeploymentErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/workflows/{workflow_id}/versions/{version_num}/deployments/{deployment_id}',
     ...options,
   })
@@ -3331,7 +3479,11 @@ export const getPipelines = <ThrowOnError extends boolean = false>(
     GetPipelinesResponses,
     GetPipelinesErrors,
     ThrowOnError
-  >({ url: '/api/v1/pipelines', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/pipelines',
+    ...options,
+  })
 
 /**
  * Create Pipeline
@@ -3371,7 +3523,11 @@ export const getPipelineById = <ThrowOnError extends boolean = false>(
     GetPipelineByIdResponses,
     GetPipelineByIdErrors,
     ThrowOnError
-  >({ url: '/api/v1/pipelines/{pipeline_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/pipelines/{pipeline_id}',
+    ...options,
+  })
 
 /**
  * Add Workflow To Pipeline
@@ -3414,6 +3570,7 @@ export const removeWorkflowFromPipeline = <
     RemoveWorkflowFromPipelineErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/pipelines/{pipeline_id}/workflows/{workflow_id}',
     ...options,
   })
@@ -3443,6 +3600,7 @@ export const createPlatform = <ThrowOnError extends boolean = false>(
     CreatePlatformErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/platforms',
     ...options,
     headers: {
@@ -3467,7 +3625,11 @@ export const getPlatformByName = <ThrowOnError extends boolean = false>(
     GetPlatformByNameResponses,
     GetPlatformByNameErrors,
     ThrowOnError
-  >({ url: '/api/v1/platforms/{name}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/platforms/{name}',
+    ...options,
+  })
 
 /**
  * Search Users
@@ -3493,7 +3655,51 @@ export const searchUsers = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * The permission catalog (superuser only)
+ * Set a user's status flags
+ *
+ * Activate, verify, or set the superuser flag. Omitted fields are unchanged.
+ *
+ * This is the route user:manage describes -- the permission has been in the
+ * catalog and in the admin role since RBAC landed, with nothing implementing
+ * it, so it granted nothing.
+ *
+ * is_active and is_verified are both required to authenticate, so clearing
+ * either one is an account lockout; the guardrails in api/rbac/services.py
+ * refuse the two lockouts that cannot be undone through the API, namely the
+ * last usable superuser and the last non-superuser role manager.
+ *
+ * user:manage is the only route guard, rather than that plus CurrentSuperuser,
+ * so the permission means what it says: an account holding it can deactivate a
+ * departed colleague without also being break-glass.
+ *
+ * Setting is_superuser is the exception, and it is checked in the service
+ * rather than here -- docs/RBAC.md asks for user:manage AND superuser on the
+ * break-glass flag, and that rule belongs to the mutation rather than to one
+ * way of reaching it. current_user is the acting user for those guardrails.
+ */
+export const updateUserFlags = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateUserFlagsData, ThrowOnError>,
+): RequestResult<
+  UpdateUserFlagsResponses,
+  UpdateUserFlagsErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    UpdateUserFlagsResponses,
+    UpdateUserFlagsErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/{username}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+
+/**
+ * The permission catalog
  *
  * Every permission the API recognises, with its risk and scopability.
  *
@@ -3515,7 +3721,7 @@ export const listPermissions = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * List roles (superuser only)
+ * List roles
  */
 export const listRoles = <ThrowOnError extends boolean = false>(
   options?: Options<ListRolesData, ThrowOnError>,
@@ -3527,7 +3733,7 @@ export const listRoles = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Create a custom role (superuser only)
+ * Create a custom role
  *
  * Custom roles are how "contributor without delete" and similar variants are
  * served, which is the reason roles are rows rather than code.
@@ -3550,7 +3756,7 @@ export const createRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Delete a custom role (superuser only)
+ * Delete a custom role
  */
 export const deleteRole = <ThrowOnError extends boolean = false>(
   options: Options<DeleteRoleData, ThrowOnError>,
@@ -3566,7 +3772,7 @@ export const deleteRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Get one role (superuser only)
+ * Get one role
  */
 export const getRole = <ThrowOnError extends boolean = false>(
   options: Options<GetRoleData, ThrowOnError>,
@@ -3580,7 +3786,7 @@ export const getRole = <ThrowOnError extends boolean = false>(
   )
 
 /**
- * Replace a custom role's permissions (superuser only)
+ * Replace a custom role's permissions
  */
 export const updateRolePermissions = <ThrowOnError extends boolean = false>(
   options: Options<UpdateRolePermissionsData, ThrowOnError>,
@@ -3623,7 +3829,7 @@ export const getMyAccess = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * A user's global roles (superuser only)
+ * A user's global roles
  */
 export const listUserRoles = <ThrowOnError extends boolean = false>(
   options: Options<ListUserRolesData, ThrowOnError>,
@@ -3639,7 +3845,7 @@ export const listUserRoles = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Grant a global role (superuser only)
+ * Grant a global role
  */
 export const grantUserRole = <ThrowOnError extends boolean = false>(
   options: Options<GrantUserRoleData, ThrowOnError>,
@@ -3659,7 +3865,7 @@ export const grantUserRole = <ThrowOnError extends boolean = false>(
   })
 
 /**
- * Revoke a global role (superuser only)
+ * Revoke a global role
  */
 export const revokeUserRole = <ThrowOnError extends boolean = false>(
   options: Options<RevokeUserRoleData, ThrowOnError>,
@@ -3671,5 +3877,53 @@ export const revokeUserRole = <ThrowOnError extends boolean = false>(
   >({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/rbac/users/{username}/roles/{role_name}',
+    ...options,
+  })
+
+/**
+ * The user roster
+ *
+ * Every local user account, with status flags and global roles.
+ *
+ * GET /users/search is the wrong endpoint for an administrator: it is the
+ * picker behind "grant a role to somebody", so it can answer from LDAP, it
+ * demands a query string, and it hides deactivated accounts -- which are
+ * exactly the accounts an administrator is looking for.
+ *
+ * `q` is an optional filter here rather than a required query, because the
+ * first thing this page has to do is show who exists.
+ */
+export const listUsers = <ThrowOnError extends boolean = false>(
+  options?: Options<ListUsersData, ThrowOnError>,
+): RequestResult<ListUsersResponses, ListUsersErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ListUsersResponses,
+    ListUsersErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/rbac/users',
+    ...options,
+  })
+
+/**
+ * One user's effective access
+ *
+ * Both grant planes and the break-glass flag for one user.
+ *
+ * The project memberships are the part that cannot be assembled from anything
+ * else: membership is otherwise only listable per project, so "which projects
+ * is this person on" has no answer without scanning every project.
+ */
+export const getUserAccess = <ThrowOnError extends boolean = false>(
+  options: Options<GetUserAccessData, ThrowOnError>,
+): RequestResult<GetUserAccessResponses, GetUserAccessErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    GetUserAccessResponses,
+    GetUserAccessErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/rbac/users/{username}/access',
     ...options,
   })

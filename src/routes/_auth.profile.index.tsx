@@ -6,6 +6,8 @@ import { resendVerificationMutation } from '@/client/@tanstack/react-query.gen'
 import { toastApiError } from '@/lib/error-utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { useMyAccess } from '@/hooks/use-my-access'
+import { RoleBadges } from '@/components/role-badges'
 import { ChangePasswordForm } from '@/components/change-password-form'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -17,6 +19,7 @@ export const Route = createFileRoute('/_auth/profile/')({
 
 function RouteComponent() {
   const { data: user } = useCurrentUser()
+  const { access } = useMyAccess()
 
   // Resend verification email mutation
   const resendVerificationEmail = useMutation({
@@ -102,8 +105,13 @@ function RouteComponent() {
                   <p className="text-sm">{user?.username || 'Not set'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Role</p>
-                  <p className="text-sm capitalize">{user?.is_superuser ? 'Administrator' : 'User'}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Roles</p>
+                  {/* The actual grants, not a guess from is_superuser: with RBAC
+                      a platform_admin who is not flagged as a superuser was
+                      being shown as plain "User". */}
+                  <div className="pt-0.5">
+                    <RoleBadges roles={access?.global_roles ?? []} emptyLabel="No roles granted" />
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Status</p>
