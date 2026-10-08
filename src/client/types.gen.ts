@@ -2198,9 +2198,9 @@ export type ProjectPublic = {
    */
   results_folder_uri: string | null
   /**
-   * Download Restricted
+   * Restricted
    */
-  download_restricted?: boolean
+  restricted?: boolean
   /**
    * Attributes
    */
@@ -2230,9 +2230,9 @@ export type ProjectUpdate = {
    */
   attributes?: Array<Attribute> | null
   /**
-   * Download Restricted
+   * Restricted
    */
-  download_restricted?: boolean | null
+  restricted?: boolean | null
 }
 
 /**
