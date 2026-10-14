@@ -223,7 +223,9 @@ export function JobsTable({
   const submittersQuery = {
     ...(projectId !== undefined && { project_id: projectId }),
     ...(runId !== undefined && { sequencing_run_id: runId }),
-    ...(debouncedSubmitterSearch.trim() !== '' && { q: debouncedSubmitterSearch.trim() }),
+    ...(debouncedSubmitterSearch.trim() !== '' && {
+      username: debouncedSubmitterSearch.trim(),
+    }),
     limit: submitterLimit,
   }
   const { data: submittersData, isFetching: isFetchingSubmitters } = useQuery({

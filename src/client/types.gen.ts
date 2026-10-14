@@ -5227,11 +5227,11 @@ export type GetJobSubmittersData = {
      */
     sequencing_run_id?: string | null
     /**
-     * Q
+     * Username
      *
      * Substring match on the username
      */
-    q?: string | null
+    username?: string | null
     /**
      * Skip
      */

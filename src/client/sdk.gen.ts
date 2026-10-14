@@ -1716,7 +1716,7 @@ export const submitJob = <ThrowOnError extends boolean = false>(
  * session: Database session
  * project_id: Optional project filter
  * sequencing_run_id: Optional sequencing run filter
- * q: Optional substring match on the username
+ * username: Optional substring match on the username
  * skip: Number of submitters to skip
  * limit: Maximum number of submitters to return
  *
