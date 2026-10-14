@@ -1562,7 +1562,11 @@ export type JobSubmitter = {
 /**
  * JobSubmittersPublic
  *
- * Schema for returning a page of the submitters of a set of jobs
+ * Schema for returning a page of the submitters of a set of jobs.
+ *
+ * Offset-based, shaped like the other skip/limit endpoints (SamplesPublic,
+ * VendorsPublic) rather than the bare {data, count} of BatchJobsPublic next
+ * door, so a caller reading one paginated response can read them all.
  */
 export type JobSubmittersPublic = {
   /**
@@ -1570,9 +1574,25 @@ export type JobSubmittersPublic = {
    */
   data: Array<JobSubmitter>
   /**
-   * Count
+   * Total Items
    */
-  count: number
+  total_items: number
+  /**
+   * Skip
+   */
+  skip: number
+  /**
+   * Limit
+   */
+  limit: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
 }
 
 /**

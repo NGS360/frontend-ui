@@ -240,9 +240,10 @@ export function JobsTable({
       submittedBy.job_count === 1 ? 'job' : 'jobs'
     }`,
   }))
-  // `count` is every submitter matching in the scope, not the page length.
-  const submittersTotal = submittersData?.count ?? 0
-  const hasMoreSubmitters = submittersTotal > submitterOptions.length
+  // `total_items` is every submitter matching in the scope, not the page
+  // length; `has_next` is the endpoint's own answer to whether more remain.
+  const submittersTotal = submittersData?.total_items ?? 0
+  const hasMoreSubmitters = submittersData?.has_next ?? false
 
   const [search, setSearch] = useState(initialSearch)
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS)

@@ -2398,8 +2398,8 @@ export const getJobSubmittersQueryKey = (
  * limit: Maximum number of submitters to return
  *
  * Returns:
- * A page of submitters, busiest first, and the total matching in the
- * scope -- which is how a caller knows whether more remain
+ * A page of submitters, busiest first, in the offset-based envelope the
+ * other skip/limit endpoints use
  */
 export const getJobSubmittersOptions = (
   options?: Options<GetJobSubmittersData>,
