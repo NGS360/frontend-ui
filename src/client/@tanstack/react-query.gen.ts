@@ -2049,6 +2049,20 @@ export const browseS3QueryKey = (options: Options<BrowseS3Data>) =>
  *
  * Returns a list of folders and files at the given path.
  * For S3, the full s3:// URI is required.
+ *
+ * Confined to the three locations the platform will sign for -- a project, a
+ * registered run folder, or a registered vendor inbound prefix -- since
+ * 2026-10-08. Enumerating a bucket and signing a key in it are the same class
+ * of problem, and this route had neither constraint: it would list any prefix
+ * the API's IAM role could read.
+ *
+ * Verified against production before the constraint was added: all 342
+ * distinct URIs this route received over 28 days resolve to a project, so
+ * nothing legitimate is refused.
+ *
+ * This is a *location* check, not an authorization check. The route remains
+ * unauthenticated -- closing that is consumer work tracked separately -- so
+ * the constraint deliberately does not depend on who is asking.
  */
 export const browseS3Options = (options: Options<BrowseS3Data>) =>
   queryOptions<
