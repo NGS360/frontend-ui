@@ -21,8 +21,9 @@ function Checkbox({
         data-slot="checkbox-indicator"
         className="group flex items-center justify-center text-current transition-none"
       >
-        <CheckIcon className="size-3.5 hidden group-data-[state=checked]:block" />
-        <MinusIcon className="size-3.5 hidden group-data-[state=indeterminate]:block" />
+        {/* text-current keeps the checkmark visible: it opts out of CommandItem's [&_svg:not([class*='text-'])] repaint. */}
+        <CheckIcon className="size-3.5 hidden text-current group-data-[state=checked]:block" />
+        <MinusIcon className="size-3.5 hidden text-current group-data-[state=indeterminate]:block" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )
