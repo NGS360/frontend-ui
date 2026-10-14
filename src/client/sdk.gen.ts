@@ -1710,7 +1710,7 @@ export const submitJob = <ThrowOnError extends boolean = false>(
  *
  * Paged and ranked by job count, because the set only ever grows -- a
  * submitter stays one forever. The filter offers the busiest few and narrows
- * by `q` as the caller types.
+ * by `username` as the caller types.
  *
  * Args:
  * session: Database session
