@@ -408,7 +408,10 @@ export type BatchJobUpdate = {
 /**
  * BatchJobsPublic
  *
- * Schema for returning multiple batch jobs
+ * Schema for returning a page of batch jobs.
+ *
+ * Offset-based, matching the skip/limit the endpoint actually takes and the
+ * envelope the other skip/limit endpoints use (SamplesPublic, VendorsPublic).
  */
 export type BatchJobsPublic = {
   /**
@@ -416,9 +419,25 @@ export type BatchJobsPublic = {
    */
   data: Array<BatchJobPublic>
   /**
-   * Count
+   * Total Items
    */
-  count: number
+  total_items: number
+  /**
+   * Skip
+   */
+  skip: number
+  /**
+   * Limit
+   */
+  limit: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
 }
 
 /**

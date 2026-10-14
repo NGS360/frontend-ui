@@ -439,8 +439,8 @@ export function JobsTable({
         columns={columns}
         pagination={pagination}
         onPaginationChange={setPagination}
-        pageCount={jobsData ? Math.ceil(jobsData.count / pagination.pageSize) : 0}
-        totalItems={jobsData?.count ?? 0}
+        pageCount={jobsData ? Math.ceil(jobsData.total_items / pagination.pageSize) : 0}
+        totalItems={jobsData?.total_items ?? 0}
         sorting={sorting}
         onSortingChange={setSorting}
         columnVisibility={columnVisibility}
