@@ -3595,6 +3595,59 @@ export type WorkflowDeploymentPublic = {
 }
 
 /**
+ * WorkflowInput
+ *
+ * One input parameter descriptor on a WorkflowVersion.
+ *
+ * `type` is the CWL type string (e.g. "File", "string?", "File[]"). Callers
+ * derive `required` themselves — a `?` suffix, a `["null", T]` union, or a
+ * present `default` all imply required=false. Storing it as a boolean keeps
+ * consumers from having to re-parse the type string.
+ */
+export type WorkflowInput = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Required
+   */
+  required: boolean
+  /**
+   * Doc
+   */
+  doc?: string | null
+  /**
+   * Default
+   */
+  default?: unknown | null
+}
+
+/**
+ * WorkflowOutput
+ *
+ * One output parameter descriptor on a WorkflowVersion.
+ */
+export type WorkflowOutput = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Doc
+   */
+  doc?: string | null
+}
+
+/**
  * WorkflowPublic
  */
 export type WorkflowPublic = {
@@ -3702,6 +3755,14 @@ export type WorkflowVersionCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Inputs
+   */
+  inputs?: Array<WorkflowInput> | null
+  /**
+   * Outputs
+   */
+  outputs?: Array<WorkflowOutput> | null
 }
 
 /**
@@ -3740,6 +3801,14 @@ export type WorkflowVersionPublic = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Inputs
+   */
+  inputs?: Array<WorkflowInput> | null
+  /**
+   * Outputs
+   */
+  outputs?: Array<WorkflowOutput> | null
 }
 
 /**
@@ -5152,7 +5221,7 @@ export type GetJobSubmittersData = {
      */
     limit?: number
   }
-  url: '/api/v1/jobs/submitters'
+  url: '/api/v1/jobs/stats/submitters'
 }
 
 export type GetJobSubmittersErrors = {

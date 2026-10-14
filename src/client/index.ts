@@ -933,6 +933,8 @@ export type {
   WorkflowCreate,
   WorkflowDeploymentCreate,
   WorkflowDeploymentPublic,
+  WorkflowInput,
+  WorkflowOutput,
   WorkflowPublic,
   WorkflowSummary,
   WorkflowVersionAliasPublic,

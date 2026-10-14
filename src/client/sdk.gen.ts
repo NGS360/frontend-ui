@@ -1691,7 +1691,7 @@ export const getJobSubmitters = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/jobs/submitters',
+    url: '/api/v1/jobs/stats/submitters',
     ...options,
   })
 
