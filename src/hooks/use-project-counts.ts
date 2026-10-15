@@ -53,7 +53,7 @@ export function useProjectJobCount(projectId: string) {
         query: { project_id: projectId, ...COUNT_ONLY },
         throwOnError: true,
       })
-      return response.data.count
+      return response.data.total_items
     },
     staleTime: COUNT_STALE_TIME,
   })

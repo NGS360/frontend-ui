@@ -2324,7 +2324,8 @@ export const getJobsQueryKey = (options?: Options<GetJobsData>) =>
  * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
  *
  * Returns:
- * List of jobs and total count
+ * A page of jobs in the offset-based envelope the other skip/limit
+ * endpoints use
  */
 export const getJobsOptions = (options?: Options<GetJobsData>) =>
   queryOptions<
