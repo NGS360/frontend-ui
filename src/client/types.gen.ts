@@ -1248,6 +1248,10 @@ export type FilePublic = {
    */
   created_by: string | null
   /**
+   * Submitted By
+   */
+  submitted_by: string | null
+  /**
    * Source
    */
   source: string | null
@@ -1356,10 +1360,6 @@ export type FileUpdate = {
    * Source
    */
   source?: string | null
-  /**
-   * Created By
-   */
-  created_by?: string | null
   /**
    * Storage Backend
    */
@@ -1542,6 +1542,58 @@ export type JobStatus =
   | 'RUNNING'
   | 'SUCCEEDED'
   | 'FAILED'
+
+/**
+ * JobSubmitter
+ *
+ * Schema for one submitter of a set of jobs
+ */
+export type JobSubmitter = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Job Count
+   */
+  job_count: number
+}
+
+/**
+ * JobSubmittersPublic
+ *
+ * Schema for returning a page of the submitters of a set of jobs.
+ *
+ * Offset-based, shaped like the other skip/limit endpoints (SamplesPublic,
+ * VendorsPublic) rather than the bare {data, count} of BatchJobsPublic next
+ * door, so a caller reading one paginated response can read them all.
+ */
+export type JobSubmittersPublic = {
+  /**
+   * Data
+   */
+  data: Array<JobSubmitter>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Skip
+   */
+  skip: number
+  /**
+   * Limit
+   */
+  limit: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
 
 /**
  * LogResponse
@@ -2136,6 +2188,10 @@ export type ProjectPublic = {
    */
   results_folder_uri: string | null
   /**
+   * Restricted
+   */
+  restricted?: boolean
+  /**
    * Attributes
    */
   attributes: Array<Attribute> | null
@@ -2159,6 +2215,10 @@ export type ProjectUpdate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Restricted
+   */
+  restricted?: boolean | null
 }
 
 /**
@@ -3555,6 +3615,59 @@ export type WorkflowDeploymentPublic = {
 }
 
 /**
+ * WorkflowInput
+ *
+ * One input parameter descriptor on a WorkflowVersion.
+ *
+ * `type` is the CWL type string (e.g. "File", "string?", "File[]"). Callers
+ * derive `required` themselves — a `?` suffix, a `["null", T]` union, or a
+ * present `default` all imply required=false. Storing it as a boolean keeps
+ * consumers from having to re-parse the type string.
+ */
+export type WorkflowInput = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Required
+   */
+  required: boolean
+  /**
+   * Doc
+   */
+  doc?: string | null
+  /**
+   * Default
+   */
+  default?: unknown | null
+}
+
+/**
+ * WorkflowOutput
+ *
+ * One output parameter descriptor on a WorkflowVersion.
+ */
+export type WorkflowOutput = {
+  /**
+   * Id
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: string
+  /**
+   * Doc
+   */
+  doc?: string | null
+}
+
+/**
  * WorkflowPublic
  */
 export type WorkflowPublic = {
@@ -3662,6 +3775,14 @@ export type WorkflowVersionCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Inputs
+   */
+  inputs?: Array<WorkflowInput> | null
+  /**
+   * Outputs
+   */
+  outputs?: Array<WorkflowOutput> | null
 }
 
 /**
@@ -3700,6 +3821,14 @@ export type WorkflowVersionPublic = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Inputs
+   */
+  inputs?: Array<WorkflowInput> | null
+  /**
+   * Outputs
+   */
+  outputs?: Array<WorkflowOutput> | null
 }
 
 /**
@@ -4801,7 +4930,7 @@ export type DownloadFileData = {
     /**
      * Path
      *
-     * S3 URI of file to download (e.g., s3://bucket/path/file.txt)
+     * S3 URI of the file
      */
     path: string
   }
@@ -4995,9 +5124,9 @@ export type GetJobsData = {
     /**
      * User
      *
-     * Filter by user
+     * Filter by submitter. Repeat the parameter to match any of several, e.g. ?user=alice&user=bob
      */
-    user?: string | null
+    user?: Array<string> | null
     /**
      * Status Filter
      *
@@ -5013,9 +5142,15 @@ export type GetJobsData = {
     /**
      * Sequencing Run Id
      *
-     * Filter by sequencing run (SequencingRun.run_id, e.g. 260506_VH01208_93_222FCGLNX)
+     * Filter by sequencing run (SequencingRun.run_id, e.g. 240101_VH00000_1_EXAMPLE01)
      */
     sequencing_run_id?: string | null
+    /**
+     * Search
+     *
+     * Free-text match across job id, name and user
+     */
+    search?: string | null
     /**
      * Sort By
      *
@@ -5074,6 +5209,60 @@ export type SubmitJobResponses = {
 }
 
 export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses]
+
+export type GetJobSubmittersData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Project Id
+     *
+     * Restrict to one project (Project.project_id, e.g. P-19900109-0001)
+     */
+    project_id?: string | null
+    /**
+     * Sequencing Run Id
+     *
+     * Restrict to one sequencing run (SequencingRun.run_id, e.g. 240101_VH00000_1_EXAMPLE01)
+     */
+    sequencing_run_id?: string | null
+    /**
+     * Username
+     *
+     * Substring match on the username
+     */
+    username?: string | null
+    /**
+     * Skip
+     */
+    skip?: number
+    /**
+     * Limit
+     */
+    limit?: number
+  }
+  url: '/api/v1/jobs/stats/submitters'
+}
+
+export type GetJobSubmittersErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetJobSubmittersError =
+  GetJobSubmittersErrors[keyof GetJobSubmittersErrors]
+
+export type GetJobSubmittersResponses = {
+  /**
+   * Successful Response
+   */
+  200: JobSubmittersPublic
+}
+
+export type GetJobSubmittersResponse =
+  GetJobSubmittersResponses[keyof GetJobSubmittersResponses]
 
 export type GetJobData = {
   body?: never

@@ -48,9 +48,13 @@ import { Route as UserOauthProviderCallbackImport } from './routes/_user.oauth.$
 import { Route as AuthRunsRunidSamplesheetRouteImport } from './routes/_auth.runs.$run_id.samplesheet.route'
 import { Route as AuthRunsRunidJobsRouteImport } from './routes/_auth.runs.$run_id.jobs.route'
 import { Route as AuthRunsRunidIndexqcRouteImport } from './routes/_auth.runs.$run_id.indexqc.route'
+import { Route as AuthProjectsProjectidSamplesRouteImport } from './routes/_auth.projects.$project_id.samples.route'
+import { Route as AuthProjectsProjectidJobsRouteImport } from './routes/_auth.projects.$project_id.jobs.route'
 import { Route as AuthRunsRunidSamplesheetIndexImport } from './routes/_auth.runs.$run_id.samplesheet.index'
 import { Route as AuthRunsRunidJobsIndexImport } from './routes/_auth.runs.$run_id.jobs.index'
 import { Route as AuthRunsRunidIndexqcIndexImport } from './routes/_auth.runs.$run_id.indexqc.index'
+import { Route as AuthProjectsProjectidSamplesIndexImport } from './routes/_auth.projects.$project_id.samples.index'
+import { Route as AuthProjectsProjectidJobsIndexImport } from './routes/_auth.projects.$project_id.jobs.index'
 
 // Create/Update Routes
 
@@ -281,6 +285,20 @@ const AuthRunsRunidIndexqcRouteRoute = AuthRunsRunidIndexqcRouteImport.update({
   getParentRoute: () => AuthRunsRunidRouteRoute,
 } as any)
 
+const AuthProjectsProjectidSamplesRouteRoute =
+  AuthProjectsProjectidSamplesRouteImport.update({
+    id: '/samples',
+    path: '/samples',
+    getParentRoute: () => AuthProjectsProjectidRouteRoute,
+  } as any)
+
+const AuthProjectsProjectidJobsRouteRoute =
+  AuthProjectsProjectidJobsRouteImport.update({
+    id: '/jobs',
+    path: '/jobs',
+    getParentRoute: () => AuthProjectsProjectidRouteRoute,
+  } as any)
+
 const AuthRunsRunidSamplesheetIndexRoute =
   AuthRunsRunidSamplesheetIndexImport.update({
     id: '/',
@@ -299,6 +317,20 @@ const AuthRunsRunidIndexqcIndexRoute = AuthRunsRunidIndexqcIndexImport.update({
   path: '/',
   getParentRoute: () => AuthRunsRunidIndexqcRouteRoute,
 } as any)
+
+const AuthProjectsProjectidSamplesIndexRoute =
+  AuthProjectsProjectidSamplesIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthProjectsProjectidSamplesRouteRoute,
+  } as any)
+
+const AuthProjectsProjectidJobsIndexRoute =
+  AuthProjectsProjectidJobsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthProjectsProjectidJobsRouteRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -486,6 +518,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserRegisterIndexImport
       parentRoute: typeof UserRouteImport
     }
+    '/_auth/projects/$project_id/jobs': {
+      id: '/_auth/projects/$project_id/jobs'
+      path: '/jobs'
+      fullPath: '/projects/$project_id/jobs'
+      preLoaderRoute: typeof AuthProjectsProjectidJobsRouteImport
+      parentRoute: typeof AuthProjectsProjectidRouteImport
+    }
+    '/_auth/projects/$project_id/samples': {
+      id: '/_auth/projects/$project_id/samples'
+      path: '/samples'
+      fullPath: '/projects/$project_id/samples'
+      preLoaderRoute: typeof AuthProjectsProjectidSamplesRouteImport
+      parentRoute: typeof AuthProjectsProjectidRouteImport
+    }
     '/_auth/runs/$run_id/indexqc': {
       id: '/_auth/runs/$run_id/indexqc'
       path: '/indexqc'
@@ -562,6 +608,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs/$run_id/'
       preLoaderRoute: typeof AuthRunsRunidIndexImport
       parentRoute: typeof AuthRunsRunidRouteImport
+    }
+    '/_auth/projects/$project_id/jobs/': {
+      id: '/_auth/projects/$project_id/jobs/'
+      path: '/'
+      fullPath: '/projects/$project_id/jobs/'
+      preLoaderRoute: typeof AuthProjectsProjectidJobsIndexImport
+      parentRoute: typeof AuthProjectsProjectidJobsRouteImport
+    }
+    '/_auth/projects/$project_id/samples/': {
+      id: '/_auth/projects/$project_id/samples/'
+      path: '/'
+      fullPath: '/projects/$project_id/samples/'
+      preLoaderRoute: typeof AuthProjectsProjectidSamplesIndexImport
+      parentRoute: typeof AuthProjectsProjectidSamplesRouteImport
     }
     '/_auth/runs/$run_id/indexqc/': {
       id: '/_auth/runs/$run_id/indexqc/'
@@ -722,12 +782,47 @@ const AuthProfileRouteRouteChildren: AuthProfileRouteRouteChildren = {
 const AuthProfileRouteRouteWithChildren =
   AuthProfileRouteRoute._addFileChildren(AuthProfileRouteRouteChildren)
 
+interface AuthProjectsProjectidJobsRouteRouteChildren {
+  AuthProjectsProjectidJobsIndexRoute: typeof AuthProjectsProjectidJobsIndexRoute
+}
+
+const AuthProjectsProjectidJobsRouteRouteChildren: AuthProjectsProjectidJobsRouteRouteChildren =
+  {
+    AuthProjectsProjectidJobsIndexRoute: AuthProjectsProjectidJobsIndexRoute,
+  }
+
+const AuthProjectsProjectidJobsRouteRouteWithChildren =
+  AuthProjectsProjectidJobsRouteRoute._addFileChildren(
+    AuthProjectsProjectidJobsRouteRouteChildren,
+  )
+
+interface AuthProjectsProjectidSamplesRouteRouteChildren {
+  AuthProjectsProjectidSamplesIndexRoute: typeof AuthProjectsProjectidSamplesIndexRoute
+}
+
+const AuthProjectsProjectidSamplesRouteRouteChildren: AuthProjectsProjectidSamplesRouteRouteChildren =
+  {
+    AuthProjectsProjectidSamplesIndexRoute:
+      AuthProjectsProjectidSamplesIndexRoute,
+  }
+
+const AuthProjectsProjectidSamplesRouteRouteWithChildren =
+  AuthProjectsProjectidSamplesRouteRoute._addFileChildren(
+    AuthProjectsProjectidSamplesRouteRouteChildren,
+  )
+
 interface AuthProjectsProjectidRouteRouteChildren {
+  AuthProjectsProjectidJobsRouteRoute: typeof AuthProjectsProjectidJobsRouteRouteWithChildren
+  AuthProjectsProjectidSamplesRouteRoute: typeof AuthProjectsProjectidSamplesRouteRouteWithChildren
   AuthProjectsProjectidIndexRoute: typeof AuthProjectsProjectidIndexRoute
 }
 
 const AuthProjectsProjectidRouteRouteChildren: AuthProjectsProjectidRouteRouteChildren =
   {
+    AuthProjectsProjectidJobsRouteRoute:
+      AuthProjectsProjectidJobsRouteRouteWithChildren,
+    AuthProjectsProjectidSamplesRouteRoute:
+      AuthProjectsProjectidSamplesRouteRouteWithChildren,
     AuthProjectsProjectidIndexRoute: AuthProjectsProjectidIndexRoute,
   }
 
@@ -869,6 +964,8 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof UserForgotPasswordIndexRoute
   '/login': typeof UserLoginIndexRoute
   '/register': typeof UserRegisterIndexRoute
+  '/projects/$project_id/jobs': typeof AuthProjectsProjectidJobsRouteRouteWithChildren
+  '/projects/$project_id/samples': typeof AuthProjectsProjectidSamplesRouteRouteWithChildren
   '/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcRouteRouteWithChildren
   '/runs/$run_id/jobs': typeof AuthRunsRunidJobsRouteRouteWithChildren
   '/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
@@ -880,6 +977,8 @@ export interface FileRoutesByFullPath {
   '/jobs/$job_id/': typeof AuthJobsJobidIndexRoute
   '/projects/$project_id/': typeof AuthProjectsProjectidIndexRoute
   '/runs/$run_id/': typeof AuthRunsRunidIndexRoute
+  '/projects/$project_id/jobs/': typeof AuthProjectsProjectidJobsIndexRoute
+  '/projects/$project_id/samples/': typeof AuthProjectsProjectidSamplesIndexRoute
   '/runs/$run_id/indexqc/': typeof AuthRunsRunidIndexqcIndexRoute
   '/runs/$run_id/jobs/': typeof AuthRunsRunidJobsIndexRoute
   '/runs/$run_id/samplesheet/': typeof AuthRunsRunidSamplesheetIndexRoute
@@ -907,6 +1006,8 @@ export interface FileRoutesByTo {
   '/jobs/$job_id': typeof AuthJobsJobidIndexRoute
   '/projects/$project_id': typeof AuthProjectsProjectidIndexRoute
   '/runs/$run_id': typeof AuthRunsRunidIndexRoute
+  '/projects/$project_id/jobs': typeof AuthProjectsProjectidJobsIndexRoute
+  '/projects/$project_id/samples': typeof AuthProjectsProjectidSamplesIndexRoute
   '/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcIndexRoute
   '/runs/$run_id/jobs': typeof AuthRunsRunidJobsIndexRoute
   '/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetIndexRoute
@@ -940,6 +1041,8 @@ export interface FileRoutesById {
   '/_user/forgot-password/': typeof UserForgotPasswordIndexRoute
   '/_user/login/': typeof UserLoginIndexRoute
   '/_user/register/': typeof UserRegisterIndexRoute
+  '/_auth/projects/$project_id/jobs': typeof AuthProjectsProjectidJobsRouteRouteWithChildren
+  '/_auth/projects/$project_id/samples': typeof AuthProjectsProjectidSamplesRouteRouteWithChildren
   '/_auth/runs/$run_id/indexqc': typeof AuthRunsRunidIndexqcRouteRouteWithChildren
   '/_auth/runs/$run_id/jobs': typeof AuthRunsRunidJobsRouteRouteWithChildren
   '/_auth/runs/$run_id/samplesheet': typeof AuthRunsRunidSamplesheetRouteRouteWithChildren
@@ -951,6 +1054,8 @@ export interface FileRoutesById {
   '/_auth/jobs/$job_id/': typeof AuthJobsJobidIndexRoute
   '/_auth/projects/$project_id/': typeof AuthProjectsProjectidIndexRoute
   '/_auth/runs/$run_id/': typeof AuthRunsRunidIndexRoute
+  '/_auth/projects/$project_id/jobs/': typeof AuthProjectsProjectidJobsIndexRoute
+  '/_auth/projects/$project_id/samples/': typeof AuthProjectsProjectidSamplesIndexRoute
   '/_auth/runs/$run_id/indexqc/': typeof AuthRunsRunidIndexqcIndexRoute
   '/_auth/runs/$run_id/jobs/': typeof AuthRunsRunidJobsIndexRoute
   '/_auth/runs/$run_id/samplesheet/': typeof AuthRunsRunidSamplesheetIndexRoute
@@ -984,6 +1089,8 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
+    | '/projects/$project_id/jobs'
+    | '/projects/$project_id/samples'
     | '/runs/$run_id/indexqc'
     | '/runs/$run_id/jobs'
     | '/runs/$run_id/samplesheet'
@@ -995,6 +1102,8 @@ export interface FileRouteTypes {
     | '/jobs/$job_id/'
     | '/projects/$project_id/'
     | '/runs/$run_id/'
+    | '/projects/$project_id/jobs/'
+    | '/projects/$project_id/samples/'
     | '/runs/$run_id/indexqc/'
     | '/runs/$run_id/jobs/'
     | '/runs/$run_id/samplesheet/'
@@ -1021,6 +1130,8 @@ export interface FileRouteTypes {
     | '/jobs/$job_id'
     | '/projects/$project_id'
     | '/runs/$run_id'
+    | '/projects/$project_id/jobs'
+    | '/projects/$project_id/samples'
     | '/runs/$run_id/indexqc'
     | '/runs/$run_id/jobs'
     | '/runs/$run_id/samplesheet'
@@ -1052,6 +1163,8 @@ export interface FileRouteTypes {
     | '/_user/forgot-password/'
     | '/_user/login/'
     | '/_user/register/'
+    | '/_auth/projects/$project_id/jobs'
+    | '/_auth/projects/$project_id/samples'
     | '/_auth/runs/$run_id/indexqc'
     | '/_auth/runs/$run_id/jobs'
     | '/_auth/runs/$run_id/samplesheet'
@@ -1063,6 +1176,8 @@ export interface FileRouteTypes {
     | '/_auth/jobs/$job_id/'
     | '/_auth/projects/$project_id/'
     | '/_auth/runs/$run_id/'
+    | '/_auth/projects/$project_id/jobs/'
+    | '/_auth/projects/$project_id/samples/'
     | '/_auth/runs/$run_id/indexqc/'
     | '/_auth/runs/$run_id/jobs/'
     | '/_auth/runs/$run_id/samplesheet/'
@@ -1209,6 +1324,8 @@ export const routeTree = rootRoute
       "filePath": "_auth.projects.$project_id.route.tsx",
       "parent": "/_auth/projects",
       "children": [
+        "/_auth/projects/$project_id/jobs",
+        "/_auth/projects/$project_id/samples",
         "/_auth/projects/$project_id/"
       ]
     },
@@ -1257,6 +1374,20 @@ export const routeTree = rootRoute
     "/_user/register/": {
       "filePath": "_user.register.index.tsx",
       "parent": "/_user"
+    },
+    "/_auth/projects/$project_id/jobs": {
+      "filePath": "_auth.projects.$project_id.jobs.route.tsx",
+      "parent": "/_auth/projects/$project_id",
+      "children": [
+        "/_auth/projects/$project_id/jobs/"
+      ]
+    },
+    "/_auth/projects/$project_id/samples": {
+      "filePath": "_auth.projects.$project_id.samples.route.tsx",
+      "parent": "/_auth/projects/$project_id",
+      "children": [
+        "/_auth/projects/$project_id/samples/"
+      ]
     },
     "/_auth/runs/$run_id/indexqc": {
       "filePath": "_auth.runs.$run_id.indexqc.route.tsx",
@@ -1310,6 +1441,14 @@ export const routeTree = rootRoute
     "/_auth/runs/$run_id/": {
       "filePath": "_auth.runs.$run_id.index.tsx",
       "parent": "/_auth/runs/$run_id"
+    },
+    "/_auth/projects/$project_id/jobs/": {
+      "filePath": "_auth.projects.$project_id.jobs.index.tsx",
+      "parent": "/_auth/projects/$project_id/jobs"
+    },
+    "/_auth/projects/$project_id/samples/": {
+      "filePath": "_auth.projects.$project_id.samples.index.tsx",
+      "parent": "/_auth/projects/$project_id/samples"
     },
     "/_auth/runs/$run_id/indexqc/": {
       "filePath": "_auth.runs.$run_id.indexqc.index.tsx",
