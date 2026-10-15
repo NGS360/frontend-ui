@@ -1,5 +1,8 @@
 import { API_BASE_URL } from '@/lib/api-base'
 
+// Inlined at build time; unset falls back to the API's Swagger UI.
+const HELP_URL = import.meta.env.VITE_HELP_URL || `${API_BASE_URL}/docs`
+
 export default function Footer() {
   return (
     <footer id="app-footer" className="mt-auto border-t w-full h-24">
@@ -8,7 +11,7 @@ export default function Footer() {
           <div id="app-footer-links" className="flex items-center justify-center gap-4 mb-2">
             <a 
               id="app-footer-docs-link"
-              href={`${API_BASE_URL}/docs`}
+              href={HELP_URL}
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:text-primary transition-colors font-medium"
