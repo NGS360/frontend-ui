@@ -152,6 +152,9 @@ import type {
   GetJobsData,
   GetJobsErrors,
   GetJobsResponses,
+  GetJobSubmittersData,
+  GetJobSubmittersErrors,
+  GetJobSubmittersResponses,
   GetLatestManifestData,
   GetLatestManifestErrors,
   GetLatestManifestResponses,
@@ -1061,7 +1064,11 @@ export const getAllConfigs = <ThrowOnError extends boolean = false>(
     GetAllConfigsResponses,
     unknown,
     ThrowOnError
-  >({ url: '/api/v1/actions/configs', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/actions/configs',
+    ...options,
+  })
 
 /**
  * Validate Action Config
@@ -1116,7 +1123,11 @@ export const getActionOptions = <ThrowOnError extends boolean = false>(
     GetActionOptionsResponses,
     unknown,
     ThrowOnError
-  >({ url: '/api/v1/actions/options', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/actions/options',
+    ...options,
+  })
 
 /**
  * Get Action Platforms
@@ -1133,7 +1144,11 @@ export const getActionPlatforms = <ThrowOnError extends boolean = false>(
     GetActionPlatformsResponses,
     unknown,
     ThrowOnError
-  >({ url: '/api/v1/actions/platforms', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/actions/platforms',
+    ...options,
+  })
 
 /**
  * Get Action Types
@@ -1154,7 +1169,11 @@ export const getActionTypes = <ThrowOnError extends boolean = false>(
     GetActionTypesResponses,
     GetActionTypesErrors,
     ThrowOnError
-  >({ url: '/api/v1/actions/types', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/actions/types',
+    ...options,
+  })
 
 /**
  * Chat
@@ -1325,7 +1344,11 @@ export const listFiles = <ThrowOnError extends boolean = false>(
     ListFilesResponses,
     ListFilesErrors,
     ThrowOnError
-  >({ url: '/api/v1/files', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/files',
+    ...options,
+  })
 
 /**
  * Create a new file record
@@ -1423,6 +1446,20 @@ export const uploadFile = <ThrowOnError extends boolean = false>(
  *
  * Returns a list of folders and files at the given path.
  * For S3, the full s3:// URI is required.
+ *
+ * Confined to the three locations the platform will sign for -- a project, a
+ * registered run folder, or a registered vendor inbound prefix -- since
+ * 2026-10-08. Enumerating a bucket and signing a key in it are the same class
+ * of problem, and this route had neither constraint: it would list any prefix
+ * the API's IAM role could read.
+ *
+ * Verified against production before the constraint was added: all 342
+ * distinct URIs this route received over 28 days resolve to a project, so
+ * nothing legitimate is refused.
+ *
+ * This is a *location* check, not an authorization check. The route remains
+ * unauthenticated -- closing that is consumer work tracked separately -- so
+ * the constraint deliberately does not depend on who is asking.
  */
 export const browseS3 = <ThrowOnError extends boolean = false>(
   options: Options<BrowseS3Data, ThrowOnError>,
@@ -1431,7 +1468,11 @@ export const browseS3 = <ThrowOnError extends boolean = false>(
     BrowseS3Responses,
     BrowseS3Errors,
     ThrowOnError
-  >({ url: '/api/v1/files/list', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/files/list',
+    ...options,
+  })
 
 /**
  * Download file from S3
@@ -1539,7 +1580,11 @@ export const getFile = <ThrowOnError extends boolean = false>(
   options: Options<GetFileData, ThrowOnError>,
 ): RequestResult<GetFileResponses, GetFileErrors, ThrowOnError> =>
   (options.client ?? client).get<GetFileResponses, GetFileErrors, ThrowOnError>(
-    { url: '/api/v1/files/{file_id}', ...options },
+    {
+      security: [{ scheme: 'bearer', type: 'http' }],
+      url: '/api/v1/files/{file_id}',
+      ...options,
+    },
   )
 
 /**
@@ -1605,15 +1650,17 @@ export const getFileVersions = <ThrowOnError extends boolean = false>(
  * session: Database session
  * skip: Number of records to skip
  * limit: Maximum number of records to return
- * user: Optional user filter
+ * user: Optional submitters to match; any one of them, not all
  * status_filter: Optional status filter
  * project_id: Optional project filter
  * sequencing_run_id: Optional sequencing run filter
+ * search: Optional free-text match across job id, name and user
  * sort_by: Field to sort by (defaults to 'submitted_on')
  * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
  *
  * Returns:
- * List of jobs and total count
+ * A page of jobs in the offset-based envelope the other skip/limit
+ * endpoints use
  */
 export const getJobs = <ThrowOnError extends boolean = false>(
   options?: Options<GetJobsData, ThrowOnError>,
@@ -1622,7 +1669,11 @@ export const getJobs = <ThrowOnError extends boolean = false>(
     GetJobsResponses,
     GetJobsErrors,
     ThrowOnError
-  >({ url: '/api/v1/jobs', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/jobs',
+    ...options,
+  })
 
 /**
  * Submit Job
@@ -1658,6 +1709,49 @@ export const submitJob = <ThrowOnError extends boolean = false>(
   })
 
 /**
+ * Get Job Submitters
+ *
+ * Retrieve a page of the submitters of the jobs in a scope.
+ *
+ * Supports the Submitted By filter on the jobs tables. GET /jobs matches `user`
+ * exactly and usernames are opaque ids, so the filter offers the submitters
+ * rather than asking for one to be typed. Scoped by the same project and run
+ * arguments as GET /jobs, so every option offered returns rows.
+ *
+ * Paged and ranked by job count, because the set only ever grows -- a
+ * submitter stays one forever. The filter offers the busiest few and narrows
+ * by `username` as the caller types.
+ *
+ * Args:
+ * session: Database session
+ * project_id: Optional project filter
+ * sequencing_run_id: Optional sequencing run filter
+ * username: Optional substring match on the username
+ * skip: Number of submitters to skip
+ * limit: Maximum number of submitters to return
+ *
+ * Returns:
+ * A page of submitters, busiest first, in the offset-based envelope the
+ * other skip/limit endpoints use
+ */
+export const getJobSubmitters = <ThrowOnError extends boolean = false>(
+  options?: Options<GetJobSubmittersData, ThrowOnError>,
+): RequestResult<
+  GetJobSubmittersResponses,
+  GetJobSubmittersErrors,
+  ThrowOnError
+> =>
+  (options?.client ?? client).get<
+    GetJobSubmittersResponses,
+    GetJobSubmittersErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/jobs/stats/submitters',
+    ...options,
+  })
+
+/**
  * Get Job
  *
  * Retrieve information about a specific batch job.
@@ -1673,6 +1767,7 @@ export const getJob = <ThrowOnError extends boolean = false>(
   options: Options<GetJobData, ThrowOnError>,
 ): RequestResult<GetJobResponses, GetJobErrors, ThrowOnError> =>
   (options.client ?? client).get<GetJobResponses, GetJobErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/jobs/{job_id}',
     ...options,
   })
@@ -1726,7 +1821,11 @@ export const getJobLog = <ThrowOnError extends boolean = false>(
     GetJobLogResponses,
     GetJobLogErrors,
     ThrowOnError
-  >({ url: '/api/v1/jobs/{job_id}/log', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/jobs/{job_id}/log',
+    ...options,
+  })
 
 /**
  * Get Job Log Paginated
@@ -1761,7 +1860,11 @@ export const getJobLogPaginated = <ThrowOnError extends boolean = false>(
     GetJobLogPaginatedResponses,
     GetJobLogPaginatedErrors,
     ThrowOnError
-  >({ url: '/api/v1/jobs/{job_id}/log/paginated', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/jobs/{job_id}/log/paginated',
+    ...options,
+  })
 
 /**
  * Get Latest Manifest
@@ -1938,7 +2041,11 @@ export const searchProjects = <ThrowOnError extends boolean = false>(
     SearchProjectsResponses,
     SearchProjectsErrors,
     ThrowOnError
-  >({ url: '/api/v1/projects/search', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects/search',
+    ...options,
+  })
 
 /**
  * Reindex Projects
@@ -1963,6 +2070,13 @@ export const reindexProjects = <ThrowOnError extends boolean = false>(
  *
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
+ *
+ * Guarded 2026-10-15. `project:read` is in the default role, so this refuses
+ * nobody who could reach it yesterday -- the guard is here for the *other*
+ * thing require_project_permission does: a project marked `restricted`
+ * requires membership, and that check lives in the guard. Without it a
+ * locked-down project still handed its metadata to any authenticated caller,
+ * which made `restricted` a half-measure.
  *
  * Carries `permissions`: what the calling user may do in this project. The
  * project plane is the only place that answer exists -- /rbac/me reports global
@@ -2062,7 +2176,11 @@ export const getProjectSamples = <ThrowOnError extends boolean = false>(
     GetProjectSamplesResponses,
     GetProjectSamplesErrors,
     ThrowOnError
-  >({ url: '/api/v1/projects/{project_id}/samples', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects/{project_id}/samples',
+    ...options,
+  })
 
 /**
  * Add Sample To Project
@@ -2574,7 +2692,11 @@ export const getRuns = <ThrowOnError extends boolean = false>(
     GetRunsResponses,
     GetRunsErrors,
     ThrowOnError
-  >({ url: '/api/v1/runs', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/runs',
+    ...options,
+  })
 
 /**
  * Add Run
@@ -2606,7 +2728,11 @@ export const searchRuns = <ThrowOnError extends boolean = false>(
     SearchRunsResponses,
     SearchRunsErrors,
     ThrowOnError
-  >({ url: '/api/v1/runs/search', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/runs/search',
+    ...options,
+  })
 
 /**
  * Reindex Runs
@@ -2638,7 +2764,11 @@ export const listDemultiplexWorkflows = <ThrowOnError extends boolean = false>(
     ListDemultiplexWorkflowsResponses,
     unknown,
     ThrowOnError
-  >({ url: '/api/v1/runs/demultiplex', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/runs/demultiplex',
+    ...options,
+  })
 
 /**
  * Submit Demultiplex Workflow Job
@@ -2715,6 +2845,7 @@ export const getRun = <ThrowOnError extends boolean = false>(
   options: Options<GetRunData, ThrowOnError>,
 ): RequestResult<GetRunResponses, GetRunErrors, ThrowOnError> =>
   (options.client ?? client).get<GetRunResponses, GetRunErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/runs/{run_id}',
     ...options,
   })
@@ -2758,7 +2889,11 @@ export const getRunSamplesheet = <ThrowOnError extends boolean = false>(
     GetRunSamplesheetResponses,
     GetRunSamplesheetErrors,
     ThrowOnError
-  >({ url: '/api/v1/runs/{run_id}/samplesheet', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/runs/{run_id}/samplesheet',
+    ...options,
+  })
 
 /**
  * Post Run Samplesheet
@@ -2799,7 +2934,11 @@ export const getRunMetrics = <ThrowOnError extends boolean = false>(
     GetRunMetricsResponses,
     GetRunMetricsErrors,
     ThrowOnError
-  >({ url: '/api/v1/runs/{run_id}/metrics', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/runs/{run_id}/metrics',
+    ...options,
+  })
 
 /**
  * Clear Samples For Run
@@ -3006,6 +3145,7 @@ export const search = <ThrowOnError extends boolean = false>(
   options: Options<SearchData, ThrowOnError>,
 ): RequestResult<SearchResponses, SearchErrors, ThrowOnError> =>
   (options.client ?? client).get<SearchResponses, SearchErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/search',
     ...options,
   })
@@ -3092,7 +3232,11 @@ export const getVendors = <ThrowOnError extends boolean = false>(
     GetVendorsResponses,
     GetVendorsErrors,
     ThrowOnError
-  >({ url: '/api/v1/vendors', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/vendors',
+    ...options,
+  })
 
 /**
  * Add Vendor
@@ -3186,7 +3330,11 @@ export const getWorkflows = <ThrowOnError extends boolean = false>(
     GetWorkflowsResponses,
     GetWorkflowsErrors,
     ThrowOnError
-  >({ url: '/api/v1/workflows', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/workflows',
+    ...options,
+  })
 
 /**
  * Create Workflow
@@ -3226,7 +3374,11 @@ export const getWorkflowById = <ThrowOnError extends boolean = false>(
     GetWorkflowByIdResponses,
     GetWorkflowByIdErrors,
     ThrowOnError
-  >({ url: '/api/v1/workflows/{workflow_id}', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/workflows/{workflow_id}',
+    ...options,
+  })
 
 /**
  * Get Workflow Versions
@@ -3244,7 +3396,11 @@ export const getWorkflowVersions = <ThrowOnError extends boolean = false>(
     GetWorkflowVersionsResponses,
     GetWorkflowVersionsErrors,
     ThrowOnError
-  >({ url: '/api/v1/workflows/{workflow_id}/versions', ...options })
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/workflows/{workflow_id}/versions',
+    ...options,
+  })
 
 /**
  * Create Workflow Version
@@ -3289,6 +3445,7 @@ export const getWorkflowVersion = <ThrowOnError extends boolean = false>(
     GetWorkflowVersionErrors,
     ThrowOnError
   >({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/workflows/{workflow_id}/versions/{version_num}',
     ...options,
   })
@@ -3584,7 +3741,11 @@ export const getPlatforms = <ThrowOnError extends boolean = false>(
   options?: Options<GetPlatformsData, ThrowOnError>,
 ): RequestResult<GetPlatformsResponses, unknown, ThrowOnError> =>
   (options?.client ?? client).get<GetPlatformsResponses, unknown, ThrowOnError>(
-    { url: '/api/v1/platforms', ...options },
+    {
+      security: [{ scheme: 'bearer', type: 'http' }],
+      url: '/api/v1/platforms',
+      ...options,
+    },
   )
 
 /**

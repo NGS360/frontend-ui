@@ -408,7 +408,10 @@ export type BatchJobUpdate = {
 /**
  * BatchJobsPublic
  *
- * Schema for returning multiple batch jobs
+ * Schema for returning a page of batch jobs.
+ *
+ * Offset-based, matching the skip/limit the endpoint actually takes and the
+ * envelope the other skip/limit endpoints use (SamplesPublic, VendorsPublic).
  */
 export type BatchJobsPublic = {
   /**
@@ -416,9 +419,25 @@ export type BatchJobsPublic = {
    */
   data: Array<BatchJobPublic>
   /**
-   * Count
+   * Total Items
    */
-  count: number
+  total_items: number
+  /**
+   * Skip
+   */
+  skip: number
+  /**
+   * Limit
+   */
+  limit: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
 }
 
 /**
@@ -1542,6 +1561,58 @@ export type JobStatus =
   | 'RUNNING'
   | 'SUCCEEDED'
   | 'FAILED'
+
+/**
+ * JobSubmitter
+ *
+ * Schema for one submitter of a set of jobs
+ */
+export type JobSubmitter = {
+  /**
+   * Username
+   */
+  username: string
+  /**
+   * Job Count
+   */
+  job_count: number
+}
+
+/**
+ * JobSubmittersPublic
+ *
+ * Schema for returning a page of the submitters of a set of jobs.
+ *
+ * Offset-based, shaped like the other skip/limit endpoints (SamplesPublic,
+ * VendorsPublic) rather than the bare {data, count} of BatchJobsPublic next
+ * door, so a caller reading one paginated response can read them all.
+ */
+export type JobSubmittersPublic = {
+  /**
+   * Data
+   */
+  data: Array<JobSubmitter>
+  /**
+   * Total Items
+   */
+  total_items: number
+  /**
+   * Skip
+   */
+  skip: number
+  /**
+   * Limit
+   */
+  limit: number
+  /**
+   * Has Next
+   */
+  has_next: boolean
+  /**
+   * Has Prev
+   */
+  has_prev: boolean
+}
 
 /**
  * LogResponse
@@ -5292,9 +5363,9 @@ export type GetJobsData = {
     /**
      * User
      *
-     * Filter by user
+     * Filter by submitter. Repeat the parameter to match any of several, e.g. ?user=alice&user=bob
      */
-    user?: string | null
+    user?: Array<string> | null
     /**
      * Status Filter
      *
@@ -5310,9 +5381,15 @@ export type GetJobsData = {
     /**
      * Sequencing Run Id
      *
-     * Filter by sequencing run (SequencingRun.run_id, e.g. 260506_VH01208_93_222FCGLNX)
+     * Filter by sequencing run (SequencingRun.run_id, e.g. 240101_VH00000_1_EXAMPLE01)
      */
     sequencing_run_id?: string | null
+    /**
+     * Search
+     *
+     * Free-text match across job id, name and user
+     */
+    search?: string | null
     /**
      * Sort By
      *
@@ -5371,6 +5448,60 @@ export type SubmitJobResponses = {
 }
 
 export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses]
+
+export type GetJobSubmittersData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Project Id
+     *
+     * Restrict to one project (Project.project_id, e.g. P-19900109-0001)
+     */
+    project_id?: string | null
+    /**
+     * Sequencing Run Id
+     *
+     * Restrict to one sequencing run (SequencingRun.run_id, e.g. 240101_VH00000_1_EXAMPLE01)
+     */
+    sequencing_run_id?: string | null
+    /**
+     * Username
+     *
+     * Substring match on the username
+     */
+    username?: string | null
+    /**
+     * Skip
+     */
+    skip?: number
+    /**
+     * Limit
+     */
+    limit?: number
+  }
+  url: '/api/v1/jobs/stats/submitters'
+}
+
+export type GetJobSubmittersErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type GetJobSubmittersError =
+  GetJobSubmittersErrors[keyof GetJobSubmittersErrors]
+
+export type GetJobSubmittersResponses = {
+  /**
+   * Successful Response
+   */
+  200: JobSubmittersPublic
+}
+
+export type GetJobSubmittersResponse =
+  GetJobSubmittersResponses[keyof GetJobSubmittersResponses]
 
 export type GetJobData = {
   body?: never

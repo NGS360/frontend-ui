@@ -59,6 +59,7 @@ import {
   getJobLog,
   getJobLogPaginated,
   getJobs,
+  getJobSubmitters,
   getLatestManifest,
   getMyAccess,
   getPipelineById,
@@ -291,6 +292,9 @@ import type {
   GetJobsData,
   GetJobsError,
   GetJobsResponse,
+  GetJobSubmittersData,
+  GetJobSubmittersError,
+  GetJobSubmittersResponse,
   GetLatestManifestData,
   GetLatestManifestError,
   GetLatestManifestResponse,
@@ -2057,6 +2061,20 @@ export const browseS3QueryKey = (options: Options<BrowseS3Data>) =>
  *
  * Returns a list of folders and files at the given path.
  * For S3, the full s3:// URI is required.
+ *
+ * Confined to the three locations the platform will sign for -- a project, a
+ * registered run folder, or a registered vendor inbound prefix -- since
+ * 2026-10-08. Enumerating a bucket and signing a key in it are the same class
+ * of problem, and this route had neither constraint: it would list any prefix
+ * the API's IAM role could read.
+ *
+ * Verified against production before the constraint was added: all 342
+ * distinct URIs this route received over 28 days resolve to a project, so
+ * nothing legitimate is refused.
+ *
+ * This is a *location* check, not an authorization check. The route remains
+ * unauthenticated -- closing that is consumer work tracked separately -- so
+ * the constraint deliberately does not depend on who is asking.
  */
 export const browseS3Options = (options: Options<BrowseS3Data>) =>
   queryOptions<
@@ -2309,15 +2327,17 @@ export const getJobsQueryKey = (options?: Options<GetJobsData>) =>
  * session: Database session
  * skip: Number of records to skip
  * limit: Maximum number of records to return
- * user: Optional user filter
+ * user: Optional submitters to match; any one of them, not all
  * status_filter: Optional status filter
  * project_id: Optional project filter
  * sequencing_run_id: Optional sequencing run filter
+ * search: Optional free-text match across job id, name and user
  * sort_by: Field to sort by (defaults to 'submitted_on')
  * sort_order: Sort order 'asc' or 'desc' (defaults to 'desc')
  *
  * Returns:
- * List of jobs and total count
+ * A page of jobs in the offset-based envelope the other skip/limit
+ * endpoints use
  */
 export const getJobsOptions = (options?: Options<GetJobsData>) =>
   queryOptions<
@@ -2377,6 +2397,57 @@ export const submitJobMutation = (
   }
   return mutationOptions
 }
+
+export const getJobSubmittersQueryKey = (
+  options?: Options<GetJobSubmittersData>,
+) => createQueryKey('getJobSubmitters', options)
+
+/**
+ * Get Job Submitters
+ *
+ * Retrieve a page of the submitters of the jobs in a scope.
+ *
+ * Supports the Submitted By filter on the jobs tables. GET /jobs matches `user`
+ * exactly and usernames are opaque ids, so the filter offers the submitters
+ * rather than asking for one to be typed. Scoped by the same project and run
+ * arguments as GET /jobs, so every option offered returns rows.
+ *
+ * Paged and ranked by job count, because the set only ever grows -- a
+ * submitter stays one forever. The filter offers the busiest few and narrows
+ * by `username` as the caller types.
+ *
+ * Args:
+ * session: Database session
+ * project_id: Optional project filter
+ * sequencing_run_id: Optional sequencing run filter
+ * username: Optional substring match on the username
+ * skip: Number of submitters to skip
+ * limit: Maximum number of submitters to return
+ *
+ * Returns:
+ * A page of submitters, busiest first, in the offset-based envelope the
+ * other skip/limit endpoints use
+ */
+export const getJobSubmittersOptions = (
+  options?: Options<GetJobSubmittersData>,
+) =>
+  queryOptions<
+    GetJobSubmittersResponse,
+    GetJobSubmittersError,
+    GetJobSubmittersResponse,
+    ReturnType<typeof getJobSubmittersQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getJobSubmitters({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      })
+      return data
+    },
+    queryKey: getJobSubmittersQueryKey(options),
+  })
 
 export const getJobQueryKey = (options: Options<GetJobData>) =>
   createQueryKey('getJob', options)
@@ -2911,6 +2982,13 @@ export const getProjectByProjectIdQueryKey = (
  *
  * Returns a single project by its project_id.
  * Note: This is different from its internal "id".
+ *
+ * Guarded 2026-10-15. `project:read` is in the default role, so this refuses
+ * nobody who could reach it yesterday -- the guard is here for the *other*
+ * thing require_project_permission does: a project marked `restricted`
+ * requires membership, and that check lives in the guard. Without it a
+ * locked-down project still handed its metadata to any authenticated caller,
+ * which made `restricted` a half-measure.
  *
  * Carries `permissions`: what the calling user may do in this project. The
  * project plane is the only place that answer exists -- /rbac/me reports global

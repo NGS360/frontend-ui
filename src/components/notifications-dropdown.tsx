@@ -27,7 +27,8 @@ export function NotificationsDropdown() {
       query: {
         ...DEFAULT_JOBS_QUERY_OPTIONS.query,
         limit: 10,
-        user: username
+        // The filter takes a list, so one submitter is a list of one
+        user: [username]
       }
     })
   })
