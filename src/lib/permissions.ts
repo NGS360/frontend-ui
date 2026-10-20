@@ -1,10 +1,16 @@
 /**
- * The permission vocabulary the UI references, and helpers for displaying it.
+ * Which permissions mean something to the UI, and helpers for displaying them.
  *
- * The API's catalog is the authority — GET /rbac/permissions serves all 57 —
- * and this file is deliberately not a copy of it. It names only the permissions
- * the UI itself branches on, so that a rename shows up as a compile error in
- * one place rather than as a string literal that silently stops matching.
+ * The vocabulary itself is not here. `Permission` is generated from the OpenAPI
+ * schema, so call sites write the permission as a literal and the compiler
+ * checks it against the API's own 57 -- a rename server-side fails the build
+ * rather than silently never matching. This file once mirrored a subset of
+ * those names; that mirror was deleted once the generated union made it
+ * redundant, descriptions and all, since GET /rbac/permissions already serves
+ * them.
+ *
+ * What is left is the part the API has no opinion on: which permission opens
+ * which admin section, and how to order, group and label them on screen.
  *
  * Gating in this app is advisory. The server is the enforcement point, and
  * deploy.sh ships the SPA and the API in one artifact, so a stale UI must never
@@ -20,31 +26,8 @@
  * the control from exactly the project owner it exists for.
  */
 
-export const PERMISSIONS = {
-  /** View roles, permissions and grants. */
-  ROLE_READ: 'role:read',
-  /** Create and edit roles, grant and revoke them. */
-  ROLE_MANAGE: 'role:manage',
-  /** Activate, verify and set superuser on users. */
-  USER_MANAGE: 'user:manage',
-  /** Create a vendor. Stands in for the vendors admin page as a whole. */
-  VENDOR_CREATE: 'vendor:create',
-  /** Change platform settings. Gates both settings pages. */
-  SETTING_UPDATE: 'setting:update',
-  /** View all users' jobs rather than only your own. */
-  JOB_READ_ALL: 'job:read_all',
+import type { Permission } from '@/client'
 
-  // Project-scoped. Held per project, so these are only meaningful against a
-  // project's own `permissions` list -- see useProjectAccess.
-  /** Add, change and remove project members. */
-  PROJECT_MANAGE_MEMBERS: 'project:manage_members',
-  /** Submit a pipeline job for a project. Spends compute. */
-  PROJECT_SUBMIT_ACTION: 'project:submit_action',
-  /** Ingest vendor data into a project. Spends compute, writes S3. */
-  PROJECT_INGEST: 'project:ingest',
-  /** Register samples on a project, including by manifest upload. */
-  SAMPLE_CREATE: 'sample:create',
-} as const
 
 /**
  * Every permission that opens some part of the admin area.
@@ -60,13 +43,20 @@ export const PERMISSIONS = {
  * section then filtered itself out.
  */
 export const ADMIN_SECTION_PERMISSIONS = [
-  PERMISSIONS.ROLE_READ,
-  PERMISSIONS.VENDOR_CREATE,
-  PERMISSIONS.SETTING_UPDATE,
-  PERMISSIONS.JOB_READ_ALL,
-] as const
+  'role:read',
+  'vendor:create',
+  'setting:update',
+  'job:read_all',
+] as const satisfies ReadonlyArray<Permission>
 
-export type PermissionName = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
+/**
+ * Any permission the API recognises, not just the ones named above.
+ *
+ * A thin alias of the generated union, kept so signatures read as "a
+ * permission" rather than as a 57-member type, and so this name survives if
+ * the generator's ever changes.
+ */
+export type PermissionName = Permission
 
 /** Risk levels, ordered by severity, as GET /rbac/permissions reports them. */
 export const RISK_ORDER = ['low', 'medium', 'high', 'critical'] as const

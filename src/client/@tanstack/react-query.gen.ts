@@ -4624,8 +4624,9 @@ export const getSettingOptions = (options: Options<GetSettingData>) =>
  * Settings control platform-wide behaviour — including the data and results bucket
  * URIs and the manifest validation Lambda ARN — so writes require
  * setting:update. That permission is the whole guard; there is no
- * CurrentSuperuser dependency on top, which is what lets a platform_admin use
- * the settings pages their role is for.
+ * CurrentSuperuser dependency on top, so holding the permission is enough --
+ * an `admin`, or a custom role granted setting:update, can work the settings
+ * pages without also being flagged break-glass.
  */
 export const updateSettingMutation = (
   options?: Partial<Options<UpdateSettingData>>,

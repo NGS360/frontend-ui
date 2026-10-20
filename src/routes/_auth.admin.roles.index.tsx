@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useMyAccess } from '@/hooks/use-my-access'
-import { PERMISSIONS } from '@/lib/permissions'
 
 // In the URL rather than component state, matching the roster: which plane you
 // are looking at is part of where you are, so a link to the project roles is a
@@ -123,7 +122,7 @@ function RouteComponent() {
             code and re-derived on every deploy; custom roles are yours to edit.
           </p>
         </div>
-        {can(PERMISSIONS.ROLE_MANAGE) && (
+        {can('role:manage') && (
           <CreateRoleForm
             idPrefix="admin-roles-create-role"
             trigger={

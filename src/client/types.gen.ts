@@ -1875,7 +1875,7 @@ export type MyAccessPublic = {
   /**
    * Global Permissions
    */
-  global_permissions: Array<string>
+  global_permissions: Array<Permission>
 }
 
 /**
@@ -1959,15 +1959,76 @@ export type PasswordResetRequest = {
 }
 
 /**
+ * Permission
+ *
+ * Every permission the API recognises. 57 across 18 resources.
+ */
+export type Permission =
+  | 'project:read'
+  | 'project:create'
+  | 'project:update'
+  | 'project:delete'
+  | 'project:manage_members'
+  | 'project:submit_action'
+  | 'project:ingest'
+  | 'sample:read'
+  | 'sample:create'
+  | 'sample:update'
+  | 'sample:delete'
+  | 'qcrecord:read'
+  | 'qcrecord:create'
+  | 'qcrecord:delete'
+  | 'file:read'
+  | 'file:download'
+  | 'file:create'
+  | 'file:update'
+  | 'file:delete'
+  | 'file:browse'
+  | 'run:read'
+  | 'run:create'
+  | 'run:update'
+  | 'run:associate'
+  | 'run:demux'
+  | 'job:read'
+  | 'job:read_all'
+  | 'job:submit'
+  | 'job:update'
+  | 'workflow:read'
+  | 'workflow:create'
+  | 'workflow:update'
+  | 'workflow:delete'
+  | 'workflow:deploy'
+  | 'pipeline:read'
+  | 'pipeline:create'
+  | 'pipeline:update'
+  | 'platform:read'
+  | 'platform:create'
+  | 'vendor:read'
+  | 'vendor:create'
+  | 'vendor:update'
+  | 'vendor:delete'
+  | 'setting:read'
+  | 'setting:update'
+  | 'manifest:read'
+  | 'manifest:upload'
+  | 'manifest:validate'
+  | 'action:read'
+  | 'action:validate'
+  | 'search:query'
+  | 'chat:use'
+  | 'user:read'
+  | 'user:manage'
+  | 'role:read'
+  | 'role:manage'
+  | 'system:reindex'
+
+/**
  * PermissionPublic
  *
  * One catalog entry, as returned by GET /rbac/permissions.
  */
 export type PermissionPublic = {
-  /**
-   * Permission
-   */
-  permission: string
+  permission: Permission
   /**
    * Resource
    */
@@ -2283,7 +2344,7 @@ export type ProjectPublic = {
   /**
    * Permissions
    */
-  permissions?: Array<string> | null
+  permissions?: Array<Permission> | null
 }
 
 /**
@@ -2663,7 +2724,7 @@ export type RolePublic = {
   /**
    * Permissions
    */
-  permissions: Array<string>
+  permissions: Array<Permission>
 }
 
 /**
@@ -3410,7 +3471,7 @@ export type UserAccessPublic = {
   /**
    * Global Permissions
    */
-  global_permissions: Array<string>
+  global_permissions: Array<Permission>
   /**
    * Project Memberships
    */

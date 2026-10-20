@@ -13,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { toastApiError } from '@/lib/error-utils'
-import { PERMISSIONS } from '@/lib/permissions'
 import { useMyAccess } from '@/hooks/use-my-access'
 
 interface UserFlagsCardProps {
@@ -41,7 +40,7 @@ export const UserFlagsCard = ({ user }: UserFlagsCardProps) => {
   const { can, access, isSuperuser } = useMyAccess()
   const [pendingFlag, setPendingFlag] = useState<Flag | null>(null)
 
-  const mayManage = can(PERMISSIONS.USER_MANAGE)
+  const mayManage = can('user:manage')
   const isSelf = access?.username === user.username
 
   // The break-glass flag takes user:manage AND being a superuser. That is the
@@ -110,7 +109,7 @@ export const UserFlagsCard = ({ user }: UserFlagsCardProps) => {
 
         {!mayManage && (
           <p className="text-xs text-muted-foreground">
-            Changing these requires {PERMISSIONS.USER_MANAGE}.
+            Changing these requires user:manage.
           </p>
         )}
         {mayManage && !isSuperuser && (

@@ -1,3 +1,5 @@
+import type { PermissionName } from '@/lib/permissions'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
@@ -19,7 +21,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toastApiError } from '@/lib/error-utils'
 import { useMyAccess } from '@/hooks/use-my-access'
-import { PERMISSIONS } from '@/lib/permissions'
 
 export const Route = createFileRoute('/_auth/admin/roles/$name/')({
   component: RouteComponent,
@@ -30,14 +31,14 @@ function RouteComponent() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { can } = useMyAccess()
-  const mayManage = can(PERMISSIONS.ROLE_MANAGE)
+  const mayManage = can('role:manage')
 
   const { data: role, error, refetch } = useQuery(getRoleOptions({ path: { name } }))
   const { data: catalog } = useQuery(listPermissionsOptions())
 
   // Draft state, so a half-finished edit is not a request. Reset whenever the
   // server's version changes, which also discards the draft after a save.
-  const [draft, setDraft] = useState<Array<string> | null>(null)
+  const [draft, setDraft] = useState<Array<PermissionName> | null>(null)
   useEffect(() => {
     setDraft(null)
   }, [role?.permissions.join(',')])

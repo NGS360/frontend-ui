@@ -14,7 +14,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useMyAccess } from "@/hooks/use-my-access"
-import { PERMISSIONS } from "@/lib/permissions"
 
 interface MenuItem {
   title: string
@@ -51,18 +50,18 @@ export const AdminSidebar = () => {
       label: "Navigation",
       items: [
         { title: "Admin Dashboard", icon: LayoutDashboard, url: "/admin" },
-        { title: "Vendors", icon: Handshake, url: "/admin/vendors", permission: PERMISSIONS.VENDOR_CREATE },
-        { title: "Project Settings", icon: Folder, url: "/admin/project-settings", permission: PERMISSIONS.SETTING_UPDATE },
-        { title: "Sequencing Run Settings", icon: Database, url: "/admin/run-settings", permission: PERMISSIONS.SETTING_UPDATE },
-        { title: "Jobs", icon: ListChecks, url: "/admin/jobs", permission: PERMISSIONS.JOB_READ_ALL },
+        { title: "Vendors", icon: Handshake, url: "/admin/vendors", permission: 'vendor:create' },
+        { title: "Project Settings", icon: Folder, url: "/admin/project-settings", permission: 'setting:update' },
+        { title: "Sequencing Run Settings", icon: Database, url: "/admin/run-settings", permission: 'setting:update' },
+        { title: "Jobs", icon: ListChecks, url: "/admin/jobs", permission: 'job:read_all' },
       ],
     },
     {
       label: "Access",
       items: [
-        { title: "Users", icon: Users, url: "/admin/users", permission: PERMISSIONS.ROLE_READ },
-        { title: "Roles", icon: ShieldCheck, url: "/admin/roles", permission: PERMISSIONS.ROLE_READ },
-        { title: "Permissions", icon: KeyRound, url: "/admin/permissions", permission: PERMISSIONS.ROLE_READ },
+        { title: "Users", icon: Users, url: "/admin/users", permission: 'role:read' },
+        { title: "Roles", icon: ShieldCheck, url: "/admin/roles", permission: 'role:read' },
+        { title: "Permissions", icon: KeyRound, url: "/admin/permissions", permission: 'role:read' },
       ],
     },
   ]

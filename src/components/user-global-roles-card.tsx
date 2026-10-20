@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { toastApiError } from '@/lib/error-utils'
-import { PERMISSIONS } from '@/lib/permissions'
 import { useMyAccess } from '@/hooks/use-my-access'
 
 interface UserGlobalRolesCardProps {
@@ -42,7 +41,7 @@ interface UserGlobalRolesCardProps {
 export const UserGlobalRolesCard = ({ user }: UserGlobalRolesCardProps) => {
   const queryClient = useQueryClient()
   const { can, access } = useMyAccess()
-  const mayManage = can(PERMISSIONS.ROLE_MANAGE)
+  const mayManage = can('role:manage')
   const [chosen, setChosen] = useState<string>('')
 
   const { data: roles } = useQuery(listRolesOptions())
@@ -174,7 +173,7 @@ export const UserGlobalRolesCard = ({ user }: UserGlobalRolesCardProps) => {
           </div>
         ) : (
           <p className="text-xs text-muted-foreground">
-            Granting and revoking requires {PERMISSIONS.ROLE_MANAGE}.
+            Granting and revoking requires role:manage.
           </p>
         )}
       </CardContent>

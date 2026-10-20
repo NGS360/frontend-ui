@@ -1,3 +1,5 @@
+import type { PermissionName } from '@/lib/permissions'
+
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 
@@ -5,7 +7,7 @@ import { PermissionMatrix } from './permission-matrix'
 import type { PermissionPublic } from '@/client'
 
 function entry(
-  permission: string,
+  permission: PermissionName,
   overrides: Partial<PermissionPublic> = {},
 ): PermissionPublic {
   const [resource] = permission.split(':')

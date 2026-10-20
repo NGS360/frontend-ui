@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import { hasAnyProjectPermission, hasProjectPermission } from './use-project-access'
 import type { ProjectPublic } from '@/client'
-import { PERMISSIONS } from '@/lib/permissions'
 
 function project(overrides: Partial<ProjectPublic> = {}): ProjectPublic {
   return {
@@ -14,19 +13,19 @@ function project(overrides: Partial<ProjectPublic> = {}): ProjectPublic {
     data_folder_uri: null,
     results_folder_uri: null,
     attributes: null,
-    permissions: [PERMISSIONS.SAMPLE_CREATE, PERMISSIONS.PROJECT_INGEST],
+    permissions: ['sample:create', 'project:ingest'],
     ...overrides,
   }
 }
 
 describe('hasProjectPermission', () => {
   it('is true for a permission held in this project', () => {
-    expect(hasProjectPermission(project(), PERMISSIONS.SAMPLE_CREATE)).toBe(true)
+    expect(hasProjectPermission(project(), 'sample:create')).toBe(true)
   })
 
   it('is false for one that is not', () => {
     expect(
-      hasProjectPermission(project(), PERMISSIONS.PROJECT_MANAGE_MEMBERS),
+      hasProjectPermission(project(), 'project:manage_members'),
     ).toBe(false)
   })
 
@@ -34,8 +33,8 @@ describe('hasProjectPermission', () => {
     expect(
       hasProjectPermission(
         project(),
-        PERMISSIONS.SAMPLE_CREATE,
-        PERMISSIONS.PROJECT_MANAGE_MEMBERS,
+        'sample:create',
+        'project:manage_members',
       ),
     ).toBe(false)
   })
@@ -43,21 +42,21 @@ describe('hasProjectPermission', () => {
   it('is false while the project is still loading', () => {
     // Undefined means "not known yet". Defaulting to true would flash controls
     // on screen and then take them away.
-    expect(hasProjectPermission(undefined, PERMISSIONS.SAMPLE_CREATE)).toBe(false)
+    expect(hasProjectPermission(undefined, 'sample:create')).toBe(false)
   })
 
   it('is false when the field was never populated', () => {
     // The list routes leave it unset and the detail route leaves it null for an
     // anonymous caller. Neither is evidence of access.
     expect(
-      hasProjectPermission(project({ permissions: null }), PERMISSIONS.SAMPLE_CREATE),
+      hasProjectPermission(project({ permissions: null }), 'sample:create'),
     ).toBe(false)
   })
 
   it('distinguishes holding nothing from not knowing', () => {
     // Both deny, but an empty list is a real answer -- the caller was evaluated.
     expect(
-      hasProjectPermission(project({ permissions: [] }), PERMISSIONS.SAMPLE_CREATE),
+      hasProjectPermission(project({ permissions: [] }), 'sample:create'),
     ).toBe(false)
   })
 
@@ -66,7 +65,7 @@ describe('hasProjectPermission', () => {
     // because the server resolves it with has_in_project. Nothing here should
     // fall back to /rbac/me: doing so would answer yes for every project.
     expect(
-      hasProjectPermission(project({ permissions: [] }), PERMISSIONS.PROJECT_INGEST),
+      hasProjectPermission(project({ permissions: [] }), 'project:ingest'),
     ).toBe(false)
   })
 })
@@ -76,8 +75,8 @@ describe('hasAnyProjectPermission', () => {
     expect(
       hasAnyProjectPermission(
         project(),
-        PERMISSIONS.PROJECT_MANAGE_MEMBERS,
-        PERMISSIONS.SAMPLE_CREATE,
+        'project:manage_members',
+        'sample:create',
       ),
     ).toBe(true)
   })
@@ -86,8 +85,8 @@ describe('hasAnyProjectPermission', () => {
     expect(
       hasAnyProjectPermission(
         project(),
-        PERMISSIONS.PROJECT_MANAGE_MEMBERS,
-        PERMISSIONS.PROJECT_SUBMIT_ACTION,
+        'project:manage_members',
+        'project:submit_action',
       ),
     ).toBe(false)
   })

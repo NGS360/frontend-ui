@@ -1,3 +1,5 @@
+import type { PermissionName } from '@/lib/permissions'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -98,7 +100,7 @@ export const CreateRoleForm: React.FC<CreateRoleFormProps> = ({ trigger, idPrefi
   // Control sheet open/close state
   const [isOpen, setIsOpen] = useState(false)
   const [scope, setScope] = useState<RoleScope>('global')
-  const [permissions, setPermissions] = useState<Array<string>>([])
+  const [permissions, setPermissions] = useState<Array<PermissionName>>([])
 
   const { data: catalog } = useQuery(listPermissionsOptions())
 

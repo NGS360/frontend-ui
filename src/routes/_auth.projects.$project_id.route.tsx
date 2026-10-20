@@ -15,7 +15,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useProjectAccess } from '@/hooks/use-project-access'
 import { useProjectJobCount, useProjectSampleCount } from '@/hooks/use-project-counts'
 import { entityIcons } from '@/lib/entity-icons'
-import { PERMISSIONS } from '@/lib/permissions'
 import { isValidHttpURL } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/projects/$project_id')({
@@ -59,9 +58,9 @@ function RouteComponent() {
   // Project-scoped, so the answer comes from the project's own permissions
   // rather than from useMyAccess. See hooks/use-project-access.ts.
   const { can } = useProjectAccess(project)
-  const canManageMembers = can(PERMISSIONS.PROJECT_MANAGE_MEMBERS)
-  const canIngest = can(PERMISSIONS.PROJECT_INGEST)
-  const canSubmitAction = can(PERMISSIONS.PROJECT_SUBMIT_ACTION)
+  const canManageMembers = can('project:manage_members')
+  const canIngest = can('project:ingest')
+  const canSubmitAction = can('project:submit_action')
 
   // Two shapes mean "no usable date" and both must be treated the same. The API
   // sends null when MySQL handed it a zero-date it could not parse (see

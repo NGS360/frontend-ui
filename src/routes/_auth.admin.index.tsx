@@ -8,7 +8,6 @@ import {
 } from '@/client/@tanstack/react-query.gen'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMyAccess } from '@/hooks/use-my-access'
-import { PERMISSIONS } from '@/lib/permissions'
 
 export const Route = createFileRoute('/_auth/admin/')({
   component: RouteComponent,
@@ -16,7 +15,7 @@ export const Route = createFileRoute('/_auth/admin/')({
 
 function RouteComponent() {
   const { can } = useMyAccess()
-  const mayReadAccess = can(PERMISSIONS.ROLE_READ)
+  const mayReadAccess = can('role:read')
 
   // limit=1 because only the count is wanted here. The roster page fetches the
   // rows; asking for a page of them to display one number would be waste.

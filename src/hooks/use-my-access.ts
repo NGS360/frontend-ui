@@ -24,11 +24,11 @@ export const myAccessQueryOptions = () => ({
 /**
  * Whether an access payload carries a permission. Superuser holds everything.
  *
- * Takes PermissionName rather than string so that a literal is not an option:
- * `hasPermission(access, 'role:raed')` has to be a compile error, or naming the
- * permissions in one place buys nothing. Renaming an entry in PERMISSIONS then
- * fails the build at every call site instead of silently matching nothing --
- * which, because a missing permission hides a control, is otherwise invisible.
+ * Takes PermissionName rather than string so a literal is checked against the
+ * API's own catalog: `hasPermission(access, 'role:raed')` is a compile error,
+ * and a permission renamed server-side fails the build at every call site
+ * instead of silently matching nothing -- which, because a missing permission
+ * hides a control, is otherwise invisible.
  */
 export function hasPermission(
   access: MyAccessPublic | undefined,

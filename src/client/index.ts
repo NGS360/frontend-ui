@@ -685,6 +685,7 @@ export type {
   PatchProjectErrors,
   PatchProjectResponse,
   PatchProjectResponses,
+  Permission,
   PermissionPublic,
   PipelineCreate,
   PipelinePublic,

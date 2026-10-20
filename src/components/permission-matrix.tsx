@@ -1,3 +1,5 @@
+import type { PermissionName } from '@/lib/permissions'
+
 import { useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import type { PermissionPublic } from '@/client'
@@ -16,9 +18,9 @@ interface PermissionMatrixProps {
   /** The catalog, from GET /rbac/permissions. */
   catalog: Array<PermissionPublic>
   /** Permission names currently held. */
-  selected: Array<string>
+  selected: Array<PermissionName>
   /** Omit to render read-only. */
-  onChange?: (next: Array<string>) => void
+  onChange?: (next: Array<PermissionName>) => void
   /**
    * Restrict to permissions a project-scoped role may hold. The server rejects
    * the rest with a 422, so offering them would be offering a mistake.
@@ -63,12 +65,12 @@ export const PermissionMatrix = ({
     return groupByResource(visible, (entry) => entry.permission)
   }, [catalog, filter, held, projectScopableOnly, selectedOnly])
 
-  const toggle = (permission: string, next: boolean) => {
+  const toggle = (permission: PermissionName, next: boolean) => {
     if (!onChange) return
     onChange(next ? [...selected, permission] : selected.filter((p) => p !== permission))
   }
 
-  const toggleResource = (permissions: Array<string>, next: boolean) => {
+  const toggleResource = (permissions: Array<PermissionName>, next: boolean) => {
     if (!onChange) return
     onChange(
       next

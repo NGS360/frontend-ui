@@ -14,7 +14,6 @@ import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ContainerDropzone, FileUpload, SAMPLESHEET_ACCEPT } from '@/components/file-upload'
 import { useProjectAccess } from '@/hooks/use-project-access'
-import { PERMISSIONS } from '@/lib/permissions'
 import { ErrorState } from '@/components/error-state'
 import { Button } from '@/components/ui/button'
 import { TableSelectionBanner } from '@/components/data-table/table-selection-banner'
@@ -65,7 +64,7 @@ function RouteComponent() {
   // useMyAccess: a global grant applies to every project and a project grant
   // never reaches /rbac/me, so the global check gets it wrong both ways.
   const { can } = useProjectAccess(project)
-  const canCreateSamples = can(PERMISSIONS.SAMPLE_CREATE)
+  const canCreateSamples = can('sample:create')
 
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
