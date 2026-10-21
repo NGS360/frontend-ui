@@ -131,6 +131,7 @@ import {
   searchSamplesGet,
   searchSamplesPost,
   searchUsers,
+  setProjectRestriction,
   setWorkflowVersionAlias,
   submitDemultiplexWorkflowJob,
   submitJob,
@@ -487,6 +488,9 @@ import type {
   SearchUsersData,
   SearchUsersError,
   SearchUsersResponse,
+  SetProjectRestrictionData,
+  SetProjectRestrictionError,
+  SetProjectRestrictionResponse,
   SetWorkflowVersionAliasData,
   SetWorkflowVersionAliasError,
   SetWorkflowVersionAliasResponse,
@@ -2808,6 +2812,11 @@ export const getProjectsInfiniteOptions = (
  * Create Project
  *
  * Create a new project with optional attributes.
+ *
+ * Pass `restricted` to create it already closed to non-members, rather than
+ * creating it open and restricting it on a second request. The creator is
+ * enrolled as its owner either way, so a restricted project still has
+ * somebody inside its allowlist.
  */
 export const createProjectMutation = (
   options?: Partial<Options<CreateProjectData>>,
@@ -3356,6 +3365,39 @@ export const ingestVendorDataMutation = (
   > = {
     mutationFn: async (fnOptions) => {
       const { data } = await ingestVendorData({
+        ...options,
+        ...fnOptions,
+        throwOnError: true,
+      })
+      return data
+    },
+  }
+  return mutationOptions
+}
+
+/**
+ * Set Project Restriction
+ *
+ * Lock this project to its members, or open it back up.
+ *
+ * A restricted project refuses every other project route to anyone who is not
+ * a member, so this decides who may reach it at all -- the same question the
+ * member list answers, which is why it takes the same permission.
+ */
+export const setProjectRestrictionMutation = (
+  options?: Partial<Options<SetProjectRestrictionData>>,
+): UseMutationOptions<
+  SetProjectRestrictionResponse,
+  SetProjectRestrictionError,
+  Options<SetProjectRestrictionData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    SetProjectRestrictionResponse,
+    SetProjectRestrictionError,
+    Options<SetProjectRestrictionData>
+  > = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await setProjectRestriction({
         ...options,
         ...fnOptions,
         throwOnError: true,

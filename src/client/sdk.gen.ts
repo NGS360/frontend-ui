@@ -354,6 +354,9 @@ import type {
   SearchUsersData,
   SearchUsersErrors,
   SearchUsersResponses,
+  SetProjectRestrictionData,
+  SetProjectRestrictionErrors,
+  SetProjectRestrictionResponses,
   SetWorkflowVersionAliasData,
   SetWorkflowVersionAliasErrors,
   SetWorkflowVersionAliasResponses,
@@ -1989,6 +1992,11 @@ export const getProjects = <ThrowOnError extends boolean = false>(
  * Create Project
  *
  * Create a new project with optional attributes.
+ *
+ * Pass `restricted` to create it already closed to non-members, rather than
+ * creating it open and restricting it on a second request. The creator is
+ * enrolled as its owner either way, so a restricted project still has
+ * somebody inside its allowlist.
  */
 export const createProject = <ThrowOnError extends boolean = false>(
   options: Options<CreateProjectData, ThrowOnError>,
@@ -2398,6 +2406,36 @@ export const ingestVendorData = <ThrowOnError extends boolean = false>(
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/projects/{project_id}/ingest',
     ...options,
+  })
+
+/**
+ * Set Project Restriction
+ *
+ * Lock this project to its members, or open it back up.
+ *
+ * A restricted project refuses every other project route to anyone who is not
+ * a member, so this decides who may reach it at all -- the same question the
+ * member list answers, which is why it takes the same permission.
+ */
+export const setProjectRestriction = <ThrowOnError extends boolean = false>(
+  options: Options<SetProjectRestrictionData, ThrowOnError>,
+): RequestResult<
+  SetProjectRestrictionResponses,
+  SetProjectRestrictionErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).put<
+    SetProjectRestrictionResponses,
+    SetProjectRestrictionErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/projects/{project_id}/restriction',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   })
 
 /**

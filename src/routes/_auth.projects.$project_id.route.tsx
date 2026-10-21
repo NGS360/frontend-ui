@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, Calendar, Clock, Cog, FolderCheck, FolderSearch, ListChecks, Pencil, Plus, SlidersHorizontal, Tag, User, Zap } from 'lucide-react'
+import { Building2, Calendar, Clock, Cog, FolderCheck, FolderSearch, ListChecks, Lock, Pencil, Plus, SlidersHorizontal, Tag, User, Zap } from 'lucide-react'
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import { getProjectByProjectId } from '@/client'
 import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
@@ -10,8 +10,10 @@ import { TabLink, TabNav } from '@/components/tab-nav'
 import { UpdateProjectForm } from '@/components/update-project-form'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useProjectAccess } from '@/hooks/use-project-access'
 import { useProjectJobCount, useProjectSampleCount } from '@/hooks/use-project-counts'
 import { entityIcons } from '@/lib/entity-icons'
@@ -90,12 +92,30 @@ function RouteComponent() {
             metadata line rather than floating beside the title. */}
         <div className='flex items-end justify-between gap-4'>
           <div className='min-w-0'>
-            <h1
-              className='text-2xl @3xl:text-3xl font-extralight break-words'
-              title={project.name ?? undefined}
-            >
-              {project.name}
-            </h1>
+            <div className='flex items-baseline gap-2 min-w-0'>
+              <h1
+                className='text-2xl @3xl:text-3xl font-extralight break-words min-w-0'
+                title={project.name ?? undefined}
+              >
+                {project.name}
+              </h1>
+              {project.restricted && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant='default' className='px-1.5'>
+                      <Lock />
+                      <span className='sr-only'>Restricted to members</span>
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className='max-w-xs'>
+                      Restricted to members. Only people on this project's
+                      member list can see it or download its files.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
             {showMetadata && (
               <div className='flex flex-col @2xl:flex-row @2xl:flex-wrap gap-1 @2xl:gap-3 mt-1 text-sm text-muted-foreground'>
                 {hasCreator && <span className='inline-flex items-center gap-1'><User size={14} />Created by <span className='font-semibold'>{project.created_by}</span></span>}
@@ -104,14 +124,6 @@ function RouteComponent() {
               </div>
             )}
           </div>
-          {/* A button rather than a tab: Samples and Jobs are the project's
-              data, this is the project's administration, and it sits above
-              them rather than beside them.
-
-              Suppressed on the settings page, which carries its own way back,
-              and for anyone who cannot manage membership -- the only thing
-              behind it. Membership is project-scoped, so the answer comes from
-              the project rather than from useMyAccess. */}
           {!onSettings && canManageMembers && (
             <Button
               id='project-settings-link'

@@ -2227,6 +2227,10 @@ export type ProjectCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Restricted
+   */
+  restricted?: boolean
 }
 
 /**
@@ -2348,6 +2352,16 @@ export type ProjectPublic = {
 }
 
 /**
+ * ProjectRestrictionUpdate
+ */
+export type ProjectRestrictionUpdate = {
+  /**
+   * Restricted
+   */
+  restricted: boolean
+}
+
+/**
  * ProjectUpdate
  *
  * Represents the data that can be updated for a project
@@ -2361,10 +2375,6 @@ export type ProjectUpdate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
-  /**
-   * Restricted
-   */
-  restricted?: boolean | null
 }
 
 /**
@@ -6422,6 +6432,38 @@ export type IngestVendorDataResponses = {
 
 export type IngestVendorDataResponse =
   IngestVendorDataResponses[keyof IngestVendorDataResponses]
+
+export type SetProjectRestrictionData = {
+  body: ProjectRestrictionUpdate
+  path: {
+    /**
+     * Project Id
+     */
+    project_id: string
+  }
+  query?: never
+  url: '/api/v1/projects/{project_id}/restriction'
+}
+
+export type SetProjectRestrictionErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError
+}
+
+export type SetProjectRestrictionError =
+  SetProjectRestrictionErrors[keyof SetProjectRestrictionErrors]
+
+export type SetProjectRestrictionResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProjectPublic
+}
+
+export type SetProjectRestrictionResponse =
+  SetProjectRestrictionResponses[keyof SetProjectRestrictionResponses]
 
 export type ListProjectMembersData = {
   body?: never
