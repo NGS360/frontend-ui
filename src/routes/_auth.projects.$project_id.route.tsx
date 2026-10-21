@@ -1,19 +1,18 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Building2, Calendar, Clock, Cog, FolderCheck, FolderSearch, ListChecks, Lock, Pencil, Plus, SlidersHorizontal, Tag, User, Zap } from 'lucide-react'
+import { Building2, Calendar, Clock, Cog, FolderCheck, FolderSearch, ListChecks, Pencil, Plus, SlidersHorizontal, Tag, User, Zap } from 'lucide-react'
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import { getProjectByProjectId } from '@/client'
 import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
 import { CopyableText } from '@/components/copyable-text'
 import { ExecuteActionForm } from '@/components/execute-action-form'
 import { FileBrowserDialog } from '@/components/file-browser'
+import { ProjectRestrictedBadge } from '@/components/project-badges'
 import { TabLink, TabNav } from '@/components/tab-nav'
 import { UpdateProjectForm } from '@/components/update-project-form'
 import { ValidateManifestForm } from '@/components/validate-manifest-form'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useProjectAccess } from '@/hooks/use-project-access'
 import { useProjectJobCount, useProjectSampleCount } from '@/hooks/use-project-counts'
 import { entityIcons } from '@/lib/entity-icons'
@@ -99,22 +98,7 @@ function RouteComponent() {
               >
                 {project.name}
               </h1>
-              {project.restricted && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant='default' className='px-1.5'>
-                      <Lock />
-                      <span className='sr-only'>Restricted to members</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className='max-w-xs'>
-                      Restricted to members. Only people on this project's
-                      member list can see it or download its files.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+              {project.restricted && <ProjectRestrictedBadge />}
             </div>
             {showMetadata && (
               <div className='flex flex-col @2xl:flex-row @2xl:flex-wrap gap-1 @2xl:gap-3 mt-1 text-sm text-muted-foreground'>
