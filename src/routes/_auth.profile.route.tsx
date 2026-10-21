@@ -13,6 +13,8 @@ import { Sidebar,
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getGravatarUrl } from '@/lib/utils'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { useMyAccess } from '@/hooks/use-my-access'
+import { RoleBadges } from '@/components/role-badges'
 
 export const Route = createFileRoute('/_auth/profile')({
   component: RouteComponent,
@@ -24,6 +26,7 @@ export const Route = createFileRoute('/_auth/profile')({
 
 function RouteComponent() {
   const { data: user } = useCurrentUser()
+  const { access } = useMyAccess()
   const userEmail = user?.email || ''
   const avatarUrl = getGravatarUrl(userEmail)
   const [activeSection, setActiveSection] = useState('user-info')
@@ -112,11 +115,9 @@ function RouteComponent() {
                 </div>
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">Role</span>
-                    <span className="text-sm text-muted-foreground">
-                      {user?.is_superuser ? 'Administrator' : 'User'}
-                    </span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium">Roles</span>
+                    <RoleBadges roles={access?.global_roles ?? []} emptyLabel="No roles granted" />
                   </div>
                 </div>
               </div>

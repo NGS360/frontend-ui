@@ -5,6 +5,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import type { SamplePublic } from '@/client/types.gen'
 import type { ColumnDef, Table as ReactTable, Row } from '@tanstack/react-table'
+import type { Accept } from 'react-dropzone'
 import type { SampleDiffResult } from '@/lib/sample-diff'
 import { classifyBulkUploadItems } from '@/lib/sample-diff'
 import { TableDiffBanner } from '@/components/data-table/table-diff-banner'
@@ -12,6 +13,7 @@ import { CopyableText } from '@/components/copyable-text'
 import { ClientDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { ContainerDropzone, FileUpload, SAMPLESHEET_ACCEPT } from '@/components/file-upload'
+import { useProjectAccess } from '@/hooks/use-project-access'
 import { ErrorState } from '@/components/error-state'
 import { Button } from '@/components/ui/button'
 import { TableSelectionBanner } from '@/components/data-table/table-selection-banner'
@@ -24,6 +26,25 @@ import { useAllPaginated } from '@/hooks/use-all-paginated'
 import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
 
 const RESERVED_SAMPLE_COLUMN_IDS = new Set(['sample_id'])
+
+interface MaybeDropzoneProps {
+  enabled: boolean
+  onDrop: (files: Array<File>) => void
+  subject: string
+  /** Accepted file types; forwarded to ContainerDropzone. */
+  accept?: Accept
+  children: React.ReactNode
+}
+
+/** ContainerDropzone when `enabled`, otherwise the children unwrapped. */
+const MaybeDropzone = ({ enabled, onDrop, subject, accept, children }: MaybeDropzoneProps) =>
+  enabled ? (
+    <ContainerDropzone onDrop={onDrop} subject={subject} accept={accept}>
+      {children}
+    </ContainerDropzone>
+  ) : (
+    <>{children}</>
+  )
 
 export const Route = createFileRoute('/_auth/projects/$project_id/samples/')({
   component: RouteComponent,
@@ -38,6 +59,12 @@ function RouteComponent() {
       path: { project_id }
     })
   )
+
+  // Project-scoped, so the answer comes from the project rather than from
+  // useMyAccess: a global grant applies to every project and a project grant
+  // never reaches /rbac/me, so the global check gets it wrong both ways.
+  const { can } = useProjectAccess(project)
+  const canCreateSamples = can('sample:create')
 
   // Column visibility (persisted in Zustand store per project)
   const { getVisibility, setVisibility } = useColumnVisibilityStore()
@@ -150,14 +177,16 @@ function RouteComponent() {
           e.target.value = ''
         }}
       />
-      <Button
-        variant='outline'
-        disabled={isUploadingSamples}
-        onClick={() => samplesFileInputRef.current?.click()}
-      >
-        <Upload />
-        {isUploadingSamples ? 'Uploading…' : 'Upload metadata'}
-      </Button>
+      {canCreateSamples && (
+        <Button
+          variant='outline'
+          disabled={isUploadingSamples}
+          onClick={() => samplesFileInputRef.current?.click()}
+        >
+          <Upload />
+          {isUploadingSamples ? 'Uploading…' : 'Upload metadata'}
+        </Button>
+      )}
       <Button
         variant='outline'
         disabled={isFetchingMore}
@@ -268,7 +297,12 @@ function RouteComponent() {
   return (
     <div className='animate-fade-in-up pt-4'>
       {allSamples.length > 0 ? (
-        <ContainerDropzone
+        // The dropzone wrapper is dropped rather than disabled for a
+        // caller who cannot register samples: it exists only to accept a
+        // file, and offering the overlay to someone the server will
+        // refuse is the misleading half of the control.
+        <MaybeDropzone
+          enabled={canCreateSamples}
           onDrop={onSamplesDrop}
           accept={SAMPLESHEET_ACCEPT}
           subject={isUploadingSamples ? 'sample metadata (upload in progress)' : 'sample metadata'}
@@ -287,8 +321,8 @@ function RouteComponent() {
             rowDecoration={samplesRowDecoration}
             enableRowSelectionColumn
           />
-        </ContainerDropzone>
-      ) : (
+        </MaybeDropzone>
+      ) : canCreateSamples ? (
         <FileUpload
           onDrop={onSamplesDrop}
           displayComponent={(
@@ -299,6 +333,10 @@ function RouteComponent() {
             </span>
           )}
         />
+      ) : (
+        <p className='mx-2 text-sm text-muted-foreground'>
+          No sample metadata available.
+        </p>
       )}
     </div>
   )
