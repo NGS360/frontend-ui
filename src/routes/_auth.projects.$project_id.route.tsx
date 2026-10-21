@@ -35,7 +35,7 @@ export const Route = createFileRoute('/_auth/projects/$project_id')({
 
     return ({
       crumb: projectData.data.name || projectData.data.project_id,
-      includeCrumbLink: false,
+      includeCrumbLink: true,
     })
   }
 })
