@@ -1,9 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Plus, Users } from 'lucide-react'
+import { LoaderCircle, Plus, Trash2, Users } from 'lucide-react'
+import { toast } from 'sonner'
 import z from 'zod'
 import type { RolePublic } from '@/client'
-import { listRolesOptions } from '@/client/@tanstack/react-query.gen'
+import { deleteRoleMutation, listRolesOptions, listRolesQueryKey } from '@/client/@tanstack/react-query.gen'
 import { CreateRoleForm } from '@/components/create-role-form'
 import { ErrorState } from '@/components/error-state'
 import { RoleBuiltinBadge, RoleScopeBadge } from '@/components/role-badges'
@@ -18,7 +19,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useMyAccess } from '@/hooks/use-my-access'
+import { toastApiError } from '@/lib/error-utils'
 
 // In the URL rather than component state, matching the roster: which plane you
 // are looking at is part of where you are, so a link to the project roles is a
@@ -40,9 +43,11 @@ export const Route = createFileRoute('/_auth/admin/roles/')({
 
 interface RolesTableProps {
   roles: Array<RolePublic>
+  onDelete?: (role: RolePublic) => void
+  deletingName?: string
 }
 
-const RolesTable = ({ roles }: RolesTableProps) => (
+const RolesTable = ({ roles, onDelete, deletingName }: RolesTableProps) => (
   <Table>
     <TableHeader>
       <TableRow>
@@ -79,18 +84,55 @@ const RolesTable = ({ roles }: RolesTableProps) => (
           </TableCell>
           <TableCell className="text-right text-sm">{role.permissions.length}</TableCell>
           <TableCell className="text-right">
-            {/* Holder counts have no endpoint, and one request per role to
-                fake them would be worse than a link that answers exactly
-                the question with a real filtered list. Project roles are
-                excluded: the roster filters on global grants only. */}
-            {role.scope === 'global' && (
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/admin/users" search={{ role: role.name }}>
-                  <Users className="h-4 w-4" />
-                  Holders
-                </Link>
-              </Button>
-            )}
+            <div className="flex items-center justify-end gap-1">
+              {/* Holder counts have no endpoint, and one request per role to
+                  fake them would be worse than a link that answers exactly
+                  the question with a real filtered list. Project roles are
+                  excluded: the roster filters on global grants only. */}
+              {role.scope === 'global' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin/users" search={{ role: role.name }}>
+                    <Users className="h-4 w-4" />
+                    Holders
+                  </Link>
+                </Button>
+              )}
+              {onDelete && (
+                role.is_builtin ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex">
+                        <Button variant="ghost" size="sm" disabled>
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete {role.display_name}</span>
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        Built-in roles are defined in code and re-derived on
+                        every deploy, so they cannot be deleted. Create a
+                        custom role instead.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    id={`admin-roles-delete-${role.name}`}
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    disabled={deletingName === role.name}
+                    onClick={() => onDelete(role)}
+                  >
+                    {deletingName === role.name
+                      ? <LoaderCircle className="h-4 w-4 animate-spin" />
+                      : <Trash2 className="h-4 w-4" />}
+                    <span className="sr-only">Delete {role.display_name}</span>
+                  </Button>
+                )
+              )}
+            </div>
           </TableCell>
         </TableRow>
       ))}
@@ -102,7 +144,28 @@ function RouteComponent() {
   const { can } = useMyAccess()
   const { scope } = Route.useSearch()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { data: roles, error, refetch } = useQuery(listRolesOptions())
+
+  const { mutate: remove, variables: removing, isPending: isDeleting } = useMutation({
+    ...deleteRoleMutation(),
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: listRolesQueryKey() })
+      toast.success(`Deleted ${variables.path.name}`)
+    },
+    onError: (mutationError, variables) =>
+      toastApiError(mutationError, `Could not delete ${variables.path.name}`),
+  })
+
+  const onDelete = can('role:manage')
+    ? (role: RolePublic) => {
+        const confirmed = window.confirm(
+          `Delete the role "${role.display_name}"? This cannot be undone.`,
+        )
+        if (confirmed) remove({ path: { name: role.name } })
+      }
+    : undefined
+  const deletingName = isDeleting ? removing.path.name : undefined
 
   if (error) return <ErrorState error={error} onRetry={() => { void refetch() }} />
   if (!roles) return <FullscreenSpinner variant="ellipsis" />
@@ -163,7 +226,7 @@ function RouteComponent() {
           <p className="text-sm text-muted-foreground">
             Granted platform-wide, and additive: a user may hold several.
           </p>
-          <RolesTable roles={globalRoles} />
+          <RolesTable roles={globalRoles} onDelete={onDelete} deletingName={deletingName} />
         </TabsContent>
 
         <TabsContent value="project" className="flex flex-col gap-2">
@@ -171,7 +234,7 @@ function RouteComponent() {
             Granted per project from the project page, one per user per project.
             Viewer, contributor and owner form a total order.
           </p>
-          <RolesTable roles={projectRoles} />
+          <RolesTable roles={projectRoles} onDelete={onDelete} deletingName={deletingName} />
         </TabsContent>
       </Tabs>
     </div>
