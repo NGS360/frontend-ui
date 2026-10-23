@@ -11,6 +11,7 @@ import { searchProjectsOptions } from '@/client/@tanstack/react-query.gen'
 import { ServerDataTable } from '@/components/data-table/data-table'
 import { SortableHeader } from '@/components/data-table/sortable-header'
 import { CopyableText } from '@/components/copyable-text'
+import { ProjectRestrictedBadge } from '@/components/project-badges'
 import { useDebounce } from '@/hooks/use-debounce';
 import { FullscreenSpinner } from '@/components/spinner';
 import { ErrorState } from '@/components/error-state';
@@ -139,9 +140,14 @@ function RouteComponent() {
         const attributes: Array<Attribute> = row.original.attributes ?? []
         return (
           <div className='flex flex-col gap-2 break-words whitespace-normal'>
-            <span className='text-sm'> {/* Use line-clamp-1 here to truncate */}
-              {highlightMatch(name, debouncedInput)}
-            </span>
+            <div className='flex items-start gap-2'>
+              <span className='text-sm'> {/* Use line-clamp-1 here to truncate */}
+                {highlightMatch(name, debouncedInput)}
+              </span>
+              {row.original.restricted && (
+                <ProjectRestrictedBadge className='mt-0.5' />
+              )}
+            </div>
             <div className='flex flex-wrap gap-0.5'>
               {attributes.map((a) => (
                 <div

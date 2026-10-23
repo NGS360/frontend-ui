@@ -1961,7 +1961,7 @@ export type PasswordResetRequest = {
 /**
  * Permission
  *
- * Every permission the API recognises. 57 across 18 resources.
+ * Every permission the API recognises. 58 across 18 resources.
  */
 export type Permission =
   | 'project:read'
@@ -1969,6 +1969,7 @@ export type Permission =
   | 'project:update'
   | 'project:delete'
   | 'project:manage_members'
+  | 'project:restrict'
   | 'project:submit_action'
   | 'project:ingest'
   | 'sample:read'
@@ -2227,6 +2228,10 @@ export type ProjectCreate = {
    * Attributes
    */
   attributes?: Array<Attribute> | null
+  /**
+   * Restricted
+   */
+  restricted?: boolean
 }
 
 /**

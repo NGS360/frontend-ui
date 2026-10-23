@@ -1,6 +1,9 @@
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
+import { getProjectByProjectIdOptions } from '@/client/@tanstack/react-query.gen'
 import { ProjectMembersCard } from '@/components/project-members-card'
+import { ProjectRestrictionCard } from '@/components/project-restriction-card'
 import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/_auth/projects/$project_id/settings/')({
@@ -16,6 +19,9 @@ export const Route = createFileRoute('/_auth/projects/$project_id/settings/')({
  */
 function RouteComponent() {
   const { project_id } = Route.useParams()
+  const { data: project } = useSuspenseQuery(
+    getProjectByProjectIdOptions({ path: { project_id } }),
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,6 +39,8 @@ function RouteComponent() {
           </Link>
         </Button>
       </div>
+
+      <ProjectRestrictionCard project={project} />
 
       <ProjectMembersCard projectId={project_id} />
     </div>

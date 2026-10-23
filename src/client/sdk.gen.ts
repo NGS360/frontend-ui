@@ -1989,6 +1989,9 @@ export const getProjects = <ThrowOnError extends boolean = false>(
  * Create Project
  *
  * Create a new project with optional attributes.
+ *
+ * Set `restricted` to lock the project to its members from the moment it
+ * exists, rather than creating it open and closing it in a second request.
  */
 export const createProject = <ThrowOnError extends boolean = false>(
   options: Options<CreateProjectData, ThrowOnError>,

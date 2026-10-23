@@ -11,6 +11,8 @@ import type { SubmitHandler } from "react-hook-form";
 import type { ProjectPublic } from "@/client"
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getFormApiErrorMessage } from "@/lib/error-utils";
@@ -41,7 +43,8 @@ const AttributeSchema = z.object({
 
 const CreateProjectSchema = z.object({
   name: z.string().nonempty(),
-  attributes: z.array(AttributeSchema)
+  attributes: z.array(AttributeSchema),
+  restricted: z.boolean(),
 })
 
 type FormFields = z.infer<typeof CreateProjectSchema>
@@ -90,7 +93,10 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
           key: "",
           value: ""
         }
-      ]
+      ],
+      // Unrestricted, matching the platform's resting posture and the API
+      // default. Opt-in, so the choice is always someone's rather than ours.
+      restricted: false,
     },
     resolver: zodResolver(CreateProjectSchema)
   })
@@ -172,7 +178,7 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
                   disabled
                 />
               </div>
-              <div className="grid gap-2 mb-6">
+              <div className="grid gap-2 mb-0">
                 <Label>Attributes</Label>
                 {fields.map((field, index) => (
                   <div className="grid gap-2" key={field.id}>
@@ -253,6 +259,38 @@ export const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ trigger, i
 
                 </div>
               </div>
+              <Accordion type="single" collapsible className="w-full mb-4">
+                <AccordionItem value="advanced" className="border-b-0 [&>h3]:py-0">
+                  <AccordionTrigger className="py-2 text-sm font-normal">
+                    Advanced options
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-1">
+                    <div className="flex items-start gap-3">
+                      <Controller
+                        control={control}
+                        name="restricted"
+                        render={({ field: fieldValue }) => (
+                          <Checkbox
+                            id={`${baseId}-restricted`}
+                            className="mt-0.5"
+                            checked={fieldValue.value}
+                            onCheckedChange={(checked) => fieldValue.onChange(checked === true)}
+                          />
+                        )}
+                      />
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor={`${baseId}-restricted`}>Restrict to members</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Only people you add to the project will be able to see
+                          it or download its files. You are added as its owner,
+                          so you keep access either way, and this can be changed
+                          later in the project's settings.
+                        </p>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
               {errors.root && (
                 <div className="text-red-500 text-sm text-center">
                   {errors.root.message}
