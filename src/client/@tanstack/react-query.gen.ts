@@ -2808,6 +2808,9 @@ export const getProjectsInfiniteOptions = (
  * Create Project
  *
  * Create a new project with optional attributes.
+ *
+ * Set `restricted` to lock the project to its members from the moment it
+ * exists, rather than creating it open and closing it in a second request.
  */
 export const createProjectMutation = (
   options?: Partial<Options<CreateProjectData>>,
