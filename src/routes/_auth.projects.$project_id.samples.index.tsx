@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { CheckCircle2, Download, Plus, Upload } from 'lucide-react'
 import { createFileRoute } from '@tanstack/react-router'
@@ -21,7 +21,7 @@ import { highlightMatch } from '@/lib/utils'
 import { getProjectSamples } from '@/client/sdk.gen'
 import { FullscreenSpinner } from '@/components/spinner'
 import { TableProgressBanner } from '@/components/data-table/table-progress-banner'
-import { useColumnVisibilityStore } from '@/stores/column-visibility-store'
+import { useProjectColumnVisibility } from '@/stores/column-visibility-store'
 import { useAllPaginated } from '@/hooks/use-all-paginated'
 import { getProjectByProjectIdOptions, uploadSamplesFileMutation } from '@/client/@tanstack/react-query.gen'
 
@@ -66,19 +66,13 @@ function RouteComponent() {
   const { can } = useProjectAccess(project)
   const canCreateSamples = can('sample:create')
 
-  // Column visibility (persisted in Zustand store per project)
-  const { getVisibility, setVisibility } = useColumnVisibilityStore()
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
-    getVisibility(project.project_id) || {}
+  // Column visibility, kept per project in the store.
+  const [columnVisibility, setColumnVisibility] = useProjectColumnVisibility(
+    project.project_id
   )
 
   // Global filter for search
   const [globalFilter, setGlobalFilter] = useState<string>('')
-
-  // Sync column visibility to Zustand store when it changes
-  useEffect(() => {
-    setVisibility(project.project_id, columnVisibility)
-  }, [columnVisibility, project.project_id, setVisibility])
 
   // Fetch all samples using the use-all-paginated hook
   const samplesQueryKey = ['samples', 'all', project.project_id]
