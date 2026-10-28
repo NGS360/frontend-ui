@@ -168,6 +168,7 @@ function RouteComponent() {
       {/* Tool Execution Dialog */}
       {selectedToolConfig && (
         <ExecuteToolForm
+          key={selectedToolConfig.workflow_id}
           idPrefix={`run-${run.run_id}-execute-demux-${selectedToolConfig.workflow_id}`}
           toolConfig={selectedToolConfig}
           runId={run.run_id}
