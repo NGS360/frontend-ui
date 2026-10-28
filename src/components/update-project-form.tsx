@@ -92,7 +92,8 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
     watch,
     formState: { errors, isSubmitting },
   } = useForm<FormFields>({
-    defaultValues: {
+    // use `values` for edit and `defaultValues` for create
+    values: {
       name: projectName || "",
       attributes: projectAttributes && projectAttributes.length > 0
         ? projectAttributes.map(attr => ({ key: attr.key || "", value: attr.value || "" }))

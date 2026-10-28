@@ -57,7 +57,8 @@ export const UpdateVendorForm: React.FC<UpdateVendorFormProps> = ({
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormFields>({
-    defaultValues: {
+    // use `values` for edit and `defaultValues` for create
+    values: {
       name: vendor.name,
       description: vendor.description,
       bucket: vendor.bucket || "",
