@@ -14,6 +14,8 @@ function RouteComponent() {
   return (
     <div className='pt-4'>
       <JobsTable
+        // remount so filters and paging do not carry over
+        key={run_id}
         runId={run_id}
         notFoundComponent='No jobs have been submitted for this run.'
       />

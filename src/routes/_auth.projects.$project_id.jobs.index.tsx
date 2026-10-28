@@ -14,6 +14,8 @@ function RouteComponent() {
   return (
     <div className='animate-fade-in-up pt-4'>
       <JobsTable
+        // remount so filters and paging do not carry over
+        key={project_id}
         projectId={project_id}
         notFoundComponent='No jobs have been submitted for this project.'
       />
