@@ -102,12 +102,17 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
     resolver: zodResolver(UpdateProjectSchema)
   })
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     name: "attributes",
     control,
   })
 
   const watchAttributes = watch("attributes");
+
+  // One blank row is the empty state, so there is nothing left to delete.
+  const hasNothingToRemove = watchAttributes.length < 2 &&
+    !watchAttributes[0]?.key?.trim() &&
+    !watchAttributes[0]?.value?.trim();
 
   // Mutation
   const queryClient = useQueryClient();
@@ -248,9 +253,18 @@ export const UpdateProjectForm: React.FC<UpdateProjectFormProps> = ({
                       <Button
                         id={`${baseId}-remove-attribute-${index}`}
                         variant='ghost'
+                        type="button"
                         className='hover:bg-destructive/10 group'
-                        disabled={watchAttributes.length < 2}
-                        onClick={() => remove(index)}
+                        disabled={hasNothingToRemove}
+                        onClick={() => {
+                          // Removing the last row would leave the list empty,
+                          // which the layout does not render; blank it instead.
+                          if (watchAttributes.length < 2) {
+                            replace([{ key: "", value: "" }]);
+                          } else {
+                            remove(index);
+                          }
+                        }}
                       >
                         <Trash2Icon className='size-4 text-destructive' />
                       </Button>
