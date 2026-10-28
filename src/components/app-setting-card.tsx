@@ -18,7 +18,8 @@ interface SettingCardProps {
 
 export const SettingCard = ({ setting, isPending, onSave, inputType = 'text' }: SettingCardProps) => {
   const { register, handleSubmit, watch, reset } = useForm({
-    defaultValues: {
+    // use `values` for edit and `defaultValues` for create
+    values: {
       value: setting.value,
     },
   })
