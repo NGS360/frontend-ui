@@ -42,14 +42,15 @@ export const Route = createFileRoute('/_user/oauth/$provider/callback')({
   errorComponent: OAuthErrorComponent,
 })
 
-function OAuthErrorComponent({ error }: { error: Error }) {
+function OAuthErrorComponent({ error }: { error: unknown }) {
+  const message = error instanceof Error ? error.message : String(error)
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center max-w-md p-6 bg-destructive/10 rounded-lg border border-destructive">
         <h2 className="text-2xl font-bold text-destructive mb-4">
           Authentication Error
         </h2>
-        <p className="text-muted-foreground mb-4">{error.message}</p>
+        <p className="text-muted-foreground mb-4">{message}</p>
         <a
           href="/login"
           className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
