@@ -268,7 +268,7 @@ function RouteComponent() {
                       rootPath={`${project.results_folder_uri}`}
                     />
 
-                    {/* Vendor Data. Ends in POST /projects/{id}/ingest. */}
+                    {/* Vendor Data. Ends in POST /projects/{id}/actions/ingest. */}
                     {canIngest && (
                     <ValidateManifestForm
                       idPrefix={`project-${project.project_id}-validate-manifest`}

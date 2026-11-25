@@ -2399,7 +2399,7 @@ export const ingestVendorData = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/projects/{project_id}/ingest',
+    url: '/api/v1/projects/{project_id}/actions/ingest',
     ...options,
   })
 

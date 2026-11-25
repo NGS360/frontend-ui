@@ -6405,7 +6405,7 @@ export type IngestVendorDataData = {
      */
     manifest_uri: string
   }
-  url: '/api/v1/projects/{project_id}/ingest'
+  url: '/api/v1/projects/{project_id}/actions/ingest'
 }
 
 export type IngestVendorDataErrors = {
